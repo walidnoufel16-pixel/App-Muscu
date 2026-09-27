@@ -2431,13 +2431,13 @@ function pseudoScreen(){
 async function signIn(){
   const i=document.getElementById('pin'), err=document.getElementById('perr');
   const champMail=document.getElementById('pmail');
-  const p=(i.value||'').trim();
+  const p=sansBalise((i.value||'').trim());
   const mail=((champMail&&champMail.value)||'').trim().toLowerCase();
   if(p.length<2){err.textContent="Deux caractères au minimum.";return}
   /* L'adresse est facultative, mais si elle est saisie elle doit être plausible :
      autant le dire ici plutôt que d'envoyer un mail dans le vide. */
   if(mail&&!valideMail(mail)){err.textContent="Cette adresse n'a pas l'air valide. Corrige-la, ou laisse le champ vide.";return}
-  p=sansBalise(p); PSEUDO=p; localStorage.setItem(PKEY,p);
+  PSEUDO=p; localStorage.setItem(PKEY,p);
   err.textContent="Création du compte…";
   try{
     const {data,error}=await sb.auth.signInAnonymously();
