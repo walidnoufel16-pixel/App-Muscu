@@ -72,6 +72,18 @@ supabase db push                                   # nouvelles migrations
 supabase functions deploy generer oublier          # fonctions Edge
 ```
 
+La liste d'exercices de l'IA (`LIB` dans `generer`) est générée depuis celle de l'app (`EX` dans `public/index.html`).
+Après toute modification de la bibliothèque :
+
+```bash
+node scripts/sync-lib.mjs            # recopie EX dans generer/index.ts
+node scripts/sync-lib.mjs --check    # vérifie que les deux listes sont identiques
+supabase functions deploy generer
+```
+
+Si la bibliothèque ou les règles de l'IA changent, incrémenter `VERSION_BIBLIOTHEQUE` dans `generer` :
+les plans déjà en cache ne sont alors plus resservis.
+
 Secrets des fonctions (tableau de bord → Edge Functions → Secrets) :
 
 | Secret | Rôle |

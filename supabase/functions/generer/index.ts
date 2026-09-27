@@ -84,15 +84,56 @@ const LIB = [
   {id:"sup",nom:"Superman",pat:"lo",eq:3,ch:"temps"},
   {id:"corde",nom:"Corde à sauter",pat:"ca",eq:3,ch:"temps"},
   {id:"enf",nom:"Posture de l'enfant",pat:"mo",eq:3,ch:"temps"},
+  {id:"mol",nom:"Mollets debout",pat:"mol",eq:0,ch:"kg"},
+  {id:"molA",nom:"Mollets assis",pat:"mol",eq:0,ch:"kg"},
+  {id:"molP",nom:"Mollets au poids du corps",pat:"mol",eq:3,ch:"aucune"},
+  {id:"shr",nom:"Shrugs barre",pat:"tra",eq:1,ch:"kg"},
+  {id:"shrH",nom:"Shrugs haltères",pat:"tra",eq:2,ch:"kg"},
+  {id:"tir",nom:"Rowing menton",pat:"tra",eq:1,ch:"kg"},
+  {id:"poi",nom:"Curl de poignets",pat:"avb",eq:1,ch:"kg"},
+  {id:"poiI",nom:"Curl de poignets inversé",pat:"avb",eq:1,ch:"kg"},
+  {id:"ferm",nom:"Marche du fermier",pat:"avb",eq:2,ch:"kg"},
+  {id:"add",nom:"Adducteurs à la machine",pat:"add",eq:0,ch:"kg"},
+  {id:"sumo",nom:"Squat sumo haltère",pat:"add",eq:2,ch:"kg"},
+  {id:"molh",nom:"Mollets debout haltères",pat:"mol",eq:2,ch:"kg"},
+  {id:"molp",nom:"Mollets à la presse",pat:"mol",eq:0,ch:"kg"},
+  {id:"mol1",nom:"Mollets sur une jambe",pat:"mol",eq:3,ch:"lest"},
+  {id:"elp",nom:"Élévations latérales à la poulie",pat:"ep",eq:0,ch:"kg"},
+  {id:"scap",nom:"Élévations en Y",pat:"ep",eq:2,ch:"kg"},
+  {id:"dbug",nom:"Dead bug",pat:"ae",eq:3,ch:"aucune"},
+  {id:"pal",nom:"Pallof press",pat:"ae",eq:0,ch:"kg"},
+  {id:"rkp",nom:"Soulevé de terre partiel",pat:"lo",eq:1,ch:"kg"},
+  {id:"lomsol",nom:"Extensions lombaires au sol",pat:"lo",eq:3,ch:"aucune"},
+  {id:"tirp",nom:"Rowing menton à la poulie",pat:"tra",eq:0,ch:"kg"},
+  {id:"poih",nom:"Curl de poignets haltères",pat:"avb",eq:2,ch:"kg"},
+  {id:"poiinv",nom:"Curl de poignets inversé haltères",pat:"avb",eq:2,ch:"kg"},
+  {id:"addsol",nom:"Élévations de jambe au sol",pat:"add",eq:3,ch:"aucune"},
+  {id:"sqlat",nom:"Squat latéral barre",pat:"add",eq:1,ch:"kg"},
+  {id:"ois",nom:"Oiseau haltères",pat:"re",eq:2,ch:"kg"},
+  {id:"crinv",nom:"Crunch inversé",pat:"ft",eq:3,ch:"aucune"},
+  {id:"russ",nom:"Russian twist",pat:"ft",eq:3,ch:"aucune"},
+  {id:"pont",nom:"Pont fessier au sol",pat:"fh",eq:3,ch:"aucune"},
+  {id:"pont1",nom:"Pont fessier une jambe",pat:"fh",eq:3,ch:"aucune"},
+  {id:"kick",nom:"Kickback à la poulie",pat:"fh",eq:0,ch:"kg"},
+  {id:"pth",nom:"Pull through à la poulie",pat:"fh",eq:0,ch:"kg"},
+  {id:"bul",nom:"Fentes bulgares haltères",pat:"eg",eq:2,ch:"kg"},
+  {id:"mont",nom:"Montées sur banc haltères",pat:"eg",eq:2,ch:"kg"},
+  {id:"sqpc",nom:"Squat au poids du corps",pat:"eg",eq:3,ch:"aucune"},
+  {id:"fepc",nom:"Fentes marchées",pat:"eg",eq:3,ch:"aucune"},
+  {id:"bfront",nom:"Barre au front",pat:"ec",eq:1,ch:"kg"},
+  {id:"extnh",nom:"Extension nuque haltère",pat:"ec",eq:2,ch:"kg"},
+  {id:"kickt",nom:"Kickback triceps haltère",pat:"ec",eq:2,ch:"kg"},
+  {id:"curlp",nom:"Curl à la poulie",pat:"fc",eq:0,ch:"kg"},
+  {id:"dmm",nom:"Développé épaules machine",pat:"pv",eq:0,ch:"kg"},
+  {id:"velo",nom:"Vélo, intervalles",pat:"ca",eq:0,ch:"temps"},
+  {id:"scappu",nom:"Tractions scapulaires",pat:"tra",eq:3,ch:"aucune"},
+  {id:"pompe",nom:"Pompes pieds surélevés",pat:"ph",eq:3,ch:"lest"},
 ];
 const IDS = new Set(LIB.map((x) => x.id));
 const PARID: Record<string, typeof LIB[0]> = Object.fromEntries(LIB.map((x) => [x.id, x]));
 
 const SCHEMAS: Record<string, string> = {
-  ph: "poussée horizontale", pv: "poussée verticale", tv: "tirage vertical", th: "tirage horizontal",
-  eg: "dominante quadriceps", fh: "dominante ischio-fessiers", ep: "épaule latérale", re: "rotation externe",
-  fc: "flexion de coude", ec: "extension de coude", ae: "anti-extension", ft: "flexion du tronc",
-  lo: "extension lombaire", ca: "cardio", mo: "mobilité",
+  ph: "poussée horizontale", pv: "poussée verticale", tv: "tirage vertical", th: "tirage horizontal", eg: "dominante quadriceps", fh: "dominante ischio-fessiers", ep: "épaule latérale", re: "rotation externe", fc: "flexion de coude", ec: "extension de coude", ae: "anti-extension", ft: "flexion du tronc", lo: "extension lombaire", ca: "cardio", mo: "mobilité", mol: "mollets", tra: "trapèzes", avb: "avant-bras et prise", add: "adducteurs",
 };
 const OBJ = ["prendre du muscle","gagner en force","m'affiner et perdre du gras","rester en forme"];
 const REG = ["pas entraîné depuis 6 mois","entraînement par périodes","1 à 2 fois par semaine","3 fois par semaine ou plus"];
@@ -125,6 +166,7 @@ RÈGLES DE CONSTRUCTION, non négociables :
 2. Chaque séance contient 5 à 7 exercices, dont 2 ou 3 principaux (o:1) placés en premier, puis des accessoires (o:0). Vise 18 à 24 séries au total par séance, ce qui représente environ 60 à 70 minutes repos compris.
 3. Les exercices PRINCIPAUX sont identiques entre la séance A et la séance B d'un même segment : ce sont eux qui portent la progression sur 8 semaines. Seuls les accessoires diffèrent.
 4. Les accessoires des séances A et B d'un même segment travaillent des schémas moteurs DIFFÉRENTS, pour couvrir tous les axes sur la semaine.
+4 bis. Mollets, trapèzes, avant-bras et prise, adducteurs sont des compléments : jamais en exercice principal, au plus un seul par séance, et seulement quand les grands groupes ont déjà leur volume.
 5. Volume hebdomadaire par grand groupe travaillé : ${vol[0]} à ${vol[1]} séries. Cette fourchette tient compte du nombre de séances déclarées : ne cherche pas à la dépasser en allongeant les séances, ni à rester en dessous en les raccourcissant.
 6. Séries entre 2 et 5. Répétitions entre 4 et 15 pour kg/lest/aucune, 20 à 60 pour temps (secondes), 200 à 500 pour dist (mètres).
 7. Repos : "3 min" ou "2 min 30" sur les principaux lourds, "90 s" ou "60 s" sur les accessoires, "45 s" sur l'isolation.
@@ -197,12 +239,17 @@ async function empreinte(texte: string) {
   return [...new Uint8Array(h)].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 40);
 }
 
+const VERSION_BIBLIOTHEQUE = 2;   // 2 : bibliothèque complète (100 exercices)
+
 /* Seules les réponses qui changent réellement le programme entrent dans la signature. */
 async function signature(A: any) {
   const prefs = Object.keys(A.prefs || {}).sort()
     .map((k) => k + ":" + [...(A.prefs[k] || [])].sort().join(","))
     .filter((s) => !s.endsWith(":")).join("|");
   const brut = JSON.stringify({
+    /* À incrémenter quand la bibliothèque ou les règles changent : les plans
+       mis en cache avec l'ancienne version ne sont alors plus resservis.    */
+    v: VERSION_BIBLIOTHEQUE,
     o: A.objectif, r: A.regularite, s: A.socle, a: A.axe, m: A.materiel, x: A.sexe,
     b: [...(A.blessure || [])].sort(), e: [...(A.exclus || [])].sort(),
     p: [...(A.prioNoms || [])].sort(), sp: A.sportNom ?? null, sf: A.sportFreq ?? null,

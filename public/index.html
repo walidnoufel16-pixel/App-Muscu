@@ -916,10 +916,6 @@ const EX={
   e:"Un haltère dans chaque main, bras le long du corps, l'avant des pieds sur une marche ou un disque et les talons dans le vide. Descends les talons aussi bas que la cheville le permet, marque un temps d'arrêt en bas, puis monte sur la pointe et tiens une seconde en haut.",
   err:["Rebondir en bas sans marquer l'étirement, ce qui fait travailler le tendon plutôt que le muscle.","Plier les genoux pour aider, ce qui transforme le mouvement en mini-squat."],
   p:"Le mollet répond au temps sous tension plus qu'à la charge. Vise 12 à 20 répétitions lentes avant de monter d'un cran d'haltère."},
- mola:{n:"Mollets assis machine",m:"Mollets, soléaire",img:"Seated_Calf_Raise",pat:'mol',eq:0,ch:'kg',d:40,
-  e:"Assis, genoux bloqués sous le coussin, avant des pieds sur la plateforme. Genou fléchi, c'est le soléaire qui travaille, le muscle profond sous le jumeau. Descends le talon jusqu'à l'étirement complet puis pousse en haut sans donner de coup.",
-  err:["Charger au point de ne plus pouvoir descendre complètement.","Enchaîner les répétitions au rythme, ce qui laisse le tendon faire le travail."],
-  p:"Complémentaire des mollets debout : genou tendu debout, genou plié assis. Les deux sont utiles, ils ne travaillent pas la même partie."},
  molp:{n:"Mollets à la presse",m:"Mollets",img:"Calf_Press_On_The_Leg_Press_Machine",pat:'mol',eq:0,ch:'kg',d:60,
   e:"Installé à la presse à cuisses, jambes presque tendues, place seulement l'avant des pieds en bas de la plateforme. Pousse avec la pointe des pieds en dépliant la cheville, puis laisse le poids redescendre le talon jusqu'à l'étirement.",
   err:["Garder la sécurité de la machine engagée, ce qui bloque l'amplitude.","Tendre complètement le genou et le verrouiller sous charge."],
@@ -956,10 +952,6 @@ const EX={
   err:["Monter le plus haut possible en cambrant, alors que quelques centimètres suffisent.","Tirer sur la nuque avec les mains."],
   p:"Aucun matériel nécessaire, c'est la version de repli du banc à lombaires. Quand 15 répétitions passent facilement, tiens deux secondes en haut de chaque répétition."},
 
- shrh:{n:"Shrugs haltères",m:"Trapèzes",img:"Dumbbell_Shrug",pat:'tra',eq:2,ch:'kg',d:20,
-  e:"Un haltère lourd dans chaque main, bras tendus le long du corps, épaules relâchées. Hausse les épaules droit vers les oreilles, tiens une seconde en haut, puis laisse descendre complètement jusqu'à l'étirement.",
-  err:["Faire des rotations d'épaules, qui n'ajoutent rien et agressent l'articulation.","Plier les coudes, ce qui transforme le mouvement en tirage."],
-  p:"Les haltères permettent plus d'amplitude que la barre, qui butte sur les cuisses. Monte quand tu tiens 15 répétitions avec une pause en haut."},
  tirp:{n:"Rowing menton à la poulie",m:"Trapèzes, épaules",img:"Upright_Cable_Row",pat:'tra',pat2:'ep',eq:0,ch:'kg',d:20,
   e:"Poulie basse, barre courte en prise pronation largeur d'épaules. Tire les coudes vers le haut et l'extérieur, la barre longe le buste jusqu'à hauteur de poitrine. Les coudes restent toujours plus hauts que les mains. Redescends contrôlé.",
   err:["Tirer jusqu'au menton, ce qui met l'épaule en rotation interne extrême.","Prendre une prise trop serrée, qui accentue ce pincement."],
@@ -969,7 +961,7 @@ const EX={
   e:"Assis, avant-bras posés sur les cuisses, paumes vers le haut, poignets dans le vide au-delà des genoux. Laisse les haltères rouler jusqu'au bout des doigts, puis referme la main et enroule le poignet vers le haut.",
   err:["Décoller l'avant-bras de la cuisse pour aider.","Amplitude minimale, alors que le passage par le bout des doigts est justement la partie utile."],
   p:"Charge légère et séries longues, 15 à 25 répétitions. L'avant-bras encaisse mieux le volume que la charge."},
- poiinv:{n:"Curl de poignets inversé",m:"Avant-bras, extenseurs",img:"Palms-Down_Dumbbell_Wrist_Curl_Over_A_Bench",pat:'avb',eq:2,ch:'kg',d:4,
+ poiinv:{n:"Curl de poignets inversé haltères",m:"Avant-bras, extenseurs",img:"Palms-Down_Dumbbell_Wrist_Curl_Over_A_Bench",pat:'avb',eq:2,ch:'kg',d:4,
   e:"Avant-bras posés sur un banc ou les cuisses, paumes vers le sol, poignets dans le vide. Laisse la main descendre sous son poids, puis relève le dos de la main vers le plafond sans bouger l'avant-bras.",
   err:["Prendre la même charge que sur la version paumes en haut : les extenseurs sont bien plus faibles.","Bouger le coude pour compenser."],
   p:"C'est le côté que presque personne ne travaille, et celui qui protège le coude en cas de douleur à l'extérieur. Très léger, très propre, 15 à 20 répétitions."},
@@ -1067,6 +1059,11 @@ const EX={
   err:["Bassin qui s'affaisse une fois les pieds en hauteur, ce qui se paie en lombaires.","Monter les pieds trop haut d'un coup : commence à hauteur de chaise."],
   p:"C'est la façon de continuer à progresser aux pompes sans matériel : monte la hauteur des pieds avant d'ajouter des répétitions, puis passe au lest sur le dos."}
 };
+/* Anciens doublons retirés de la bibliothèque : ces identifiants peuvent encore
+   figurer dans des séances ou des charges enregistrées. Ils pointent vers
+   l'exercice conservé, sans réapparaître dans les listes (non énumérables). */
+Object.entries({shrh:'shrH',mola:'molA'}).forEach(([ancien,garde])=>
+  Object.defineProperty(EX,ancien,{value:EX[garde],enumerable:false}));
 
 /* P = mouvement principal, figé sur les 8 semaines · A = accessoire, alterné entre séance A et B */
 const HAUT=new Set(['ph','pv','tv','th','ep','re','fc','ec']);
