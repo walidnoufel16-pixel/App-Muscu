@@ -27,7 +27,8 @@ const rep = (o: unknown, s = 200) =>
 /* Bibliothèque fermée : l'IA ne peut choisir QUE dans cette liste.
    eq  0 machine/poulie · 1 barre · 2 haltères · 3 poids du corps
    ch  kg | lest | aucune | temps | dist                              */
-const LIB = [
+type Exo = { id: string; nom: string; pat: string; eq: number; ch: string; acc?: string; ou?: string };
+const LIB: Exo[] = [
   {id:"dc",nom:"Développé couché barre",pat:"ph",eq:1,ch:"kg"},
   {id:"dh",nom:"Développé couché haltères",pat:"ph",eq:2,ch:"kg"},
   {id:"pomp",nom:"Pompes",pat:"ph",eq:3,ch:"aucune"},
@@ -147,7 +148,7 @@ const LIB = [
   {id:"zott",nom:"Curl Zottman",pat:"fc",eq:2,ch:"kg"},
   {id:"hack",nom:"Hack squat",pat:"eg",eq:0,ch:"kg"},
   {id:"smith",nom:"Squat à la Smith machine",pat:"eg",eq:0,ch:"kg"},
-  {id:"gob",nom:"Goblet squat",pat:"eg",eq:2,ch:"kg"},
+  {id:"gob",nom:"Goblet squat",pat:"eg",eq:2,ch:"kg",ou:"kb"},
   {id:"rmh",nom:"Soulevé de terre roumain haltères",pat:"fh",eq:2,ch:"kg"},
   {id:"sdts",nom:"Soulevé de terre sumo",pat:"fh",eq:1,ch:"kg"},
   {id:"trap",nom:"Soulevé de terre à la trap bar",pat:"fh",eq:0,ch:"kg"},
@@ -161,9 +162,32 @@ const LIB = [
   {id:"tapis",nom:"Course sur tapis",pat:"ca",eq:0,ch:"temps"},
   {id:"wgs",nom:"World's greatest stretch",pat:"mo",eq:3,ch:"aucune"},
   {id:"ischs",nom:"Étirement des ischio-jambiers",pat:"mo",eq:3,ch:"temps"},
+  {id:"kbsw",nom:"Swing kettlebell à un bras",pat:"fh",eq:3,ch:"kg",acc:"kb"},
+  {id:"kbfs",nom:"Front squat deux kettlebells",pat:"eg",eq:3,ch:"kg",acc:"kb"},
+  {id:"kbsdt1",nom:"Soulevé de terre une jambe kettlebell",pat:"fh",eq:3,ch:"kg",acc:"kb"},
+  {id:"kbdm",nom:"Développé militaire deux kettlebells",pat:"pv",eq:3,ch:"kg",acc:"kb"},
+  {id:"kbfp",nom:"Floor press kettlebell",pat:"ph",eq:3,ch:"kg",acc:"kb"},
+  {id:"kbrw",nom:"Rowing kettlebell un bras",pat:"th",eq:3,ch:"kg",acc:"kb"},
+  {id:"kbhp",nom:"Tirage menton sumo kettlebell",pat:"tra",eq:3,ch:"kg",acc:"kb"},
+  {id:"kbtgu",nom:"Turkish get-up",pat:"ae",eq:3,ch:"kg",acc:"kb"},
+  {id:"kbwm",nom:"Windmill kettlebell",pat:"ae",eq:3,ch:"kg",acc:"kb"},
+  {id:"kbthr",nom:"Thruster kettlebell",pat:"pv",eq:3,ch:"kg",acc:"kb"},
+  {id:"elpa",nom:"Écartés bras tendus à l'élastique",pat:"re",eq:3,ch:"aucune",acc:"el"},
+  {id:"elrot",nom:"Rotation externe à l'élastique",pat:"re",eq:3,ch:"aucune",acc:"el"},
+  {id:"eldm",nom:"Développé épaules à l'élastique",pat:"pv",eq:3,ch:"aucune",acc:"el"},
+  {id:"elel",nom:"Élévations latérales à l'élastique",pat:"ep",eq:3,ch:"aucune",acc:"el"},
+  {id:"elec",nom:"Écarté à l'élastique",pat:"ph",eq:3,ch:"aucune",acc:"el"},
+  {id:"elsq",nom:"Squat à l'élastique",pat:"eg",eq:3,ch:"aucune",acc:"el"},
+  {id:"elgm",nom:"Good morning à l'élastique",pat:"fh",eq:3,ch:"aucune",acc:"el"},
+  {id:"elpt",nom:"Pull through à l'élastique",pat:"fh",eq:3,ch:"aucune",acc:"el"},
+  {id:"elmw",nom:"Monster walk",pat:"fh",eq:3,ch:"aucune",acc:"el"},
+  {id:"eladd",nom:"Adducteurs à l'élastique",pat:"add",eq:3,ch:"aucune",acc:"el"},
+  {id:"elmol",nom:"Mollets à l'élastique",pat:"mol",eq:3,ch:"aucune",acc:"el"},
+  {id:"elrm",nom:"Rowing menton à l'élastique",pat:"tra",eq:3,ch:"aucune",acc:"el"},
+  {id:"eltr",nom:"Tractions assistées à l'élastique",pat:"tv",eq:3,ch:"aucune",acc:"el"},
 ];
 const IDS = new Set(LIB.map((x) => x.id));
-const PARID: Record<string, typeof LIB[0]> = Object.fromEntries(LIB.map((x) => [x.id, x]));
+const PARID: Record<string, Exo> = Object.fromEntries(LIB.map((x) => [x.id, x]));
 
 const SCHEMAS: Record<string, string> = {
   ph: "poussée horizontale", pv: "poussée verticale", tv: "tirage vertical", th: "tirage horizontal", eg: "dominante quadriceps", fh: "dominante ischio-fessiers", ep: "épaule latérale", re: "rotation externe", fc: "flexion de coude", ec: "extension de coude", ae: "anti-extension", ft: "flexion du tronc", lo: "extension lombaire", ca: "cardio", mo: "mobilité", mol: "mollets", tra: "trapèzes", avb: "avant-bras et prise", add: "adducteurs",
@@ -174,7 +198,12 @@ const MAT = ["salle complète","home gym (barre, rack, banc)","haltères seuls",
 const BLESS = ["épaules","bas du dos","genoux","coudes ou poignets"];
 const AXES = ["points faibles","souffle et condition physique","mobilité et récupération"];
 const SEXE = ["homme","femme","non précisé"];
-const CATS: Record<number, string> = { 3: "poids du corps", 2: "haltères", 1: "barre", 0: "machines et poulies" };
+const CATS: Record<number, string> = { 3: "poids du corps", 2: "haltères", 1: "barre", 0: "machines et poulies", 4: "kettlebell", 5: "élastiques" };
+/* Matériel en plus, hors échelle : kettlebell et élastiques. */
+const ACC: Record<string, string> = { kb: "kettlebell", el: "élastiques" };
+const accDe = (A: any): string[] => (Array.isArray(A?.acc) ? A.acc : []).filter((c: unknown) => typeof c === "string" && c in ACC);
+const dispo = (x: Exo, mat: number, acc: string[]) =>
+  x.acc ? acc.includes(x.acc) : x.eq >= mat || (!!x.ou && acc.includes(x.ou));
 const GRP2PAT: Record<string, string[]> = {
   "Pectoraux": ["ph"], "Dos": ["tv", "th"], "Épaules": ["pv", "ep", "re"], "Bras": ["fc", "ec"],
   "Quadriceps": ["eg"], "Fessiers et ischio-jambiers": ["fh"], "Abdominaux et lombaires": ["ae", "ft", "lo"],
@@ -189,10 +218,10 @@ const CIBLE: Record<number, [number, number][]> = {
   /* [reprise, régulier] selon le nombre de séances socle : 2, 3 ou 4 */
   2: [[5, 8], [8, 11]], 3: [[6, 10], [11, 14]], 4: [[7, 11], [12, 16]],
 };
-const SYSTEME = (mat: number, seances: number, reprise: boolean) => { const vol = (CIBLE[seances] || CIBLE[3])[reprise ? 0 : 1]; return `Tu es un préparateur physique qui construit des programmes de musculation en français.
+const SYSTEME = (mat: number, seances: number, reprise: boolean, acc: string[] = []) => { const vol = (CIBLE[seances] || CIBLE[3])[reprise ? 0 : 1]; return `Tu es un préparateur physique qui construit des programmes de musculation en français.
 
 BIBLIOTHÈQUE AUTORISÉE (aucun autre exercice n'existe) :
-${LIB.filter((x) => x.eq >= mat).map((x) => `- ${x.id} : ${x.nom} [${SCHEMAS[x.pat]}, ${x.ch}]`).join("\n")}
+${LIB.filter((x) => dispo(x, mat, acc)).map((x) => `- ${x.id} : ${x.nom} [${SCHEMAS[x.pat]}, ${x.ch}${x.acc ? ", " + ACC[x.acc] : ""}]`).join("\n")}
 
 RÈGLES DE CONSTRUCTION, non négociables :
 1. Découpage haut du corps / bas du corps en alternance : séance 1 haut, séance 2 bas, etc.
@@ -287,6 +316,8 @@ async function signature(A: any) {
     b: [...(A.blessure || [])].sort(), e: [...(A.exclus || [])].sort(),
     p: [...(A.prioNoms || [])].sort(), sp: A.sportNom ?? null, sf: A.sportFreq ?? null,
     ac: A.actuelNom ?? null, prefs,
+    /* absent quand rien n'est déclaré : les signatures existantes ne changent pas */
+    k: accDe(A).length ? [...accDe(A)].sort() : undefined,
   });
   return empreinte(brut);
 }
@@ -320,6 +351,7 @@ function profil(A: any) {
   p.push(`Nombre de séances socle demandées : ${2 + (A.socle ?? 2)}.`);
   p.push(`Axe de la séance bonus : ${AXES[A.axe] ?? "?"}.`);
   p.push(`Matériel : ${MAT[A.materiel] ?? "?"}.`);
+  if (accDe(A).length) p.push(`Matériel en plus : ${accDe(A).map((c) => ACC[c]).join(", ")}.`);
   p.push(`Sexe : ${SEXE[A.sexe] ?? "non précisé"}.`);
   if (A.sportNom) p.push(`Sport pratiqué : ${A.sportNom}, ${["une","deux","trois"][A.sportFreq ?? 0]} fois par semaine.`);
   else p.push("Aucun autre sport.");
@@ -363,7 +395,7 @@ function valider(plan: any, A: any): any {
     if (!e || !IDS.has(e.id)) { refus.push(sansBalise(e?.id).slice(0, 20) + " : inconnu"); return null; }
     e = { ...e, series: e.s ?? e.series, reps: e.r ?? e.reps, repos: e.p ?? e.repos, role: e.o ?? e.role };
     const x = PARID[e.id];
-    if (x.eq < mat) { refus.push(e.id + " : matériel indisponible"); return null; }
+    if (!dispo(x, mat, accDe(A))) { refus.push(e.id + " : matériel indisponible"); return null; }
     if (exclus.has(x.pat)) { refus.push(e.id + " : groupe exclu"); return null; }
     const max = x.ch === "temps" ? 90 : x.ch === "dist" ? 800 : 30;
     const min = x.ch === "temps" ? 15 : x.ch === "dist" ? 100 : 3;
@@ -482,7 +514,7 @@ Deno.serve(async (req) => {
       const corps: any = {
         model: MODELE,
         max_tokens: plafond,
-        system: SYSTEME(A.materiel ?? 0, 2 + (A.socle ?? 2), (A.regularite ?? 3) <= 1),
+        system: SYSTEME(A.materiel ?? 0, 2 + (A.socle ?? 2), (A.regularite ?? 3) <= 1, accDe(A)),
         messages,
       };
       if (!reflexion) corps.thinking = { type: "disabled" };

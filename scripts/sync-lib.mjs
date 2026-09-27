@@ -32,17 +32,19 @@ const q = (s) => JSON.stringify(s);
 const lib = Object.entries(EX).map(([id, e]) => {
   for (const champ of ["n", "pat", "eq", "ch"]) if (e[champ] === undefined) throw new Error(`${id} : champ ${champ} manquant`);
   if (!PAT[e.pat]) throw new Error(`${id} : schéma ${e.pat} inconnu`);
-  return `  {id:${q(id)},nom:${q(e.n)},pat:${q(e.pat)},eq:${e.eq},ch:${q(e.ch)}},`;
+  /* acc : matériel en plus exigé (kb, el) · ou : matériel en plus qui suffit aussi */
+  const plus = (e.acc ? `,acc:${q(e.acc)}` : "") + (e.ou ? `,ou:${q(e.ou)}` : "");
+  return `  {id:${q(id)},nom:${q(e.n)},pat:${q(e.pat)},eq:${e.eq},ch:${q(e.ch)}${plus}},`;
 });
 const minuscule = (s) => s.charAt(0).toLowerCase() + s.slice(1);
 const schemas = Object.entries(PAT).map(([k, v]) => `${k}: ${q(minuscule(v))}`);
 
-const blocLib = `const LIB = [\n${lib.join("\n")}\n];`;
+const blocLib = `const LIB: Exo[] = [\n${lib.join("\n")}\n];`;
 const blocSchemas = `const SCHEMAS: Record<string, string> = {\n  ${schemas.join(", ")},\n};`;
 
 const fn = readFileSync(FN, "utf8");
 const neuf = fn
-  .replace(/const LIB = \[\n[\s\S]*?\n\];/, blocLib)
+  .replace(/const LIB: Exo\[\] = \[\n[\s\S]*?\n\];/, blocLib)
   .replace(/const SCHEMAS: Record<string, string> = \{\n[\s\S]*?\n\};/, blocSchemas);
 if (neuf === fn && !fn.includes(blocLib)) throw new Error("Blocs LIB ou SCHEMAS introuvables dans generer/index.ts");
 

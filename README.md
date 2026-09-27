@@ -81,6 +81,11 @@ node scripts/sync-lib.mjs --check    # vérifie que les deux listes sont identiq
 supabase functions deploy generer
 ```
 
+Matériel : l'échelle `eq` (0 salle complète → 3 poids du corps) est complétée par du matériel « en plus »,
+déclaré à part (question `acc`) : `acc:'kb'` (kettlebell) ou `acc:'el'` (élastiques) pour un exercice qui l'exige,
+`ou:'kb'` pour un exercice que ce matériel permet aussi (goblet squat). Côté app, `exoDispo()` applique la règle ;
+côté IA, `dispo()` dans `generer`.
+
 Si la bibliothèque ou les règles de l'IA changent, incrémenter `VERSION_BIBLIOTHEQUE` dans `generer` :
 les plans déjà en cache ne sont alors plus resservis.
 
