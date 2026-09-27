@@ -98,4 +98,4 @@ Les scripts de `supabase/rollback/` annulent chaque migration à la main en cas 
 
 ## Licences
 
-Illustrations anatomiques : [body-muscles](https://github.com/vulovix/body-muscles), Apache 2.0 (voir `public/LICENSE-body-muscles.txt`).
+Schéma anatomique : [react-native-body-highlighter](https://github.com/HichamELBSI/react-native-body-highlighter), licence MIT (voir `public/LICENSE-body-highlighter.txt`).
