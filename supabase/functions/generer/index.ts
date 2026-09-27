@@ -182,6 +182,15 @@ async function consommerQuota(uid: string): Promise<boolean> {
   if (!r.ok) throw new Error("quota illisible (" + r.status + ")");
   return (await r.json()) === true;
 }
+/* Une génération qui n'aboutit pas ne doit pas coûter d'essai à l'utilisateur. */
+async function rendreQuota(uid: string) {
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/rendre_quota`, {
+      method: "POST", headers: enTetes, body: JSON.stringify({ p_user: uid }),
+    });
+    await r.text();
+  } catch { /* au pire, l'essai reste compté */ }
+}
 
 async function empreinte(texte: string) {
   const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(texte));
@@ -425,7 +434,12 @@ Deno.serve(async (req) => {
         journal.push(`${nom} : interrompu après ${Date.now() - t1} ms (${(e as Error).name})`);
       }
     }
-    if (!r) return rep({ erreur: "Anthropic n'a pas répondu.", diagnostic: { modele: MODELE, tentatives: journal } }, 502);
+    if (!r) {
+      await rendreQuota(uid);
+      const cleRefusee = journal.some((l) => l.includes(": 401 "));
+      return rep({ erreur: cleRefusee ? "Clé API Anthropic invalide ou expirée : génération momentanément indisponible."
+                                      : "Anthropic n'a pas répondu.", diagnostic: { modele: MODELE, tentatives: journal } }, 502);
+    }
     const d = await r.json();
     const blocs = Array.isArray(d.content) ? d.content : [];
     let txt = blocs.filter((b: any) => b && b.type === "text").map((b: any) => b.text || "").join("").trim();
@@ -434,6 +448,7 @@ Deno.serve(async (req) => {
 
     const i = txt.indexOf("{"), j = txt.lastIndexOf("}");
     if (i < 0 || j <= i) {
+      await rendreQuota(uid);
       return rep({ erreur: "Aucun JSON dans la réponse du modèle.", diagnostic: {
         modele: d.model ?? null, amorcage: amorce, reflexion: (d.usage?.output_tokens_details?.thinking_tokens ?? 0), stop_reason: d.stop_reason ?? null, blocs: blocs.map((b: any) => b?.type),
         longueur: txt.length, debut: txt.slice(0, 400), fin: txt.slice(-200), usage: d.usage ?? null } }, 502);
@@ -441,6 +456,7 @@ Deno.serve(async (req) => {
     let obj: any;
     try { obj = JSON.parse(txt.slice(i, j + 1)); }
     catch (err) {
+      await rendreQuota(uid);
       return rep({ erreur: "JSON invalide, réponse probablement tronquée.", diagnostic: {
         stop_reason: d.stop_reason ?? null, detail: String(err).slice(0, 200),
         reflexion: (d.usage?.output_tokens_details?.thinking_tokens ?? 0),
@@ -449,6 +465,7 @@ Deno.serve(async (req) => {
     const v = valider(obj, A);
     void journal;
     if (!v?.ok) {
+      await rendreQuota(uid);
       return rep({ erreur: "Programme refusé par la validation.", diagnostic: {
         raison: v?.echec ?? "inconnue", exercices_refuses: (v?.refus ?? []).slice(0, 12),
         cles_recues: Object.keys(obj || {}), stop_reason: d.stop_reason ?? null } }, 502);
@@ -458,6 +475,7 @@ Deno.serve(async (req) => {
     return rep({ plan, usage: d.usage ?? null, cache: false, cache_dispo: cacheOK,
                  ms: Date.now() - t0, tentatives: journal, signature: sig });
   } catch (e) {
+    await rendreQuota(uid);
     return rep({ erreur: "Génération impossible : " + (e as Error).message }, 500);
   }
 });
