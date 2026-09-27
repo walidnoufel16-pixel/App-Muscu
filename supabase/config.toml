@@ -1,0 +1,8 @@
+# Configuration Supabase CLI (déploiement : voir README).
+project_id = "iyjiwfzrmyvcnmzwlgxe"
+
+[functions.generer]
+verify_jwt = true
+
+[functions.oublier]
+verify_jwt = true

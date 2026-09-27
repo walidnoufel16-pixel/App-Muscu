@@ -1,0 +1,26 @@
+{
+  "name": "Repère",
+  "short_name": "Repère",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#14161A",
+  "theme_color": "#14161A",
+  "lang": "fr",
+  "orientation": "portrait",
+  "description": "Programme de musculation personnalisé, piloté à l'effort ressenti.",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
