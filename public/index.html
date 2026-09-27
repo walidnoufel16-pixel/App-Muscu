@@ -394,6 +394,7 @@ h2.q{font-size:29px;line-height:1.05;margin-bottom:6px}
 .matfiltre{margin:6px 0 12px}
 .mfl{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);margin-bottom:6px}
 .mfb{display:flex;gap:5px;flex-wrap:wrap}
+.mfb+.mfb{margin-top:5px}
 .mfb button{flex:1;min-width:88px;padding:9px 6px;border:1.5px solid var(--ligne);background:#fff;border-radius:3px;
   font:inherit;font-size:12.5px;cursor:pointer;color:var(--gris)}
 .mfb button.sel{background:var(--fonte);color:var(--craie);border-color:var(--fonte);font-weight:600}
@@ -428,6 +429,11 @@ h2.q{font-size:29px;line-height:1.05;margin-bottom:6px}
 .aadd{flex:none;width:52px;border:none;border-left:1.5px solid var(--ligne);background:var(--craie);
   font-size:18px;color:var(--vert);cursor:pointer}
 .aadd[disabled]{color:var(--gris);cursor:default}
+.accplan{margin:16px 0 26px}
+.accn{font-size:12px;color:var(--gris);margin-top:8px;line-height:1.4}
+/* Mon plan est sur fond sombre : boutons clairs, sélection en jaune */
+#diag .accplan .mfb button{background:transparent;color:var(--craie);border-color:rgba(239,241,236,.28)}
+#diag .accplan .mfb button.sel{background:#EFC429;color:var(--fonte);border-color:#EFC429}
 .credit2{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gris);text-align:center;margin:6px 0 10px}
 .zonebox{border-top:1.5px solid var(--ligne);padding-top:12px}
 .zonet{font-size:15.5px;font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between;align-items:baseline}
@@ -573,7 +579,20 @@ const aTrait=t=>sportsInfo().some(s=>s[t]);
 const maxTrait=t=>sportsInfo().reduce((m,s)=>Math.max(m,s[t]||0),0);
 /* categories de materiel, code identique au champ eq de la bibliotheque */
 const MATCATS=[[3,"Poids du corps"],[2,"Haltères"],[1,"Barre"],[0,"Machines et poulies"]];
-const cats=()=>MATCATS.filter(c=>c[0]>=(A.materiel??0));
+/* Matériel en plus, hors échelle : on peut l'avoir quel que soit son niveau.
+   Réponse à la question « acc » (indices) → codes portés par les exercices. */
+const ACC=[['kb','Kettlebell',4],['el','Élastiques',5]];
+const accDeclares=()=>(A.acc||[]).map(i=>(ACC[i]||[])[0]).filter(Boolean);
+const cats=()=>MATCATS.filter(c=>c[0]>=(A.materiel??0))
+  .concat(ACC.filter(a=>accDeclares().includes(a[0])).map(a=>[a[2],a[1]]));
+/* Un exercice est disponible s'il tient dans l'échelle de matériel, ou si le
+   matériel en plus qu'il demande (acc) ou qu'il accepte aussi (ou) est là. */
+function exoDispo(o,mat,acc){
+  const e=EX[o]; if(!e) return false;
+  if(e.acc) return acc.includes(e.acc);
+  return e.eq>=mat||(!!e.ou&&acc.includes(e.ou));
+}
+const dispoDeclare=o=>exoDispo(o,A.materiel??0,accDeclares());
 const AXES=["Points faibles","Souffle et condition physique","Mobilité et récupération"];
 const PAT={ph:"Poussée horizontale",pv:"Poussée verticale",tv:"Tirage vertical",th:"Tirage horizontal",
   eg:"Dominante quadriceps",fh:"Dominante ischio-fessiers",ep:"Épaule latérale",re:"Rotation externe",
@@ -617,6 +636,7 @@ function buildQ(){
     h:"Sert à calculer ce que ton corps encaisse déjà en dehors de la salle.",warn:sportWarn});
   q.push(
    {k:'materiel',q:"À quoi as-tu accès ?",h:"Détermine aussi les alternatives qu'on te proposera en salle.",o:[["Salle complète","Barres, machines, poulies"],["Home gym","Rack, barre, banc"],["Haltères seuls"],["Poids du corps"]]},
+   {k:'acc',t:'multi',q:"As-tu aussi ce matériel ?",h:"Utilisable quel que soit ton lieu d'entraînement : les exercices correspondants s'ajoutent à ceux de ton matériel.",o:[["Kettlebell"],["Élastiques de résistance"],["Aucun des deux"]]},
    {k:'blessure',t:'multi',q:"Des blessures ou des gênes ?",h:"On retire les mouvements concernés du programme.",o:[["Épaules"],["Bas du dos"],["Genoux"],["Coudes ou poignets"],["Rien à signaler"]]},
    {k:'sexe',q:"Tu es…",h:"Le sexe change la répartition de force entre haut et bas du corps, la tolérance au volume et la récupération. Il sert aussi à ordonner les questions qui suivent.",o:[
      ["Un homme"],["Une femme"],["Je préfère ne pas répondre","Le programme utilisera des repères moyens"]]},
@@ -1134,7 +1154,7 @@ const EX={
   e:"Barre sur le haut du dos, pieds légèrement en avant de la barre, à largeur d'épaules. Déverrouille la barre, descends en poussant les hanches vers l'arrière jusqu'à la parallèle, puis remonte en poussant dans les talons.",
   err:["Placer les pieds sous la barre, ce qui pousse les genoux trop en avant.","Arrondir le bas du dos en bas du mouvement.","Oublier de reverrouiller la barre sur les crochets en fin de série."],
   p:"La trajectoire guidée permet de travailler sans pareur. Les charges ne sont pas comparables au squat libre : repars sur des repères propres à cette machine."},
- gob:{n:"Goblet squat",m:"Quadriceps, fessiers",img:"Goblet_Squat",pat:'eg',pat2:'fh',eq:2,ch:'kg',d:16,
+ gob:{n:"Goblet squat",m:"Quadriceps, fessiers",img:"Goblet_Squat",pat:'eg',pat2:'fh',eq:2,ou:'kb',ch:'kg',d:16,
   e:"Debout, un haltère tenu verticalement contre la poitrine, coudes vers le bas. Pieds un peu plus larges que les hanches, descends entre les talons, buste droit, jusqu'à ce que les coudes frôlent l'intérieur des genoux. Remonte en poussant dans le sol.",
   err:["Laisser l'haltère s'éloigner de la poitrine, ce qui fait pencher le buste.","Genoux qui rentrent vers l'intérieur en remontant.","Décoller les talons en bas."],
   p:"Le meilleur squat pour apprendre la position, et le plus simple à la maison. Quand l'haltère le plus lourd devient trop léger, passe au squat barre ou ralentis la descente."},
@@ -1189,7 +1209,99 @@ const EX={
  ischs:{n:"Étirement des ischio-jambiers",m:"Ischio-jambiers",img:"Hamstring_Stretch",pat:'mo',eq:3,ch:'temps',d:45,
   e:"Allongé sur le dos, une sangle ou une serviette autour du pied. Monte la jambe tendue jusqu'à sentir l'étirement à l'arrière de la cuisse, l'autre jambe restant au sol. Tiens la position en respirant, puis change de côté.",
   err:["Plier le genou de la jambe étirée.","Décoller le bassin ou la jambe au sol.","Tirer par à-coups."],
-  p:"À faire après la séance ou le soir, jamais à froid avant un soulevé de terre. Tiens 45 secondes par jambe, sans chercher la douleur."}
+  p:"À faire après la séance ou le soir, jamais à froid avant un soulevé de terre. Tiens 45 secondes par jambe, sans chercher la douleur."},
+ kbsw:{n:"Swing kettlebell à un bras",m:"Fessiers, ischio-jambiers, cardio",img:"One-Arm_Kettlebell_Swings",pat:'fh',pat2:'ca',eq:3,acc:'kb',ch:'kg',d:12,
+  e:"Pieds un peu plus larges que les hanches, kettlebell au sol devant toi. Attrape-la d'une main, dos plat, et lance-la entre les jambes. Pousse ensuite les hanches vers l'avant d'un coup sec pour la faire monter jusqu'à hauteur de poitrine, bras relâché, puis laisse-la redescendre entre les jambes en reculant les hanches.",
+  err:["Soulever avec le bras ou les épaules au lieu de pousser avec les hanches.","Plier les genoux comme un squat au lieu de reculer les hanches.","Arrondir le dos en bas du mouvement."],
+  p:"C'est un mouvement de hanche explosif, pas un exercice d'épaule : la kettlebell flotte, les fessiers font le travail. Séries de 10 à 15 par bras, change de main à chaque série."},
+ kbfs:{n:"Front squat deux kettlebells",m:"Quadriceps, fessiers, gainage",img:"Front_Squats_With_Two_Kettlebells",pat:'eg',pat2:'fh',eq:3,acc:'kb',ch:'kg',d:12,
+  e:"Une kettlebell dans chaque main, en position rack : poignées devant les clavicules, coudes serrés contre le buste. Pieds à largeur d'épaules, descends en squat buste droit jusqu'à la parallèle, puis remonte en poussant dans les talons.",
+  err:["Laisser les coudes s'écarter et les kettlebells tirer le buste vers l'avant.","Décoller les talons en bas.","Laisser les genoux rentrer vers l'intérieur."],
+  p:"La charge placée devant force à garder le buste droit : excellent pour le gainage autant que pour les jambes. Change de kettlebells quand tu dépasses 12 répétitions propres."},
+ kbsdt1:{n:"Soulevé de terre une jambe kettlebell",m:"Ischio-jambiers, fessiers, équilibre",img:"Kettlebell_One-Legged_Deadlift",pat:'fh',pat2:'lo',eq:3,acc:'kb',ch:'kg',d:12,
+  e:"Debout sur une jambe, kettlebell dans la main opposée. Genou d'appui légèrement fléchi, bascule le buste vers l'avant en tendant l'autre jambe derrière toi, dos plat, jusqu'à ce que le buste soit presque horizontal. Reviens en serrant le fessier de la jambe d'appui.",
+  err:["Ouvrir la hanche et tourner le bassin vers le côté.","Arrondir le dos pour descendre plus bas.","Chercher l'équilibre en se précipitant au lieu de contrôler."],
+  p:"Travaille chaque jambe séparément et corrige les déséquilibres. Commence léger : l'équilibre limite avant la force. Tiens-toi à un mur de l'autre main au début si besoin."},
+ kbdm:{n:"Développé militaire deux kettlebells",m:"Épaules, triceps",img:"Two-Arm_Kettlebell_Military_Press",pat:'pv',pat2:'ec',eq:3,acc:'kb',ch:'kg',d:12,
+  e:"Debout, une kettlebell dans chaque main en position rack, poignets droits. Serre les fessiers et les abdominaux, puis pousse les deux kettlebells au-dessus de la tête jusqu'à tendre les bras. Redescends en contrôlant jusqu'aux épaules.",
+  err:["Cambrer le bas du dos pour pousser.","Casser les poignets vers l'arrière.","Pousser les kettlebells vers l'avant au lieu de les monter à la verticale."],
+  p:"La kettlebell pèse derrière le poignet, ce qui demande plus de stabilité qu'un haltère. Si les deux ensemble sont trop lourdes, alterne un bras puis l'autre."},
+ kbfp:{n:"Floor press kettlebell",m:"Pectoraux, triceps",img:"One-Arm_Kettlebell_Floor_Press",pat:'ph',pat2:'ec',eq:3,acc:'kb',ch:'kg',d:12,
+  e:"Allongé au sol, genoux fléchis, kettlebell tenue d'une main au-dessus de la poitrine, bras tendu. Descends-la jusqu'à ce que le coude touche le sol, marque un temps, puis pousse à nouveau vers le plafond.",
+  err:["Laisser le coude rebondir sur le sol.","Écarter le coude à 90° du buste.","Laisser le poignet se casser sous le poids."],
+  p:"Le sol limite l'amplitude et protège l'épaule : c'est le développé à faire sans banc. Enchaîne les deux bras avant de te reposer."},
+ kbrw:{n:"Rowing kettlebell un bras",m:"Dos, arrière d'épaule",img:"One-Arm_Kettlebell_Row",pat:'th',pat2:'re',eq:3,acc:'kb',ch:'kg',d:16,
+  e:"Un pied en avant, buste penché à 45° avec la main libre en appui sur le genou avant, dos plat. Kettlebell dans l'autre main, bras tendu. Tire le coude vers la hanche en serrant l'omoplate, puis redescends lentement.",
+  err:["Tourner le buste pour lancer la charge.","Tirer vers l'épaule plutôt que vers la hanche.","Arrondir le dos."],
+  p:"Le tirage de base à la maison. Quand 12 répétitions passent facilement, ralentis la descente sur trois secondes avant de changer de kettlebell."},
+ kbhp:{n:"Tirage menton sumo kettlebell",m:"Trapèzes, épaules, fessiers",img:"Kettlebell_Sumo_High_Pull",pat:'tra',pat2:'fh',eq:3,acc:'kb',ch:'kg',d:16,
+  e:"Pieds très écartés, pointes vers l'extérieur, kettlebell au sol entre les pieds. Attrape-la à deux mains, dos plat, puis relève-toi d'un coup en tirant la kettlebell jusqu'au sternum, coudes hauts et vers l'extérieur. Redescends en contrôlant.",
+  err:["Tirer uniquement avec les bras sans l'élan des jambes.","Monter les coudes au-dessus des épaules.","Arrondir le dos au départ."],
+  p:"Mouvement explosif qui relie jambes et haut du dos. Reste sur des séries de 8 à 12, en gardant la vitesse à chaque répétition."},
+ kbtgu:{n:"Turkish get-up",m:"Gainage, épaules, corps entier",img:"Kettlebell_Turkish_Get-Up_Squat_style",pat:'ae',pat2:'pv',eq:3,acc:'kb',ch:'kg',d:8,
+  e:"Allongé sur le dos, kettlebell tenue bras tendu au-dessus de l'épaule, genou du même côté plié. Sans jamais quitter la kettlebell des yeux, passe sur le coude, puis sur la main, lève le bassin, ramène la jambe tendue sous toi et termine debout. Refais le chemin à l'envers.",
+  err:["Laisser le bras chargé se plier ou partir en arrière.","Enchaîner les étapes trop vite, sans position stable entre chacune.","Commencer trop lourd."],
+  p:"Un exercice de coordination et de stabilité d'épaule plus que de force. Apprends-le d'abord sans charge, avec une chaussure posée sur le poing, puis avec une kettlebell légère. Une à trois répétitions par côté suffisent."},
+ kbwm:{n:"Windmill kettlebell",m:"Obliques, épaules, hanches",img:"Kettlebell_Windmill",pat:'ae',pat2:'mo',eq:3,acc:'kb',ch:'kg',d:8,
+  e:"Kettlebell tenue bras tendu au-dessus de la tête, pieds tournés à 45° du côté opposé. Regarde la kettlebell et pousse la hanche du côté chargé vers l'extérieur, puis descends l'autre main le long de la jambe jusqu'au sol ou au tibia. Remonte en gardant le bras vertical.",
+  err:["Plier le bras chargé.","Tourner le buste vers le sol au lieu de le basculer de côté.","Descendre plus bas que la souplesse des ischio-jambiers ne le permet."],
+  p:"Travaille les obliques, la mobilité de hanche et la stabilité d'épaule en un seul mouvement. Commence sans charge, puis léger : 5 répétitions lentes par côté."},
+ kbthr:{n:"Thruster kettlebell",m:"Jambes, épaules, cardio",img:"Kettlebell_Thruster",pat:'pv',pat2:'eg',eq:3,acc:'kb',ch:'kg',d:12,
+  e:"Kettlebells en position rack devant les épaules. Descends en squat buste droit, puis remonte d'un seul élan et profite de la poussée des jambes pour développer les kettlebells au-dessus de la tête. Redescends-les aux épaules en entamant le squat suivant.",
+  err:["Faire le squat puis le développé en deux temps, sans enchaîner.","Laisser le buste tomber vers l'avant en bas.","Cambrer le dos en fin de poussée."],
+  p:"Exercice complet et très exigeant en cardio : parfait pour une séance bonus orientée condition physique. Séries de 8 à 12 à rythme constant."},
+ elpa:{n:"Écartés bras tendus à l'élastique",m:"Arrière d'épaule, haut du dos",img:"Band_Pull_Apart",pat:'re',pat2:'tra',eq:3,acc:'el',ch:'aucune',d:0,
+  e:"Debout, élastique tenu à deux mains devant toi à hauteur d'épaules, bras tendus, mains à largeur d'épaules. Écarte les bras sur les côtés jusqu'à ce que l'élastique touche la poitrine, en serrant les omoplates, puis reviens lentement.",
+  err:["Plier les coudes pour faciliter le mouvement.","Hausser les épaules vers les oreilles.","Laisser l'élastique revenir d'un coup."],
+  p:"Idéal en échauffement avant une séance de poussée, et pour la posture. Séries de 15 à 25 ; rapproche les mains sur l'élastique pour augmenter la difficulté."},
+ elrot:{n:"Rotation externe à l'élastique",m:"Coiffe des rotateurs, arrière d'épaule",img:"External_Rotation_with_Band",pat:'re',eq:3,acc:'el',ch:'aucune',d:0,
+  e:"Élastique fixé à hauteur de coude sur le côté. Coude collé au corps et plié à 90°, avant-bras devant le ventre. Tourne l'avant-bras vers l'extérieur sans décoller le coude, puis reviens lentement.",
+  err:["Décoller le coude du corps.","Tourner le buste pour aider le mouvement.","Choisir un élastique trop dur."],
+  p:"Renforce les petits muscles qui stabilisent l'épaule : un bon investissement contre les douleurs au développé. Séries de 15 à 20, résistance légère."},
+ eldm:{n:"Développé épaules à l'élastique",m:"Épaules, triceps",img:"Shoulder_Press_-_With_Bands",pat:'pv',pat2:'ec',eq:3,acc:'el',ch:'aucune',d:0,
+  e:"Debout sur l'élastique, pieds à largeur de hanches, poignées à hauteur des épaules. Pousse les mains au-dessus de la tête jusqu'à tendre les bras, puis redescends lentement aux épaules.",
+  err:["Cambrer le dos pour finir la poussée.","Laisser les coudes partir loin devant.","Redescendre d'un coup."],
+  p:"La résistance augmente à mesure que l'élastique s'étire : le haut du mouvement est le plus dur. Écarte les pieds sur l'élastique pour augmenter la tension."},
+ elel:{n:"Élévations latérales à l'élastique",m:"Épaules, faisceau latéral",img:"Lateral_Raise_-_With_Bands",pat:'ep',eq:3,acc:'el',ch:'aucune',d:0,
+  e:"Debout sur l'élastique, une poignée dans chaque main le long des cuisses. Monte les bras sur les côtés jusqu'à l'horizontale, coudes très légèrement fléchis, puis redescends lentement.",
+  err:["Monter au-dessus de l'horizontale.","Hausser les épaules.","Balancer le buste."],
+  p:"Séries longues de 15 à 20. Pour plus de résistance, raccourcis l'élastique en le tenant plus bas."},
+ elec:{n:"Écarté à l'élastique",m:"Pectoraux",img:"Cross_Over_-_With_Bands",pat:'ph',eq:3,acc:'el',ch:'aucune',d:0,
+  e:"Élastique fixé derrière toi à hauteur de poitrine, une poignée dans chaque main, bras ouverts. Coudes légèrement fléchis et fixes, ramène les mains devant toi en serrant les pectoraux, puis reviens lentement.",
+  err:["Plier les coudes, ce qui transforme l'écarté en poussée.","Avancer le buste au lieu de fermer les bras.","Laisser les bras partir trop loin en arrière."],
+  p:"L'équivalent de l'écarté à la poulie à la maison. Avance d'un pas pour augmenter la tension."},
+ elsq:{n:"Squat à l'élastique",m:"Quadriceps, fessiers",img:"Squats_-_With_Bands",pat:'eg',pat2:'fh',eq:3,acc:'el',ch:'aucune',d:0,
+  e:"Debout sur l'élastique, pieds à largeur d'épaules, poignées tenues au niveau des épaules. Descends en squat, buste droit, jusqu'à la parallèle, puis remonte en poussant dans le sol.",
+  err:["Décoller les talons.","Laisser les genoux rentrer.","Ne pas descendre assez bas, là où l'élastique ne résiste presque pas."],
+  p:"L'élastique ajoute de la résistance en haut du mouvement, là où le squat au poids du corps devient trop facile. Double l'élastique quand 20 répétitions passent."},
+ elgm:{n:"Good morning à l'élastique",m:"Ischio-jambiers, lombaires",img:"Band_Good_Morning",pat:'fh',pat2:'lo',eq:3,acc:'el',ch:'aucune',d:0,
+  e:"Debout sur l'élastique, l'autre extrémité passée derrière la nuque. Genoux légèrement fléchis, recule les hanches et bascule le buste vers l'avant, dos plat, jusqu'à l'étirement des ischio-jambiers, puis reviens debout en poussant les hanches.",
+  err:["Arrondir le dos.","Plier les genoux pour descendre plus bas.","Relever la tête en hyperextension."],
+  p:"Apprend le mouvement de charnière de hanche sans risque. Séries de 12 à 20, en cherchant l'étirement plutôt que l'amplitude."},
+ elpt:{n:"Pull through à l'élastique",m:"Fessiers, ischio-jambiers",img:"Band_Good_Morning_Pull_Through",pat:'fh',eq:3,acc:'el',ch:'aucune',d:0,
+  e:"Dos à un point d'ancrage bas, élastique passé entre les jambes et tenu à deux mains. Recule les hanches en laissant les mains passer entre les jambes, dos plat, puis redresse-toi en poussant les hanches vers l'avant et en serrant les fessiers.",
+  err:["Tirer avec les bras au lieu de pousser avec les hanches.","Faire un squat au lieu de reculer les hanches.","Cambrer le dos en fin de mouvement."],
+  p:"L'équivalent du pull through à la poulie. Éloigne-toi de l'ancrage pour augmenter la tension."},
+ elmw:{n:"Monster walk",m:"Moyen fessier",img:"Monster_Walk",pat:'fh',pat2:'add',eq:3,acc:'el',ch:'aucune',d:0,
+  e:"Mini-élastique autour des chevilles ou au-dessus des genoux, pieds écartés, genoux légèrement fléchis. Avance en diagonale à petits pas, en gardant toujours l'élastique tendu, puis recule de la même façon.",
+  err:["Laisser les pieds se rapprocher et l'élastique se détendre.","Se redresser complètement, ce qui retire le travail des fessiers.","Faire de grands pas en balançant le bassin."],
+  p:"Excellent en échauffement avant les jambes : il réveille le moyen fessier qui stabilise le genou. 10 à 15 pas dans chaque direction."},
+ eladd:{n:"Adducteurs à l'élastique",m:"Adducteurs",img:"Band_Hip_Adductions",pat:'add',eq:3,acc:'el',ch:'aucune',d:0,
+  e:"Élastique fixé bas sur le côté et passé autour de la cheville la plus proche. Debout, jambe écartée, ramène-la devant l'autre jambe en croisant légèrement, puis reviens lentement.",
+  err:["Pencher le buste pour aider le mouvement.","Laisser l'élastique ramener la jambe d'un coup.","Tourner le pied vers l'extérieur."],
+  p:"Remplace la machine à adducteurs à la maison. Séries de 15 à 20 par jambe."},
+ elmol:{n:"Mollets à l'élastique",m:"Mollets",img:"Calf_Raises_-_With_Bands",pat:'mol',eq:3,acc:'el',ch:'aucune',d:0,
+  e:"Debout sur l'élastique, poignées tenues aux épaules, avant des pieds posé sur l'élastique. Monte sur la pointe des pieds le plus haut possible, marque un temps, puis redescends lentement.",
+  err:["Rebondir en bas du mouvement.","Plier les genoux.","Monter à moitié."],
+  p:"Ajoute un appui sous l'avant des pieds (une marche, un livre) pour gagner en amplitude. Séries de 15 à 25."},
+ elrm:{n:"Rowing menton à l'élastique",m:"Trapèzes, épaules",img:"Upright_Row_-_With_Bands",pat:'tra',pat2:'ep',eq:3,acc:'el',ch:'aucune',d:0,
+  e:"Debout sur l'élastique, poignées devant les cuisses. Tire les coudes vers le haut et l'extérieur jusqu'à hauteur de poitrine, mains près du corps, puis redescends lentement.",
+  err:["Monter les coudes au-dessus des épaules.","Prise trop serrée qui force sur les épaules.","Balancer le buste."],
+  p:"Arrête le mouvement à hauteur de poitrine : au-delà, l'épaule travaille dans une mauvaise position. Séries de 12 à 15."},
+ eltr:{n:"Tractions assistées à l'élastique",m:"Dos, biceps",img:"Band_Assisted_Pull-Up",pat:'tv',pat2:'fc',eq:3,acc:'el',ch:'aucune',d:0,
+  e:"Élastique accroché à la barre de traction, un pied ou un genou posé dedans. Mains en pronation un peu plus larges que les épaules, tire jusqu'à passer le menton au-dessus de la barre, puis redescends bras tendus en contrôlant.",
+  err:["Se laisser tomber en bas au lieu de contrôler la descente.","Balancer les jambes pour prendre de l'élan.","Ne tirer qu'à mi-hauteur."],
+  p:"Le meilleur chemin vers la première traction : passe progressivement à des élastiques plus fins. Nécessite une barre de traction."}
 };
 /* Anciens doublons retirés de la bibliothèque : ces identifiants peuvent encore
    figurer dans des séances ou des charges enregistrées. Ils pointent vers
@@ -1291,8 +1403,32 @@ let SEANCES=[], LIBRE=null, filtre='';
 let vueBib='schema', cote='front', zone=null, souszone=null, explore=false, popup=null;
 /* Filtre matériel du composeur : part du matériel déclaré, mais élargissable
    (on peut s'entraîner ailleurs qu'à l'endroit décrit au questionnaire).    */
-let matFiltre=null;
+let matFiltre=null, accFiltre=null;
 const matActif=()=>matFiltre!==null?matFiltre:(A.materiel??0);
+const accActif=()=>accFiltre!==null?accFiltre:accDeclares();
+/* Filtre « Matériel disponible », commun au composeur et à l'exploration.
+   L'échelle est cumulative ; kettlebell et élastiques s'ajoutent à part. */
+function filtreMatHTML(){
+  const acc=accActif(), perso=matActif()!==(A.materiel??0)||acc.slice().sort().join()!==accDeclares().slice().sort().join();
+  return `<div class="matfiltre">
+      <span class="mfl">Matériel disponible</span>
+      <div class="mfb">${[[3,'Poids du corps'],[2,'+ Haltères'],[1,'+ Barre'],[0,'+ Machines']].map(([v,n])=>
+        `<button class="${matActif()===v?'sel':''}" onclick="matFiltre=${v};redessine()">${n}</button>`).join('')}</div>
+      <div class="mfb">${ACC.map(([c,n])=>
+        `<button class="${acc.includes(c)?'sel':''}" onclick="basculeAcc('${c}')">+ ${n}</button>`).join('')}</div>
+      ${perso?`<button class="mfr" onclick="matFiltre=null;accFiltre=null;redessine()">Revenir à mon matériel déclaré</button>`:''}
+    </div>`;
+}
+/* Réglage du matériel en plus depuis Mon plan, sans refaire le questionnaire. */
+function basculeAccDeclare(i){
+  const aucun=ACC.length, s=(A.acc||[]).filter(x=>x!==aucun), j=s.indexOf(i);
+  j<0?s.push(i):s.splice(j,1);
+  A.acc=s.length?s.sort():[aucun]; accFiltre=null; save(); synthese();
+}
+function basculeAcc(c){
+  const l=accActif().slice(), j=l.indexOf(c); j<0?l.push(c):l.splice(j,1);
+  accFiltre=l; redessine();
+}
 
 const patsOff=()=>{const s=new Set();(A.exclus||[]).forEach(g=>{
   Object.keys(PAT2GRP).forEach(p=>{if(PAT2GRP[p]===g)s.add(p)})});return s};
@@ -1330,7 +1466,7 @@ const key=(w,s,i)=>`${w}|${s}|${i}`;
 function rotation(w,id){
   const e=EX[id]; if(!e) return id;
   const mat=A.materiel??0;
-  const l=Object.keys(EX).filter(o=>EX[o].pat===e.pat&&EX[o].eq>=mat).sort();
+  const l=Object.keys(EX).filter(o=>EX[o].pat===e.pat&&dispoDeclare(o)).sort();
   const k=l.indexOf(id);
   if(l.length<2||k<0) return id;
   return l[(k+Math.floor(w/2))%l.length];
@@ -1426,7 +1562,7 @@ async function importer(code){
     const nom=sansBalise(data.nom).slice(0,60)||'Séance';
     SEANCES.push({nom:nom+" (reçue)",ex});
     save(); listeLibres();
-    const abs=ex.filter(e=>EX[e.id].eq<(A.materiel??0)).length;
+    const abs=ex.filter(e=>!dispoDeclare(e.id)).length;
     alert("« "+nom+" » a été ajoutée à tes séances."+
       (abs?"\n\n"+abs+" exercice"+(abs>1?"s":"")+" demande"+(abs>1?"nt":"")+" du matériel que tu n'as pas déclaré. Remplace-les si besoin avec le bouton Exercice alternatif.":""));
   }catch(e){ alert("Import impossible : "+e.message); }
@@ -1462,7 +1598,7 @@ function composer(id){
 /* Schéma anatomique — tracés react-native-body-highlighter (Hicham Elabbassi), licence MIT */
 function exosDe(p){
   const mat=matActif();
-  const dispo=Object.keys(EX).filter(o=>EX[o].eq>=mat);
+  const dispo=Object.keys(EX).filter(o=>exoDispo(o,mat,accActif()));
   /* d'abord les exercices dont c'est le muscle principal, ensuite ceux qui le
      travaillent en second : les fentes sortent aussi sous « fessiers », les
      tirages sous « biceps », les poussées sous « triceps ». */
@@ -1542,6 +1678,7 @@ function explorer(){
     <button class="retour" onclick="explore=false;zone=null;${FINI?'prog()':'listeLibres()'}">← Retour</button>
     <div class="eyebrow">Bibliothèque</div>
     <h2 class="display" style="margin:8px 0 16px">Explorer<br>par le corps</h2>
+    ${filtreMatHTML()}
     ${schemaHTML()}
   </div>${popupHTML()}</div>`;
   setTabs('explorer');
@@ -1573,7 +1710,7 @@ function popupHTML(){
 }
 function ecranComposeur(){
   bar(false);
-  const dispo=Object.keys(EX).filter(o=>EX[o].eq>=matActif());
+  const dispo=Object.keys(EX).filter(o=>exoDispo(o,matActif(),accActif()));
   const f=sansAccent(filtre.trim());
   const colle=o=>{ if(!f) return true;
     const mots=sansAccent(EX[o].n+' '+EX[o].m).split(/[^a-z0-9]+/);
@@ -1603,12 +1740,7 @@ function ecranComposeur(){
       </div>`}).join('')
       :`<p class="vide">Touche un exercice ci-dessous pour l'ajouter.</p>`}
     <div class="chx" style="margin-top:24px">Bibliothèque</div>
-    <div class="matfiltre">
-      <span class="mfl">Matériel disponible</span>
-      <div class="mfb">${[[3,'Poids du corps'],[2,'+ Haltères'],[1,'+ Barre'],[0,'+ Machines']].map(([v,n])=>
-        `<button class="${matActif()===v?'sel':''}" onclick="matFiltre=${v};ecranComposeur()">${n}</button>`).join('')}</div>
-      ${matActif()!==(A.materiel??0)?`<button class="mfr" onclick="matFiltre=null;ecranComposeur()">Revenir à mon matériel déclaré</button>`:''}
-    </div>
+    ${filtreMatHTML()}
     <div class="bascule">
       <button class="${vueBib==='schema'?'sel':''}" onclick="vueBib='schema';ecranComposeur()">Schéma</button>
       <button class="${vueBib==='liste'?'sel':''}" onclick="vueBib='liste';ecranComposeur()">Liste</button>
@@ -1633,7 +1765,7 @@ function catalogueHTML(parGroupe){
 function chercher(v){
   filtre=v;
   const mat=matActif(), f=sansAccent(v.trim()), parGroupe={};
-  Object.keys(EX).filter(o=>EX[o].eq>=mat).forEach(o=>{
+  Object.keys(EX).filter(o=>exoDispo(o,mat,accActif())).forEach(o=>{
     if(f){const mots=sansAccent(EX[o].n+' '+EX[o].m).split(/[^a-z0-9]+/);
       if(!mots.some(m=>m.startsWith(f)))return;}
     const g=PAT2GRP[EX[o].pat]||'Cardio et mobilité';
@@ -2007,7 +2139,7 @@ async function gen(){
 }
 function payload(){
   const p={objectif:A.objectif,regularite:A.regularite,socle:A.socle,axe:A.axe,materiel:A.materiel,
-    sexe:A.sexe,blessure:A.blessure,prefs:A.prefs,charges:A.charges,profil:A.profil,sportFreq:A.sportFreq,
+    sexe:A.sexe,acc:accDeclares(),blessure:A.blessure,prefs:A.prefs,charges:A.charges,profil:A.profil,sportFreq:A.sportFreq,
     exclus:A.exclus||[]};
   if(FORCER){p.forcer=true;FORCER=false}
   if(sportsChoisis().length){
@@ -2081,6 +2213,12 @@ function synthese(){
     <h2 class="display">${esc(titre)}</h2><p class="sub">${esc(intro)}</p>
     <div class="recap"><div class="rh">Ce que j'ai retenu</div>
       ${recap().map(([k,v])=>`<div class="rrow2"><span class="rk">${k}</span><span class="rv">${v}</span></div>`).join('')}</div>
+    <div class="matfiltre accplan">
+      <span class="mfl">Matériel en plus</span>
+      <div class="mfb">${ACC.map(([c,n],i)=>
+        `<button class="${(A.acc||[]).includes(i)?'sel':''}" onclick="basculeAccDeclare(${i})">+ ${n}</button>`).join('')}</div>
+      <p class="accn">Pris en compte par les alternatives et l'exploration tout de suite, et par l'IA à la prochaine régénération du cycle.</p>
+    </div>
     ${gen&&PLAN.notes&&PLAN.notes.refus&&PLAN.notes.refus.length
       ?`<div class="pnote jaune">${txtRefus(PLAN.notes.refus)}</div>`:''}
     <div class="chx">Trois choix que j'ai faits</div>
@@ -2330,7 +2468,7 @@ function rpeScale(){
 function fiche(id,idx,role){
   bar(false); const e=EX[id];
   const r=rpeOf(wk,id,role), k=key(wk,day,idx);
-  const alts=Object.keys(EX).filter(o=>EX[o].pat===e.pat&&EX[o].eq>=(A.materiel??0));
+  const alts=Object.keys(EX).filter(o=>EX[o].pat===e.pat&&dispoDeclare(o));
   /* La fiche s'ouvre aussi depuis une séance libre : il n'y a alors pas d'entrée de plan. */
   const W=week(), ent=(idx>=0&&W[day]&&W[day].x&&W[day].x[idx])?W[day].x[idx]:null;
   const libre=!ent, eL=libre&&LIBRE?LIBRE.ex.find(z=>z.id===id):null;
@@ -2388,7 +2526,7 @@ function histo(id,idx){
 }
 function alternatives(id,idx,role){
   bar(false); const e=EX[id], mat=A.materiel??0;
-  const liste=Object.keys(EX).filter(o=>EX[o].pat===e.pat&&EX[o].eq>=mat);
+  const liste=Object.keys(EX).filter(o=>EX[o].pat===e.pat&&dispoDeclare(o));
   const orig=week()[day].x[idx][0], k=key(wk,day,idx), perm=day+'|'+idx;
   app.innerHTML=`<div class="screen" id="alts"><div class="pad">
     <button class="retour" onclick="prog()">← Retour à la séance</button>
@@ -2456,7 +2594,7 @@ function normaliser(A){
     const prem=(A.sport||[]).filter(i=>i>0)[0];
     A.sportFreq = prem!==undefined?{[prem]:n}:{};
   }
-  ['blessure','prio','exclus'].forEach(k=>{ if(A[k]!==undefined) A[k]=tab(A[k]); });
+  ['blessure','prio','exclus','acc'].forEach(k=>{ if(A[k]!==undefined) A[k]=tab(A[k]); });
   ['prefs','charges','profil','sportFreq'].forEach(k=>{ if(A[k]!==undefined) A[k]=obj(A[k]); });
   Object.keys(A.prefs||{}).forEach(g=>{ if(!Array.isArray(A.prefs[g])) A.prefs[g]=[]; });
   return A;
@@ -2540,7 +2678,7 @@ function pseudoScreen(){
   app.innerHTML=`<div class="screen" id="pseudo" style="justify-content:flex-start;padding-top:30px;padding-bottom:200px;">
     <h1 class="display">Ton surnom</h1>
     <p>Il sert juste à t'accueillir. Pas de mot de passe, ton compte est créé automatiquement.</p>
-    <input id="pin" maxlength="24" autocomplete="off" autocapitalize="words" placeholder="Kevin" enterkeyhint="next">
+    <input id="pin" maxlength="24" autocomplete="off" autocapitalize="words" placeholder="Utilisateur" enterkeyhint="next">
     <div class="mailopt">
       <label for="pmail">Ton adresse e-mail <em>— facultatif</em></label>
       <input id="pmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off"
