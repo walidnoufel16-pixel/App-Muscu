@@ -128,6 +128,39 @@ const LIB = [
   {id:"velo",nom:"Vélo, intervalles",pat:"ca",eq:0,ch:"temps"},
   {id:"scappu",nom:"Tractions scapulaires",pat:"tra",eq:3,ch:"aucune"},
   {id:"pompe",nom:"Pompes pieds surélevés",pat:"ph",eq:3,ch:"lest"},
+  {id:"pecdk",nom:"Pec deck (butterfly)",pat:"ph",eq:0,ch:"kg"},
+  {id:"chpm",nom:"Chest press à la machine",pat:"ph",eq:0,ch:"kg"},
+  {id:"ecah",nom:"Écarté haltères",pat:"ph",eq:2,ch:"kg"},
+  {id:"ecai",nom:"Écarté incliné haltères",pat:"ph",eq:2,ch:"kg"},
+  {id:"ecab",nom:"Écarté poulie basse",pat:"ph",eq:0,ch:"kg"},
+  {id:"rwapp",nom:"Rowing buste appuyé haltères",pat:"th",eq:2,ch:"kg"},
+  {id:"tbar",nom:"Rowing T-bar",pat:"th",eq:1,ch:"kg"},
+  {id:"rwm",nom:"Rowing à la machine",pat:"th",eq:0,ch:"kg"},
+  {id:"tbt",nom:"Tirage bras tendus à la poulie",pat:"tv",eq:0,ch:"kg"},
+  {id:"pull",nom:"Pull-over haltère",pat:"tv",eq:2,ch:"kg"},
+  {id:"oisp",nom:"Oiseau à la poulie",pat:"re",eq:0,ch:"kg"},
+  {id:"pp",nom:"Push press",pat:"pv",eq:1,ch:"kg"},
+  {id:"dcs",nom:"Développé couché prise serrée",pat:"ec",eq:1,ch:"kg"},
+  {id:"dipm",nom:"Dips à la machine",pat:"ec",eq:0,ch:"kg"},
+  {id:"curlc",nom:"Curl concentré",pat:"fc",eq:2,ch:"kg"},
+  {id:"martc",nom:"Curl marteau à la corde",pat:"fc",eq:0,ch:"kg"},
+  {id:"zott",nom:"Curl Zottman",pat:"fc",eq:2,ch:"kg"},
+  {id:"hack",nom:"Hack squat",pat:"eg",eq:0,ch:"kg"},
+  {id:"smith",nom:"Squat à la Smith machine",pat:"eg",eq:0,ch:"kg"},
+  {id:"gob",nom:"Goblet squat",pat:"eg",eq:2,ch:"kg"},
+  {id:"rmh",nom:"Soulevé de terre roumain haltères",pat:"fh",eq:2,ch:"kg"},
+  {id:"sdts",nom:"Soulevé de terre sumo",pat:"fh",eq:1,ch:"kg"},
+  {id:"trap",nom:"Soulevé de terre à la trap bar",pat:"fh",eq:0,ch:"kg"},
+  {id:"abd",nom:"Abducteurs à la machine",pat:"fh",eq:0,ch:"kg"},
+  {id:"nord",nom:"Nordic curl",pat:"fh",eq:3,ch:"aucune"},
+  {id:"roue",nom:"Roue abdominale",pat:"ae",eq:3,ch:"aucune"},
+  {id:"rgen",nom:"Relevés de genoux aux barres",pat:"ft",eq:3,ch:"aucune"},
+  {id:"mclimb",nom:"Mountain climbers",pat:"ae",eq:3,ch:"temps"},
+  {id:"ellip",nom:"Vélo elliptique",pat:"ca",eq:0,ch:"temps"},
+  {id:"stair",nom:"Stairmaster",pat:"ca",eq:0,ch:"temps"},
+  {id:"tapis",nom:"Course sur tapis",pat:"ca",eq:0,ch:"temps"},
+  {id:"wgs",nom:"World's greatest stretch",pat:"mo",eq:3,ch:"aucune"},
+  {id:"ischs",nom:"Étirement des ischio-jambiers",pat:"mo",eq:3,ch:"temps"},
 ];
 const IDS = new Set(LIB.map((x) => x.id));
 const PARID: Record<string, typeof LIB[0]> = Object.fromEntries(LIB.map((x) => [x.id, x]));
@@ -239,7 +272,7 @@ async function empreinte(texte: string) {
   return [...new Uint8Array(h)].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 40);
 }
 
-const VERSION_BIBLIOTHEQUE = 2;   // 2 : bibliothèque complète (100 exercices)
+const VERSION_BIBLIOTHEQUE = 3;   // 2 : bibliothèque complète (100 exercices) · 3 : 133 exercices
 
 /* Seules les réponses qui changent réellement le programme entrent dans la signature. */
 async function signature(A: any) {
