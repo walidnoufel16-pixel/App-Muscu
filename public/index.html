@@ -1401,33 +1401,39 @@ const app=document.getElementById('app'), foot=document.getElementById('foot'),
 let Q=buildQ(), qi=0, wk=0, day=0, sect=1, ouvSp=false, BASCULE=null;
 let SEANCES=[], LIBRE=null, filtre='';
 let vueBib='schema', cote='front', zone=null, souszone=null, explore=false, popup=null;
-/* Filtre matériel du composeur : part du matériel déclaré, mais élargissable
-   (on peut s'entraîner ailleurs qu'à l'endroit décrit au questionnaire).    */
-let matFiltre=null, accFiltre=null;
-const matActif=()=>matFiltre!==null?matFiltre:(A.materiel??0);
-const accActif=()=>accFiltre!==null?accFiltre:accDeclares();
-/* Filtre « Matériel disponible », commun au composeur et à l'exploration.
-   L'échelle est cumulative ; kettlebell et élastiques s'ajoutent à part. */
+/* Filtre « Matériel disponible » de la bibliothèque (composeur et exploration).
+   Chaque type de matériel se coche et se décoche indépendamment ; au départ,
+   c'est le matériel déclaré (on peut s'entraîner ailleurs qu'à l'endroit
+   décrit au questionnaire). Codes : m0…m3 = champ eq, kb et el = champ acc. */
+const TYPES=[['m3','Poids du corps'],['m2','Haltères'],['m1','Barre'],['m0','Machines'],['kb','Kettlebell'],['el','Élastiques']];
+let selFiltre=null;
+const selDeclare=()=>[3,2,1,0].filter(v=>v>=(A.materiel??0)).map(v=>'m'+v).concat(accDeclares());
+const selActif=()=>selFiltre!==null?selFiltre:selDeclare();
+function exoFiltre(o){
+  const e=EX[o], sel=selActif(); if(!e) return false;
+  if(e.acc) return sel.includes(e.acc);
+  return sel.includes('m'+e.eq)||(!!e.ou&&sel.includes(e.ou));
+}
 function filtreMatHTML(){
-  const acc=accActif(), perso=matActif()!==(A.materiel??0)||acc.slice().sort().join()!==accDeclares().slice().sort().join();
+  const sel=selActif(), trie=l=>l.slice().sort().join(), perso=trie(sel)!==trie(selDeclare());
+  const bouton=([t,n])=>`<button class="${sel.includes(t)?'sel':''}" onclick="basculeType('${t}')">${n}</button>`;
   return `<div class="matfiltre">
       <span class="mfl">Matériel disponible</span>
-      <div class="mfb">${[[3,'Poids du corps'],[2,'+ Haltères'],[1,'+ Barre'],[0,'+ Machines']].map(([v,n])=>
-        `<button class="${matActif()===v?'sel':''}" onclick="matFiltre=${v};redessine()">${n}</button>`).join('')}</div>
-      <div class="mfb">${ACC.map(([c,n])=>
-        `<button class="${acc.includes(c)?'sel':''}" onclick="basculeAcc('${c}')">+ ${n}</button>`).join('')}</div>
-      ${perso?`<button class="mfr" onclick="matFiltre=null;accFiltre=null;redessine()">Revenir à mon matériel déclaré</button>`:''}
+      <div class="mfb">${TYPES.slice(0,3).map(bouton).join('')}</div>
+      <div class="mfb">${TYPES.slice(3).map(bouton).join('')}</div>
+      ${sel.length?'':`<p class="accn">Sélectionne au moins un matériel pour voir des exercices.</p>`}
+      ${perso?`<button class="mfr" onclick="selFiltre=null;redessine()">Revenir à mon matériel déclaré</button>`:''}
     </div>`;
+}
+function basculeType(t){
+  const l=selActif().slice(), j=l.indexOf(t); j<0?l.push(t):l.splice(j,1);
+  selFiltre=l; redessine();
 }
 /* Réglage du matériel en plus depuis Mon plan, sans refaire le questionnaire. */
 function basculeAccDeclare(i){
   const aucun=ACC.length, s=(A.acc||[]).filter(x=>x!==aucun), j=s.indexOf(i);
   j<0?s.push(i):s.splice(j,1);
-  A.acc=s.length?s.sort():[aucun]; accFiltre=null; save(); synthese();
-}
-function basculeAcc(c){
-  const l=accActif().slice(), j=l.indexOf(c); j<0?l.push(c):l.splice(j,1);
-  accFiltre=l; redessine();
+  A.acc=s.length?s.sort():[aucun]; selFiltre=null; save(); synthese();
 }
 
 const patsOff=()=>{const s=new Set();(A.exclus||[]).forEach(g=>{
@@ -1597,8 +1603,7 @@ function composer(id){
 }
 /* Schéma anatomique — tracés react-native-body-highlighter (Hicham Elabbassi), licence MIT */
 function exosDe(p){
-  const mat=matActif();
-  const dispo=Object.keys(EX).filter(o=>exoDispo(o,mat,accActif()));
+  const dispo=Object.keys(EX).filter(exoFiltre);
   /* d'abord les exercices dont c'est le muscle principal, ensuite ceux qui le
      travaillent en second : les fentes sortent aussi sous « fessiers », les
      tirages sous « biceps », les poussées sous « triceps ». */
@@ -1710,7 +1715,7 @@ function popupHTML(){
 }
 function ecranComposeur(){
   bar(false);
-  const dispo=Object.keys(EX).filter(o=>exoDispo(o,matActif(),accActif()));
+  const dispo=Object.keys(EX).filter(exoFiltre);
   const f=sansAccent(filtre.trim());
   const colle=o=>{ if(!f) return true;
     const mots=sansAccent(EX[o].n+' '+EX[o].m).split(/[^a-z0-9]+/);
@@ -1764,8 +1769,8 @@ function catalogueHTML(parGroupe){
    sinon le champ perdrait le focus à chaque frappe.                  */
 function chercher(v){
   filtre=v;
-  const mat=matActif(), f=sansAccent(v.trim()), parGroupe={};
-  Object.keys(EX).filter(o=>exoDispo(o,mat,accActif())).forEach(o=>{
+  const f=sansAccent(v.trim()), parGroupe={};
+  Object.keys(EX).filter(exoFiltre).forEach(o=>{
     if(f){const mots=sansAccent(EX[o].n+' '+EX[o].m).split(/[^a-z0-9]+/);
       if(!mots.some(m=>m.startsWith(f)))return;}
     const g=PAT2GRP[EX[o].pat]||'Cardio et mobilité';
