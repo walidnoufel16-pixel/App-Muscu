@@ -111,3 +111,6 @@ Les scripts de `supabase/rollback/` annulent chaque migration à la main en cas 
 ## Licences
 
 Schéma anatomique : [react-native-body-highlighter](https://github.com/HichamELBSI/react-native-body-highlighter), licence MIT (voir `public/LICENSE-body-highlighter.txt`).
+
+Photos d'exercices : [free-exercise-db](https://github.com/yuhonas/free-exercise-db), domaine public (Unlicense),
+redimensionnées en 420 × 280.
