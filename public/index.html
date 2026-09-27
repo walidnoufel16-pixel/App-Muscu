@@ -368,6 +368,15 @@ h2.q{font-size:29px;line-height:1.05;margin-bottom:6px}
 .popimg img{width:100%;height:100%;object-fit:cover;display:block}
 .popimg figcaption{position:absolute;bottom:6px;left:6px;font-family:'JetBrains Mono',monospace;font-size:8.5px;
   letter-spacing:.1em;text-transform:uppercase;background:rgba(20,22,26,.78);color:var(--craie);padding:3px 5px;border-radius:2px}
+/* alternance départ / fin */
+.duo{position:relative}
+.duo.anim,#fiche .visual.duo.anim{display:block}
+.duo.anim figure,#fiche .visual.duo.anim figure{position:absolute;inset:0}
+.duo.anim figure.f1{animation:duo 2.8s ease-in-out infinite}
+@keyframes duo{0%,36%{opacity:0}50%,86%{opacity:1}100%{opacity:0}}
+.duob{position:absolute;right:7px;bottom:7px;z-index:3;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;
+  text-transform:uppercase;background:rgba(20,22,26,.78);color:var(--craie);border:0;padding:4px 7px;border-radius:2px;cursor:pointer}
+#fiche.shrunk .duob{opacity:0;pointer-events:none}
 .popc{flex:1;overflow-y:auto;padding:16px 18px 6px;-webkit-overflow-scrolling:touch}
 .popf{flex:none;padding:12px 18px calc(16px + env(safe-area-inset-bottom));border-top:1px solid var(--ligne);background:var(--craie)}
 .popf .btn{width:100%}
@@ -1698,9 +1707,7 @@ function popupHTML(){
   return `<div class="voile" onclick="fermerPopup()"></div>
   <div class="pop" role="dialog" aria-modal="true">
     <button class="popx" onclick="fermerPopup()" aria-label="Fermer">✕</button>
-    <div class="popimg">
-      <figure><img src="${GH}${e.img}_0.jpg" alt="${e.n}, départ" onerror="imgFail(this)"><figcaption>Départ</figcaption></figure>
-      <figure><img src="${GH}${e.img}_1.jpg" alt="${e.n}, fin" onerror="imgFail(this)"><figcaption>Fin</figcaption></figure>
+    <div class="popimg duo${DUO_ANIM?' anim':''}">${duoHTML(e)}
     </div>
     <div class="popc">
       <div class="eyebrow">${e.m} · ${nomPat(e.pat)}</div>
@@ -2480,9 +2487,7 @@ function fiche(id,idx,role){
   const pres=ent?[ent[1],ent[2],ent[3]]:(eL?[eL.s,eL.r,eL.p]:[3,10,'90 s']);
   app.innerHTML=`<div class="screen" id="fiche">
     <button class="back" onclick="retourFiche()" aria-label="Retour">←</button>
-    <div class="visual">
-      <figure><img src="${GH}${e.img}_0.jpg" alt="${e.n}, départ" onerror="imgFail(this)"><figcaption>Départ</figcaption></figure>
-      <figure><img src="${GH}${e.img}_1.jpg" alt="${e.n}, fin" onerror="imgFail(this)"><figcaption>Fin</figcaption></figure></div>
+    <div class="visual duo${DUO_ANIM?' anim':''}">${duoHTML(e)}</div>
     <div class="credit">Illustrations · free-exercise-db · domaine public</div>
     <div class="pad">
       <div class="eyebrow">${e.m} · ${nomPat(e.pat)}</div>
@@ -2562,6 +2567,22 @@ function swap(idx,newId,orig,portee){
 window.addEventListener('scroll',()=>{
   const f=document.getElementById('fiche'); if(f) f.classList.toggle('shrunk',window.scrollY>80);
 },{passive:true});
+/* Photos départ et fin : par défaut elles alternent en fondu pour suggérer le
+   mouvement ; un bouton rebascule en côte à côte. Sans animation si l'appareil
+   demande à réduire les mouvements.                                         */
+let DUO_ANIM=!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+function duoHTML(e){
+  return `<figure class="f0"><img src="${GH}${e.img}_0.jpg" alt="${esc(e.n)}, départ" onerror="imgFail(this)"><figcaption>Départ</figcaption></figure>
+      <figure class="f1"><img src="${GH}${e.img}_1.jpg" alt="${esc(e.n)}, fin" onerror="imgFail(this)"><figcaption>Fin</figcaption></figure>
+      <button class="duob" onclick="event.stopPropagation();duoBascule(this.parentNode)">${DUO_ANIM?'Côte à côte':'Animer'}</button>`;
+}
+function duoBascule(el){
+  DUO_ANIM=!DUO_ANIM;
+  document.querySelectorAll('.duo').forEach(d=>{
+    d.classList.toggle('anim',DUO_ANIM);
+    const b=d.querySelector('.duob'); if(b) b.textContent=DUO_ANIM?'Côte à côte':'Animer';
+  });
+}
 function imgFail(el){
   el.parentNode.innerHTML='<div style="text-align:center;padding:14px"><div class="eyebrow">Illustration<br>indisponible</div></div>';
 }
