@@ -1237,6 +1237,19 @@ function allerA(k){
 }
 function setFoot(h,dark){foot.innerHTML=h?`<div class="foot-in">${h}</div>`:'';foot.className='foot'+(dark?' dark':'')}
 
+/* ---------- textes venus d'ailleurs ---------- */
+/* Tout texte qui n'est pas écrit dans ce fichier (séance reçue, plan de l'IA,
+   état synchronisé) passe par ici avant d'atteindre innerHTML.             */
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sansBalise=t=>String(t??'').replace(/[<>]/g,'');
+function nettoieArbre(o){
+  if(typeof o==='string') return sansBalise(o);
+  if(Array.isArray(o)) return o.map(nettoieArbre);
+  if(o&&typeof o==='object'){const r={};for(const k in o) r[k]=nettoieArbre(o[k]);return r;}
+  return o;
+}
+const borne=(v,min,max,def)=>{v=Math.round(+v);return Number.isFinite(v)?Math.min(max,Math.max(min,v)):def};
+
 /* ---------- partage d'une séance ---------- */
 const ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   /* sans I, O, 0, 1 : dictables sans erreur */
 const codeAlea=()=>Array.from({length:5},()=>ALPHA[Math.floor(Math.random()*ALPHA.length)]).join('');
@@ -1277,12 +1290,14 @@ async function importer(code){
     const {data,error}=await sb.rpc('lire_seance',{p_code:code}).maybeSingle();
     if(error) throw error;
     if(!data){ alert("Aucune séance ne correspond au code "+code+"."); return; }
-    const ex=(data.ex||[]).filter(e=>EX[e.id]);
+    const ex=(Array.isArray(data.ex)?data.ex:[]).filter(e=>e&&EX[e.id]).slice(0,12)
+      .map(e=>({id:e.id,s:borne(e.s,1,10,3),r:borne(e.r,1,600,10),p:sansBalise(e.p).slice(0,12)||'90 s'}));
     if(!ex.length){ alert("Cette séance ne contient aucun exercice reconnu."); return; }
-    SEANCES.push({nom:data.nom+" (reçue)",ex});
+    const nom=sansBalise(data.nom).slice(0,60)||'Séance';
+    SEANCES.push({nom:nom+" (reçue)",ex});
     save(); listeLibres();
     const abs=ex.filter(e=>EX[e.id].eq<(A.materiel??0)).length;
-    alert("« "+data.nom+" » a été ajoutée à tes séances."+
+    alert("« "+nom+" » a été ajoutée à tes séances."+
       (abs?"\n\n"+abs+" exercice"+(abs>1?"s":"")+" demande"+(abs>1?"nt":"")+" du matériel que tu n'as pas déclaré. Remplace-les si besoin avec le bouton Exercice alternatif.":""));
   }catch(e){ alert("Import impossible : "+e.message); }
 }
@@ -1298,7 +1313,7 @@ function listeLibres(){
     <h2 class="display" style="margin:8px 0 18px">Tes séances</h2>
     ${SEANCES.length?SEANCES.map((s,i)=>`<div class="sline2">
         <button class="sbody" onclick="jouer(${i})">
-          <span class="sn">${s.nom}</span>
+          <span class="sn">${esc(s.nom)}</span>
           <span class="sm">${s.ex.length} exercices · ${s.ex.map(e=>(EX[e.id]||{}).n).filter(Boolean).slice(0,2).join(', ')}${s.ex.length>2?'…':''}</span></button>
         <button class="spart" onclick="partager(${i})" aria-label="Partager">${s.code?'✓':'↗'}</button>
       </div>`).join('')
@@ -1539,7 +1554,7 @@ function vueLibre(){
   const faux={b:0,t:LIBRE.nom,f:'',x:LIBRE.ex.map(e=>[e.id,e.s,e.r,e.p,0])};
   app.innerHTML=`<div class="screen">
     <div class="head"><div class="eyebrow">Séance libre</div>
-      <div class="headrow"><h2 class="display">${LIBRE.nom}</h2></div>
+      <div class="headrow"><h2 class="display">${esc(LIBRE.nom)}</h2></div>
       <div class="meta">${LIBRE.ex.length} exercices · effort visé RPE 8, ${rirTxt(8)}</div></div>
     <div class="session">
       <div class="sect">${T.map((t,k)=>`<button class="stab${k===sect?' sel':''}" onclick="sect=${k};vueLibre()">${t}</button>`).join('')}</div>
@@ -1560,7 +1575,7 @@ function ligneLibre(e,j){
       <button class="main" onclick="ficheDepuisLibre('${e.id}')">
         <span class="idx">${String(j+1).padStart(2,'0')}</span>
         <span class="body"><span class="n">${x.n}</span>
-          <span class="t">repos ${e.p}${noRPE(e.id)?'':' · RPE 8'}</span></span>
+          <span class="t">repos ${esc(e.p)}${noRPE(e.id)?'':' · RPE 8'}</span></span>
         <span class="sr">${prescr}</span></button>
       <button class="chk" onclick="toggleLibre(${j})" aria-label="Valider">${done?'✓':'○'}</button>
     </div>
@@ -1842,7 +1857,7 @@ async function gen(){
       const dg=j.diagnostic?' — '+JSON.stringify(j.diagnostic):'';
       throw new Error((j.erreur||('erreur HTTP '+r.status))+dg);
     }
-    PLAN=j.plan;
+    PLAN=nettoieArbre(j.plan);
     const n=PLAN.notes;
     if(n&&(n.retenues<n.demandees||!n.bonus)){
       showErr("Cycle généré, mais incomplet : "+n.retenues+" séances sur "+n.demandees
@@ -1933,14 +1948,14 @@ function synthese(){
   const C=['#EFC429','#2E7D4F','#1B4FA8'];
   app.innerHTML=`<div class="screen" id="diag"><div class="pad">
     <div class="eyebrow" style="color:#EFC429">Ce qu'on va faire</div>
-    <h2 class="display">${titre}</h2><p class="sub">${intro}</p>
+    <h2 class="display">${esc(titre)}</h2><p class="sub">${esc(intro)}</p>
     <div class="recap"><div class="rh">Ce que j'ai retenu</div>
       ${recap().map(([k,v])=>`<div class="rrow2"><span class="rk">${k}</span><span class="rv">${v}</span></div>`).join('')}</div>
     ${gen&&PLAN.notes&&PLAN.notes.refus&&PLAN.notes.refus.length
       ?`<div class="pnote jaune">${txtRefus(PLAN.notes.refus)}</div>`:''}
     <div class="chx">Trois choix que j'ai faits</div>
     ${choix.map((c,i)=>`<div class="finding"><span class="badge" style="background:${C[i%3]}">${String(i+1).padStart(2,'0')}</span>
-      <div><h3>${c[0]}</h3><p>${c[1]}</p></div></div>`).join('')}
+      <div><h3>${esc(c[0])}</h3><p>${esc(c[1])}</p></div></div>`).join('')}
     <button class="reset" onclick="regen()">Régénérer mon cycle avec les mêmes réponses</button>
     <button class="reset" onclick="compteScreen()">Mon compte, mon adresse, tout effacer</button>
   </div></div>`;
@@ -1959,7 +1974,7 @@ function prog(){
   const nS=W.filter(p=>!p.b&&!p.sportOnly).length, r=baseRPE(wk);
   app.innerHTML=`<div class="screen">
     <div class="head">
-      <div class="eyebrow">${PSEUDO?PSEUDO+" · ":""}Cycle de 8 semaines</div>
+      <div class="eyebrow">${PSEUDO?esc(PSEUDO)+" · ":""}Cycle de 8 semaines</div>
       <div class="headrow"><h2 class="display">Tes séances</h2>
         <select class="wsel" aria-label="Semaine" onchange="wk=+this.value;prog()">
           ${Array.from({length:8},(_,i)=>`<option value="${i}"${i===wk?' selected':''}>Semaine ${i+1}${wkFull(i)?' ✓':''}</option>`).join('')}
@@ -2318,7 +2333,7 @@ function normaliser(A){
 }
 function apply(s){
   if(!s)return false;
-  Object.assign(A,s.A||{});Object.assign(LOG,s.LOG||{});Object.assign(SWAP,s.SWAP||{});Object.assign(SWAPP,s.SWAPP||{});PLAN=s.PLAN||null;SEANCES=s.SEANCES||[];
+  Object.assign(A,s.A||{});Object.assign(LOG,s.LOG||{});Object.assign(SWAP,s.SWAP||{});Object.assign(SWAPP,s.SWAPP||{});PLAN=nettoieArbre(s.PLAN)||null;SEANCES=nettoieArbre(s.SEANCES)||[];
   wk=s.wk||0;day=s.day||0;FINI=!!s.FINI;
   normaliser(A);
   /* Dernier filet : un état illisible ne doit jamais empêcher l'app de
@@ -2421,7 +2436,7 @@ async function signIn(){
   /* L'adresse est facultative, mais si elle est saisie elle doit être plausible :
      autant le dire ici plutôt que d'envoyer un mail dans le vide. */
   if(mail&&!valideMail(mail)){err.textContent="Cette adresse n'a pas l'air valide. Corrige-la, ou laisse le champ vide.";return}
-  PSEUDO=p; localStorage.setItem(PKEY,p);
+  p=sansBalise(p); PSEUDO=p; localStorage.setItem(PKEY,p);
   err.textContent="Création du compte…";
   try{
     const {data,error}=await sb.auth.signInAnonymously();
@@ -2455,7 +2470,7 @@ async function afterLogin(forcerDistant){
   let remote=null;
   try{
     const {data}=await sb.from('etats').select('etat,pseudo').eq('user_id',USER.id).maybeSingle();
-    if(data){remote=data.etat;if(data.pseudo)PSEUDO=data.pseudo}
+    if(data){remote=data.etat;if(data.pseudo)PSEUDO=sansBalise(data.pseudo)}
   }catch(e){}
   const local=localState();
   /* À la récupération le compte passe devant ; s'il est vide, on garde ce qui
@@ -2485,7 +2500,7 @@ function compteScreen(){
   const mail=USER&&USER.email;
   app.innerHTML=`<div class="screen" id="pseudo" style="justify-content:flex-start;padding-top:30px;padding-bottom:210px;overflow-y:auto">
     <h1 class="display">Ton compte</h1>
-    <div class="etat${mail?' ok':''}"><i></i><span>${PSEUDO||'toi'}<br><b>${mail||'Aucune adresse rattachée'}</b></span></div>
+    <div class="etat${mail?' ok':''}"><i></i><span>${esc(PSEUDO||'toi')}<br><b>${esc(mail||'Aucune adresse rattachée')}</b></span></div>
     ${mail
       ?`<p>Ton compte est rattaché à cette adresse. Sur un autre téléphone ou sur un ordinateur, ouvre l'app, touche « J'ai déjà un compte » et saisis-la : tu recevras un code à six chiffres qui te rendra tout ce que tu vois ici.</p>
         <p class="warn">Pour changer d'adresse, saisis la nouvelle ci-dessous. L'ancienne cessera de fonctionner dès que tu auras confirmé le lien reçu.</p>`
@@ -2684,7 +2699,7 @@ async function boot_(){
   try{
     const {data}=await sb.auth.getSession();
     if(data&&data.session){
-      USER=data.session.user; PSEUDO=localStorage.getItem(PKEY)||'toi';
+      USER=data.session.user; PSEUDO=sansBalise(localStorage.getItem(PKEY))||'toi';
       await afterLogin(); return;
     }
   }catch(e){}

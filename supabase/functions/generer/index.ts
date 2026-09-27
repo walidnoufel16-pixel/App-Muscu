@@ -10,10 +10,12 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+/* Aucun texte renvoyé à l'app ne doit pouvoir former une balise HTML. */
+const sansBalise = (t: unknown) => String(t ?? "").replace(/[<>]/g, "");
 /* Coupe au dernier point plutôt qu'au caractère près, pour ne pas laisser
    de phrase inachevée à l'écran.                                          */
 function coupe(t: unknown, max: number) {
-  const s = String(t ?? "").trim();
+  const s = sansBalise(t).trim();
   if (s.length <= max) return s;
   const tronc = s.slice(0, max);
   const fin = Math.max(tronc.lastIndexOf(". "), tronc.lastIndexOf(" ! "), tronc.lastIndexOf(" ? "));
@@ -180,6 +182,20 @@ async function consommerQuota(uid: string): Promise<boolean> {
   if (!r.ok) throw new Error("quota illisible (" + r.status + ")");
   return (await r.json()) === true;
 }
+/* Une génération qui n'aboutit pas ne doit pas coûter d'essai à l'utilisateur. */
+async function rendreQuota(uid: string) {
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/rendre_quota`, {
+      method: "POST", headers: enTetes, body: JSON.stringify({ p_user: uid }),
+    });
+    await r.text();
+  } catch { /* au pire, l'essai reste compté */ }
+}
+
+async function empreinte(texte: string) {
+  const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(texte));
+  return [...new Uint8Array(h)].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 40);
+}
 
 /* Seules les réponses qui changent réellement le programme entrent dans la signature. */
 async function signature(A: any) {
@@ -192,8 +208,7 @@ async function signature(A: any) {
     p: [...(A.prioNoms || [])].sort(), sp: A.sportNom ?? null, sf: A.sportFreq ?? null,
     ac: A.actuelNom ?? null, prefs,
   });
-  const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(brut));
-  return [...new Uint8Array(h)].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 40);
+  return empreinte(brut);
 }
 async function lireCache(sig: string) {
   if (!cacheDispo()) return null;
@@ -214,6 +229,9 @@ async function ecrireCache(sig: string, plan: any) {
     });
   } catch { /* le cache est un confort, jamais un blocage */ }
 }
+
+/* Les seules charges que l'app demande (questionnaire, étape « Tes charges actuelles »). */
+const CHARGES_CONNUES = new Set(["Développé couché", "Squat", "Soulevé de terre"]);
 
 function profil(A: any) {
   const p: string[] = [];
@@ -236,11 +254,22 @@ function profil(A: any) {
   }
   if (A.prioNoms?.length) p.push(`Groupes prioritaires : ${A.prioNoms.join(", ")}.`);
   if (A.actuelNom) p.push(`Entraînement actuel : ${A.actuelNom}.`);
-  if (A.charges) {
-    const c = Object.entries(A.charges).filter(([, v]) => v !== "?" && typeof v === "number");
+  /* Ces champs n'entrent pas dans la signature du cache : on n'y laisse passer
+     que des nombres, pour qu'aucun texte libre n'atteigne le modèle par là.   */
+  if (A.charges && typeof A.charges === "object") {
+    const c = Object.entries(A.charges)
+      .filter(([k, v]) => CHARGES_CONNUES.has(k) && typeof v === "number" && Number.isFinite(v) && v >= 0 && v <= 500);
     if (c.length) p.push(`Charges de référence : ${c.map(([k, v]) => `${k} ${v} kg`).join(", ")}.`);
   }
-  if (A.profil) p.push(`Âge ${A.profil["Âge"]} ans, taille ${A.profil["Taille"]} cm, poids ${A.profil["Poids"]} kg.`);
+  const num = (v: unknown, min: number, max: number) => {
+    const n = Number(v);
+    return Number.isFinite(n) && n >= min && n <= max ? Math.round(n) : null;
+  };
+  if (A.profil && typeof A.profil === "object") {
+    const age = num(A.profil["Âge"], 10, 100), taille = num(A.profil["Taille"], 100, 250), poids = num(A.profil["Poids"], 25, 300);
+    const l = [age !== null && `âge ${age} ans`, taille !== null && `taille ${taille} cm`, poids !== null && `poids ${poids} kg`].filter(Boolean);
+    if (l.length) p.push(`Profil : ${l.join(", ")}.`);
+  }
   return p.join("\n");
 }
 
@@ -251,7 +280,7 @@ function valider(plan: any, A: any): any {
   const refus: string[] = [];
   const exclus = patsExclus(A);
   const nettoieEx = (e: any) => {
-    if (!e || !IDS.has(e.id)) { refus.push(String(e?.id) + " : inconnu"); return null; }
+    if (!e || !IDS.has(e.id)) { refus.push(sansBalise(e?.id).slice(0, 20) + " : inconnu"); return null; }
     e = { ...e, series: e.s ?? e.series, reps: e.r ?? e.reps, repos: e.p ?? e.repos, role: e.o ?? e.role };
     const x = PARID[e.id];
     if (x.eq < mat) { refus.push(e.id + " : matériel indisponible"); return null; }
@@ -262,7 +291,7 @@ function valider(plan: any, A: any): any {
       id: e.id,
       series: Math.min(6, Math.max(1, Math.round(+e.series || 3))),
       reps: Math.min(max, Math.max(min, Math.round(+e.reps || (x.ch === "temps" ? 45 : x.ch === "dist" ? 250 : 10)))),
-      repos: typeof e.repos === "string" && e.repos.length < 12 ? e.repos : "90 s",
+      repos: typeof e.repos === "string" && e.repos.length < 12 ? sansBalise(e.repos) : "90 s",
       role: e.role ? 1 : 0,
     };
   };
@@ -342,9 +371,13 @@ Deno.serve(async (req) => {
       if (!test.ok) await test.text();
     } catch { cacheOK = false; }
   }
-  if (!A.forcer && cacheOK) {
-    const cache = await lireCache(sig);
-    if (cache) return rep({ plan: cache, cache: true, cache_dispo: true, ms: Date.now() - t0, signature: sig });
+  /* Une régénération forcée ne touche jamais le cache partagé : elle est rangée
+     sous une signature propre à l'utilisateur, où ses tentatives suivantes
+     (cacheSeul) viennent la chercher.                                         */
+  const sigCache = A.forcer ? "u" + (await empreinte(sig + ":" + uid)).slice(1) : sig;
+  if (cacheOK && (!A.forcer || A.cacheSeul)) {
+    const cache = await lireCache(sigCache);
+    if (cache) return rep({ plan: cache, cache: true, cache_dispo: true, ms: Date.now() - t0, signature: sigCache });
   }
   /* Deuxième tentative du navigateur : on ne relance pas une génération payante,
      on répond aussitôt pour qu'il retente une fois le cache rempli.             */
@@ -401,7 +434,12 @@ Deno.serve(async (req) => {
         journal.push(`${nom} : interrompu après ${Date.now() - t1} ms (${(e as Error).name})`);
       }
     }
-    if (!r) return rep({ erreur: "Anthropic n'a pas répondu.", diagnostic: { modele: MODELE, tentatives: journal } }, 502);
+    if (!r) {
+      await rendreQuota(uid);
+      const cleRefusee = journal.some((l) => l.includes(": 401 "));
+      return rep({ erreur: cleRefusee ? "Clé API Anthropic invalide ou expirée : génération momentanément indisponible."
+                                      : "Anthropic n'a pas répondu.", diagnostic: { modele: MODELE, tentatives: journal } }, 502);
+    }
     const d = await r.json();
     const blocs = Array.isArray(d.content) ? d.content : [];
     let txt = blocs.filter((b: any) => b && b.type === "text").map((b: any) => b.text || "").join("").trim();
@@ -410,6 +448,7 @@ Deno.serve(async (req) => {
 
     const i = txt.indexOf("{"), j = txt.lastIndexOf("}");
     if (i < 0 || j <= i) {
+      await rendreQuota(uid);
       return rep({ erreur: "Aucun JSON dans la réponse du modèle.", diagnostic: {
         modele: d.model ?? null, amorcage: amorce, reflexion: (d.usage?.output_tokens_details?.thinking_tokens ?? 0), stop_reason: d.stop_reason ?? null, blocs: blocs.map((b: any) => b?.type),
         longueur: txt.length, debut: txt.slice(0, 400), fin: txt.slice(-200), usage: d.usage ?? null } }, 502);
@@ -417,6 +456,7 @@ Deno.serve(async (req) => {
     let obj: any;
     try { obj = JSON.parse(txt.slice(i, j + 1)); }
     catch (err) {
+      await rendreQuota(uid);
       return rep({ erreur: "JSON invalide, réponse probablement tronquée.", diagnostic: {
         stop_reason: d.stop_reason ?? null, detail: String(err).slice(0, 200),
         reflexion: (d.usage?.output_tokens_details?.thinking_tokens ?? 0),
@@ -425,15 +465,17 @@ Deno.serve(async (req) => {
     const v = valider(obj, A);
     void journal;
     if (!v?.ok) {
+      await rendreQuota(uid);
       return rep({ erreur: "Programme refusé par la validation.", diagnostic: {
         raison: v?.echec ?? "inconnue", exercices_refuses: (v?.refus ?? []).slice(0, 12),
         cles_recues: Object.keys(obj || {}), stop_reason: d.stop_reason ?? null } }, 502);
     }
     const { ok: _ok, ...plan } = v;
-    await ecrireCache(sig, plan);
+    await ecrireCache(sigCache, plan);
     return rep({ plan, usage: d.usage ?? null, cache: false, cache_dispo: cacheOK,
                  ms: Date.now() - t0, tentatives: journal, signature: sig });
   } catch (e) {
+    await rendreQuota(uid);
     return rep({ erreur: "Génération impossible : " + (e as Error).message }, 500);
   }
 });

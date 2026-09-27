@@ -47,6 +47,21 @@ Site statique Render relié à ce dépôt, branche `main`, déploiement automati
 Le build donne au cache du service worker le hash du commit (`RENDER_GIT_COMMIT`) :
 chaque déploiement invalide l'ancien cache et les utilisateurs reçoivent la nouvelle version.
 
+#### En-têtes HTTP (tableau de bord Render → Settings → Headers)
+
+| Chemin | En-tête | Valeur |
+|---|---|---|
+| `/*` | `Content-Security-Policy` | `default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://iyjiwfzrmyvcnmzwlgxe.supabase.co; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'` |
+| `/*` | `X-Content-Type-Options` | `nosniff` |
+| `/*` | `Referrer-Policy` | `strict-origin-when-cross-origin` |
+| `/` | `Cache-Control` | `no-cache` |
+| `/index.html` | `Cache-Control` | `no-cache` |
+| `/sw.js` | `Cache-Control` | `no-cache` |
+| `/img/*` | `Cache-Control` | `public, max-age=604800` |
+
+La politique `connect-src` n'autorise que le projet Supabase de production : en cas d'injection,
+le navigateur refuse d'envoyer des données ailleurs. À adapter si `SUPABASE_URL` change.
+
 ### Backend : ponctuel (Supabase)
 
 Le backend change rarement ; il se déploie à la main avec la CLI Supabase :
@@ -72,6 +87,14 @@ Secrets des fonctions (tableau de bord → Edge Functions → Secrets) :
 - Une séance partagée ne se lit qu'avec son code, via `lire_seance(code)` : la table n'est pas listable.
 - `generer` exige un vrai compte (anonyme ou e-mail) et décompte chaque appel payant dans `quotas_generation`.
 - `plans_cache` et `quotas_generation` ne sont accessibles qu'au serveur.
+- Tout texte venu d'ailleurs (séance reçue, plan de l'IA, état synchronisé) est nettoyé à l'entrée
+  (`nettoieArbre`, `sansBalise`) et échappé à l'affichage (`esc`) dans `public/index.html`.
+- La base refuse les séances partagées mal formées ou contenant `<` ou `>`, les états de plus de 256 Ko
+  et plus de 50 séances publiées par compte (`20260927183706_limites.sql`).
+- Une régénération forcée (`forcer`) est mise en cache sous une signature propre à l'utilisateur :
+  elle ne peut pas remplacer le plan partagé des autres.
+
+Les scripts de `supabase/rollback/` annulent chaque migration à la main en cas de problème.
 
 ## Licences
 
