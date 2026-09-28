@@ -506,6 +506,8 @@ h2.q{font-size:29px;line-height:1.05;margin-bottom:6px}
 .sportcard ul{list-style:none;display:flex;flex-direction:column;gap:12px;margin-top:6px}
 .sportcard li{font-size:15px;line-height:1.5;display:flex;gap:11px}
 .sportcard li::before{content:"";flex:none;width:4px;height:4px;border-radius:50%;background:var(--bleu);margin-top:8px}
+/* écrans sombres courts (code, récupération) : occuper toute la hauteur */
+#app:has(> #pseudo){flex:1;display:flex;flex-direction:column}
 #pseudo{background:var(--fonte);color:var(--craie);flex:1;display:flex;flex-direction:column;justify-content:center;padding:34px 24px}
 #pseudo h1{font-size:44px;margin-bottom:16px}
 #pseudo p{font-size:15.5px;line-height:1.55;color:rgba(239,241,236,.68);margin-bottom:28px;max-width:32ch}
@@ -2743,7 +2745,11 @@ async function signIn(){
     USER=data.user;
     /* Le rattachement vient forcément après : avant, il n'y a pas de compte
        auquel rattacher quoi que ce soit. Et s'il échoue, on entre quand même. */
-    if(mail) MAILRETOUR=await rattacherALaVolee(mail);
+    if(mail){
+      MAILRETOUR=await rattacherALaVolee(mail);
+      /* Code parti : on le demande tout de suite, sans passer par l'onglet Compte. */
+      if(USER&&USER.new_email){ CODEAPRES=true; MAILRETOUR=null; }
+    }
     await afterLogin();
   }catch(e){
     const m=(e&&(e.message||e.error_description))||'';
@@ -2784,12 +2790,15 @@ async function afterLogin(forcerDistant){
   badge(true);
   if(MAILRETOUR){ const m=MAILRETOUR; MAILRETOUR=null;
     setTimeout(()=>Array.isArray(m)?showErr(m[0],m[1]):showErr(m,'ok'),700); }
-  (ok&&FINI)?prog():(SEANCES.length?listeLibres():home());
+  const suite=()=>(ok&&FINI)?prog():(SEANCES.length?listeLibres():home());
+  if(CODEAPRES&&USER&&USER.new_email){ CODEAPRES=false; codeMailScreen(suite); }
+  else { CODEAPRES=false; suite(); }
 }
 /* ================= adresse e-mail : retrouver son compte ailleurs =================
    Le compte reste anonyme par défaut. Rattacher une adresse lui donne une clé :
    sur un autre appareil, un code reçu par mail rouvre le même compte, avec le
    cycle, l'historique et les séances composées. Aucun mot de passe nulle part. */
+let CODEAPRES=false, SUITEMAIL=null;   /* écran de code juste après l'inscription, et où aller ensuite */
 let MAILRETOUR=null;      /* message à afficher au retour du lien de confirmation */
 
 function valideMail(m){ return /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test((m||'').trim()); }
@@ -2798,7 +2807,7 @@ function valideMail(m){ return /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test((m||'').trim
    mail : Safari le prend. L'adresse se confirme donc par un code à six chiffres
    saisi ici. new_email : adresse en attente de ce code.                        */
 function compteScreen(){
-  bar(false);
+  bar(false); SUITEMAIL=null;
   const mail=USER&&USER.email, attente=USER&&USER.new_email;
   app.innerHTML=`<div class="screen" id="pseudo" style="justify-content:flex-start;padding-top:30px;padding-bottom:210px;overflow-y:auto">
     <h1 class="display">Ton compte</h1>
@@ -2874,6 +2883,27 @@ async function lierMail(){
   }
 }
 
+function codeMailScreen(suite){
+  bar(false); SUITEMAIL=suite;
+  app.innerHTML=`<div class="screen" id="pseudo">
+    <h1 class="display">Ton code</h1>
+    <p>Six chiffres viennent d'être envoyés à <b>${esc(USER.new_email)}</b>. Saisis-les ici pour rattacher ton adresse. Pense à regarder tes indésirables.</p>
+    <input id="mcode" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" enterkeyhint="go">
+    <div class="err" id="cerr"></div>
+    <div class="ok2" id="cok"></div>
+    <button class="lien" onclick="renvoyerCode()">Renvoyer le code</button>
+    <button class="lien" onclick="plusTard()">Plus tard</button>
+  </div>`;
+  setFoot(`<button class="btn" onclick="confirmerMail()">Confirmer l'adresse</button>`,true);
+  const c=document.getElementById('mcode');
+  c.addEventListener('keydown',e=>{if(e.key==='Enter')confirmerMail()});
+  setTimeout(()=>c.focus(),260);
+}
+function plusTard(){
+  const s=SUITEMAIL; SUITEMAIL=null; if(s) s();
+  setTimeout(()=>showErr("Tu pourras saisir le code plus tard dans l'onglet Compte.",'info'),400);
+}
+
 async function renvoyerCode(){
   const err=document.getElementById('cerr'), ok=document.getElementById('cok');
   const m=USER&&USER.new_email; if(!m||!sb) return;
@@ -2904,7 +2934,8 @@ async function confirmerMail(){
     if(error) throw error;
     const u=(data&&data.user)||(await sb.auth.getUser()).data.user;
     if(u) USER=u;
-    compteScreen();
+    if(SUITEMAIL&&!USER.new_email){ const s=SUITEMAIL; SUITEMAIL=null; s(); }
+    else compteScreen();
     showErr(USER.new_email
       ? "Code accepté. Un second code a été envoyé à ton ancienne adresse : saisis-le aussi pour terminer."
       : "Adresse confirmée. Ton compte est maintenant récupérable sur un autre appareil.",'ok');
