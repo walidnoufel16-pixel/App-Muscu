@@ -712,6 +712,47 @@ h2.q{font-size:29px;line-height:1.05;margin-bottom:6px}
 #pseudo .mailopt{border:none;background:rgba(239,241,236,.06);border-radius:14px}
 .mode{border-radius:16px}
 .opt,.load,.pchip,.pas,.chip,.altbtn,.altgros,.aline,.aline2,.cline{border-radius:12px}
+/* ---- cartes repliables ---- */
+.chev{margin-left:auto;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--surface2);color:var(--gris);transition:transform .2s}
+.exwrap.ouvert .chev{transform:rotate(180deg)}
+.pastilles2{align-items:center}
+.etat2{grid-column:1/-1;display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:600;color:var(--vert);margin-top:-2px}
+.etat2 .ico{flex:none}
+.barre-av{display:block;width:70px;height:6px;border-radius:3px;background:var(--surface2);overflow:hidden}
+.barre-av i{display:block;height:100%;background:var(--vert);border-radius:3px}
+.exwrap.ouvert{box-shadow:0 6px 24px rgba(20,22,26,.10)}
+.exact{display:flex;gap:8px;margin-left:auto}
+.exact .remp{margin-left:0}
+/* ---- échauffement ---- */
+.ech-tete{display:flex;align-items:center;gap:10px;padding:14px 16px;border-radius:14px;background:var(--surface);border:1px solid var(--ligne);margin-bottom:18px;font-size:14.5px}
+.ech-tete .ico{color:var(--lien)}
+.ech-tete span:nth-child(2){flex:1}
+.etapes{list-style:none;position:relative;margin:0;padding:0}
+.etapes::before{content:"";position:absolute;left:17px;top:18px;bottom:18px;width:2px;background:var(--ligne)}
+.etape{position:relative;display:flex;gap:14px;margin-bottom:12px}
+.etn{flex:none;position:relative;z-index:1;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--jaune);color:#14161A;
+  font-family:'Anton',sans-serif;font-size:16px;box-shadow:0 0 0 4px var(--fond)}
+.etc{flex:1;min-width:0;background:var(--surface);border:1px solid var(--ligne);border-radius:14px;padding:13px 14px;box-shadow:0 1px 2px rgba(20,22,26,.05)}
+.ett{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}
+.ett b{font-size:16px;line-height:1.3}
+.ett .p1{flex:none;font-size:12px}
+.etc p{font-size:14.5px;line-height:1.55;color:var(--texte2)}
+.etf{margin-top:11px;width:100%;display:flex;align-items:center;gap:11px;padding:6px 10px 6px 6px;border-radius:12px;border:none;background:var(--surface2);
+  color:var(--encre);font:inherit;font-size:14px;font-weight:600;cursor:pointer;text-align:left}
+.etf img{width:40px;height:40px;border-radius:9px;object-fit:cover;flex:none}
+.etf span{flex:1}
+.etf .ico{color:var(--gris)}
+/* ---- collation ---- */
+.col-tete{display:flex;gap:14px;align-items:flex-start;margin-bottom:16px}
+.col-ico{flex:none;width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:28px;background:color-mix(in srgb,var(--jaune) 22%,transparent)}
+.col-tete .colt{margin-bottom:6px}
+.col-tete .coli{margin-bottom:0}
+.col-liste{display:grid;gap:10px}
+.coll{display:flex;gap:14px;align-items:flex-start;border:1px solid var(--ligne);border-top:1px solid var(--ligne);background:var(--surface);border-radius:14px;padding:14px;box-shadow:0 1px 2px rgba(20,22,26,.05)}
+.col-illu{flex:none;width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:26px;background:var(--surface2)}
+.coln2{display:flex;gap:12px;align-items:flex-start;border-radius:14px}
+.coln2 span{font-size:20px}
+.coln2 p{margin:0}
 /* ---- sensation d'app : cibles tactiles, pas de sélection, pas de rebond ---- */
 .pchip,.pas,.mfb button,.day,.wk,.stab,.cbt2,.feelbtns button,.bascule button,.altact button{min-height:42px}
 .mfr,.cfiche,.echb,.retour,.lien2,.dk,.altb{min-height:40px}
@@ -2069,31 +2110,44 @@ function vueLibre(){
 }
 /* Carte d'exercice commune au plan et aux séances libres : vignette photo,
    prescription en pastilles, rôle en couleur de disque, grande case à cocher. */
-function carteEx({num,id,prescr,repos,rpe,role,extra,done,surMain,surChk,surAlt,milieu}){
+/* Carte d'exercice repliable : fermée, elle montre la prescription et l'avancée ;
+   un toucher l'ouvre sur le tableau des séries. Une seule carte ouverte à la fois. */
+let OUVERT=null;
+function carteEx({num,id,prescr,repos,rpe,role,extra,done,surMain,surChk,surAlt,surFiche,milieu,ouvert,etat}){
   const x=EX[id];
   return `<div class="ex">
-      <button class="main" onclick="${surMain}">
+      <button class="main" onclick="${surMain}" aria-expanded="${!!ouvert}">
         <span class="vig"><img src="${GH}${x.img}_0.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('ko')"><span class="idx">${String(num).padStart(2,'0')}</span></span>
         <span class="n">${x.n}</span>
-          <span class="pastilles2"><span class="p1 fort">${prescr}</span><span class="p1">${ICO('horloge',14)}${repos}</span>${rpe?`<span class="p1 rpe">RPE ${rpe}</span>`:''}</span></button>
-      <button class="chk" onclick="${surChk}" aria-label="${done?'Annuler la validation':'Valider'}"><i>${ICO('coche',22)}</i></button>
+        <span class="pastilles2"><span class="p1 fort">${prescr}</span><span class="p1">${ICO('horloge',14)}${repos}</span>${rpe?`<span class="p1 rpe">RPE ${rpe}</span>`:''}<span class="chev">${ICO('bas',18)}</span></span>
+        ${etat?`<span class="etat2">${etat}</span>`:''}</button>
+      <button class="chk" onclick="${surChk}" aria-label="${done?'Annuler la validation':'Tout valider'}"><i>${ICO('coche',22)}</i></button>
     </div>
-    ${milieu||''}
-    ${role===undefined&&!extra&&!surAlt?'':`<div class="exbar">
+    ${ouvert?`${milieu||''}<div class="exbar">
       ${role===undefined?'<span></span>':`<span class="role">${role?'Principal':'Accessoire'}</span>`}${extra||''}
-      ${surAlt?`<button class="remp" onclick="${surAlt}">${ICO('swap',16)}Remplacer</button>`:''}</div>`}`;
+      <span class="exact">${surFiche?`<button class="remp" onclick="${surFiche}">${ICO('info',16)}Fiche</button>`:''}
+      ${surAlt?`<button class="remp" onclick="${surAlt}">${ICO('swap',16)}Remplacer</button>`:''}</span></div>`:''}`;
+}
+/* Ligne d'état sous la carte fermée : avancée ou résumé une fois terminé. */
+function etatDe(L,x,n){
+  if(!L) return '';
+  const unit={kg:'kg',lest:'kg de lest',aucune:'',temps:'s',dist:'m'}[x.ch];
+  if(L.done) return `${ICO('coche',14)}${resumeDe(L,x,unit)}`;
+  const ok=(L.series||[]).filter(s=>okDe(L,s)).length;
+  return ok?`<i class="barre-av"><i style="width:${ok/n*100}%"></i></i>${ok} / ${n} séries`:'';
+}
+function ouvrir(k){
+  OUVERT=OUVERT===k?null:k; raf();
+  if(OUVERT) requestAnimationFrame(()=>{ const el=document.querySelector('.exwrap.ouvert'); if(el) el.scrollIntoView({block:'nearest',behavior:'smooth'}); });
 }
 function ligneLibre(e,j){
-  const x=EX[e.id], k=kl(0,j), L=LOG[k], done=L&&L.done, plie=done&&L.plie;
-  const unit={kg:'kg',lest:'kg de lest',aucune:'',temps:'s',dist:'m'}[x.ch];
+  const x=EX[e.id], k=kl(0,j), L=LOG[k], done=L&&L.done, ouvert=OUVERT===k;
   const prescr=x.ch==='temps'?`${e.s} × ${e.r}s`:x.ch==='dist'?`${e.s} × ${e.r}m`:`${e.s} × ${e.r}`;
-  const resume=done?resumeDe(L,x,unit):'';
   const cx=`Lb(${j})`;
-  return `<div class="exwrap libre${done?' done':''}">
-    ${carteEx({num:j+1,id:e.id,prescr,repos:esc(e.p),rpe:noRPE(e.id)?0:8,done,
-      surMain:`ficheDepuisLibre('${e.id}')`,surChk:`toutCocher(${cx})`,
-      milieu:plie?`<button class="resume" onclick="deplierL('${k}')"><b>${resume}</b><span>Modifier</span></button>`
-        :tableSeries(Lb(j),cx,noRPE(e.id)?0:8)})}
+  return `<div class="exwrap libre${done?' done':''}${ouvert?' ouvert':''}">
+    ${carteEx({num:j+1,id:e.id,prescr,repos:esc(e.p),rpe:noRPE(e.id)?0:8,done,ouvert,etat:etatDe(L,x,e.s),
+      surMain:`ouvrir('${k}')`,surChk:`toutCocher(${cx})`,surFiche:`ficheDepuisLibre('${e.id}')`,
+      milieu:ouvert?tableSeries(Lb(j),cx,noRPE(e.id)?0:8):''})}
   </div>`;
 }
 function toggleLibre(j){ toutCocher(Lb(j)); }
@@ -2513,18 +2567,29 @@ function sessionView(s){
 }
 function vueEchauf(s){
   const e=ECHAUF[typeSeance(s)]||ECHAUF.haut;
-  return `<div class="ech"><p class="echh">Environ ${e.d}, avant de toucher aux charges.</p>
-    ${e.l.map(([n,d,id,t])=>`<div class="echl">
-      <div class="echt"><span class="echn">${n}</span><span class="echd">${d}</span></div>
-      <p class="echx">${t}</p>
-      ${id&&EX[id]?`<button class="echb" onclick="fiche('${id}',0,0)">Voir la fiche de ${EX[id].n.toLowerCase()}</button>`:''}
-    </div>`).join('')}</div>`;
+  return `<div class="ech">
+    <div class="ech-tete">${ICO('horloge',18)}<span><b>Environ ${e.d}</b> avant de toucher aux charges</span><span class="p1">${e.l.length} étapes</span></div>
+    <ol class="etapes">${e.l.map(([n,d,id,t],k)=>`<li class="etape">
+      <span class="etn">${k+1}</span>
+      <div class="etc">
+        <div class="ett"><b>${n}</b><span class="p1">${ICO('horloge',13)}${d}</span></div>
+        <p>${t}</p>
+        ${id&&EX[id]?`<button class="etf" onclick="fiche('${id}',0,0)"><img src="${GH}${EX[id].img}_0.jpg" alt="" loading="lazy" onerror="this.remove()"><span>Voir le mouvement</span>${ICO('suite',16)}</button>`:''}
+      </div></li>`).join('')}</ol></div>`;
+}
+/* Petite illustration (emoji) selon l'aliment évoqué. */
+function illuCollation(n){
+  const t=n.toLowerCase();
+  return /prot/.test(t)?'🍗':/légume/.test(t)?'🥦':/fruit/.test(t)?'🍌':/sel/.test(t)?'🧂':/eau/.test(t)?'💧'
+    :/glucide|féculent/.test(t)?'🍚':/repas/.test(t)?'🍽️':'🥗';
 }
 function vueCollation(){
   const c=COLLATION[A.objectif??0]||COLLATION[0];
-  return `<div class="col"><div class="colt">${c.t}</div><p class="coli">${c.i}</p>
-    ${c.l.map(([n,t])=>`<div class="coll"><span class="coln">${n}</span><p class="colx">${t}</p></div>`).join('')}
-    <p class="coln2">${c.n}</p>
+  return `<div class="col">
+    <div class="col-tete"><span class="col-ico">🍽️</span><div><div class="colt">${c.t}</div><p class="coli">${c.i}</p></div></div>
+    <div class="col-liste">${c.l.map(([n,t])=>`<div class="coll"><span class="col-illu" aria-hidden="true">${illuCollation(n)}</span>
+      <div><span class="coln">${n}</span><p class="colx">${t}</p></div></div>`).join('')}</div>
+    <div class="coln2"><span aria-hidden="true">💡</span><p>${c.n}</p></div>
     <p class="colw">Ces repères sont généraux et ne remplacent pas l'avis d'un professionnel. Si tu as un suivi médical ou un rapport compliqué à l'alimentation, parles-en à un médecin ou à un diététicien.</p></div>`;
 }
 function vueExos(s){
@@ -2539,19 +2604,16 @@ function vueExos(s){
 }
 function exRow(e,i){
   const [oid,sets,reps,rest,role]=e, id=curId(wk,day,i,oid), x=EX[id];
-  const k=key(wk,day,i), L=LOG[k], done=L&&L.done, plie=done&&L.plie;
+  const k=key(wk,day,i), L=LOG[k], done=L&&L.done, ouvert=OUVERT===k;
   const r=rpeOf(wk,id,role);
-  const unit={kg:'kg',lest:'kg de lest',aucune:'',temps:'s',dist:'m'}[x.ch];
   const prescr=x.ch==='temps'?`${sets} × ${reps}s`:x.ch==='dist'?`${sets} × ${reps}m`:`${sets} × ${reps}`;
   const remp=SWAP[k]?'<span class="tag b">aujourd\'hui</span>':(SWAPP[day+'|'+i]?'<span class="tag b">remplacé</span>':'');
-  const resume=done?resumeDe(L,x,unit):'';
   const cx=`P(${i},'${id}')`;
-  return `<div class="exwrap ${role?'pr':'ac'}${done?' done':''}">
-    ${carteEx({num:i+1,id,prescr,repos:rest,rpe:noRPE(id)?0:r,extra:remp,done,
-      surMain:`fiche('${id}',${i},${role})`,surChk:`toutCocher(${cx})`,surAlt:done?'':`alternatives('${id}',${i},${role})`,
-      role:done?undefined:role,
-      milieu:plie?`<button class="resume" onclick="deplier('${k}')"><b>${resume}</b><span>Modifier</span></button>`
-        :tableSeries(P(i,id),cx,noRPE(id)?0:r)})}
+  return `<div class="exwrap ${role?'pr':'ac'}${done?' done':''}${ouvert?' ouvert':''}">
+    ${carteEx({num:i+1,id,prescr,repos:rest,rpe:noRPE(id)?0:r,extra:remp,done,ouvert,etat:etatDe(L,x,sets),
+      surMain:`ouvrir('${k}')`,surChk:`toutCocher(${cx})`,surFiche:`fiche('${id}',${i},${role})`,
+      surAlt:done?'':`alternatives('${id}',${i},${role})`,role,
+      milieu:ouvert?tableSeries(P(i,id),cx,noRPE(id)?0:r):''})}
   </div>`;
 }
 /* Compatibilité : les anciens enregistrements n'avaient qu'une charge unique. */
@@ -2725,7 +2787,7 @@ function majRepos(){
     setTimeout(()=>{ if(!REPOS) el.remove(); },3000);
   }
 }
-function plier(k){if(LOG[k]){LOG[k].plie=true;raf()}}
+function plier(k){ if(OUVERT===k) OUVERT=null; raf(); }
 function deplier(k){if(LOG[k]){LOG[k].plie=false;prog()}}
 const PAS_LOURD=new Set(['eg','fh']), PAS_MOYEN=new Set(['ph','pv','tv','th']);
 function pasDe(x){
