@@ -773,6 +773,8 @@ h2.q{font-size:29px;line-height:1.05;margin-bottom:6px}
 .ph8{background:color-mix(in srgb,var(--jaune) 28%,transparent);color:var(--encre)}
 .ph9{background:color-mix(in srgb,var(--rouge) 16%,transparent);color:var(--rouge)}
 .ph10{background:color-mix(in srgb,var(--rouge) 26%,transparent);color:var(--rouge)}
+/* barre chargée de l'accueil, même dessin que l'icône */
+.barre-logo{display:block;width:min(260px,70%);height:auto;margin:6px auto 0}
 /* ---- sensation d'app : cibles tactiles, pas de sélection, pas de rebond ---- */
 .pchip,.pas,.mfb button,.day,.wk,.stab,.cbt2,.feelbtns button,.bascule button,.altact button{min-height:42px}
 .mfr,.cfiche,.echb,.retour,.lien2,.dk,.altb{min-height:40px}
@@ -2183,7 +2185,6 @@ function ficheDepuisLibre(id){const g=LIBRE; fiche(id,-1,0); FRETOUR=()=>{LIBRE=
 
 function home(){
   bar(false);
-  const disques=[[26,0],[34,1],[42,2],[52,3],[60,4],[52,0],[42,1],[34,2],[26,3]];
   app.innerHTML=`<div class="screen" id="home">
     <div class="hero">
       <div class="eyebrow marque">Musculation · version test</div>
@@ -2198,11 +2199,12 @@ function home(){
       <li><i style="background:${PLATE[4][0]}"></i><div><b>${Object.keys(EX).length} exercices illustrés</b><span>Classés par muscle et selon ton matériel</span></div></li>
       <li><i style="background:${PLATE[0][0]}"></i><div><b>Fonctionne sans réseau</b><span>Même au sous-sol de ta salle</span></div></li>
     </ul>
-    <div class="barre">
-      <div class="tige"></div>
-      <div class="disques">${disques.map(([hh,c])=>`<i style="height:${hh}px;background:${PLATE[c][0]}"></i>`).join('')}</div>
-      <div class="tige"></div>
-    </div>
+    <svg class="barre-logo" viewBox="30 140 452 232" role="img" aria-label="Barre chargée">
+      <rect x="40" y="244" width="432" height="24" rx="12" fill="#9AA096"/>
+      <rect x="96" y="150" width="46" height="212" rx="12" fill="#1B4FA8"/><rect x="150" y="176" width="36" height="160" rx="10" fill="#EFC429"/>
+      <rect x="194" y="226" width="16" height="60" rx="5" fill="#C9CCC4"/>
+      <rect x="370" y="150" width="46" height="212" rx="12" fill="#1B4FA8"/><rect x="326" y="176" width="36" height="160" rx="10" fill="#EFC429"/>
+      <rect x="302" y="226" width="16" height="60" rx="5" fill="#C9CCC4"/></svg>
     <button class="lien2" onclick="compteScreen()">J'ai déjà un compte ailleurs</button>
   </div>`;
   setFoot(`<button class="btn" onclick="choix()">Commencer</button>`,true);
