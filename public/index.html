@@ -601,6 +601,39 @@ h2.q{font-size:29px;line-height:1.05;margin-bottom:6px}
 .feelbtns button.sel{background:var(--vert);border-color:var(--vert);color:#fff}
 .valid{border-radius:10px;min-height:50px;font-size:15px}
 .resume{border-radius:0 0 12px 12px}
+/* ---- icônes, barre d'onglets, barre d'actions de la carte ---- */
+.ico{display:block;flex:none}
+.tab{gap:4px;padding:8px 2px 9px;border-top:none;margin-top:0}
+.tab .ti{display:grid;place-items:center;width:58px;height:32px;border-radius:16px;transition:background .18s,color .18s}
+.tab.sel{border-top-color:transparent}
+.tab.sel .ti{background:color-mix(in srgb,var(--jaune) 32%,transparent);color:var(--encre)}
+.foot.dark.avec-tabs .tab.sel .ti{background:rgba(239,196,41,.25);color:var(--craie)}
+.p1{display:inline-flex;align-items:center;gap:5px}
+.p1 .ico{opacity:.7}
+.ex .chk i{color:transparent}
+.ex .chk i .ico{width:22px;height:22px}
+.exwrap.done .chk i{color:#fff}
+.exbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px 10px 16px;
+  border-top:1px solid var(--ligne)}
+.exbar .role{margin:0;display:inline-flex;align-items:center;gap:7px}
+.exbar .role::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.exbar .tag{margin-left:0}
+.remp{margin-left:auto;display:inline-flex;align-items:center;gap:7px;min-height:36px;padding:0 14px 0 11px;border-radius:18px;
+  border:1px solid var(--ligne);background:var(--fond);color:var(--encre);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;
+  transition:transform .1s ease,background .15s}
+.remp .ico{color:var(--lien)}
+.remp:active{transform:scale(.95);background:var(--surface2)}
+/* carte v2 : photo + nom sur une ligne, pastilles en pleine largeur dessous */
+.exwrap::before{display:none}
+.ex .main{display:grid;grid-template-columns:58px 1fr;column-gap:14px;row-gap:12px;align-items:center;padding:14px 4px 14px 14px}
+.vig{width:58px;height:58px;border-radius:12px}
+.ex .n{font-size:17px}
+.pastilles2{grid-column:1/-1;margin-top:0}
+.ex .chk{width:64px}
+.resume{background:color-mix(in srgb,var(--vert) 9%,transparent);border-top:1px solid var(--ligne);padding:10px 12px 10px 16px}
+.resume b{font-size:13px;color:var(--encre)}
+.resume span{border:1px solid var(--ligne);border-radius:16px;padding:6px 13px;background:var(--surface);
+  font-family:'Instrument Sans',system-ui,sans-serif;font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--encre)}
 /* ---- sensation d'app : cibles tactiles, pas de sélection, pas de rebond ---- */
 .pchip,.pas,.mfb button,.day,.wk,.stab,.cbt2,.feelbtns button,.bascule button,.altact button{min-height:42px}
 .mfr,.cfiche,.echb,.retour,.lien2,.dk,.altb{min-height:40px}
@@ -1595,9 +1628,20 @@ function bar(show,i){
   plates.innerHTML=Q.map((q,n)=>{const p=PLATE[n%5],on=n<=i&&A[q.k]!==undefined;
     return `<div class="plate" style="height:${p[1]}px;${on?'background:'+p[0]:''}"></div>`}).join('');
 }
-const ONGLETS=[['compte','Compte','◍'],['explorer','Explorer','◉'],['seances','Mes séances','☰'],['plan','Mon plan','▤']];
-const tabHTML=a=>ONGLETS.map(([k,n,i])=>
-  `<button class="tab${k===a?' sel':''}" onclick="allerA('${k}')"><span class="ti">${i}</span><span class="tn">${n}</span></button>`).join('');
+/* Icônes vectorielles au trait (24 × 24), couleur héritée du texte. */
+const ICO=(()=>{const d={
+  compte:'<circle cx="12" cy="8" r="3.6"/><path d="M4.8 20.2c.9-3.6 3.7-5.6 7.2-5.6s6.3 2 7.2 5.6"/>',
+  explorer:'<circle cx="12" cy="4.6" r="2.1"/><path d="M6 8.8l6 1.4 6-1.4M12 10.2v5.3M9.2 21l2.8-5.5 2.8 5.5"/>',
+  seances:'<path d="M3.5 10v4M6.5 7.5v9M17.5 7.5v9M20.5 10v4M6.5 12h11"/>',
+  plan:'<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+  swap:'<path d="M5 8h13.5M15 4.5 18.5 8 15 11.5M19 16H5.5M9 12.5 5.5 16 9 19.5"/>',
+  horloge:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  coche:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  suite:'<path d="M9.5 6l6 6-6 6"/>'};
+  return (n,t=20)=>`<svg class="ico" width="${t}" height="${t}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d[n]}</svg>`;})();
+const ONGLETS=[['compte','Compte'],['explorer','Explorer'],['seances','Mes séances'],['plan','Mon plan']];
+const tabHTML=a=>ONGLETS.map(([k,n])=>
+  `<button class="tab${k===a?' sel':''}" onclick="allerA('${k}')"><span class="ti">${ICO(k,22)}</span><span class="tn">${n}</span></button>`).join('');
 function setTabs(a){ foot.className='foot tabs'; foot.innerHTML=`<div class="foot-in">${tabHTML(a)}</div>`; }
 function ajouterTabs(a){
   const in_=foot.querySelector('.foot-in'); if(!in_)return;
@@ -1938,16 +1982,18 @@ function vueLibre(){
 }
 /* Carte d'exercice commune au plan et aux séances libres : vignette photo,
    prescription en pastilles, rôle en couleur de disque, grande case à cocher. */
-function carteEx({num,id,prescr,repos,rpe,role,extra,done,surMain,surChk}){
+function carteEx({num,id,prescr,repos,rpe,role,extra,done,surMain,surChk,surAlt}){
   const x=EX[id];
   return `<div class="ex">
       <button class="main" onclick="${surMain}">
         <span class="vig"><img src="${GH}${x.img}_0.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('ko')"><span class="idx">${String(num).padStart(2,'0')}</span></span>
-        <span class="body"><span class="n">${x.n}</span>
-          <span class="pastilles2"><span class="p1 fort">${prescr}</span><span class="p1">⏱ ${repos}</span>${rpe?`<span class="p1 rpe">RPE ${rpe}</span>`:''}</span>
-          <span class="role">${role===undefined?'':role?'Principal':'Accessoire'}${extra||''}</span></span></button>
-      <button class="chk" onclick="${surChk}" aria-label="${done?'Annuler la validation':'Valider'}"><i>${done?'✓':''}</i></button>
-    </div>`;
+        <span class="n">${x.n}</span>
+          <span class="pastilles2"><span class="p1 fort">${prescr}</span><span class="p1">${ICO('horloge',14)}${repos}</span>${rpe?`<span class="p1 rpe">RPE ${rpe}</span>`:''}</span></button>
+      <button class="chk" onclick="${surChk}" aria-label="${done?'Annuler la validation':'Valider'}"><i>${ICO('coche',22)}</i></button>
+    </div>
+    ${role===undefined&&!extra&&!surAlt?'':`<div class="exbar">
+      ${role===undefined?'<span></span>':`<span class="role">${role?'Principal':'Accessoire'}</span>`}${extra||''}
+      ${surAlt?`<button class="remp" onclick="${surAlt}">${ICO('swap',16)}Remplacer</button>`:''}</div>`}`;
 }
 function ligneLibre(e,j){
   const x=EX[e.id], k=kl(0,j), L=LOG[k], done=L&&L.done, plie=done&&L.plie;
@@ -1957,7 +2003,7 @@ function ligneLibre(e,j){
   return `<div class="exwrap libre${done?' done':''}">
     ${carteEx({num:j+1,id:e.id,prescr,repos:esc(e.p),rpe:noRPE(e.id)?0:8,done,
       surMain:`ficheDepuisLibre('${e.id}')`,surChk:`toggleLibre(${j})`})}
-    ${plie?`<button class="resume" onclick="deplierL('${k}')"><b>${resume}</b><span>modifier</span></button>`:''}
+    ${plie?`<button class="resume" onclick="deplierL('${k}')"><b>${resume}</b><span>Modifier</span></button>`:''}
     ${done&&!plie?saisie(k,x,L,unit,8,e.id,e.s):''}
   </div>`;
 }
@@ -2422,11 +2468,11 @@ function exRow(e,i){
   const remp=SWAP[k]?'<span class="tag b">aujourd\'hui</span>':(SWAPP[day+'|'+i]?'<span class="tag b">remplacé</span>':'');
   const resume=done?resumeDe(L,x,unit):'';
   return `<div class="exwrap ${role?'pr':'ac'}${done?' done':''}">
-    ${carteEx({num:i+1,id,prescr,repos:rest,rpe:noRPE(id)?0:r,role,extra:remp,done,
-      surMain:`fiche('${id}',${i},${role})`,surChk:`toggle(${i},'${id}')`})}
-    ${plie?`<button class="resume" onclick="deplier('${k}')"><b>${resume}</b><span>modifier</span></button>`:''}
+    ${carteEx({num:i+1,id,prescr,repos:rest,rpe:noRPE(id)?0:r,extra:remp,done,
+      surMain:`fiche('${id}',${i},${role})`,surChk:`toggle(${i},'${id}')`,surAlt:done?'':`alternatives('${id}',${i},${role})`,
+      role:done?undefined:role})}
+    ${plie?`<button class="resume" onclick="deplier('${k}')"><b>${resume}</b><span>Modifier</span></button>`:''}
     ${done&&!plie?saisie(k,x,L,unit,r,id,sets):''}
-    ${!done?`<button class="altb" onclick="alternatives('${id}',${i},${role})">⇄ Exercice alternatif</button>`:''}
   </div>`;
 }
 /* Compatibilité : les anciens enregistrements n'avaient qu'une charge unique. */
