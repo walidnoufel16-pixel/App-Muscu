@@ -2794,21 +2794,31 @@ let MAILRETOUR=null;      /* message à afficher au retour du lien de confirmati
 
 function valideMail(m){ return /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test((m||'').trim()); }
 
+/* Sur iPhone, une app de l'écran d'accueil ne s'ouvre jamais depuis un lien de
+   mail : Safari le prend. L'adresse se confirme donc par un code à six chiffres
+   saisi ici. new_email : adresse en attente de ce code.                        */
 function compteScreen(){
   bar(false);
-  const mail=USER&&USER.email;
+  const mail=USER&&USER.email, attente=USER&&USER.new_email;
   app.innerHTML=`<div class="screen" id="pseudo" style="justify-content:flex-start;padding-top:30px;padding-bottom:210px;overflow-y:auto">
     <h1 class="display">Ton compte</h1>
     <div class="etat${mail?' ok':''}"><i></i><span>${esc(PSEUDO||'toi')}<br><b>${esc(mail||'Aucune adresse rattachée')}</b></span></div>
+    ${attente?`<p>Un code à six chiffres a été envoyé à <b>${esc(attente)}</b>. Saisis-le ici pour confirmer l'adresse. Pense à regarder tes indésirables.</p>
+      <input id="mcode" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" enterkeyhint="go">
+      <div class="err" id="cerr"></div>
+      <div class="ok2" id="cok"></div>
+      <button class="lien" onclick="renvoyerCode()">Renvoyer le code</button>
+      <p style="margin-top:22px">Pour une autre adresse, saisis-la ci-dessous.</p>`:''}
     ${mail
       ?`<p>Ton compte est rattaché à cette adresse. Sur un autre téléphone ou sur un ordinateur, ouvre l'app, touche « J'ai déjà un compte » et saisis-la : tu recevras un code à six chiffres qui te rendra tout ce que tu vois ici.</p>
-        <p class="warn">Pour changer d'adresse, saisis la nouvelle ci-dessous. L'ancienne cessera de fonctionner dès que tu auras confirmé le lien reçu.</p>`
+        <p class="warn">Pour changer d'adresse, saisis la nouvelle ci-dessous. L'ancienne cessera de fonctionner dès que tu auras saisi le code reçu.</p>`
       :`<p>Ton compte n'a pas d'adresse : il vit sur cet appareil seulement. Si tu désinstalles l'app ou changes de téléphone, tout est perdu.</p>
         <p>Rattacher une adresse ne crée pas de mot de passe et ne change rien à ce que tu as déjà. Elle sert uniquement à retrouver ce compte ailleurs.</p>`}
     <input id="pin" type="email" inputmode="email" autocomplete="email" autocapitalize="off"
       spellcheck="false" placeholder="prenom@exemple.fr" enterkeyhint="go" value="">
     <div class="err" id="perr"></div>
     <div class="ok2" id="pok"></div>
+    ${attente?`<button class="lien" onclick="lierMail()">Envoyer le code à cette autre adresse</button>`:''}
     <p class="warn">Une seule adresse par compte. Nous ne t'écrirons que pour ça : aucun message, aucune lettre d'information.</p>
     <button class="lien" onclick="recupScreen()">Retrouver un compte avec une autre adresse</button>
     <div class="zone-rouge">
@@ -2817,10 +2827,26 @@ function compteScreen(){
       <button onclick="reset()">Tout effacer</button>
     </div>
   </div>`;
-  setFoot(`<button class="btn" onclick="lierMail()">${mail?'Changer mon adresse':'Rattacher cette adresse'}</button>`,true);
+  setFoot(attente
+    ?`<button class="btn" onclick="confirmerMail()">Confirmer l'adresse</button>`
+    :`<button class="btn" onclick="lierMail()">${mail?'Changer mon adresse':'Rattacher cette adresse'}</button>`,true);
   ajouterTabs('compte');
   const i=document.getElementById('pin');
   i.addEventListener('keydown',e=>{if(e.key==='Enter')lierMail()});
+  const c=document.getElementById('mcode');
+  if(c) c.addEventListener('keydown',e=>{if(e.key==='Enter')confirmerMail()});
+  /* Relit le compte : une adresse confirmée ailleurs (lien ouvert dans Safari)
+     ou un code arrivé entre-temps doit se voir sans relancer l'app. */
+  if(sb&&USER&&!compteScreen.relu){
+    compteScreen.relu=true;
+    sb.auth.getUser().then(({data})=>{
+      const u=data&&data.user; compteScreen.relu=false;
+      if(!u||u.id!==USER.id) return;
+      const avant=(USER.email||'')+'|'+(USER.new_email||'');
+      USER=u;
+      if(avant!==(u.email||'')+'|'+(u.new_email||'')&&document.getElementById('pseudo')&&document.querySelector('.zone-rouge')) compteScreen();
+    }).catch(()=>{compteScreen.relu=false});
+  }
 }
 
 async function lierMail(){
@@ -2830,13 +2856,14 @@ async function lierMail(){
   if(!valideMail(m)){ err.textContent="Cette adresse n'a pas l'air valide."; return; }
   if(!sb||!USER){ err.textContent="Pas de connexion au serveur : impossible pour l'instant."; return; }
   if(USER.email===m){ err.textContent="C'est déjà l'adresse de ce compte."; return; }
-  err.textContent="Envoi du lien de confirmation…";
+  err.textContent="Envoi du code…";
   try{
     await push({A,LOG,SWAP,SWAPP,PLAN,SEANCES,wk,day,FINI,ts:Date.now()});   /* rien ne doit se perdre */
-    const {error}=await sb.auth.updateUser({email:m});
+    const {data,error}=await sb.auth.updateUser({email:m});
     if(error) throw error;
-    err.textContent='';
-    ok.textContent="Un lien vient de partir vers "+m+". Ouvre-le depuis cet appareil pour confirmer : ton compte gardera tout ce qu'il contient.";
+    USER=(data&&data.user)||USER; USER.new_email=USER.new_email||m;
+    compteScreen();
+    const c=document.getElementById('mcode'); if(c) setTimeout(()=>c.focus(),260);
   }catch(e){
     const t=(e&&(e.message||e.error_description))||'';
     err.textContent = /already been registered|already registered|exists/i.test(t)
@@ -2847,14 +2874,57 @@ async function lierMail(){
   }
 }
 
+async function renvoyerCode(){
+  const err=document.getElementById('cerr'), ok=document.getElementById('cok');
+  const m=USER&&USER.new_email; if(!m||!sb) return;
+  ok.textContent=''; err.textContent="Envoi du code…";
+  try{
+    const {error}=await sb.auth.updateUser({email:m});
+    if(error) throw error;
+    err.textContent=''; ok.textContent="Nouveau code envoyé à "+m+".";
+  }catch(e){
+    const t=(e&&(e.message||e.error_description))||'';
+    err.textContent = /rate limit|429|too many|for security/i.test(t)
+        ? "Trop de demandes. Réessaie dans quelques minutes."
+        : "Envoi impossible"+(t?" : "+t:".");
+  }
+}
+
+async function confirmerMail(){
+  const i=document.getElementById('mcode'), err=document.getElementById('cerr');
+  if(!i||!USER||!USER.new_email) return;
+  const c=(i.value||'').replace(/\D/g,'');
+  if(c.length!==6){ err.textContent="Le code fait six chiffres."; return; }
+  err.textContent="Vérification…";
+  const essai=email=>sb.auth.verifyOtp({email,token:c,type:'email_change'});
+  try{
+    let {data,error}=await essai(USER.new_email);
+    /* Changement d'une adresse existante : l'ancienne reçoit aussi son code. */
+    if(error&&USER.email) ({data,error}=await essai(USER.email));
+    if(error) throw error;
+    const u=(data&&data.user)||(await sb.auth.getUser()).data.user;
+    if(u) USER=u;
+    compteScreen();
+    showErr(USER.new_email
+      ? "Code accepté. Un second code a été envoyé à ton ancienne adresse : saisis-le aussi pour terminer."
+      : "Adresse confirmée. Ton compte est maintenant récupérable sur un autre appareil.",'ok');
+  }catch(e){
+    const t=(e&&(e.message||e.error_description))||'';
+    err.textContent = /expired|invalid/i.test(t)
+        ? "Code incorrect ou expiré. Touche « Renvoyer le code »."
+        : "Vérification impossible"+(t?" : "+t:".");
+  }
+}
+
 /* Rattachement au moment de la création du compte. Ne lève jamais : une
    adresse refusée ne doit pas empêcher quelqu'un d'entrer dans l'app. Renvoie
    le message à afficher une fois l'écran suivant en place.                  */
 async function rattacherALaVolee(mail){
   try{
-    const {error}=await sb.auth.updateUser({email:mail});
+    const {data,error}=await sb.auth.updateUser({email:mail});
     if(error) throw error;
-    return ["Un lien de confirmation vient de partir vers "+mail+". Ouvre-le pour rattacher ton compte ; d'ici là tu peux commencer normalement.",'ok'];
+    USER=(data&&data.user)||USER; USER.new_email=USER.new_email||mail;
+    return ["Un code à six chiffres vient de partir vers "+mail+". Saisis-le dans l'onglet Compte pour rattacher ton adresse ; d'ici là tu peux commencer normalement.",'ok'];
   }catch(e){
     const t=(e&&(e.message||e.error_description))||'';
     const raison = /already been registered|already registered|exists/i.test(t)
