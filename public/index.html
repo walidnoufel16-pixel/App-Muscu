@@ -710,9 +710,7 @@ function buildQ(){
     h:"Pour chaque groupe, coche le matériel que tu aimes utiliser. Tu peux aussi écarter complètement un groupe du programme.",rows:groupes()});
   if(!deb) q.push(
    {k:'actuel',q:"Que fais-tu en ce moment ?",h:"C'est ce qui permet de comparer et de dire ce qui manque.",o:[
-     ["Full body","Tout le corps à chaque séance"],["Haut / bas"],["Push Pull Legs"],["Rien de structuré","Selon l'envie"]]},
-   {k:'charges',t:'loads',q:"Tes charges actuelles",h:"Ta meilleure série de 5 propre. Approximatif suffit, et tu peux passer : le programme fonctionne au ressenti d'effort, pas au chiffre.",
-    loads:[["Développé couché",60],["Squat",80],["Soulevé de terre",100]]});
+     ["Full body","Tout le corps à chaque séance"],["Haut / bas"],["Push Pull Legs"],["Rien de structuré","Selon l'envie"]]});
   q.push({k:'profil',t:'loads',q:"Pour finir",h:"Sert à calibrer le volume, les temps de récupération et à situer ton IMC.",loads:[["Âge",29,1,"ans"],["Taille",178,1,"cm"],["Poids",76,1,"kg"]]});
   return q;
 }
@@ -2027,7 +2025,7 @@ function question(){
           oninput="tape('${q.k}','${l[0]}',this.value)" onblur="question()"
           onkeydown="if(event.key==='Enter')this.blur()"><span class="u">${l[3]||'kg'}</span></span>
         <button aria-label="plus" onclick="bump('${q.k}','${l[0]}',${l[2]||2.5})">+</button></div></div>
-        ${q.k==='charges'?`<button class="dk" onclick="unknown('${q.k}','${l[0]}')">${unk?'Finalement je sais':'Je ne sais pas'}</button>`:''}</div>`}).join('')}</div>
+        </div>`}).join('')}</div>
       ${q.k==='profil'?imcCard(st):''}`;
   } else {
     const sel=A[q.k]??(q.t==='multi'?[]:null);
@@ -2117,9 +2115,6 @@ function majIMC(){
 function bump(k,l,d){A[k]=A[k]||{};const q=Q[qi];
   q.loads.forEach(x=>{if(A[k][x[0]]===undefined)A[k][x[0]]=x[1]});
   if(A[k][l]!=='?')A[k][l]=Math.max(0,A[k][l]+d);question()}
-function unknown(k,l){A[k]=A[k]||{};const q=Q[qi];
-  q.loads.forEach(x=>{if(A[k][x[0]]===undefined)A[k][x[0]]=x[1]});
-  A[k][l]=A[k][l]==='?'?q.loads.find(x=>x[0]===l)[1]:'?';question()}
 async function reculer(){
   clearTimeout(BASCULE);
   if(qi>0){prev();return}
@@ -2211,7 +2206,7 @@ async function gen(){
 }
 function payload(){
   const p={objectif:A.objectif,regularite:A.regularite,socle:A.socle,axe:A.axe,materiel:A.materiel,
-    sexe:A.sexe,acc:accDeclares(),blessure:A.blessure,prefs:A.prefs,charges:A.charges,profil:A.profil,sportFreq:A.sportFreq,
+    sexe:A.sexe,acc:accDeclares(),blessure:A.blessure,prefs:A.prefs,profil:A.profil,sportFreq:A.sportFreq,
     exclus:A.exclus||[]};
   if(FORCER){p.forcer=true;FORCER=false}
   if(sportsChoisis().length){
