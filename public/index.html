@@ -560,6 +560,47 @@ h2.q{font-size:29px;line-height:1.05;margin-bottom:6px}
   --reg0:#2A2E35;--reg1:#6E7670;--regtrait:#14161A;color-scheme:dark}
 :root[data-theme="dark"] .photo-sombre,:root[data-theme="dark"] #fiche .visual img,:root[data-theme="dark"] .popimg img,:root[data-theme="dark"] .avig{filter:brightness(.9)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #fiche .visual img,:root:not([data-theme="light"]) .popimg img,:root:not([data-theme="light"]) .avig{filter:brightness(.9)}}
+/* ---- carte d'exercice (séance) ---- */
+.exwrap{position:relative;border:1px solid var(--ligne);border-radius:12px;margin-bottom:12px;
+  box-shadow:0 1px 2px rgba(20,22,26,.05),0 4px 14px rgba(20,22,26,.04)}
+.exwrap::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:4px;border-radius:0 3px 3px 0;background:var(--vert);z-index:1}
+.exwrap.pr::before{background:var(--bleu)}
+.exwrap.libre::before{background:var(--jaune)}
+.exwrap.done{border-color:var(--vert);box-shadow:0 0 0 1px var(--vert)}
+.exwrap.done::before{background:var(--vert)}
+.ex .main{align-items:flex-start;gap:14px;padding:14px 6px 14px 16px}
+.vig{position:relative;flex:none;width:68px;height:68px;border-radius:10px;overflow:hidden;background:var(--surface2)}
+.vig img{width:100%;height:100%;object-fit:cover;display:block}
+.vig .idx{position:absolute;left:5px;top:5px;width:auto;padding:2px 5px;border-radius:5px;background:rgba(20,22,26,.78);
+  color:#EFF1EC;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;line-height:1.2}
+.vig.ko img{display:none}
+.vig.ko{display:grid;place-items:center}
+.vig.ko .idx{position:static;background:none;color:var(--gris);font-size:20px}
+.ex .n{font-size:17px;font-weight:700;line-height:1.22;letter-spacing:-.005em}
+.pastilles2{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.p1{font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:600;padding:5px 8px;border-radius:7px;
+  background:var(--surface2);color:var(--encre);white-space:nowrap;line-height:1.2}
+.p1.fort{background:var(--encre);color:var(--fond);font-size:14px;font-weight:700}
+.p1.rpe{background:color-mix(in srgb,var(--jaune) 28%,transparent)}
+.role{display:block;margin-top:9px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--vert);font-weight:700}
+.exwrap.pr .role{color:var(--lien)}
+.role:empty{display:none}
+.role .tag{margin-left:8px}
+.ex .chk{width:62px;background:none;border:none;display:grid;place-items:center}
+.ex .chk i{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;border:2px solid var(--ligne);
+  font-style:normal;font-size:19px;font-weight:700;color:#fff;transition:background .15s,border-color .15s,transform .15s}
+.ex .chk:active i{transform:scale(.9)}
+.exwrap.done .chk{background:none}
+.exwrap.done .chk i{background:var(--vert);border-color:var(--vert)}
+.altb{border-top:1px solid var(--ligne);padding:12px 16px;font-size:14px;font-weight:500}
+/* saisie des séries, au même style arrondi que la carte */
+.saisie{background:color-mix(in srgb,var(--vert) 6%,transparent);padding:14px 14px 16px}
+.serie .ctl{border-radius:10px;border-width:1px}
+.serie .ctl b{white-space:nowrap}
+.egal,.feelbtns button{border-radius:10px}
+.feelbtns button.sel{background:var(--vert);border-color:var(--vert);color:#fff}
+.valid{border-radius:10px;min-height:50px;font-size:15px}
+.resume{border-radius:0 0 12px 12px}
 /* ---- sensation d'app : cibles tactiles, pas de sélection, pas de rebond ---- */
 .pchip,.pas,.mfb button,.day,.wk,.stab,.cbt2,.feelbtns button,.bascule button,.altact button{min-height:42px}
 .mfr,.cfiche,.echb,.retour,.lien2,.dk,.altb{min-height:40px}
@@ -1895,20 +1936,27 @@ function vueLibre(){
   setFoot(`<button class="btn" onclick="listeLibres()">Mes séances</button>`);
   save();
 }
+/* Carte d'exercice commune au plan et aux séances libres : vignette photo,
+   prescription en pastilles, rôle en couleur de disque, grande case à cocher. */
+function carteEx({num,id,prescr,repos,rpe,role,extra,done,surMain,surChk}){
+  const x=EX[id];
+  return `<div class="ex">
+      <button class="main" onclick="${surMain}">
+        <span class="vig"><img src="${GH}${x.img}_0.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('ko')"><span class="idx">${String(num).padStart(2,'0')}</span></span>
+        <span class="body"><span class="n">${x.n}</span>
+          <span class="pastilles2"><span class="p1 fort">${prescr}</span><span class="p1">⏱ ${repos}</span>${rpe?`<span class="p1 rpe">RPE ${rpe}</span>`:''}</span>
+          <span class="role">${role===undefined?'':role?'Principal':'Accessoire'}${extra||''}</span></span></button>
+      <button class="chk" onclick="${surChk}" aria-label="${done?'Annuler la validation':'Valider'}"><i>${done?'✓':''}</i></button>
+    </div>`;
+}
 function ligneLibre(e,j){
   const x=EX[e.id], k=kl(0,j), L=LOG[k], done=L&&L.done, plie=done&&L.plie;
   const unit={kg:'kg',lest:'kg de lest',aucune:'',temps:'s',dist:'m'}[x.ch];
   const prescr=x.ch==='temps'?`${e.s} × ${e.r}s`:x.ch==='dist'?`${e.s} × ${e.r}m`:`${e.s} × ${e.r}`;
   const resume=done?resumeDe(L,x,unit):'';
-  return `<div class="exwrap${done?' done':''}">
-    <div class="ex">
-      <button class="main" onclick="ficheDepuisLibre('${e.id}')">
-        <span class="idx">${String(j+1).padStart(2,'0')}</span>
-        <span class="body"><span class="n">${x.n}</span>
-          <span class="t">repos ${esc(e.p)}${noRPE(e.id)?'':' · RPE 8'}</span></span>
-        <span class="sr">${prescr}</span></button>
-      <button class="chk" onclick="toggleLibre(${j})" aria-label="Valider">${done?'✓':'○'}</button>
-    </div>
+  return `<div class="exwrap libre${done?' done':''}">
+    ${carteEx({num:j+1,id:e.id,prescr,repos:esc(e.p),rpe:noRPE(e.id)?0:8,done,
+      surMain:`ficheDepuisLibre('${e.id}')`,surChk:`toggleLibre(${j})`})}
     ${plie?`<button class="resume" onclick="deplierL('${k}')"><b>${resume}</b><span>modifier</span></button>`:''}
     ${done&&!plie?saisie(k,x,L,unit,8,e.id,e.s):''}
   </div>`;
@@ -2373,15 +2421,9 @@ function exRow(e,i){
   const prescr=x.ch==='temps'?`${sets} × ${reps}s`:x.ch==='dist'?`${sets} × ${reps}m`:`${sets} × ${reps}`;
   const remp=SWAP[k]?'<span class="tag b">aujourd\'hui</span>':(SWAPP[day+'|'+i]?'<span class="tag b">remplacé</span>':'');
   const resume=done?resumeDe(L,x,unit):'';
-  return `<div class="exwrap${done?' done':''}">
-    <div class="ex">
-      <button class="main" onclick="fiche('${id}',${i},${role})">
-        <span class="idx">${String(i+1).padStart(2,'0')}</span>
-        <span class="body"><span class="n">${x.n}${role?'':'<span class="tag g">accessoire</span>'}${remp}</span>
-          <span class="t">repos ${rest}${noRPE(id)?'':` · RPE ${r}`}</span></span>
-        <span class="sr">${prescr}</span></button>
-      <button class="chk" onclick="toggle(${i},'${id}')" aria-label="Valider">${done?'✓':'○'}</button>
-    </div>
+  return `<div class="exwrap ${role?'pr':'ac'}${done?' done':''}">
+    ${carteEx({num:i+1,id,prescr,repos:rest,rpe:noRPE(id)?0:r,role,extra:remp,done,
+      surMain:`fiche('${id}',${i},${role})`,surChk:`toggle(${i},'${id}')`})}
     ${plie?`<button class="resume" onclick="deplier('${k}')"><b>${resume}</b><span>modifier</span></button>`:''}
     ${done&&!plie?saisie(k,x,L,unit,r,id,sets):''}
     ${!done?`<button class="altb" onclick="alternatives('${id}',${i},${role})">⇄ Exercice alternatif</button>`:''}
@@ -2421,7 +2463,7 @@ function saisie(k,x,L,unit,r,id,nbSeries){
       <span class="sno">${n+1}</span>
       <span class="ctl">
         <button onclick="setSer('${k}',${n},'v',-${pas})">−</button>
-        <b>${nb(s.v)}<i>${unit}</i></b>
+        <b>${nb(s.v)}<i>${unit==='kg de lest'?'kg':unit}</i></b>
         <button onclick="setSer('${k}',${n},'v',${pas})">+</button></span>
       ${dbl?`<span class="ctl">
         <button onclick="setSer('${k}',${n},'reps',-1)">−</button><b>${s.reps}</b>
