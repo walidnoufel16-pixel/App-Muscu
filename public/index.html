@@ -1589,7 +1589,7 @@ async function importer(code){
       (abs?"\n\n"+abs+" exercice"+(abs>1?"s":"")+" demande"+(abs>1?"nt":"")+" du matériel que tu n'as pas déclaré. Remplace-les si besoin avec le bouton Exercice alternatif.":""));
   }catch(e){ alert("Import impossible : "+e.message); }
 }
-function demanderCode(){
+function demanderCodeSeance(){
   const c=prompt("Entre le code de la séance, cinq caractères :");
   if(c) importer(c);
 }
@@ -1608,7 +1608,7 @@ function listeLibres(){
       :`<p class="vide">Aucune séance enregistrée pour l'instant. Compose la première, elle restera disponible ensuite.</p>`}
     <button class="btn2" onclick="composer()">＋ Composer une séance</button>
     <button class="btn2" onclick="explorer()">Explorer les exercices par le corps</button>
-    <button class="btn2" onclick="demanderCode()">Importer une séance avec un code</button>
+    <button class="btn2" onclick="demanderCodeSeance()">Importer une séance avec un code</button>
   </div></div>`;
   setTabs('seances');
 }
