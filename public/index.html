@@ -634,6 +634,44 @@ h2.q{font-size:29px;line-height:1.05;margin-bottom:6px}
 .resume b{font-size:13px;color:var(--encre)}
 .resume span{border:1px solid var(--ligne);border-radius:16px;padding:6px 13px;background:var(--surface);
   font-family:'Instrument Sans',system-ui,sans-serif;font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--encre)}
+/* ---- tableau des séries ---- */
+.series{padding:2px 12px 14px 14px;border-top:1px solid var(--ligne)}
+.swhy{font-size:13px;line-height:1.45;color:var(--gris);margin:10px 2px 2px}
+.sr-tete,.sr-row{display:grid;grid-template-columns:30px 1fr 74px 58px 42px;gap:8px;align-items:center}
+.series.simple .sr-tete,.series.simple .sr-row{grid-template-columns:30px 1fr 84px 42px}
+.sr-tete{padding:12px 0 6px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gris)}
+.sr-tete span:nth-child(n+3),.sr-tete span:first-child{text-align:center}
+.sr-row{min-height:50px;padding:4px 0;border-radius:10px;transition:background .15s}
+.sr-row.ok{background:color-mix(in srgb,var(--vert) 13%,transparent)}
+.sn{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;text-align:center;color:var(--encre)}
+.sp{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--gris);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sv{width:100%;height:42px;border-radius:9px;border:1px solid var(--ligne);background:var(--fond);color:var(--encre);
+  text-align:center;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;outline:none;padding:0 2px;-webkit-appearance:none;appearance:none}
+.sv:focus{border-color:var(--jaune);background:var(--surface)}
+.sr-row.ok .sv{background:transparent;border-color:transparent}
+.sok{width:42px;height:42px;border-radius:11px;border:1.5px solid var(--ligne);background:var(--surface);color:transparent;
+  display:grid;place-items:center;cursor:pointer;transition:background .15s,transform .1s}
+.sok:active{transform:scale(.9)}
+.sr-row.ok .sok{background:var(--vert);border-color:var(--vert);color:#fff}
+.series .feel{margin-top:14px}
+/* ---- minuteur de repos ---- */
+#repos{position:fixed;left:50%;transform:translateX(-50%);width:calc(100% - 24px);max-width:406px;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 10px 14px 16px;border-radius:16px;
+  background:#14161A;color:#EFF1EC;box-shadow:0 10px 30px rgba(0,0,0,.28);overflow:hidden;animation:monte2 .2s ease both}
+:root[data-theme="dark"] #repos{background:#2A2E35}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #repos{background:#2A2E35}}
+@keyframes monte2{from{transform:translate(-50%,16px);opacity:0}}
+.rp-l{display:flex;align-items:baseline;gap:10px}
+.rp-t{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:rgba(239,241,236,.6)}
+.rp-v{font-family:'Anton',Impact,sans-serif;font-size:30px;font-weight:400;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.rp-b{display:flex;gap:6px}
+.rp-b button{min-width:44px;height:38px;padding:0 10px;border-radius:10px;border:none;background:rgba(239,241,236,.12);color:#EFF1EC;
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;cursor:pointer}
+.rp-b .rp-x{background:#EFC429;color:#14161A;font-family:inherit}
+.rp-p{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(239,241,236,.12)}
+.rp-p i{display:block;height:100%;width:0;background:#EFC429;transition:width .25s linear}
+#repos.fini{background:var(--vert)}
+#repos.fini .rp-b{display:none}
 /* ---- sensation d'app : cibles tactiles, pas de sélection, pas de rebond ---- */
 .pchip,.pas,.mfb button,.day,.wk,.stab,.cbt2,.feelbtns button,.bascule button,.altact button{min-height:42px}
 .mfr,.cfiche,.echb,.retour,.lien2,.dk,.altb{min-height:40px}
@@ -1982,7 +2020,7 @@ function vueLibre(){
 }
 /* Carte d'exercice commune au plan et aux séances libres : vignette photo,
    prescription en pastilles, rôle en couleur de disque, grande case à cocher. */
-function carteEx({num,id,prescr,repos,rpe,role,extra,done,surMain,surChk,surAlt}){
+function carteEx({num,id,prescr,repos,rpe,role,extra,done,surMain,surChk,surAlt,milieu}){
   const x=EX[id];
   return `<div class="ex">
       <button class="main" onclick="${surMain}">
@@ -1991,6 +2029,7 @@ function carteEx({num,id,prescr,repos,rpe,role,extra,done,surMain,surChk,surAlt}
           <span class="pastilles2"><span class="p1 fort">${prescr}</span><span class="p1">${ICO('horloge',14)}${repos}</span>${rpe?`<span class="p1 rpe">RPE ${rpe}</span>`:''}</span></button>
       <button class="chk" onclick="${surChk}" aria-label="${done?'Annuler la validation':'Valider'}"><i>${ICO('coche',22)}</i></button>
     </div>
+    ${milieu||''}
     ${role===undefined&&!extra&&!surAlt?'':`<div class="exbar">
       ${role===undefined?'<span></span>':`<span class="role">${role?'Principal':'Accessoire'}</span>`}${extra||''}
       ${surAlt?`<button class="remp" onclick="${surAlt}">${ICO('swap',16)}Remplacer</button>`:''}</div>`}`;
@@ -2000,25 +2039,15 @@ function ligneLibre(e,j){
   const unit={kg:'kg',lest:'kg de lest',aucune:'',temps:'s',dist:'m'}[x.ch];
   const prescr=x.ch==='temps'?`${e.s} × ${e.r}s`:x.ch==='dist'?`${e.s} × ${e.r}m`:`${e.s} × ${e.r}`;
   const resume=done?resumeDe(L,x,unit):'';
+  const cx=`Lb(${j})`;
   return `<div class="exwrap libre${done?' done':''}">
     ${carteEx({num:j+1,id:e.id,prescr,repos:esc(e.p),rpe:noRPE(e.id)?0:8,done,
-      surMain:`ficheDepuisLibre('${e.id}')`,surChk:`toggleLibre(${j})`})}
-    ${plie?`<button class="resume" onclick="deplierL('${k}')"><b>${resume}</b><span>Modifier</span></button>`:''}
-    ${done&&!plie?saisie(k,x,L,unit,8,e.id,e.s):''}
+      surMain:`ficheDepuisLibre('${e.id}')`,surChk:`toutCocher(${cx})`,
+      milieu:plie?`<button class="resume" onclick="deplierL('${k}')"><b>${resume}</b><span>Modifier</span></button>`
+        :tableSeries(Lb(j),cx,noRPE(e.id)?0:8)})}
   </div>`;
 }
-function toggleLibre(j){
-  const e=LIBRE.ex[j], k=kl(0,j), x=EX[e.id];
-  if(LOG[k]&&LOG[k].done){delete LOG[k]}
-  else{
-    const d=dernierDe(e.id);
-    const base=d?{v:maxV(d),reps:d.reps}:{v:x.d,reps:e.r};
-    LOG[k]={done:true,...base,nb:e.s,feel:null,ex:e.id,ts:Date.now(),
-            why:d?"Reprise de ta dernière séance sur cet exercice.":undefined,
-            series:Array.from({length:e.s},()=>({...base}))};
-  }
-  vueLibre();
-}
+function toggleLibre(j){ toutCocher(Lb(j)); }
 function deplierL(k){if(LOG[k]){LOG[k].plie=false;vueLibre()}}
 /* Dernier enregistrement connu pour un exercice, quel qu'en soit le contexte. */
 function dernierDe(id){
@@ -2467,12 +2496,13 @@ function exRow(e,i){
   const prescr=x.ch==='temps'?`${sets} × ${reps}s`:x.ch==='dist'?`${sets} × ${reps}m`:`${sets} × ${reps}`;
   const remp=SWAP[k]?'<span class="tag b">aujourd\'hui</span>':(SWAPP[day+'|'+i]?'<span class="tag b">remplacé</span>':'');
   const resume=done?resumeDe(L,x,unit):'';
+  const cx=`P(${i},'${id}')`;
   return `<div class="exwrap ${role?'pr':'ac'}${done?' done':''}">
     ${carteEx({num:i+1,id,prescr,repos:rest,rpe:noRPE(id)?0:r,extra:remp,done,
-      surMain:`fiche('${id}',${i},${role})`,surChk:`toggle(${i},'${id}')`,surAlt:done?'':`alternatives('${id}',${i},${role})`,
-      role:done?undefined:role})}
-    ${plie?`<button class="resume" onclick="deplier('${k}')"><b>${resume}</b><span>Modifier</span></button>`:''}
-    ${done&&!plie?saisie(k,x,L,unit,r,id,sets):''}
+      surMain:`fiche('${id}',${i},${role})`,surChk:`toutCocher(${cx})`,surAlt:done?'':`alternatives('${id}',${i},${role})`,
+      role:done?undefined:role,
+      milieu:plie?`<button class="resume" onclick="deplier('${k}')"><b>${resume}</b><span>Modifier</span></button>`
+        :tableSeries(P(i,id),cx,noRPE(id)?0:r)})}
   </div>`;
 }
 /* Compatibilité : les anciens enregistrements n'avaient qu'une charge unique. */
@@ -2493,43 +2523,158 @@ function resumeDe(L,x,unit){
   const tous=S.every(s=>s.v===S[0].v&&s.reps===S[0].reps);
   return (tous?`${S.length} × ${par(S[0])}`:S.map(par).join(', '))+(L.feel!=null?' · '+feels[L.feel]:'');
 }
-function saisie(k,x,L,unit,r,id,nbSeries){
-  const feels=["Facile","Juste","Trop dur"];
-  const pas=x.ch==='temps'?5:x.ch==='dist'?50:x.ch==='aucune'?1:2.5;
-  const lab={kg:'Charge',lest:'Lest',aucune:'Répétitions',temps:'Tenue',dist:'Distance'}[x.ch];
-  const S=seriesDe(L,nbSeries||L.nb), dbl=['kg','lest'].includes(x.ch);
+/* ================= séries : tableau façon Hevy / Strong =================
+   Un « contexte » décrit un exercice de la séance affichée : clé du journal,
+   exercice, nombre de séries, valeurs proposées, repos et séance précédente.
+   Plan : P(i,id). Séance libre : Lb(j). LOG[k] n'existe qu'une fois l'exercice
+   commencé ; done passe à vrai quand toutes les séries sont cochées.          */
+function P(i,id){
+  const e=week()[day].x[i], x=EX[id], g=suggere(wk,day,i,id), k=key(wk,day,i);
+  let prev=null;
+  for(let p=wk-1;p>=0&&!prev;p--) if(curId(p,day,i,e[0])===id&&LOG[key(p,day,i)]?.done) prev=LOG[key(p,day,i)];
+  return {k,id,n:e[1],base:g?{v:g.v,reps:g.reps}:{v:x.d,reps:e[2]},why:g?g.t:undefined,repos:e[3],prev:prev||precedentDe(id,k),vue:prog};
+}
+function Lb(j){
+  const e=LIBRE.ex[j], x=EX[e.id], k=kl(0,j), d=precedentDe(e.id,k);
+  return {k,id:e.id,n:e.s,base:d?{v:maxV(d),reps:d.reps??e.r}:{v:x.d,reps:e.r},
+    why:d?"Reprise de ta dernière séance sur cet exercice.":undefined,repos:e.p,prev:d,vue:vueLibre};
+}
+/* Dernier enregistrement terminé de l'exercice, hors de la ligne en cours. */
+function precedentDe(id,sauf){
+  let best=null;
+  for(const k in LOG){const L=LOG[k];
+    if(k!==sauf&&L&&L.done&&L.ex===id&&(!best||(L.ts||0)>(best.ts||0))) best=L;}
+  return best;
+}
+const okDe=(L,s)=>s.ok??!!L.done;          /* anciens enregistrements : tout était validé d'un bloc */
+function journal(c){
+  let L=LOG[c.k];
+  if(!L){ L=LOG[c.k]={done:false,...c.base,nb:c.n,feel:null,ex:c.id,ts:Date.now(),why:c.why,
+      series:Array.from({length:c.n},()=>({...c.base,ok:false}))}; }
+  seriesDe(L,c.n); L.series.forEach(s=>{ if(s.ok===undefined) s.ok=!!L.done; });
+  return L;
+}
+function majJournal(L){
+  L.done=L.series.length>0&&L.series.every(s=>s.ok);
+  if(!L.done) L.plie=false;
+  L.v=maxV(L); L.reps=L.series[0]?L.series[0].reps:L.reps; L.ts=Date.now();
+}
+function fmtSerie(x,s){
+  if(!s) return '—';
+  return ['kg','lest'].includes(x.ch)?`${nb(s.v)} × ${s.reps}`:x.ch==='temps'?`${nb(s.v)} s`:x.ch==='dist'?`${nb(s.v)} m`:`${nb(s.v)}`;
+}
+function tableSeries(c,cx,rpe){
+  const x=EX[c.id], L=LOG[c.k], dbl=['kg','lest'].includes(x.ch);
+  const S=L?seriesDe(L,c.n):Array.from({length:c.n},()=>({...c.base}));
+  const tete={kg:'kg',lest:'lest',aucune:'réps',temps:'sec',dist:'m'}[x.ch];
+  const P2=c.prev&&c.prev.series&&c.prev.series.length?c.prev.series:(c.prev?[{v:maxV(c.prev),reps:c.prev.reps}]:[]);
+  const why=L?L.why:c.why, done=L&&L.done, feels=["Facile","Juste","Trop dur"];
   let hint='';
-  if(L.feel===0) hint=`<b>Trop facile pour l'effort visé.</b> La fois suivante, monte la charge : c'est la règle de surcharge.`;
-  else if(L.feel===1) hint=`<b>C'est exactement la cible.</b> Garde cette charge, l'effort visé montera tout seul.`;
-  else if(L.feel===2) hint=`<b>Au-dessus de la cible.</b> Redescends d'un cran la fois suivante.`;
-  return `<div class="saisie">
-    ${L.why?`<div class="pourquoi">${L.why}</div>`:''}
-    <div class="sertete"><span class="sno">#</span><span>${lab}</span>${dbl?'<span>Répétitions</span>':''}</div>
-    ${S.map((s,n)=>`<div class="serie">
-      <span class="sno">${n+1}</span>
-      <span class="ctl">
-        <button onclick="setSer('${k}',${n},'v',-${pas})">−</button>
-        <b>${nb(s.v)}<i>${unit==='kg de lest'?'kg':unit}</i></b>
-        <button onclick="setSer('${k}',${n},'v',${pas})">+</button></span>
-      ${dbl?`<span class="ctl">
-        <button onclick="setSer('${k}',${n},'reps',-1)">−</button><b>${s.reps}</b>
-        <button onclick="setSer('${k}',${n},'reps',1)">+</button></span>`:''}
-    </div>`).join('')}
-    ${S.length>1?`<button class="egal" onclick="egaliser('${k}')">Reporter la série 1 sur toutes</button>`:''}
-    ${noRPE(id)?'':`<div class="feel"><div class="fl">Sur l'ensemble, c'était comment pour un RPE ${r} ?</div>
-      <div class="feelbtns">${feels.map((f,j)=>`<button class="${L.feel===j?'sel':''}" onclick="setFeel('${k}',${j})">${f}</button>`).join('')}</div>
-      ${hint?`<p class="feelhint">${hint}</p>`:''}</div>`}
-    <button class="valid" onclick="plier('${k}')">Valider et replier</button></div>`;
+  if(done&&L.feel===0) hint=`<b>Trop facile pour l'effort visé.</b> La fois suivante, monte la charge : c'est la règle de surcharge.`;
+  else if(done&&L.feel===1) hint=`<b>C'est exactement la cible.</b> Garde cette charge, l'effort visé montera tout seul.`;
+  else if(done&&L.feel===2) hint=`<b>Au-dessus de la cible.</b> Redescends d'un cran la fois suivante.`;
+  return `<div class="series${dbl?'':' simple'}">
+    ${why?`<p class="swhy">${esc(why)}</p>`:''}
+    <div class="sr-tete"><span>#</span><span>Précédent</span><span>${tete}</span>${dbl?'<span>réps</span>':''}<span></span></div>
+    ${S.map((s,n)=>{const ok=L&&okDe(L,s);return `<div class="sr-row${ok?' ok':''}">
+      <span class="sn">${n+1}</span>
+      <span class="sp">${fmtSerie(x,P2[n]||P2[P2.length-1])}</span>
+      <input class="sv" inputmode="decimal" enterkeyhint="next" value="${nb(s.v)}" aria-label="${tete} série ${n+1}"
+        onchange="serVal(${cx},${n},'v',this)" onfocus="this.select()">
+      ${dbl?`<input class="sv" inputmode="numeric" enterkeyhint="done" value="${s.reps}" aria-label="répétitions série ${n+1}"
+        onchange="serVal(${cx},${n},'reps',this)" onfocus="this.select()">`:''}
+      <button class="sok" onclick="serOk(${cx},${n})" aria-label="${ok?'Décocher':'Valider'} la série ${n+1}">${ICO('coche',18)}</button>
+    </div>`}).join('')}
+    ${done?`${rpe?`<div class="feel"><div class="fl">C'était comment pour un RPE ${rpe} ?</div>
+      <div class="feelbtns">${feels.map((f,j)=>`<button class="${L.feel===j?'sel':''}" onclick="setFeel('${c.k}',${j})">${f}</button>`).join('')}</div>
+      ${hint?`<p class="feelhint">${hint}</p>`:''}</div>`:''}
+      <button class="valid" onclick="plier('${c.k}')">Replier</button>`:''}
+  </div>`;
 }
-function setSer(k,n,f,d){
-  const L=LOG[k]; if(!L||!L.series||!L.series[n])return;
-  L.series[n][f]=Math.max(0,Math.round((L.series[n][f]+d)*10)/10);
-  L.v=maxV(L); L.reps=L.series[0].reps; L.ts=Date.now(); raf();
+/* Pas de redessin ici : on passe d'un champ à l'autre sans perdre le clavier. */
+function serVal(c,n,f,el){
+  const t=parseFloat(String(el.value).replace(',','.'));
+  const L=journal(c), sr=L.series[n]; if(!sr) return;
+  if(!Number.isFinite(t)){ el.value=f==='reps'?sr.reps:nb(sr.v); return; }
+  sr[f]=f==='reps'?Math.max(0,Math.round(t)):Math.max(0,Math.round(t*10)/10);
+  el.value=f==='reps'?sr[f]:nb(sr[f]);
+  /* Les séries suivantes pas encore touchées reprennent la même valeur. */
+  const rows=el.closest('.series').querySelectorAll('.sr-row'), col=f==='reps'?1:0;
+  for(let m=n+1;m<L.series.length;m++){
+    if(L.series[m].ok||L.series[m].touche) break;
+    L.series[m][f]=sr[f];
+    const inp=rows[m]&&rows[m].querySelectorAll('.sv')[col]; if(inp) inp.value=el.value;
+  }
+  sr.touche=true; majJournal(L); save();
 }
-function egaliser(k){
-  const L=LOG[k]; if(!L||!L.series)return;
-  const p={...L.series[0]}; L.series=L.series.map(()=>({...p}));
-  L.v=maxV(L); L.ts=Date.now(); raf();
+function serOk(c,n){
+  const L=journal(c), sr=L.series[n]; if(!sr) return;
+  sr.ok=!sr.ok; majJournal(L); save();
+  if(sr.ok) lancerRepos(secondesDe(c.repos));
+  c.vue();
+}
+function toutCocher(c){
+  const L=journal(c), tous=L.series.every(s=>s.ok);
+  L.series.forEach(s=>s.ok=!tous); majJournal(L); save();
+  c.vue();
+}
+/* « 2 min 30 », « 2 min », « 90 s » → secondes */
+function secondesDe(t){
+  t=String(t||''); const m=t.match(/(\d+)\s*min\s*(\d+)?/), sec=t.match(/(\d+)\s*s\b/);
+  const v=m?(+m[1])*60+(+m[2]||0):sec?+sec[1]:0;
+  return v>0?v:90;
+}
+
+/* ================= minuteur de repos =================
+   Calé sur une heure de fin, donc juste même après un passage en arrière-plan.
+   Le son est préparé au moment où l'on coche (iOS n'autorise l'audio qu'après
+   un geste) et programmé pour la fin du repos.                               */
+let REPOS=null;
+function lancerRepos(sec){
+  arreterRepos(true);
+  const fin=Date.now()+sec*1000;
+  REPOS={fin,total:sec,t:setInterval(majRepos,250),son:null};
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(AC){ window._ac=window._ac||new AC(); window._ac.resume&&window._ac.resume(); }
+  }catch(e){}
+  programmerBip(); majRepos();
+}
+function programmerBip(){
+  const ac=window._ac; if(!ac||!REPOS) return;
+  try{
+    if(REPOS.son) REPOS.son.forEach(o=>{try{o.stop()}catch(e){}});
+    const t0=ac.currentTime+Math.max(0,(REPOS.fin-Date.now())/1000);
+    REPOS.son=[0,.22].map((d,i)=>{const o=ac.createOscillator(),g=ac.createGain();
+      o.frequency.value=i?1320:880; g.gain.setValueAtTime(0,t0+d); g.gain.linearRampToValueAtTime(.25,t0+d+.02);
+      g.gain.exponentialRampToValueAtTime(.001,t0+d+.18); o.connect(g).connect(ac.destination); o.start(t0+d); o.stop(t0+d+.2); return o;});
+  }catch(e){}
+}
+function ajusterRepos(d){ if(!REPOS) return; REPOS.fin=Math.max(Date.now(),REPOS.fin+d*1000); REPOS.total=Math.max(REPOS.total+d,1); programmerBip(); majRepos(); }
+function arreterRepos(silence){
+  if(!REPOS) { document.getElementById('repos')?.remove(); return; }
+  clearInterval(REPOS.t); if(REPOS.son) REPOS.son.forEach(o=>{try{o.stop()}catch(e){}});
+  REPOS=null; if(silence!==false) document.getElementById('repos')?.remove();
+}
+function majRepos(){
+  if(!REPOS) return;
+  let el=document.getElementById('repos');
+  if(!el){ el=document.createElement('div'); el.id='repos'; el.setAttribute('role','timer');
+    el.innerHTML=`<div class="rp-l"><span class="rp-t">Repos</span><b class="rp-v"></b></div>
+      <div class="rp-b"><button onclick="ajusterRepos(-15)">−15</button><button onclick="ajusterRepos(15)">+15</button>
+      <button class="rp-x" onclick="arreterRepos()">Passer</button></div><i class="rp-p"><i></i></i>`;
+    document.body.appendChild(el); }
+  const f=document.querySelector('.foot'); el.style.bottom=((f&&f.offsetHeight)||0)+10+'px';
+  const r=Math.max(0,Math.ceil((REPOS.fin-Date.now())/1000));
+  el.querySelector('.rp-v').textContent=`${Math.floor(r/60)}:${String(r%60).padStart(2,'0')}`;
+  el.querySelector('.rp-p i').style.width=(100-r/REPOS.total*100)+'%';
+  if(r<=0){
+    clearInterval(REPOS.t); REPOS=null;
+    try{ navigator.vibrate&&navigator.vibrate([180,90,180]); }catch(e){}
+    el.classList.add('fini'); el.querySelector('.rp-t').textContent='';
+    el.querySelector('.rp-v').textContent="C'est reparti !";
+    setTimeout(()=>{ if(!REPOS) el.remove(); },3000);
+  }
 }
 function plier(k){if(LOG[k]){LOG[k].plie=true;raf()}}
 function deplier(k){if(LOG[k]){LOG[k].plie=false;prog()}}
@@ -2564,17 +2709,7 @@ function suggere(w,s,i,id){
   }
   return null;
 }
-function toggle(i,id){
-  const k=key(wk,day,i), x=EX[id];
-  if(LOG[k]?.done){delete LOG[k]}
-  else{
-    const g=suggere(wk,day,i,id), e=week()[day].x[i];
-    const base=g?{v:g.v,reps:g.reps}:{v:x.d,reps:e[2]};
-    LOG[k]={done:true,...base,nb:e[1],feel:null,ex:id,ts:Date.now(),why:g?g.t:undefined,
-            series:Array.from({length:e[1]},()=>({...base}))};
-  }
-  prog();
-}
+function toggle(i,id){ toutCocher(P(i,id)); }
 const raf=()=>{ if(LIBRE&&LIBRE.idx!=null&&document.querySelector('.head .eyebrow')&&document.querySelector('.head .eyebrow').textContent==='Séance libre') vueLibre(); else prog(); };
 function setVal(k,f,d){const L=LOG[k];if(!L)return;L[f]=Math.max(0,Math.round((L[f]+d)*10)/10);L.ts=Date.now();raf()}
 function setFeel(k,j){const L=LOG[k];if(!L)return;L.feel=L.feel===j?null:j;L.ts=Date.now();raf()}
