@@ -753,6 +753,26 @@ h2.q{font-size:29px;line-height:1.05;margin-bottom:6px}
 .coln2{display:flex;gap:12px;align-items:flex-start;border-radius:14px}
 .coln2 span{font-size:20px}
 .coln2 p{margin:0}
+/* ---- frise des semaines ---- */
+.semaines{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:14px}
+.sem{height:58px;min-width:0;border:none;border-radius:12px;background:var(--surface);color:var(--encre);cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;box-shadow:0 1px 2px rgba(20,22,26,.07);transition:transform .1s}
+.sem:active{transform:scale(.94)}
+.sem b{font-family:'Anton',Impact,sans-serif;font-size:20px;font-weight:400;line-height:1}
+.sdots{display:flex;gap:3px}
+.sdots i{width:5px;height:5px;border-radius:50%;background:var(--ligne)}
+.sdots i.on{background:var(--vert)}
+.sem.pleine:not(.sel){box-shadow:inset 0 0 0 1.5px var(--vert)}
+.sem.sel{background:var(--encre);color:var(--fond);box-shadow:0 4px 12px rgba(20,22,26,.18)}
+.sem.sel .sdots i{background:color-mix(in srgb,var(--fond) 35%,transparent)}
+.sem.sel .sdots i.on{background:#4FAE76}
+.phases{display:flex;gap:6px;margin-top:8px}
+.ph{height:22px;border-radius:7px;display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.04em;opacity:.55}
+.ph.cur{opacity:1}
+.ph7{background:color-mix(in srgb,var(--vert) 18%,transparent);color:var(--vert)}
+.ph8{background:color-mix(in srgb,var(--jaune) 28%,transparent);color:var(--encre)}
+.ph9{background:color-mix(in srgb,var(--rouge) 16%,transparent);color:var(--rouge)}
+.ph10{background:color-mix(in srgb,var(--rouge) 26%,transparent);color:var(--rouge)}
 /* ---- sensation d'app : cibles tactiles, pas de sélection, pas de rebond ---- */
 .pchip,.pas,.mfb button,.day,.wk,.stab,.cbt2,.feelbtns button,.bascule button,.altact button{min-height:42px}
 .mfr,.cfiche,.echb,.retour,.lien2,.dk,.altb{min-height:40px}
@@ -2530,16 +2550,27 @@ const wkDone=(w,si)=>{const W=week(),s=W[si];
 const wkFull=w=>{const W=week();
   return W.some(x=>!x.b&&!x.sportOnly) && W.every((s,i)=>s.b||s.sportOnly||wkDone(w,i))};
 
+/* Frise des 8 semaines : un bouton par semaine avec ses séances faites,
+   et dessous les paliers d'effort (RPE 7, 8, 9) qu'elles traversent. */
+function friseSemaines(W){
+  const socle=W.map((p,j)=>(!p.b&&!p.sportOnly)?j:-1).filter(j=>j>=0);
+  const sem=Array.from({length:8},(_,i)=>{
+    const f=socle.map(j=>wkDone(i,j)), d=f.filter(Boolean).length, plein=f.length&&d===f.length;
+    return `<button class="sem${i===wk?' sel':''}${plein?' pleine':''}" onclick="wk=${i};OUVERT=null;prog()"
+      aria-label="Semaine ${i+1}, ${d} séance${d>1?'s':''} sur ${f.length}"${i===wk?' aria-current="true"':''}>
+      <b>${i+1}</b><span class="sdots">${f.map(v=>`<i${v?' class="on"':''}></i>`).join('')}</span></button>`;}).join('');
+  const ph=[]; for(let i=0;i<8;i++){const r=baseRPE(i); if(ph.length&&ph[ph.length-1].r===r) ph[ph.length-1].n++; else ph.push({r,n:1,d:i});}
+  return `<div class="semaines">${sem}</div>
+    <div class="phases">${ph.map(p=>`<span class="ph ph${p.r}${wk>=p.d&&wk<p.d+p.n?' cur':''}" style="flex:${p.n}">RPE ${p.r}</span>`).join('')}</div>`;
+}
 function prog(){
   bar(false); const W=week(); if(day>=W.length)day=0; const s=W[day];
   const nS=W.filter(p=>!p.b&&!p.sportOnly).length, r=baseRPE(wk);
   app.innerHTML=`<div class="screen">
     <div class="head">
-      <div class="eyebrow">${PSEUDO?esc(PSEUDO)+" · ":""}Cycle de 8 semaines</div>
-      <div class="headrow"><h2 class="display">Tes séances</h2>
-        <select class="wsel" aria-label="Semaine" onchange="wk=+this.value;prog()">
-          ${Array.from({length:8},(_,i)=>`<option value="${i}"${i===wk?' selected':''}>Semaine ${i+1}${wkFull(i)?' ✓':''}</option>`).join('')}
-        </select></div>
+      <div class="eyebrow">${PSEUDO?esc(PSEUDO)+" · ":""}Cycle de 8 semaines · semaine ${wk+1}</div>
+      <div class="headrow"><h2 class="display">Tes séances</h2></div>
+      ${friseSemaines(W)}
       <div class="meta">${nS} séances socle · 1 bonus${sportsChoisis().length?` · ${sportsTotal()} séance${sportsTotal()>1?'s':''} de sport`:''}
         <br>Effort visé : RPE ${r}, ${rirTxt(r)}</div></div>
     <div class="days">${W.map((p,i)=>`<button class="day${p.b?' bonus':''}${p.sportOnly?' sport':''}${i===day?' sel':''}${wkDone(wk,i)?' done':''}" onclick="day=${i};sect=1;prog()">${p.b?'Bonus':p.sportOnly?'Ton sport':'Séance '+(i+1)}</button>`).join('')}</div>
