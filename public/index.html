@@ -821,6 +821,11 @@ h2.q{font-size:29px;line-height:1.05;margin-bottom:6px}
 .ti.sync-on::after,.ti.sync-off::after{content:"";position:absolute;top:4px;right:14px;width:9px;height:9px;border-radius:50%;box-shadow:0 0 0 2px var(--fond)}
 .ti.sync-on::after{background:#3FA66A}
 .ti.sync-off::after{background:var(--gris)}
+/* titre de séance sobre, en entier ; muscles ciblés sur chaque exercice */
+.stitre{align-items:center;margin-bottom:12px}
+.stnom{font-size:18px;font-weight:700;line-height:1.3;color:var(--encre);overflow-wrap:anywhere}
+.cible{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:var(--lien)}
+.cible .ico{flex:none}
 /* ---- sensation d'app : cibles tactiles, pas de sélection, pas de rebond ---- */
 .pchip,.pas,.mfb button,.day,.wk,.stab,.cbt2,.feelbtns button,.bascule button,.altact button{min-height:42px}
 .mfr,.cfiche,.echb,.retour,.lien2,.dk,.altb{min-height:40px}
@@ -1831,7 +1836,8 @@ const ICO=(()=>{const d={
   crayon:'<path d="M4.5 19.5l1-4.2L15.8 5a2 2 0 0 1 2.9 0l.3.3a2 2 0 0 1 0 2.9L8.7 18.5z"/><path d="M13.5 7.3l3.2 3.2"/>',
   info:'<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8v.01"/>',
   bas:'<path d="M6 9.5l6 6 6-6"/>',
-  refaire:'<path d="M19 12a7 7 0 1 1-2.1-5M19 4.5V9h-4.5"/>'};
+  refaire:'<path d="M19 12a7 7 0 1 1-2.1-5M19 4.5V9h-4.5"/>',
+  cible:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/>'};
   return (n,t=20)=>`<svg class="ico" width="${t}" height="${t}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d[n]}</svg>`;})();
 const ONGLETS=[['compte','Compte'],['explorer','Explorer'],['seances','Mes séances'],['plan','Mon plan']];
 const tabHTML=a=>ONGLETS.map(([k,n])=>
@@ -2188,6 +2194,7 @@ function carteEx({num,id,prescr,repos,rpe,role,extra,done,surMain,surChk,surAlt,
         <span class="vig${done?' fait':''}"><img src="${GH}${x.img}_0.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('ko')">
           <span class="idx">${num}</span>${done?`<span class="vok">${ICO('coche',14)}</span>`:''}</span>
         <span class="txt"><span class="n">${x.n}</span>
+          ${musclesDe([id]).length?`<span class="cible">${ICO('cible',14)}${musclesDe([id]).join(' · ')}</span>`:''}
           <span class="sous">${prescr} · repos ${repos}${extra||''}</span>
           ${etat?`<span class="etat2">${etat}</span>`:''}</span>
         <span class="chev">${ICO('bas',18)}</span></button>
@@ -2654,8 +2661,7 @@ const titreSeance=t=>{const c=String(t||'').replace(/^séance\s*\d+\s*[–—:·
 function sessionView(s){
   const T=['Échauffement','Séance','Collation'];
   return `<div class="session">
-    <div class="stitre"><div><div class="title display">${titreSeance(s.t)}</div>
-      <div class="muscles">${musclesDe((s.x||[]).map((e,i)=>curId(wk,day,i,e[0]))).map(m=>`<span>${m}</span>`).join('')}</div></div>
+    <div class="stitre"><div><div class="stnom">${esc(titreSeance(s.t))}</div></div>
       <button class="info-btn" onclick="reperes()" aria-label="Repères de placement">${ICO('info',21)}</button></div>
     <div class="sect">${T.map((t,i)=>`<button class="stab${i===sect?' sel':''}" onclick="sect=${i};prog()">${t}</button>`).join('')}</div>
     ${sect===0?vueEchauf(s):sect===2?vueCollation():vueExos(s)}</div>`;
