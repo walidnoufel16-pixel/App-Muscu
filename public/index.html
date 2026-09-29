@@ -1795,22 +1795,57 @@ const RIR=r=>10-r;
 const nb=v=>String(v).replace('.',',');
 const rirTxt=r=>{const n=RIR(r);return n===0?"aucune répétition en réserve":n===1?"il te reste 1 répétition":`il te reste ${n} répétitions`};
 const key=(w,s,i)=>`${w}|${s}|${i}`;
-/* Les mouvements principaux ne bougent jamais. Les accessoires tournent
-   par blocs de deux semaines, en piochant dans le même schéma moteur.   */
-function rotation(w,id){
+/* ================= variété d'une semaine sur l'autre =================
+   Principaux : deux variantes du même mouvement en alternance (semaines 1, 3,
+   5, 7 : l'exercice du plan ; semaines 2, 4, 6, 8 : sa variante). Chacune
+   revient toutes les deux semaines, donc la progression reste mesurable :
+   suggere() et « Précédent » remontent les semaines en comparant curId().
+   Accessoires : ils changent chaque semaine dans le même schéma moteur.     */
+const VARIANTES={
+  dc:['dhi','dh','dci'], dh:['dhi','dc','dci'], dci:['dh','dhi','dc'], dhi:['dh','dc','dci'],
+  pomp:['pompe','dip'], pompe:['pomp','dip'], dip:['pompe','pomp'], chpm:['dh','pecdk'],
+  dm:['arn','dmh','pp'], dmh:['arn','dm','dmm'], arn:['dmh','dm'], pp:['dm','dmh'], dmm:['dmh','arn'],
+  tr:['trs','tp'], trs:['tr','tp'], tp:['tpn','trs'], tpn:['tp','tr'],
+  rw:['rh','tbar','rw2'], rh:['rw2','rwapp','rw'], rw2:['rh','rwapp'], rwapp:['rh','rw2'], tbar:['rw','rh'],
+  tps:['rwm','rh'], rwm:['tps','rh'], ra:['tr','trs'],
+  sq:['sqf','hack','bul','gob'], sqf:['sq','hack'], hack:['pr','sq','bul'], pr:['hack','bul','fe'],
+  gob:['bul','fe','mont'], bul:['fe','mont','gob'], fe:['bul','fb','mont'], fb:['fe','bul'], smith:['sq','hack'],
+  rm:['rmh','sdt','gm'], rmh:['rm','kbsdt1'], sdt:['trap','rm','sdts'], sdts:['sdt','trap'], trap:['sdt','rm'],
+  ht:['pth','rmh','pont1'], gm:['rm','rmh']
+};
+function variante(id,pris){
   const e=EX[id]; if(!e) return id;
-  const mat=A.materiel??0;
+  const auto=Object.keys(EX).filter(o=>o!==id&&EX[o].pat===e.pat&&EX[o].ch===e.ch)
+    .sort((a,b)=>Math.abs(EX[a].eq-e.eq)-Math.abs(EX[b].eq-e.eq)||a.localeCompare(b));
+  const l=(VARIANTES[id]||[]).concat(auto).filter(o=>o!==id&&EX[o]&&dispoDeclare(o)&&!pris.has(o));
+  return l[0]||id;
+}
+function rotation(w,id,pris){
+  const e=EX[id]; if(!e) return id;
   const l=Object.keys(EX).filter(o=>EX[o].pat===e.pat&&dispoDeclare(o)).sort();
-  const k=l.indexOf(id);
-  if(l.length<2||k<0) return id;
-  return l[(k+Math.floor(w/2))%l.length];
+  if(!l.length) return id;
+  /* Exercice indisponible avec le matériel déclaré : on part du début de la liste. */
+  const k=Math.max(0,l.indexOf(id));
+  if(l.length<2&&l[0]===id) return id;
+  for(let j=0;j<l.length;j++){ const o=l[(k+w+j)%l.length]; if(!pris||!pris.has(o)) return o; }
+  return id;
 }
 function curId(w,s,i,id){
   const sw=SWAP[key(w,s,i)]||SWAPP[s+'|'+i];
   if(sw) return sw;
-  const W=week(), e=W[s]&&W[s].x&&W[s].x[i];
-  if(!e||e[4]) return id;            // principal : figé sur tout le cycle
-  return rotation(w,id);
+  /* Ce qui a été fait fait foi : un exercice enregistré garde son nom. */
+  const L=LOG[key(w,s,i)]; if(L&&L.ex&&EX[L.ex]) return L.ex;
+  const W=week(), S=W[s], e=S&&S.x&&S.x[i];
+  if(!e) return id;
+  /* Exercices déjà présents dans la séance : jamais deux fois le même. */
+  const pris=new Set(S.x.map((x,j)=>j===i?null:x[0]).filter(Boolean));
+  for(let j=0;j<i;j++) pris.add(curId(w,s,j,S.x[j][0]));
+  if(e[4]){
+    /* Principal indisponible avec le matériel déclaré : sa variante prend sa place. */
+    const base=dispoDeclare(id)?id:variante(id,pris);
+    return w%2===1?variante(base,new Set([...pris,id])):base;
+  }
+  return rotation(w,id,pris);
 }
 const noRPE=id=>['temps','dist'].includes(EX[id].ch)||EX[id].pat==='mo';
 
@@ -2559,7 +2594,7 @@ function recap(){
 }
 const CHOIX_DEF=()=>{const n=week().filter(s=>!s.b&&!s.sportOnly).length;return[
   ["Un découpage haut du corps et bas du corps",`Avec ${n} séances par semaine, c'est le format qui permet de solliciter chaque groupe deux fois. C'est le rythme qui produit le plus de progression pour un volume donné.`],
-  ["Des mouvements principaux figés sur huit semaines",`Les mêmes exercices reviennent de la première à la dernière semaine. Sans cette stabilité, impossible de savoir si tu progresses : seuls les accessoires changent d'une séance à l'autre.`],
+  ["Deux variantes par mouvement, en alternance",`Chaque exercice principal alterne avec une variante proche d'une semaine sur l'autre : tu ne refais jamais la même séance deux semaines de suite. Chaque variante revient toutes les deux semaines et progresse de son côté, pendant que les accessoires changent chaque semaine.`],
   ["C'est l'effort qui monte, pas le volume",`RPE 7 sur les semaines 1 et 2, RPE 8 jusqu'à la cinquième, RPE 9 ensuite. Tu gardes le même nombre de séries, mais tu t'approches progressivement de ta limite.`]];};
 
 /* Le serveur refuse un exercice quand l'IA en invente un, en propose un que ton

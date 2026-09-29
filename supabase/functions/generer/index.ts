@@ -226,7 +226,7 @@ ${LIB.filter((x) => dispo(x, mat, acc)).map((x) => `- ${x.id} : ${x.nom} [${SCHE
 RÈGLES DE CONSTRUCTION, non négociables :
 1. Découpage haut du corps / bas du corps en alternance : séance 1 haut, séance 2 bas, etc.
 2. Chaque séance contient 5 à 7 exercices, dont 2 ou 3 principaux (o:1) placés en premier, puis des accessoires (o:0). Vise 18 à 24 séries au total par séance, ce qui représente environ 60 à 70 minutes repos compris.
-3. Les exercices PRINCIPAUX sont identiques entre la séance A et la séance B d'un même segment : ce sont eux qui portent la progression sur 8 semaines. Seuls les accessoires diffèrent.
+3. Les exercices PRINCIPAUX sont identiques entre la séance A et la séance B d'un même segment. L'application les fait ensuite alterner automatiquement avec une variante proche une semaine sur deux, et change les accessoires chaque semaine : ne les présente donc jamais comme figés sur 8 semaines.
 4. Les accessoires des séances A et B d'un même segment travaillent des schémas moteurs DIFFÉRENTS, pour couvrir tous les axes sur la semaine.
 4 bis. Mollets, trapèzes, avant-bras et prise, adducteurs sont des compléments : jamais en exercice principal, au plus un seul par séance, et seulement quand les grands groupes ont déjà leur volume.
 5. Volume hebdomadaire par grand groupe travaillé : ${vol[0]} à ${vol[1]} séries. Cette fourchette tient compte du nombre de séances déclarées : ne cherche pas à la dépasser en allongeant les séances, ni à rester en dessous en les raccourcissant.
@@ -423,7 +423,7 @@ function valider(plan: any, A: any): any {
   const bonus = nettoieSeance(plan?.bonus);   // facultative : l'app s'en passe
 
   const DEF = [
-    { titre: "Des mouvements principaux figés", texte: "Les mêmes exercices reviennent de la première à la dernière semaine. Sans cette stabilité, impossible de mesurer ta progression." },
+    { titre: "Deux variantes par mouvement, en alternance", texte: "Chaque exercice principal alterne avec une variante proche d'une semaine sur l'autre : tu ne refais jamais la même séance deux semaines de suite, et chaque variante progresse de son côté." },
     { titre: "C'est l'effort qui monte", texte: "RPE 7 sur les semaines 1 et 2, RPE 8 jusqu'à la cinquième, RPE 9 ensuite. Le nombre de séries, lui, ne bouge pas." },
     { titre: "Tu choisis tes charges", texte: "Aucun kilo ne t'est imposé : tu vises un niveau d'effort et tu ajustes toi-même la charge qui t'y amène." },
   ];
