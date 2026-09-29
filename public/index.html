@@ -826,6 +826,9 @@ h2.q{font-size:29px;line-height:1.05;margin-bottom:6px}
 .stnom{font-size:18px;font-weight:700;line-height:1.3;color:var(--encre);overflow-wrap:anywhere}
 .cible{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:var(--lien)}
 .cible .ico{flex:none}
+.hrow .hv{width:auto;min-width:74px;white-space:nowrap}
+.lestb{display:block;margin:10px auto 0;min-height:40px;padding:0 16px;border-radius:20px;border:1px solid var(--ligne);background:var(--fond);
+  color:var(--lien);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
 /* ---- sensation d'app : cibles tactiles, pas de sélection, pas de rebond ---- */
 .pchip,.pas,.mfb button,.day,.wk,.stab,.cbt2,.feelbtns button,.bascule button,.altact button{min-height:42px}
 .mfr,.cfiche,.echb,.retour,.lien2,.dk,.altb{min-height:40px}
@@ -2766,8 +2769,8 @@ const maxV=L=>(L&&L.series&&L.series.length)?Math.max(...L.series.map(s=>s.v)):(
 function resumeDe(L,x,unit){
   const S=(L.series&&L.series.length)?L.series:[{v:L.v,reps:L.reps}];
   const feels=["facile","juste","trop dur"];
-  const par=s=>`${nb(s.v)}${unit?' '+unit:''}${['kg','lest'].includes(x.ch)?' × '+s.reps:''}`;
-  const tous=S.every(s=>s.v===S[0].v&&s.reps===S[0].reps);
+  const par=s=>`${nb(s.v)}${unit?' '+unit:''}${['kg','lest'].includes(x.ch)?' × '+s.reps:''}${L.lest&&+s.lest>0?' +'+nb(s.lest)+' kg':''}`;
+  const tous=S.every(s=>s.v===S[0].v&&s.reps===S[0].reps&&(+s.lest||0)===(+S[0].lest||0));
   return (tous?`${S.length} × ${par(S[0])}`:S.map(par).join(', '))+(L.feel!=null?' · '+feels[L.feel]:'');
 }
 /* ================= séries : tableau façon Hevy / Strong =================
@@ -2794,10 +2797,17 @@ function precedentDe(id,sauf){
   return best;
 }
 const okDe=(L,s)=>s.ok??!!L.done;          /* anciens enregistrements : tout était validé d'un bloc */
+/* Exercices au poids du corps ou au temps auxquels on ajoute souvent un lest
+   (disque, haltère, gilet) : une colonne kg facultative s'y ajoute. */
+const LESTABLE=new Set(['russ','cr','crinv','rj','rgen','dbug','pomp','bdips','ra','pont','pont1','sqpc','fepc','molP','lomsol','addsol','gai','plat','sup']);
+const lestMax=L=>L&&L.series?Math.max(0,...L.series.map(s=>+s.lest||0)):0;
 function journal(c){
   let L=LOG[c.k];
   if(!L){ L=LOG[c.k]={done:false,...c.base,nb:c.n,feel:null,ex:c.id,ts:Date.now(),why:c.why,
-      series:Array.from({length:c.n},()=>({...c.base,ok:false}))}; }
+      series:Array.from({length:c.n},()=>({...c.base,ok:false}))};
+    /* Lest de la dernière fois repris d'office. */
+    if(LESTABLE.has(c.id)&&c.prev&&c.prev.lest){ L.lest=true; const P=c.prev.series||[];
+      L.series.forEach((sr,n)=>{ sr.lest=+((P[n]||P[P.length-1]||{}).lest)||0; }); } }
   seriesDe(L,c.n); L.series.forEach(s=>{ if(s.ok===undefined) s.ok=!!L.done; });
   return L;
 }
@@ -2808,11 +2818,16 @@ function majJournal(L){
 }
 function fmtSerie(x,s){
   if(!s) return '—';
-  return ['kg','lest'].includes(x.ch)?`${nb(s.v)} × ${s.reps}`:x.ch==='temps'?`${nb(s.v)} s`:x.ch==='dist'?`${nb(s.v)} m`:`${nb(s.v)}`;
+  const b=['kg','lest'].includes(x.ch)?`${nb(s.v)} × ${s.reps}`:x.ch==='temps'?`${nb(s.v)} s`:x.ch==='dist'?`${nb(s.v)} m`:`${nb(s.v)}`;
+  return +s.lest>0?`${b} +${nb(s.lest)}kg`:b;
 }
+function ajouterLest(c){ const L=journal(c); L.lest=true; L.series.forEach(s=>{ if(s.lest===undefined) s.lest=0; }); L.ts=Date.now(); save(); c.vue(); }
+function retirerLest(c){ const L=journal(c); L.lest=false; L.series.forEach(s=>{ delete s.lest; }); L.ts=Date.now(); save(); c.vue(); }
 function tableSeries(c,cx,rpe){
   const x=EX[c.id], L=LOG[c.k], dbl=['kg','lest'].includes(x.ch);
-  const S=L?seriesDe(L,c.n):Array.from({length:c.n},()=>({...c.base}));
+  const lestable=!dbl&&LESTABLE.has(c.id), avecLest=lestable&&(L?!!L.lest:!!(c.prev&&c.prev.lest));
+  const Pp=(c.prev&&c.prev.series)||[];
+  const S=L?seriesDe(L,c.n):Array.from({length:c.n},(_,n)=>({...c.base,lest:avecLest?(+((Pp[n]||Pp[Pp.length-1]||{}).lest)||0):undefined}));
   const tete={kg:'kg',lest:'lest',aucune:'réps',temps:'sec',dist:'m'}[x.ch];
   const P2=c.prev&&c.prev.series&&c.prev.series.length?c.prev.series:(c.prev?[{v:maxV(c.prev),reps:c.prev.reps}]:[]);
   const why=L?L.why:c.why, done=L&&L.done, feels=["Facile","Juste","Trop dur"];
@@ -2820,9 +2835,9 @@ function tableSeries(c,cx,rpe){
   if(done&&L.feel===0) hint=`<b>Trop facile pour l'effort visé.</b> La fois suivante, monte la charge : c'est la règle de surcharge.`;
   else if(done&&L.feel===1) hint=`<b>C'est exactement la cible.</b> Garde cette charge, l'effort visé montera tout seul.`;
   else if(done&&L.feel===2) hint=`<b>Au-dessus de la cible.</b> Redescends d'un cran la fois suivante.`;
-  return `<div class="series${dbl?'':' simple'}">
+  return `<div class="series${dbl||avecLest?'':' simple'}">
     ${why?`<p class="swhy">${esc(why)}</p>`:''}
-    <div class="sr-tete"><span>#</span><span>Précédent</span><span>${tete}</span>${dbl?'<span>réps</span>':''}<span></span></div>
+    <div class="sr-tete"><span>#</span><span>Précédent</span><span>${tete}</span>${dbl?'<span>réps</span>':avecLest?'<span>+ kg</span>':''}<span></span></div>
     ${S.map((s,n)=>{const ok=L&&okDe(L,s);return `<div class="sr-row${ok?' ok':''}">
       <span class="snum">${n+1}</span>
       <span class="sp">${fmtSerie(x,P2[n]||P2[P2.length-1])}</span>
@@ -2830,8 +2845,11 @@ function tableSeries(c,cx,rpe){
         onchange="serVal(${cx},${n},'v',this)" onfocus="this.select()">
       ${dbl?`<input class="sv" inputmode="numeric" enterkeyhint="done" value="${s.reps}" aria-label="répétitions série ${n+1}"
         onchange="serVal(${cx},${n},'reps',this)" onfocus="this.select()">`:''}
+      ${avecLest?`<input class="sv" inputmode="decimal" enterkeyhint="done" value="${nb(+s.lest||0)}" aria-label="lest en kg série ${n+1}"
+        onchange="serVal(${cx},${n},'lest',this)" onfocus="this.select()">`:''}
       <button class="sok" onclick="serOk(${cx},${n})" aria-label="${ok?'Décocher':'Valider'} la série ${n+1}">${ICO('coche',18)}</button>
     </div>`}).join('')}
+    ${lestable?`<button class="lestb" onclick="${avecLest?'retirerLest':'ajouterLest'}(${cx})">${avecLest?'Retirer le lest':'+ Ajouter un lest (disque, haltère…)'}</button>`:''}
     ${done?`${rpe?`<div class="feel"><div class="fl">C'était comment pour un RPE ${rpe} ?</div>
       <div class="feelbtns">${feels.map((f,j)=>`<button class="${L.feel===j?'sel':''}" onclick="setFeel('${c.k}',${j})">${f}</button>`).join('')}</div>
       ${hint?`<p class="feelhint">${hint}</p>`:''}</div>`:''}
@@ -2842,17 +2860,21 @@ function tableSeries(c,cx,rpe){
 function serVal(c,n,f,el){
   const t=parseFloat(String(el.value).replace(',','.'));
   const L=journal(c), sr=L.series[n]; if(!sr) return;
-  if(!Number.isFinite(t)){ el.value=f==='reps'?sr.reps:nb(sr.v); return; }
+  if(!Number.isFinite(t)){ el.value=f==='reps'?sr.reps:nb(+sr[f]||0); return; }
   sr[f]=f==='reps'?Math.max(0,Math.round(t)):Math.max(0,Math.round(t*10)/10);
   el.value=f==='reps'?sr[f]:nb(sr[f]);
   /* Les séries suivantes pas encore touchées reprennent la même valeur. */
-  const rows=el.closest('.series').querySelectorAll('.sr-row'), col=f==='reps'?1:0;
+  const rows=el.closest('.series').querySelectorAll('.sr-row'), col=f==='v'?0:1;
+  if(f==='lest') L.lest=true;
   for(let m=n+1;m<L.series.length;m++){
-    if(L.series[m].ok||L.series[m].touche) break;
+    /* Le lest s'ajoute souvent après coup, séries déjà cochées : on le reporte
+       tant que la série suivante n'en a pas reçu un à la main. */
+    if(f==='lest'?L.series[m].tlest:(L.series[m].ok||L.series[m].touche)) break;
     L.series[m][f]=sr[f];
     const inp=rows[m]&&rows[m].querySelectorAll('.sv')[col]; if(inp) inp.value=el.value;
   }
-  sr.touche=true; majJournal(L); save();
+  if(f==='lest') sr.tlest=true; else sr.touche=true;
+  majJournal(L); save();
 }
 function serOk(c,n){
   const L=journal(c), sr=L.series[n]; if(!sr) return;
@@ -3042,14 +3064,14 @@ function histo(id,idx){
     return l.slice(-8).map(x=>`<div class="hrow">
       <span class="hw">${x.ts?new Date(x.ts).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'}):'—'}</span>
       <span class="hb"><i style="width:${Math.max(6,x.v/mx*100)}%"></i></span>
-      <span class="hv">${nb(x.v)} ${u}${['kg','lest'].includes(EX[id].ch)?' × '+x.reps:''}</span></div>`).join('');
+      <span class="hv">${nb(x.v)} ${u}${['kg','lest'].includes(EX[id].ch)?' × '+x.reps:''}${lestMax(x)?' +'+nb(lestMax(x))+' kg':''}</span></div>`).join('');
   }
   const rows=[];
   for(let w=0;w<8;w++){
     for(let s=0;s<week().length;s++){
       const kk=key(w,s,idx);
       if(week()[s].x&&week()[s].x[idx]&&curId(w,s,idx,week()[s].x[idx][0])===id&&LOG[kk]?.done)
-        rows.push([w+1,LOG[kk].v,LOG[kk].reps,EX[id].ch]);
+        rows.push([w+1,LOG[kk].v,LOG[kk].reps,EX[id].ch,lestMax(LOG[kk])]);
     }
   }
   if(!rows.length) return `<p class="hempty">Rien d'enregistré pour l'instant. Valide l'exercice avec le bouton à droite de sa ligne et il apparaîtra ici, semaine après semaine.</p>`;
@@ -3057,7 +3079,7 @@ function histo(id,idx){
   const u={kg:'kg',lest:'kg',aucune:'reps',temps:'s',dist:'m'}[rows[0][3]];
   return rows.map(r=>`<div class="hrow"><span class="hw">S${r[0]}</span>
     <span class="hb"><i style="width:${Math.max(6,r[1]/max*100)}%"></i></span>
-    <span class="hv">${nb(r[1])} ${u}${['kg','lest'].includes(r[3])?` × ${r[2]}`:''}</span></div>`).join('');
+    <span class="hv">${nb(r[1])} ${u}${['kg','lest'].includes(r[3])?` × ${r[2]}`:''}${r[4]?' +'+nb(r[4])+' kg':''}</span></div>`).join('');
 }
 function alternatives(id,idx,role){
   bar(false); const e=EX[id], mat=A.materiel??0;
