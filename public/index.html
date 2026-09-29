@@ -530,10 +530,6 @@ h2.q{font-size:29px;line-height:1.05;margin-bottom:6px}
 #pseudo .mailopt input{font-size:16px;padding:14px 14px}
 #pseudo .mailopt p{font-size:12.5px;line-height:1.55;color:rgba(239,241,236,.45);margin:11px 0 0;max-width:none}
 #pseudo .err{margin-top:14px;font-size:13.5px;color:#EFC429;min-height:18px}
-.who{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:40;font-family:'JetBrains Mono',monospace;
-  font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:0 0 10px 10px;pointer-events:none}
-.who.on{background:var(--vert);color:#fff}
-.who.off{background:var(--gris);color:#fff}
 .lien2{display:block;margin:26px auto 0;background:none;border:none;font:inherit;font-size:13.5px;
   color:var(--gris);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px}
 .reset{width:100%;margin-top:26px;padding:14px;border:none;background:none;border-radius:10px;font:inherit;font-size:13.5px;color:rgba(239,241,236,.5);cursor:pointer}
@@ -817,6 +813,14 @@ h2.q{font-size:29px;line-height:1.05;margin-bottom:6px}
 .outils .tout .ico{color:var(--vert)}
 .outils button:active{background:var(--surface2)}
 .outils span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+/* muscles travaillés sous le titre de séance */
+.muscles{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 6px}
+.muscles span{padding:5px 10px;border-radius:14px;background:var(--surface);border:1px solid var(--ligne);font-size:13px;font-weight:600;color:var(--encre)}
+/* point de synchronisation sur l'onglet Compte */
+.tab .ti{position:relative}
+.ti.sync-on::after,.ti.sync-off::after{content:"";position:absolute;top:4px;right:14px;width:9px;height:9px;border-radius:50%;box-shadow:0 0 0 2px var(--fond)}
+.ti.sync-on::after{background:#3FA66A}
+.ti.sync-off::after{background:var(--gris)}
 /* ---- sensation d'app : cibles tactiles, pas de sélection, pas de rebond ---- */
 .pchip,.pas,.mfb button,.day,.wk,.stab,.cbt2,.feelbtns button,.bascule button,.altact button{min-height:42px}
 .mfr,.cfiche,.echb,.retour,.lien2,.dk,.altb{min-height:40px}
@@ -1831,7 +1835,7 @@ const ICO=(()=>{const d={
   return (n,t=20)=>`<svg class="ico" width="${t}" height="${t}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d[n]}</svg>`;})();
 const ONGLETS=[['compte','Compte'],['explorer','Explorer'],['seances','Mes séances'],['plan','Mon plan']];
 const tabHTML=a=>ONGLETS.map(([k,n])=>
-  `<button class="tab${k===a?' sel':''}" onclick="allerA('${k}')"><span class="ti">${ICO(k,22)}</span><span class="tn">${n}</span></button>`).join('');
+  `<button class="tab${k===a?' sel':''}" data-k="${k}" onclick="allerA('${k}')"><span class="ti${k==='compte'&&SYNC!==null?(SYNC?' sync-on':' sync-off'):''}">${ICO(k,22)}</span><span class="tn">${n}</span></button>`).join('');
 function setTabs(a){ foot.className='foot tabs'; foot.innerHTML=`<div class="foot-in">${tabHTML(a)}</div>`; }
 function ajouterTabs(a){
   const in_=foot.querySelector('.foot-in'); if(!in_)return;
@@ -2631,10 +2635,27 @@ function espacementDe(W,i){
   if(t!==tp) return [1,`Tu peux l'enchaîner dès le lendemain de la séance ${i} : elle ne touche pas les mêmes muscles. Espacer n'apporte rien ici.`];
   return [0,`Laisse au moins un jour plein après la séance ${i}, qui travaillait déjà les mêmes muscles.`];
 }
+/* Muscles travaillés par une séance, à partir du champ m des exercices
+   (« Pectoraux, triceps »), ramenés à des noms simples, dans l'ordre des
+   exercices : le muscle du premier exercice vient en premier. */
+const MUSCLES=[[/pector/,'Pectoraux'],[/épaule|rotateur|coiffe|faisceau/,'Épaules'],[/triceps/,'Triceps'],[/biceps|brachial/,'Biceps'],
+  [/trapèze/,'Trapèzes'],[/dorsal|dos/,'Dos'],[/lombaire/,'Lombaires'],[/quadri/,'Quadriceps'],[/ischio|chaîne post/,'Ischio-jambiers'],
+  [/fessier/,'Fessiers'],[/mollet|soléaire|gastroc/,'Mollets'],[/adducteur/,'Adducteurs'],[/abdo|oblique|gainage/,'Abdominaux'],
+  [/avant-bras|fléchisseurs$|extenseurs/,'Avant-bras'],[/hanche|psoas/,'Hanches'],[/cardio/,'Cardio'],[/jambes/,'Jambes']];
+function musclesDe(ids){
+  const l=[];
+  ids.forEach(id=>{const x=EX[id]; if(!x||!x.m) return;
+    x.m.split(',').forEach(t=>{const f=MUSCLES.find(([r])=>r.test(t.trim().toLowerCase())); if(f&&!l.includes(f[1])) l.push(f[1]);});});
+  return l.slice(0,6);
+}
+/* « Séance 1 – Poussée (pectoraux + épaules…) » → « Poussée » : le numéro est
+   sur la pilule, les muscles sont affichés dessous. */
+const titreSeance=t=>{const c=String(t||'').replace(/^séance\s*\d+\s*[–—:·-]\s*/i,'').replace(/\s*\(.*$/,'').trim();return c||t;};
 function sessionView(s){
   const T=['Échauffement','Séance','Collation'];
   return `<div class="session">
-    <div class="stitre"><div><div class="title display">${s.t}</div><div class="focus">${s.f}</div></div>
+    <div class="stitre"><div><div class="title display">${titreSeance(s.t)}</div>
+      <div class="muscles">${musclesDe((s.x||[]).map((e,i)=>curId(wk,day,i,e[0]))).map(m=>`<span>${m}</span>`).join('')}</div></div>
       <button class="info-btn" onclick="reperes()" aria-label="Repères de placement">${ICO('info',21)}</button></div>
     <div class="sect">${T.map((t,i)=>`<button class="stab${i===sect?' sel':''}" onclick="sect=${i};prog()">${t}</button>`).join('')}</div>
     ${sect===0?vueEchauf(s):sect===2?vueCollation():vueExos(s)}</div>`;
@@ -3115,12 +3136,12 @@ async function push(s){
     badge(true);
   }catch(e){badge(false)}
 }
+/* État de synchronisation : un point sur l'onglet Compte (vert : synchronisé,
+   gris : hors ligne) plutôt qu'un bandeau caché sous la barre d'état. */
+let SYNC=null;
 function badge(on){
-  let b=document.querySelector('.who');
-  if(!b){b=document.createElement('div');b.className='who';document.body.appendChild(b)}
-  b.className='who '+(on?'on':'off');
-  b.textContent=PSEUDO?(PSEUDO+(on?' · synchronisé':' · hors-ligne')):'local';
-  clearTimeout(badge.t);badge.t=setTimeout(()=>b.remove(),2600);
+  SYNC=!!on;
+  document.querySelectorAll('.tab[data-k="compte"] .ti').forEach(t=>{t.classList.toggle('sync-on',SYNC);t.classList.toggle('sync-off',!SYNC)});
 }
 let FORCER=false;
 async function regen(){
