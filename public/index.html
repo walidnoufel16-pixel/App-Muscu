@@ -775,6 +775,48 @@ h2.q{font-size:29px;line-height:1.05;margin-bottom:6px}
 .ph10{background:color-mix(in srgb,var(--rouge) 26%,transparent);color:var(--rouge)}
 /* barre chargée de l'accueil, même dessin que l'icône */
 .barre-logo{display:block;width:min(260px,70%);height:auto;margin:6px auto 0}
+/* ---- séance allégée ---- */
+.head.compact{padding-bottom:12px}
+.semaines{margin-top:12px}
+.sem{height:46px;gap:5px;position:relative;overflow:hidden}
+.sem b{font-size:17px}
+.sph{position:absolute;left:0;right:0;bottom:0;height:3px}
+.sph.ph7{background:var(--vert)}.sph.ph8{background:var(--jaune)}.sph.ph9,.sph.ph10{background:var(--rouge)}
+.stitre{display:flex;align-items:flex-start;gap:12px;margin-bottom:6px}
+.stitre>div{flex:1;min-width:0}
+.session .title{font-size:21px;margin-bottom:2px}
+.session .focus{margin-bottom:8px;font-size:13.5px}
+.info-btn{flex:none;width:40px;height:40px;border-radius:50%;border:none;background:var(--surface);color:var(--lien);display:grid;place-items:center;cursor:pointer;box-shadow:0 1px 2px rgba(20,22,26,.07)}
+.ex .main{display:flex;align-items:center;gap:14px;padding:12px 14px 12px 12px}
+.vig{width:54px;height:54px;border-radius:12px}
+.vig .idx{display:none}
+.vig.ko .idx{display:block}
+.vok{position:absolute;right:3px;bottom:3px;width:22px;height:22px;border-radius:50%;background:var(--vert);color:#fff;display:grid;place-items:center;box-shadow:0 0 0 2px var(--surface)}
+.vig.fait img{opacity:.75}
+.txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.ex .n{font-size:16px;line-height:1.25}
+.sous{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--gris);display:flex;flex-wrap:wrap;align-items:center;gap:0 6px}
+.sous .tag{margin-left:0}
+.etat2{margin-top:3px}
+.chev{flex:none;width:28px;height:28px;margin-left:0;background:none}
+.exwrap.done{box-shadow:none;border-color:color-mix(in srgb,var(--vert) 55%,transparent)}
+.obj{padding:10px 16px;border-top:1px solid var(--ligne);font-size:13.5px;color:var(--gris)}
+.obj b{color:var(--encre)}
+.series{border-top:none;padding-top:0}
+.exact{flex-wrap:wrap;justify-content:flex-end}
+.remp.tout .ico{color:var(--vert)}
+.obj{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px}
+.obj .role{margin:0;display:inline-flex;align-items:center;gap:7px}
+.obj .role::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.exwrap.pr .obj .role{color:var(--lien)}
+.outils{display:flex;border-top:1px solid var(--ligne)}
+.outils button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px 11px;border:none;background:none;
+  color:var(--encre);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+.outils button+button{border-left:1px solid var(--ligne)}
+.outils .ico{color:var(--lien)}
+.outils .tout .ico{color:var(--vert)}
+.outils button:active{background:var(--surface2)}
+.outils span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 /* ---- sensation d'app : cibles tactiles, pas de sélection, pas de rebond ---- */
 .pchip,.pas,.mfb button,.day,.wk,.stab,.cbt2,.feelbtns button,.bascule button,.altact button{min-height:42px}
 .mfr,.cfiche,.echb,.retour,.lien2,.dk,.altb{min-height:40px}
@@ -2139,16 +2181,19 @@ function carteEx({num,id,prescr,repos,rpe,role,extra,done,surMain,surChk,surAlt,
   const x=EX[id];
   return `<div class="ex">
       <button class="main" onclick="${surMain}" aria-expanded="${!!ouvert}">
-        <span class="vig"><img src="${GH}${x.img}_0.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('ko')"><span class="idx">${String(num).padStart(2,'0')}</span></span>
-        <span class="n">${x.n}</span>
-        <span class="pastilles2"><span class="p1 fort">${prescr}</span><span class="p1">${ICO('horloge',14)}${repos}</span>${rpe?`<span class="p1 rpe">RPE ${rpe}</span>`:''}<span class="chev">${ICO('bas',18)}</span></span>
-        ${etat?`<span class="etat2">${etat}</span>`:''}</button>
-      <button class="chk" onclick="${surChk}" aria-label="${done?'Annuler la validation':'Tout valider'}"><i>${ICO('coche',22)}</i></button>
+        <span class="vig${done?' fait':''}"><img src="${GH}${x.img}_0.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('ko')">
+          <span class="idx">${num}</span>${done?`<span class="vok">${ICO('coche',14)}</span>`:''}</span>
+        <span class="txt"><span class="n">${x.n}</span>
+          <span class="sous">${prescr} · repos ${repos}${extra||''}</span>
+          ${etat?`<span class="etat2">${etat}</span>`:''}</span>
+        <span class="chev">${ICO('bas',18)}</span></button>
     </div>
-    ${ouvert?`${milieu||''}<div class="exbar">
-      ${role===undefined?'<span></span>':`<span class="role">${role?'Principal':'Accessoire'}</span>`}${extra||''}
-      <span class="exact">${surFiche?`<button class="remp" onclick="${surFiche}">${ICO('info',16)}Fiche</button>`:''}
-      ${surAlt?`<button class="remp" onclick="${surAlt}">${ICO('swap',16)}Remplacer</button>`:''}</span></div>`:''}`;
+    ${ouvert?`<div class="obj">${role===undefined?'':`<span class="role">${role?'Principal':'Accessoire'}</span>`}
+        ${rpe?`<span>RPE <b>${rpe}</b></span>`:''}<span>repos <b>${repos}</b></span></div>
+      ${milieu||''}<div class="outils">
+      ${surFiche?`<button onclick="${surFiche}">${ICO('info',20)}<span>Fiche</span></button>`:''}
+      ${surAlt?`<button onclick="${surAlt}">${ICO('swap',20)}<span>Remplacer</span></button>`:''}
+      <button class="tout" onclick="${surChk}">${ICO('coche',20)}<span>${done?'Tout décocher':'Tout valider'}</span></button></div>`:''}`;
 }
 /* Ligne d'état sous la carte fermée : avancée ou résumé une fois terminé. */
 function etatDe(L,x,n){
@@ -2560,21 +2605,17 @@ function friseSemaines(W){
     const f=socle.map(j=>wkDone(i,j)), d=f.filter(Boolean).length, plein=f.length&&d===f.length;
     return `<button class="sem${i===wk?' sel':''}${plein?' pleine':''}" onclick="wk=${i};OUVERT=null;prog()"
       aria-label="Semaine ${i+1}, ${d} séance${d>1?'s':''} sur ${f.length}"${i===wk?' aria-current="true"':''}>
-      <b>${i+1}</b><span class="sdots">${f.map(v=>`<i${v?' class="on"':''}></i>`).join('')}</span></button>`;}).join('');
-  const ph=[]; for(let i=0;i<8;i++){const r=baseRPE(i); if(ph.length&&ph[ph.length-1].r===r) ph[ph.length-1].n++; else ph.push({r,n:1,d:i});}
-  return `<div class="semaines">${sem}</div>
-    <div class="phases">${ph.map(p=>`<span class="ph ph${p.r}${wk>=p.d&&wk<p.d+p.n?' cur':''}" style="flex:${p.n}">RPE ${p.r}</span>`).join('')}</div>`;
+      <b>${i+1}</b><span class="sdots">${f.map(v=>`<i${v?' class="on"':''}></i>`).join('')}</span><i class="sph ph${baseRPE(i)}" title="RPE ${baseRPE(i)}"></i></button>`;}).join('');
+  return `<div class="semaines">${sem}</div>`;
 }
 function prog(){
   bar(false); const W=week(); if(day>=W.length)day=0; const s=W[day];
   const nS=W.filter(p=>!p.b&&!p.sportOnly).length, r=baseRPE(wk);
   app.innerHTML=`<div class="screen">
-    <div class="head">
-      <div class="eyebrow">${PSEUDO?esc(PSEUDO)+" · ":""}Cycle de 8 semaines · semaine ${wk+1}</div>
+    <div class="head compact">
+      <div class="eyebrow">Semaine ${wk+1} · effort visé RPE ${r}</div>
       <div class="headrow"><h2 class="display">Tes séances</h2></div>
-      ${friseSemaines(W)}
-      <div class="meta">${nS} séances socle · 1 bonus${sportsChoisis().length?` · ${sportsTotal()} séance${sportsTotal()>1?'s':''} de sport`:''}
-        <br>Effort visé : RPE ${r}, ${rirTxt(r)}</div></div>
+      ${friseSemaines(W)}</div>
     <div class="days">${W.map((p,i)=>`<button class="day${p.b?' bonus':''}${p.sportOnly?' sport':''}${i===day?' sel':''}${wkDone(wk,i)?' done':''}" onclick="day=${i};sect=1;prog()">${p.b?'Bonus':p.sportOnly?'Ton sport':'Séance '+(i+1)}</button>`).join('')}</div>
     ${s.sportOnly?sportCard():sessionView(s)}</div>`;
   setTabs('plan');
@@ -2593,10 +2634,17 @@ function espacementDe(W,i){
 function sessionView(s){
   const T=['Échauffement','Séance','Collation'];
   return `<div class="session">
-    <div class="title display">Séance ${day+1} · ${s.t}</div>
-    <div class="focus">${s.f}</div>
+    <div class="stitre"><div><div class="title display">${s.t}</div><div class="focus">${s.f}</div></div>
+      <button class="info-btn" onclick="reperes()" aria-label="Repères de placement">${ICO('info',21)}</button></div>
     <div class="sect">${T.map((t,i)=>`<button class="stab${i===sect?' sel':''}" onclick="sect=${i};prog()">${t}</button>`).join('')}</div>
     ${sect===0?vueEchauf(s):sect===2?vueCollation():vueExos(s)}</div>`;
+}
+/* Repères de placement de la séance affichée, dans une feuille. */
+function reperes(){
+  const s=week()[day], n=[['Quand la placer',espacementDe(week(),day)[1]]];
+  if(s.b) n.push(['Séance bonus',`Axée sur ${(AXES[A.axe??0]||'').toLowerCase()}. Elle ajoute du volume, mais aucune règle de progression n'en dépend. La sauter ne décale rien.`]);
+  if(s.sport===1&&sportsChoisis().length) n.push(['Tes sports',"Séance la plus lourde sur les jambes. Garde au moins un jour plein entre elle et ta pratique."]);
+  dire(n.map(([t,x])=>t+' : '+x).join('\n\n'),'Repères de placement');
 }
 function vueEchauf(s){
   const e=ECHAUF[typeSeance(s)]||ECHAUF.haut;
@@ -2626,14 +2674,7 @@ function vueCollation(){
     <p class="colw">Ces repères sont généraux et ne remplacent pas l'avis d'un professionnel. Si tu as un suivi médical ou un rapport compliqué à l'alimentation, parles-en à un médecin ou à un diététicien.</p></div>`;
 }
 function vueExos(s){
-  const notes=[];
-  notes.push(['Quand la placer',espacementDe(week(),day)[1]]);
-  if(s.b) notes.push(['Séance bonus',`Axée sur ${(AXES[A.axe??0]||'').toLowerCase()}. Elle ajoute du volume, mais aucune règle de progression n'en dépend. La sauter ne décale rien.`]);
-  if(s.sport===1&&sportsChoisis().length) notes.push(['Tes sports',"Séance la plus lourde sur les jambes. Garde au moins un jour plein entre elle et ta pratique."]);
-  return `<div>
-    <button class="depli${ouvSp?' ouvert':''}" onclick="ouvSp=!ouvSp;prog()">${ICO('info',19)}<span>${ouvSp?'Masquer les repères':'Repères de placement'}</span>${ICO('bas',18)}</button>
-    ${ouvSp?`<div class="deplic">${notes.map(([t,x])=>`<div class="depln"><b>${t}</b><p>${x}</p></div>`).join('')}</div>`:''}
-    ${s.x.map((e,i)=>exRow(e,i)).join('')}</div>`;
+  return `<div>${s.x.map((e,i)=>exRow(e,i)).join('')}</div>`;
 }
 function exRow(e,i){
   const [oid,sets,reps,rest,role]=e, id=curId(wk,day,i,oid), x=EX[id];
