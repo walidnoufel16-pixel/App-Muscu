@@ -737,6 +737,15 @@ h2.q{font-size:29px;line-height:1.05;margin-bottom:6px}
 .action .ico:last-child{color:var(--gris)}
 .action:active{background:var(--surface2)}
 .sline2{border:1px solid var(--ligne);border-radius:14px;box-shadow:0 1px 2px rgba(20,22,26,.05)}
+.sglisse{position:relative;margin-bottom:9px;border-radius:14px;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.sglisse .ssuppr{visibility:hidden}
+.sglisse.glisse,.sglisse.ouvert{background:var(--rouge)}
+.sglisse.glisse .ssuppr,.sglisse.ouvert .ssuppr{visibility:visible}
+.sglisse .sline2{position:relative;z-index:1;margin-bottom:0;touch-action:pan-y;transition:transform .22s ease}
+.sglisse.glisse .sline2{transition:none}
+.ssuppr{position:absolute;top:0;right:0;bottom:0;width:96px;border:none;background:var(--rouge);color:#fff;font:inherit;font-size:12.5px;font-weight:600;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:width .15s ease}
+.sglisse.loin .ssuppr{width:100%}
 .spart{border-left:1px solid var(--ligne);background:none;color:var(--lien);display:grid;place-items:center}
 .reset{border:none;background:rgba(239,241,236,.08);color:rgba(239,241,236,.85);border-radius:14px;display:flex;align-items:center;gap:12px;
   text-align:left;padding:15px 16px;min-height:54px}
@@ -2324,12 +2333,14 @@ function listeLibres(){
     <button class="retour" onclick="${FINI?'prog()':'choix()'}">← Retour</button>
     <div class="eyebrow">Séances libres</div>
     <h2 class="display" style="margin:8px 0 18px">Tes séances</h2>
-    ${SEANCES.length?SEANCES.map((s,i)=>`<div class="sline2">
-        <button class="sbody" onclick="jouer(${i})">
+    ${SEANCES.length?SEANCES.map((s,i)=>`<div class="sglisse" data-i="${i}">
+      <button class="ssuppr" onclick="supprimerSeance(${i})" aria-label="Supprimer ${esc(s.nom)}">${ICO('poubelle',20)}<span>Supprimer</span></button>
+      <div class="sline2" onpointerdown="balaye(event,${i})">
+        <button class="sbody" onclick="if(!BALAYE_BLOQ)jouer(${i})">
           <span class="sn">${esc(s.nom)}</span>
           <span class="sm">${s.ex.length} exercices · ${s.ex.map(e=>(EX[e.id]||{}).n).filter(Boolean).slice(0,2).join(', ')}${s.ex.length>2?'…':''}</span></button>
-        <button class="spart" onclick="partager(${i})" aria-label="Partager">${ICO(s.code?'coche':'partager',20)}</button>
-      </div>`).join('')
+        <button class="spart" onclick="if(!BALAYE_BLOQ)partager(${i})" aria-label="Partager">${ICO(s.code?'coche':'partager',20)}</button>
+      </div></div>`).join('')
       :`<p class="vide">Aucune séance enregistrée pour l'instant. Compose la première, elle restera disponible ensuite.</p>`}
     <button class="cta" onclick="assistant(true)">${ICO('cible',20)}Créer une séance pour moi</button>
     <div class="actions">
@@ -2763,6 +2774,11 @@ function regl(i,c,d){const e=LIBRE.ex[i];
 async function supprimer(){
   const i=LIBRE.idx;
   if(i==null){ listeLibres(); return; }
+  await supprimerSeance(i);
+}
+/* Suppression d'une séance libre, depuis le composeur ou la liste (balayage). */
+async function supprimerSeance(i){
+  if(!SEANCES[i]) return;
   if(!await demander("Les charges enregistrées sur cette séance seront effacées aussi, y compris dans l'historique des exercices concernés.",
     {titre:`Supprimer « ${SEANCES[i].nom} » ?`,ok:'Supprimer',danger:true})) return;
   Object.keys(LOG).filter(k=>k.startsWith('L|'+i+'|')).forEach(k=>delete LOG[k]);
@@ -2772,6 +2788,44 @@ async function supprimer(){
     });
   }
   SEANCES.splice(i,1); LIBRE=null; save(); listeLibres();
+}
+/* Balayage vers la gauche sur une séance de la liste : révèle « Supprimer ».
+   Au-delà de la moitié de la largeur, la suppression est demandée directement.
+   Le geste vertical reste libre pour faire défiler la page. */
+let BALAYE_BLOQ=false;
+const LARG_SUPPR=96;
+function fermerBalayes(sauf){
+  document.querySelectorAll('.sglisse.ouvert').forEach(g=>{ if(g!==sauf){ g.classList.remove('ouvert'); g.querySelector('.sline2').style.transform=''; }});
+}
+function balaye(ev,i){
+  const ligne=ev.currentTarget, g=ligne.parentNode, x0=ev.clientX, y0=ev.clientY;
+  const base=g.classList.contains('ouvert')?-LARG_SUPPR:0;
+  let mode=null, dx=0;
+  const bouge=e=>{
+    const ddx=e.clientX-x0, ddy=e.clientY-y0;
+    if(!mode){ if(Math.abs(ddx)<8&&Math.abs(ddy)<8) return;
+      mode=Math.abs(ddx)>Math.abs(ddy)?'h':'v';
+      if(mode==='h'){ fermerBalayes(g); g.classList.add('glisse'); } }
+    if(mode!=='h') return;
+    e.preventDefault();
+    dx=Math.min(0,base+ddx);
+    ligne.style.transform=`translateX(${dx}px)`;
+    g.classList.toggle('loin',-dx>ligne.offsetWidth*.5);
+  };
+  const fin=()=>{
+    document.removeEventListener('pointermove',bouge);document.removeEventListener('pointerup',fin);document.removeEventListener('pointercancel',fin);
+    g.classList.remove('glisse','loin');
+    if(mode!=='h'){
+      /* simple toucher sur une ligne ouverte : on la referme sans ouvrir la séance */
+      if(g.classList.contains('ouvert')){ BALAYE_BLOQ=true; setTimeout(()=>BALAYE_BLOQ=false,350); fermerBalayes(null); }
+      return;
+    }
+    BALAYE_BLOQ=true; setTimeout(()=>BALAYE_BLOQ=false,350);
+    if(-dx>ligne.offsetWidth*.5){ ligne.style.transform=''; g.classList.remove('ouvert'); supprimerSeance(i); }
+    else if(-dx>LARG_SUPPR/2){ g.classList.add('ouvert'); ligne.style.transform=`translateX(${-LARG_SUPPR}px)`; }
+    else { g.classList.remove('ouvert'); ligne.style.transform=''; }
+  };
+  document.addEventListener('pointermove',bouge,{passive:false});document.addEventListener('pointerup',fin);document.addEventListener('pointercancel',fin);
 }
 function enregistrer(){
   if(!LIBRE.nom.trim()) LIBRE.nom="Séance libre";
