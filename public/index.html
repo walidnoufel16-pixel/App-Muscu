@@ -415,6 +415,21 @@ h2.q{font-size:29px;line-height:1.05;margin-bottom:6px}
 .cfiche{margin-top:10px;background:none;border:none;padding:0;font:inherit;font-size:12.5px;color:var(--lien);
   text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .ctop .cn{flex:1;min-width:0}
+.compo .ex{align-items:center}
+.compo .poignee{margin:0 -8px 0 4px;width:30px;height:54px;display:grid;place-items:center;letter-spacing:0}
+.compo .poignee .ico{stroke-width:3}
+.compo.glisse{box-shadow:0 10px 26px rgba(20,22,26,.22);border-color:var(--lien);z-index:2}
+.rgl{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 14px 14px;border-top:1px solid var(--ligne)}
+.rglc{background:var(--fond);border-radius:12px;padding:9px 10px 10px;min-width:0}
+.rgll{display:block;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);margin-bottom:7px}
+.rglv{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.rglv b{font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--encre);white-space:nowrap}
+.rglv button{flex:none;width:34px;height:34px;border-radius:50%;border:1px solid var(--ligne);background:var(--surface);color:var(--encre);
+  font:inherit;font-size:18px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
+.rglv button:disabled{opacity:.3;cursor:default}
+.rglv button:active{transform:scale(.92)}
+.outils .retirer .ico{color:var(--rouge)}
+.petitbt{border:1px solid var(--ligne);background:var(--surface);color:var(--encre);border-radius:14px;padding:5px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
 .chx.lbl{color:var(--gris)}
 .assrac{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 6px}
 .asssel{font-size:13.5px;line-height:1.5;color:var(--encre);margin:4px 0 14px;font-weight:500}
@@ -2212,7 +2227,9 @@ const ICO=(()=>{const d={
   info:'<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8v.01"/>',
   bas:'<path d="M6 9.5l6 6 6-6"/>',
   refaire:'<path d="M19 12a7 7 0 1 1-2.1-5M19 4.5V9h-4.5"/>',
-  cible:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/>'};
+  cible:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/>',
+  poubelle:'<path d="M4.5 7h15M10 7V4.8h4V7M6.5 7l.9 12.2a1.5 1.5 0 0 0 1.5 1.3h6.2a1.5 1.5 0 0 0 1.5-1.3L17.5 7M10 11v6M14 11v6"/>',
+  poignee:'<circle cx="9" cy="6" r=".9"/><circle cx="15" cy="6" r=".9"/><circle cx="9" cy="12" r=".9"/><circle cx="15" cy="12" r=".9"/><circle cx="9" cy="18" r=".9"/><circle cx="15" cy="18" r=".9"/>'};
   return (n,t=20)=>`<svg class="ico" width="${t}" height="${t}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d[n]}</svg>`;})();
 const ONGLETS=[['compte','Compte'],['explorer','Explorer'],['seances','Mes séances'],['plan','Mon plan']];
 const tabHTML=a=>ONGLETS.map(([k,n])=>
@@ -2326,7 +2343,7 @@ function listeLibres(){
 function composer(id){
   LIBRE = id!=null ? JSON.parse(JSON.stringify(SEANCES[id])) : {nom:"Séance libre",ex:[],idx:null};
   if(id!=null) LIBRE.idx=id;
-  filtre=''; REMPL=null; ecranComposeur();
+  filtre=''; REMPL=null; OUVC=null; ecranComposeur();
 }
 
 /* ================= assistant : séance construite à partir des muscles choisis =================
@@ -2456,7 +2473,7 @@ function creerSeance(){
   const nom=ASS.m.length>=5?'Full body':ASS.m.map(k=>MUSC.find(g=>g.k===k).n).join(' · ');
   LIBRE={nom,ex,idx:null,obj:ASS.obj,
     gen:{m:ASS.m.slice(),d:ASS.d,obj:ASS.obj}};
-  filtre=''; REMPL=null; ecranComposeur();
+  filtre=''; REMPL=null; OUVC=null; ecranComposeur();
 }
 function autreProposition(){
   const g=LIBRE.gen; if(!g) return;
@@ -2465,7 +2482,37 @@ function autreProposition(){
   ecranComposeur();
 }
 /* ---- composeur : remplacer, repos, glisser-déposer ---- */
-let REMPL=null;
+let REMPL=null, OUVC=null;
+/* Carte du composeur : même présentation que la séance (photo, muscles,
+   prescription), repliée ; un toucher l'ouvre sur les réglages et les outils. */
+function carteCompo(e,i){
+  const x=EX[e.id], n=LIBRE.ex.length, ouvert=OUVC===i, mus=musclesDe([e.id]);
+  const prescr=x.ch==='temps'?`${e.s} × ${e.r}s`:x.ch==='dist'?`${e.s} × ${e.r}m`:`${e.s} × ${e.r}`;
+  const pas=x.ch==='temps'?5:x.ch==='dist'?50:1;
+  const cel=(t,v,moins,plus,dis1,dis2)=>`<div class="rglc"><span class="rgll">${t}</span>
+    <div class="rglv"><button onclick="${moins}" ${dis1?'disabled':''} aria-label="${t} moins">−</button><b>${v}</b>
+    <button onclick="${plus}" ${dis2?'disabled':''} aria-label="${t} plus">+</button></div></div>`;
+  return `<div class="exwrap libre compo${ouvert?' ouvert':''}">
+    <div class="ex"><button class="poignee" onpointerdown="saisirCarte(event,${i})" aria-label="Glisser pour déplacer">${ICO('poignee',18)}</button>
+      <button class="main" onclick="OUVC=OUVC===${i}?null:${i};ecranComposeur()" aria-expanded="${ouvert}">
+        <span class="vig"><img src="${GH}${x.img}_0.jpg" alt="" loading="lazy" onerror="this.parentNode.classList.add('ko')"><span class="idx">${i+1}</span></span>
+        <span class="txt"><span class="n">${x.n}</span>
+          ${mus.length?`<span class="cible">${ICO('cible',14)}${mus.join(' · ')}</span>`:''}
+          <span class="sous">${prescr} · repos ${esc(e.p||'90 s')}</span></span>
+        <span class="chev">${ICO('bas',18)}</span></button></div>
+    ${ouvert?`<div class="rgl">
+        ${cel('Séries',e.s,`regl(${i},'s',-1)`,`regl(${i},'s',1)`,e.s<=1,e.s>=6)}
+        ${cel(x.ch==='temps'?'Secondes':x.ch==='dist'?'Mètres':'Répétitions',e.r,`regl(${i},'r',-${pas})`,`regl(${i},'r',${pas})`,e.r<=pas,false)}
+        ${cel('Repos',esc(e.p||'90 s'),`reglRepos(${i},-1)`,`reglRepos(${i},1)`,false,false)}
+        ${cel('Position',`${i+1} / ${n}`,`deplacer(${i},-1)`,`deplacer(${i},1)`,i===0,i===n-1)}
+      </div>
+      <div class="outils">
+        <button onclick="ficheLibre('${e.id}')">${ICO('info',20)}<span>Fiche</span></button>
+        <button onclick="REMPL=${i};ecranComposeur()">${ICO('swap',20)}<span>Remplacer</span></button>
+        <button class="retirer" onclick="retirer(${i})">${ICO('poubelle',20)}<span>Retirer</span></button>
+      </div>`:''}
+  </div>`;
+}
 /* Durée approximative : 40 s d'effort par série (ou la durée demandée), le repos
    entre les séries, une minute de mise en place par exercice. */
 function dureeEstimee(ex){
@@ -2503,10 +2550,10 @@ function remplacer(o){
    le geste, puis on redessine une fois relâché (numéros, flèches). */
 function saisirCarte(ev,i){
   const liste=document.getElementById('cliste'); if(!liste) return;
-  const h=ev.currentTarget, carte=h.closest('.cline'); ev.preventDefault();
+  const h=ev.currentTarget, carte=h.closest('.compo'); ev.preventDefault();
   carte.classList.add('glisse'); let pos=i;
   const bouge=e=>{
-    const cartes=[...liste.querySelectorAll('.cline')];
+    const cartes=[...liste.querySelectorAll('.compo')];
     const y=e.clientY;
     for(let j=0;j<cartes.length;j++){ if(cartes[j]===carte) continue;
       const r=cartes[j].getBoundingClientRect(), mid=r.top+r.height/2;
@@ -2665,23 +2712,7 @@ function ecranComposeur(){
     ${LIBRE.gen?`<div class="propo"><p>Proposition de départ : réordonne, remplace ou ajoute ce que tu veux.</p>
       <button class="action" onclick="autreProposition()">${ICO('refaire',20)}<span>Autre proposition</span>${ICO('suite',18)}</button></div>`:''}
     <div class="chx lbl" style="margin-top:6px">Ta séance · ${LIBRE.ex.length} exercice${LIBRE.ex.length>1?'s':''}${LIBRE.ex.length?` · environ ${dureeEstimee(LIBRE.ex)} min`:''}</div>
-    <div id="cliste">${LIBRE.ex.length?LIBRE.ex.map((e,i)=>{
-      const x=EX[e.id];
-      return `<div class="cline">
-        <div class="ctop"><button class="poignee" onpointerdown="saisirCarte(event,${i})" aria-label="Glisser pour déplacer">⋮⋮</button>
-          <span class="cn">${i+1}. ${x.n}</span>
-          <span class="cbt">
-            <button onclick="deplacer(${i},-1)" ${i===0?'disabled':''} aria-label="Monter">↑</button>
-            <button onclick="deplacer(${i},1)" ${i===LIBRE.ex.length-1?'disabled':''} aria-label="Descendre">↓</button>
-            <button class="sup" onclick="retirer(${i})" aria-label="Retirer">✕</button></span></div>
-        <div class="creg">
-          <span>Séries<b>${e.s}</b><i onclick="regl(${i},'s',-1)">−</i><i onclick="regl(${i},'s',1)">+</i></span>
-          <span>${x.ch==='temps'?'Sec.':x.ch==='dist'?'Mètres':'Réps'}<b>${e.r}</b><i onclick="regl(${i},'r',${x.ch==='temps'?-5:x.ch==='dist'?-50:-1})">−</i><i onclick="regl(${i},'r',${x.ch==='temps'?5:x.ch==='dist'?50:1})">+</i></span>
-        </div>
-        <div class="creg"><span>Repos<b>${esc(e.p||'90 s')}</b><i onclick="reglRepos(${i},-1)">−</i><i onclick="reglRepos(${i},1)">+</i></span></div>
-        <div class="cliens"><button class="cfiche" onclick="ficheLibre('${e.id}')">Voir la fiche · ${x.m}</button>
-          <button class="cfiche" onclick="REMPL=${i};ecranComposeur()">${ICO('swap',15)}Remplacer</button></div>
-      </div>`}).join('')
+    <div id="cliste">${LIBRE.ex.length?LIBRE.ex.map((e,i)=>carteCompo(e,i)).join('')
       :`<p class="vide">Touche un exercice ci-dessous pour l'ajouter.</p>`}</div>
     <div class="chx lbl" style="margin-top:24px">Bibliothèque</div>
     ${filtreMatHTML()}
@@ -2723,9 +2754,9 @@ function ajouter(o){
   LIBRE.ex.push({id:o,s:3,r:x.ch==='temps'?45:x.ch==='dist'?250:10,p:x.pat==='eg'||x.pat==='fh'?'2 min 30':'90 s'});
   ecranComposeur();
 }
-function retirer(i){LIBRE.ex.splice(i,1);ecranComposeur()}
+function retirer(i){LIBRE.ex.splice(i,1);OUVC=null;ecranComposeur()}
 function deplacer(i,d){const j=i+d; if(j<0||j>=LIBRE.ex.length)return;
-  const t=LIBRE.ex[i];LIBRE.ex[i]=LIBRE.ex[j];LIBRE.ex[j]=t;ecranComposeur()}
+  const t=LIBRE.ex[i];LIBRE.ex[i]=LIBRE.ex[j];LIBRE.ex[j]=t;if(OUVC===i)OUVC=j;ecranComposeur()}
 function regl(i,c,d){const e=LIBRE.ex[i];
   const min=c==='s'?1:1, max=c==='s'?6:600;
   e[c]=Math.min(max,Math.max(min,e[c]+d)); ecranComposeur()}
@@ -3285,7 +3316,7 @@ function illuCollation(n){
 function vueCollation(s){
   const o=objCollation(s), c=COLLATION[o]||COLLATION[0];
   const choix=s?`<div class="colobj">Objectif : <b>${OBJS[o]}</b>
-      <button class="cfiche" onclick="COL_CHOIX=!COL_CHOIX;vueLibre()">${COL_CHOIX?'fermer':'changer'}</button></div>
+      <button class="petitbt" onclick="COL_CHOIX=!COL_CHOIX;vueLibre()">${COL_CHOIX?'Fermer':'Changer'}</button></div>
     ${COL_CHOIX?`<div class="pastilles">${OBJS.map((t,i)=>`<button class="pas${o===i?' sel':''}" onclick="choisirColObj(${i})">${t}</button>`).join('')}</div>`:''}`:'';
   return `${choix}<div class="col">
     <div class="col-tete"><span class="col-ico">🍽️</span><div><div class="colt">${c.t}</div><p class="coli">${c.i}</p></div></div>
