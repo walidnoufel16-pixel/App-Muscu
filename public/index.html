@@ -337,6 +337,8 @@ h2.q{font-size:29px;line-height:1.05;margin-bottom:6px}
 .altgros b{display:block;font-size:15.5px;font-weight:600}
 .altgros small{display:block;font-size:13px;color:var(--gris);margin-top:3px}
 .altgros .fl{font-size:18px;color:var(--lien)}
+#ass .sub2{font-size:15px;line-height:1.55;color:var(--gris);margin:10px 0 20px}
+#ass .chx{display:block;margin-top:18px;padding-bottom:8px}
 #alts .sub2{font-size:15px;line-height:1.55;color:var(--gris);margin:14px 0 24px}
 #alts h2{font-size:36px;margin-top:10px}
 .mode{display:block;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--ligne);border-radius:10px;
@@ -412,6 +414,23 @@ h2.q{font-size:29px;line-height:1.05;margin-bottom:6px}
   border-radius:10px;cursor:pointer;font-size:15px;color:var(--encre);flex:none}
 .cfiche{margin-top:10px;background:none;border:none;padding:0;font:inherit;font-size:12.5px;color:var(--lien);
   text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.ctop .cn{flex:1;min-width:0}
+.chx.lbl{color:var(--gris)}
+.creg span{min-width:0;gap:4px}
+.creg i{width:30px;height:30px}
+.poignee{flex:none;width:28px;height:38px;margin:-4px 0 0 -6px;border:none;background:none;color:var(--gris);
+  font-size:16px;letter-spacing:-3px;cursor:grab;touch-action:none;padding:0}
+.cline.glisse{border-color:var(--lien);box-shadow:0 8px 22px rgba(20,22,26,.18);position:relative;z-index:2}
+.creg+.creg{margin-top:7px}
+.cliens{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.cliens .cfiche{display:inline-flex;align-items:center;gap:5px}
+.propo{margin:4px 0 14px}
+.propo p{font-size:13px;color:var(--gris);margin:0 0 8px;line-height:1.45}
+.propo .action{border:1px solid var(--ligne);border-radius:14px;background:var(--surface)}
+.pas[disabled]{opacity:.35;cursor:default}
+.colobj{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px;color:var(--gris);margin:4px 0 12px}
+.colobj b{color:var(--encre)}
+.colobj .cfiche{margin:0}
 .matfiltre{margin:6px 0 12px}
 .mfl{display:block;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris);margin-bottom:6px}
 .mfb{display:flex;gap:5px;flex-wrap:wrap}
@@ -2280,7 +2299,7 @@ async function demanderCodeSeance(){
   if(c) importer(c);
 }
 function listeLibres(){
-  bar(false);
+  bar(false); ASS_ON=false;
   app.innerHTML=`<div class="screen"><div class="pad">
     <button class="retour" onclick="${FINI?'prog()':'choix()'}">← Retour</button>
     <div class="eyebrow">Séances libres</div>
@@ -2292,8 +2311,9 @@ function listeLibres(){
         <button class="spart" onclick="partager(${i})" aria-label="Partager">${ICO(s.code?'coche':'partager',20)}</button>
       </div>`).join('')
       :`<p class="vide">Aucune séance enregistrée pour l'instant. Compose la première, elle restera disponible ensuite.</p>`}
-    <button class="cta" onclick="composer()">${ICO('plus',20)}Composer une séance</button>
+    <button class="cta" onclick="assistant(true)">${ICO('cible',20)}Créer une séance pour moi</button>
     <div class="actions">
+      <button class="action" onclick="composer()">${ICO('plus',20)}<span>Composer exercice par exercice</span>${ICO('suite',18)}</button>
       <button class="action" onclick="explorer()">${ICO('explorer',20)}<span>Explorer les exercices par le corps</span>${ICO('suite',18)}</button>
       <button class="action" onclick="demanderCodeSeance()">${ICO('importer',20)}<span>Importer une séance avec un code</span>${ICO('suite',18)}</button>
     </div>
@@ -2303,7 +2323,164 @@ function listeLibres(){
 function composer(id){
   LIBRE = id!=null ? JSON.parse(JSON.stringify(SEANCES[id])) : {nom:"Séance libre",ex:[],idx:null};
   if(id!=null) LIBRE.idx=id;
-  filtre=''; ecranComposeur();
+  filtre=''; REMPL=null; ecranComposeur();
+}
+
+/* ================= assistant : séance construite à partir des muscles choisis =================
+   Tout se calcule ici, sans IA : instantané, gratuit, hors ligne. La séance
+   obtenue n'est qu'une base, ouverte ensuite dans le composeur pour être retouchée. */
+const MUSC=[
+  {k:'pec',n:'Pectoraux',pats:['ph'],g:1},{k:'dos',n:'Dos',pats:['tv','th'],g:1},
+  {k:'epa',n:'Épaules',pats:['pv','ep','re'],g:.8},{k:'bic',n:'Biceps',pats:['fc'],g:.5},
+  {k:'tri',n:'Triceps',pats:['ec'],g:.5},{k:'qua',n:'Quadriceps',pats:['eg'],g:1},
+  {k:'isc',n:'Fessiers et ischios',pats:['fh'],g:1},{k:'mol',n:'Mollets',pats:['mol'],g:.4},
+  {k:'abd',n:'Abdos',pats:['ae','ft'],g:.5},{k:'tra',n:'Trapèzes',pats:['tra'],g:.4},
+  {k:'avb',n:'Avant-bras',pats:['avb'],g:.4}];
+const OBJS=['Prendre du muscle','Gagner en force',"M'affiner",'Rester en forme'];
+const DUREES=[[30,10],[45,15],[60,20]];   /* minutes → séries visées */
+let ASS=null, ASS_ON=false;
+function assistant(neuf){
+  if(neuf||!ASS) ASS={m:[],d:45,obj:A.objectif??null};
+  ASS_ON=true; explore=false; bar(false);
+  const peut=ASS.m.length&&ASS.obj!=null&&selActif().length;
+  app.innerHTML=`<div class="screen" id="ass"><div class="pad">
+    <button class="retour" onclick="ASS_ON=false;listeLibres()">← Mes séances</button>
+    <div class="eyebrow">Séance sur mesure</div>
+    <h2 class="display" style="margin:8px 0 6px">Créer une séance<br>pour moi</h2>
+    <p class="sub2">Choisis ce que tu veux travailler : Repère te propose une séance, que tu modifies ensuite comme tu veux.</p>
+    <div class="chx lbl">Muscles · ${ASS.m.length}/4</div>
+    <div class="pastilles">${MUSC.map(g=>{const on=ASS.m.includes(g.k), plein=!on&&ASS.m.length>=4;
+      return `<button class="pas${on?' sel':''}" ${plein?'disabled':''} aria-pressed="${on}" onclick="assMuscle('${g.k}')">${g.n}</button>`}).join('')}</div>
+    ${filtreMatHTML()}
+    <div class="chx lbl">Durée</div>
+    <div class="bascule">${DUREES.map(([d])=>`<button class="${ASS.d===d?'sel':''}" onclick="ASS.d=${d};assistant()">${d} min</button>`).join('')}</div>
+    <div class="chx lbl">Objectif de la séance</div>
+    <div class="pastilles">${OBJS.map((o,i)=>`<button class="pas${ASS.obj===i?' sel':''}" aria-pressed="${ASS.obj===i}" onclick="ASS.obj=${i};assistant()">${o}</button>`).join('')}</div>
+    ${ASS.obj==null?`<p class="accn">Choisis un objectif : il règle les répétitions, les repos et la collation.</p>`:''}
+  </div></div>`;
+  setFoot(`<button class="btn" ${peut?'':'disabled'} onclick="creerSeance()">Créer ma séance</button>`);
+}
+function assMuscle(k){const i=ASS.m.indexOf(k); i<0?(ASS.m.length<4&&ASS.m.push(k)):ASS.m.splice(i,1); assistant();}
+const hasard=l=>l[Math.floor(Math.random()*l.length)];
+/* Prescription selon l'objectif : polyarticulaire plus lourd, isolation plus légère. */
+function prescription(id,poly,obj){
+  const x=EX[id], abdo=['ae','ft'].includes(x.pat);
+  let s=obj===1?4:3, r=[10,poly?6:8,12,10][obj]??10;
+  let p=abdo?'60 s':obj===1?(poly?'3 min':'2 min'):obj===0?(poly?'2 min':'90 s'):(poly?'90 s':'60 s');
+  if(x.ch==='temps') r=obj===1?30:45;
+  else if(x.ch==='aucune') r=Math.max(r,12);
+  if(obj===1&&!poly) s=3;
+  return {id,s,r,p};
+}
+function construireSeance(muscles,duree,obj){
+  const series=(DUREES.find(d=>d[0]===duree)||DUREES[1])[1];
+  const parEx=obj===1?4:3, n=Math.max(muscles.length,Math.round(series/parEx));
+  const G=muscles.map(k=>MUSC.find(g=>g.k===k)).filter(Boolean);
+  /* Répartition au plus fort reste, au moins un exercice par muscle. */
+  const tot=G.reduce((a,g)=>a+g.g,0);
+  const parts=G.map(g=>({g,q:n*g.g/tot}));
+  parts.forEach(p=>p.n=Math.max(1,Math.floor(p.q)));
+  let reste=n-parts.reduce((a,p)=>a+p.n,0);
+  parts.slice().sort((a,b)=>(b.q-Math.floor(b.q))-(a.q-Math.floor(a.q))).forEach(p=>{if(reste>0){p.n++;reste--}});
+  const pris=new Set(), res=[];
+  const libres=pat=>Object.keys(EX).filter(o=>EX[o].pat===pat&&exoFiltre(o)&&!pris.has(o)&&EX[o].ch!=='dist');
+  /* Parmi les candidats, on préfère ceux qui se chargent quand il y en a. */
+  const choisir=l=>{const kg=l.filter(o=>EX[o].ch==='kg'), c=l.filter(o=>EX[o].ch!=='aucune');
+    return hasard(kg.length?kg:c.length?c:l);};
+  parts.forEach(({g,n:k})=>{
+    for(let j=0;j<k;j++){
+      /* Premier exercice : polyarticulaire du schéma principal ; ensuite on
+         alterne les schémas du groupe, en isolation quand elle existe. */
+      const pat=g.pats[j%g.pats.length], l=libres(pat);
+      if(!l.length) continue;
+      /* Le pull-over a un second schéma mais reste un mouvement d'isolation. */
+      const estPoly=o=>!!EX[o].pat2&&o!=='pull';
+      const poly=l.filter(estPoly), iso=l.filter(o=>!estPoly(o));
+      const o=j===0?choisir(poly.length?poly:l):choisir(iso.length?iso:l);
+      pris.add(o); res.push({o,poly:estPoly(o)&&j===0,big:g.g>=.8,abdo:g.k==='abd'});
+    }
+  });
+  const rang=e=>e.abdo?3:e.poly&&e.big?0:e.poly?1:2;
+  res.sort((a,b)=>rang(a)-rang(b));
+  return res.map(e=>prescription(e.o,e.poly,obj));
+}
+function creerSeance(){
+  const ex=construireSeance(ASS.m,ASS.d,ASS.obj);
+  if(!ex.length){ dire("Aucun exercice ne correspond à ces muscles avec le matériel coché. Ajoute du matériel ou choisis d'autres muscles.","Pas d'exercice disponible"); return; }
+  ASS_ON=false;
+  LIBRE={nom:ASS.m.map(k=>MUSC.find(g=>g.k===k).n).join(' · '),ex,idx:null,obj:ASS.obj,
+    gen:{m:ASS.m.slice(),d:ASS.d,obj:ASS.obj}};
+  filtre=''; REMPL=null; ecranComposeur();
+}
+function autreProposition(){
+  const g=LIBRE.gen; if(!g) return;
+  const ex=construireSeance(g.m,g.d,g.obj);
+  if(ex.length) LIBRE.ex=ex;
+  ecranComposeur();
+}
+/* ---- composeur : remplacer, repos, glisser-déposer ---- */
+let REMPL=null;
+const PAS_REPOS=['30 s','45 s','60 s','90 s','2 min','2 min 30','3 min','4 min'];
+function reglRepos(i,d){const e=LIBRE.ex[i]; let k=PAS_REPOS.indexOf(e.p); if(k<0)k=3;
+  e.p=PAS_REPOS[Math.min(PAS_REPOS.length-1,Math.max(0,k+d))]; ecranComposeur();}
+function remplacerHTML(){
+  if(REMPL==null||!LIBRE.ex[REMPL]) return '';
+  const cur=LIBRE.ex[REMPL].id, e=EX[cur];
+  const l=Object.keys(EX).filter(o=>o!==cur&&EX[o].pat===e.pat&&exoFiltre(o)&&!LIBRE.ex.some(z=>z.id===o));
+  return `<div class="voile" onclick="REMPL=null;ecranComposeur()"></div>
+  <div class="pop" role="dialog" aria-modal="true" aria-label="Remplacer ${esc(e.n)}">
+    <button class="popx" onclick="REMPL=null;ecranComposeur()" aria-label="Fermer">✕</button>
+    <div class="popc">
+      <div class="eyebrow">${nomPat(e.pat)} · compatible avec ton matériel</div>
+      <h2 class="display" style="font-size:24px;margin:8px 0 14px">Remplacer<br>${e.n}</h2>
+      ${l.length?l.map(o=>`<div class="aline2"><button class="ainfo" onclick="remplacer('${o}')">
+        <img class="avig" src="${GH}${EX[o].img}_1.jpg" alt="" loading="lazy" onerror="vigFail(this)">
+        <span class="atx"><span class="an2">${EX[o].n}</span><span class="am2">${EX[o].m}</span></span></button>
+        <button class="aadd" onclick="remplacer('${o}')" aria-label="Choisir">${ICO('swap',18)}</button></div>`).join('')
+        :`<p class="vide">Aucun autre exercice de ce type avec le matériel coché.</p>`}
+    </div></div>`;
+}
+function remplacer(o){
+  const e=LIBRE.ex[REMPL], x=EX[o], old=EX[e.id];
+  /* L'unité change (temps, distance) : on repart d'une valeur par défaut. */
+  if(x.ch!==old.ch) e.r=x.ch==='temps'?45:x.ch==='dist'?250:10;
+  e.id=o; REMPL=null; ecranComposeur();
+}
+/* Glisser-déposer à la poignée : on échange les cartes dans le DOM pendant
+   le geste, puis on redessine une fois relâché (numéros, flèches). */
+function saisirCarte(ev,i){
+  const liste=document.getElementById('cliste'); if(!liste) return;
+  const h=ev.currentTarget, carte=h.closest('.cline'); ev.preventDefault();
+  carte.classList.add('glisse'); let pos=i;
+  const bouge=e=>{
+    const cartes=[...liste.querySelectorAll('.cline')];
+    const y=e.clientY;
+    for(let j=0;j<cartes.length;j++){ if(cartes[j]===carte) continue;
+      const r=cartes[j].getBoundingClientRect(), mid=r.top+r.height/2;
+      if(j<pos&&y<mid){ liste.insertBefore(carte,cartes[j]); const t=LIBRE.ex.splice(pos,1)[0]; LIBRE.ex.splice(j,0,t); pos=j; break; }
+      if(j>pos&&y>mid){ liste.insertBefore(carte,cartes[j].nextSibling); const t=LIBRE.ex.splice(pos,1)[0]; LIBRE.ex.splice(j,0,t); pos=j; break; }
+    }
+  };
+  /* Écoute sur le document : déplacer la carte dans le DOM ferait perdre la capture. */
+  const fin=()=>{document.removeEventListener('pointermove',bouge);document.removeEventListener('pointerup',fin);
+    document.removeEventListener('pointercancel',fin);ecranComposeur();};
+  document.addEventListener('pointermove',bouge);document.addEventListener('pointerup',fin);document.addEventListener('pointercancel',fin);
+}
+/* Objectif retenu pour la collation : choix fait dans l'onglet Collation,
+   sinon « entretien » pour une séance légère, sinon l'objectif de la séance,
+   puis celui du questionnaire, puis « muscle » pour une séance chargée. */
+function objCollation(s){
+  if(!s) return A.objectif??0;
+  if(s.colObj!=null) return s.colObj;
+  const ex=s.ex||[], series=ex.reduce((a,e)=>a+(+e.s||0),0);
+  const leger=series<10||ex.every(e=>['ae','ft','lo','mo','ca'].includes((EX[e.id]||{}).pat));
+  if(leger) return 3;
+  return s.obj??A.objectif??0;
+}
+let COL_CHOIX=false;
+function choisirColObj(i){
+  LIBRE.colObj=i; if(LIBRE.idx!=null&&SEANCES[LIBRE.idx]) SEANCES[LIBRE.idx].colObj=i;
+  COL_CHOIX=false; vueLibre();   /* vueLibre() enregistre */
 }
 /* Schéma anatomique — tracés react-native-body-highlighter (Hicham Elabbassi), licence MIT */
 function exosDe(p){
@@ -2380,9 +2557,9 @@ function ligneCatalogue(o,pris){
       :`<button class="aadd" ${pris?'disabled':''} onclick="ajouter('${o}')" aria-label="Ajouter">${pris?'✓':'＋'}</button>`}
   </div>`;
 }
-function redessine(){ explore?explorer():ecranComposeur(); }
+function redessine(){ ASS_ON?assistant():explore?explorer():ecranComposeur(); }
 function explorer(){
-  explore=true; bar(false);
+  explore=true; ASS_ON=false; bar(false);
   app.innerHTML=`<div class="screen"><div class="pad">
     <button class="retour" onclick="explore=false;zone=null;${FINI?'prog()':'listeLibres()'}">← Retour</button>
     <div class="eyebrow">Bibliothèque</div>
@@ -2416,7 +2593,7 @@ function popupHTML(){
   </div>`;
 }
 function ecranComposeur(){
-  bar(false);
+  bar(false); ASS_ON=false;
   const dispo=Object.keys(EX).filter(exoFiltre);
   const f=sansAccent(filtre.trim());
   const colle=o=>{ if(!f) return true;
@@ -2430,23 +2607,30 @@ function ecranComposeur(){
     <label class="nomlab">Nom de la séance</label>
     <input class="nomin" value="${LIBRE.nom.replace(/"/g,'&quot;')}" placeholder="Haut du corps, jambes, jour de bras…"
       oninput="LIBRE.nom=this.value">
-    <div class="chx" style="margin-top:6px">Ta séance · ${LIBRE.ex.length} exercice${LIBRE.ex.length>1?'s':''}</div>
-    ${LIBRE.ex.length?LIBRE.ex.map((e,i)=>{
-      const x=EX[e.id], u={kg:'kg',lest:'lest',aucune:'',temps:'s',dist:'m'}[x.ch];
+    <div class="chx lbl" style="margin-top:14px">Objectif · facultatif</div>
+    <div class="pastilles">${OBJS.map((o,i)=>`<button class="pas${LIBRE.obj===i?' sel':''}" aria-pressed="${LIBRE.obj===i}" onclick="LIBRE.obj=LIBRE.obj===${i}?null:${i};ecranComposeur()">${o}</button>`).join('')}</div>
+    ${LIBRE.gen?`<div class="propo"><p>Proposition de départ : réordonne, remplace ou ajoute ce que tu veux.</p>
+      <button class="action" onclick="autreProposition()">${ICO('refaire',20)}<span>Autre proposition</span>${ICO('suite',18)}</button></div>`:''}
+    <div class="chx lbl" style="margin-top:6px">Ta séance · ${LIBRE.ex.length} exercice${LIBRE.ex.length>1?'s':''}</div>
+    <div id="cliste">${LIBRE.ex.length?LIBRE.ex.map((e,i)=>{
+      const x=EX[e.id];
       return `<div class="cline">
-        <div class="ctop"><span class="cn">${i+1}. ${x.n}</span>
+        <div class="ctop"><button class="poignee" onpointerdown="saisirCarte(event,${i})" aria-label="Glisser pour déplacer">⋮⋮</button>
+          <span class="cn">${i+1}. ${x.n}</span>
           <span class="cbt">
             <button onclick="deplacer(${i},-1)" ${i===0?'disabled':''} aria-label="Monter">↑</button>
             <button onclick="deplacer(${i},1)" ${i===LIBRE.ex.length-1?'disabled':''} aria-label="Descendre">↓</button>
             <button class="sup" onclick="retirer(${i})" aria-label="Retirer">✕</button></span></div>
         <div class="creg">
           <span>Séries<b>${e.s}</b><i onclick="regl(${i},'s',-1)">−</i><i onclick="regl(${i},'s',1)">+</i></span>
-          <span>${x.ch==='temps'?'Secondes':x.ch==='dist'?'Mètres':'Répétitions'}<b>${e.r}</b><i onclick="regl(${i},'r',${x.ch==='temps'?-5:x.ch==='dist'?-50:-1})">−</i><i onclick="regl(${i},'r',${x.ch==='temps'?5:x.ch==='dist'?50:1})">+</i></span>
+          <span>${x.ch==='temps'?'Sec.':x.ch==='dist'?'Mètres':'Réps'}<b>${e.r}</b><i onclick="regl(${i},'r',${x.ch==='temps'?-5:x.ch==='dist'?-50:-1})">−</i><i onclick="regl(${i},'r',${x.ch==='temps'?5:x.ch==='dist'?50:1})">+</i></span>
         </div>
-        <button class="cfiche" onclick="ficheLibre('${e.id}')">Voir la fiche · ${x.m}</button>
+        <div class="creg"><span>Repos<b>${esc(e.p||'90 s')}</b><i onclick="reglRepos(${i},-1)">−</i><i onclick="reglRepos(${i},1)">+</i></span></div>
+        <div class="cliens"><button class="cfiche" onclick="ficheLibre('${e.id}')">Voir la fiche · ${x.m}</button>
+          <button class="cfiche" onclick="REMPL=${i};ecranComposeur()">${ICO('swap',15)}Remplacer</button></div>
       </div>`}).join('')
-      :`<p class="vide">Touche un exercice ci-dessous pour l'ajouter.</p>`}
-    <div class="chx" style="margin-top:24px">Bibliothèque</div>
+      :`<p class="vide">Touche un exercice ci-dessous pour l'ajouter.</p>`}</div>
+    <div class="chx lbl" style="margin-top:24px">Bibliothèque</div>
     ${filtreMatHTML()}
     <div class="bascule">
       <button class="${vueBib==='schema'?'sel':''}" onclick="vueBib='schema';ecranComposeur()">Schéma</button>
@@ -2456,7 +2640,7 @@ function ecranComposeur(){
     <input class="rech" id="rech" placeholder="Rechercher un exercice…" value="${filtre.replace(/"/g,'&quot;')}"
       oninput="chercher(this.value)" onkeydown="if(event.key==='Enter')this.blur()">
     <div id="cat">${catalogueHTML(parGroupe)}</div>`}
-  </div>${popupHTML()}</div>`;
+  </div>${popupHTML()}${remplacerHTML()}</div>`;
   setFoot(`${LIBRE.idx!=null?`<button class="btn ghost" onclick="supprimer()" aria-label="Supprimer">🗑</button>`:''}
     ${LIBRE.ex.length?`<button class="btn" onclick="enregistrer()">Enregistrer la séance</button>`:''}`);
 }
@@ -2508,6 +2692,7 @@ async function supprimer(){
 function enregistrer(){
   if(!LIBRE.nom.trim()) LIBRE.nom="Séance libre";
   const s={nom:LIBRE.nom.trim(),ex:LIBRE.ex};
+  ['obj','colObj','gen'].forEach(k=>{if(LIBRE[k]!=null) s[k]=LIBRE[k]});
   if(LIBRE.idx!=null) SEANCES[LIBRE.idx]=s; else SEANCES.push(s);
   save(); listeLibres();
 }
@@ -2515,7 +2700,7 @@ function ficheLibre(id){const g=LIBRE; fiche(id,-1,0); FRETOUR=()=>{LIBRE=g;ecra
 let FRETOUR=null;
 
 function jouer(i){
-  LIBRE=SEANCES[i]; LIBRE.idx=i; sect=1; vueLibre();
+  LIBRE=SEANCES[i]; LIBRE.idx=i; sect=1; COL_CHOIX=false; vueLibre();
 }
 const kl=(i,j)=>`L|${LIBRE.idx}|${j}`;
 function vueLibre(){
@@ -2528,7 +2713,7 @@ function vueLibre(){
       <div class="meta">${LIBRE.ex.length} exercices · effort visé RPE 8, ${rirTxt(8)}</div></div>
     <div class="session">
       <div class="sect">${T.map((t,k)=>`<button class="stab${k===sect?' sel':''}" onclick="sect=${k};vueLibre()">${t}</button>`).join('')}</div>
-      ${sect===0?vueEchauf(faux):sect===2?vueCollation():
+      ${sect===0?vueEchauf(faux):sect===2?vueCollation(LIBRE):
         LIBRE.ex.map((e,j)=>ligneLibre(e,j)).join('')+
         `<div class="actions" style="margin-top:18px"><button class="action" onclick="composer(LIBRE.idx)">${ICO('crayon',20)}<span>Modifier cette séance</span>${ICO('suite',18)}</button></div>`}
     </div></div>`;
@@ -3044,9 +3229,12 @@ function illuCollation(n){
   return /prot/.test(t)?'🍗':/légume/.test(t)?'🥦':/fruit/.test(t)?'🍌':/sel/.test(t)?'🧂':/eau/.test(t)?'💧'
     :/glucide|féculent/.test(t)?'🍚':/repas/.test(t)?'🍽️':'🥗';
 }
-function vueCollation(){
-  const c=COLLATION[A.objectif??0]||COLLATION[0];
-  return `<div class="col">
+function vueCollation(s){
+  const o=objCollation(s), c=COLLATION[o]||COLLATION[0];
+  const choix=s?`<div class="colobj">Objectif : <b>${OBJS[o]}</b>
+      <button class="cfiche" onclick="COL_CHOIX=!COL_CHOIX;vueLibre()">${COL_CHOIX?'fermer':'changer'}</button></div>
+    ${COL_CHOIX?`<div class="pastilles">${OBJS.map((t,i)=>`<button class="pas${o===i?' sel':''}" onclick="choisirColObj(${i})">${t}</button>`).join('')}</div>`:''}`:'';
+  return `${choix}<div class="col">
     <div class="col-tete"><span class="col-ico">🍽️</span><div><div class="colt">${c.t}</div><p class="coli">${c.i}</p></div></div>
     <div class="col-liste">${c.l.map(([n,t])=>`<div class="coll"><span class="col-illu" aria-hidden="true">${illuCollation(n)}</span>
       <div><span class="coln">${n}</span><p class="colx">${t}</p></div></div>`).join('')}</div>
