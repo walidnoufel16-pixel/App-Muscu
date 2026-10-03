@@ -1,4 +1,4 @@
-// Recopie la bibliothèque d'exercices de l'app (EX et PAT dans public/index.html)
+// Recopie la bibliothèque d'exercices de l'app (EX et PAT dans web/lib/data/)
 // dans la fonction Edge generer (LIB et SCHEMAS), pour que l'IA connaisse
 // exactement les mêmes exercices que l'app. À relancer après toute modification
 // de EX, puis redéployer generer. Sans dépendance : Node seul suffit.
@@ -9,13 +9,13 @@
 import { readFileSync, writeFileSync } from "node:fs";
 
 const RACINE = new URL("..", import.meta.url).pathname;
-const HTML = RACINE + "public/index.html";
+const DATA = RACINE + "web/lib/data/";
 const FN = RACINE + "supabase/functions/generer/index.ts";
 
-/* Extrait un littéral objet `const NOM={...};` du HTML et l'évalue (données pures). */
+/* Extrait un littéral objet `export const NOM: Type = {...};` d'un fichier de données et l'évalue (données pures). */
 function objet(src, nom) {
-  const debut = src.indexOf(`const ${nom}={`);
-  if (debut < 0) throw new Error(`${nom} introuvable dans index.html`);
+  const debut = src.search(new RegExp(`export const ${nom}\\b[^=]*= \\{`));
+  if (debut < 0) throw new Error(`${nom} introuvable dans web/lib/data`);
   let i = src.indexOf("{", debut), prof = 0;
   for (; i < src.length; i++) {
     if (src[i] === "{") prof++;
@@ -24,9 +24,8 @@ function objet(src, nom) {
   return Function(`"use strict";return (${src.slice(src.indexOf("{", debut), i + 1)})`)();
 }
 
-const html = readFileSync(HTML, "utf8");
-const EX = objet(html, "EX");
-const PAT = objet(html, "PAT");
+const EX = objet(readFileSync(DATA + "exercices.ts", "utf8"), "EX");
+const PAT = objet(readFileSync(DATA + "referentiels.ts", "utf8"), "PAT");
 
 const q = (s) => JSON.stringify(s);
 const lib = Object.entries(EX).map(([id, e]) => {
