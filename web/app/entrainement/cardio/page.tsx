@@ -12,11 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EnTete } from "@/components/repere/en-tete";
 import { Retour } from "@/components/repere/retour";
+import { Redirige } from "@/components/repere/redirige";
 import { confirmer } from "@/components/repere/confirmer";
 import { ICONE_FORMAT, mmss, ReglagesCardio, type ChoixCardio } from "@/components/repere/reglages-cardio";
 import {
-  bilanCardio, changements, construireSeance, dureeTotale, FORMATS, niveauDe, nomSeanceCardio, ORDRE_FORMATS, ou, reglagesDe,
-  type FormatCardio, type Phase, type TypePhase,
+  bilanCardio, changements, construireSeance, dureeTotale, FORMATS, nomSeanceCardio, ou, type Phase, type TypePhase,
 } from "@/lib/logic/cardio";
 import { useRepere } from "@/lib/store";
 import { useCelebrer } from "@/lib/celebrer";
@@ -26,34 +26,34 @@ import { cn } from "@/lib/utils";
 
 const NOM_PHASE: Record<TypePhase, string> = { echauf: "Échauffement", effort: "Effort", recup: "Récupération", pause: "Pause", continu: "Endurance", calme: "Retour au calme" };
 
-/* ---------------- préparation ---------------- */
+/* ---------------- préparation ----------------
+   Le cardio se crée uniquement depuis « Créer une séance pour moi › Cardio » ;
+   cet écran ouvre une séance enregistrée (?s=index), et démarre aussitôt avec &go=1. */
 function Cardio() {
   const q = useSearchParams();
-  const etat = useRepere((s) => s.etat);
-  const muter = useRepere((s) => s.muter);
-  const iS = q.get("s") != null ? Number(q.get("s")) : null;
-  const enregistree = iS != null ? etat.SEANCES_CARDIO?.[iS] : undefined;
-  const f0 = (ORDRE_FORMATS as string[]).includes(q.get("f") || "") ? (q.get("f") as FormatCardio) : "fractionne";
-  const derniere = etat.CARDIO?.at(-1)?.m;
-  const [choix, setChoix] = useState<ChoixCardio>(() => {
-    if (enregistree) return { f: enregistree.f, m: enregistree.m, n: enregistree.n, r: enregistree.r };
-    const n = niveauDe(etat.A.regularite);
-    const m = f0 === "emom" ? (derniere === "corde" ? "corde" : "pdc") : derniere && derniere !== "pdc" ? derniere : "tapis";
-    return { f: f0, m, n, r: reglagesDe(f0, n) };
-  });
-  const [course, setCourse] = useState<Course | null>(null);
-  const [nom, setNom] = useState(enregistree?.nom ?? "");
-  const phases = useMemo(() => construireSeance(choix.f, choix.m, choix.r), [choix]);
-  const titre = (enregistree && nom.trim()) || enregistree?.nom || nomSeanceCardio(choix.f, choix.m);
-  const modifiee = !!enregistree && (nom.trim() !== enregistree.nom || JSON.stringify({ f: enregistree.f, m: enregistree.m, n: enregistree.n, r: enregistree.r }) !== JSON.stringify(choix));
+  const s = q.get("s");
+  if (s == null) return <Redirige vers="/entrainement/assistant" force={{ type: "cardio" }} />;
+  return <Preparation i={Number(s)} go={q.get("go") === "1"} />;
+}
 
-  if (iS != null && !enregistree)
+function Preparation({ i, go }: { i: number; go: boolean }) {
+  const muter = useRepere((s) => s.muter);
+  const enregistree = useRepere((s) => s.etat.SEANCES_CARDIO?.[i]);
+  const [choix, setChoix] = useState<ChoixCardio | null>(() => (enregistree ? { f: enregistree.f, m: enregistree.m, n: enregistree.n, r: enregistree.r } : null));
+  const [course, setCourse] = useState<Course | null>(() => (go && enregistree ? { debut: Date.now(), pause: null, cumulPause: 0, saut: 0 } : null));
+  const [nom, setNom] = useState(enregistree?.nom ?? "");
+  const phases = useMemo(() => (choix ? construireSeance(choix.f, choix.m, choix.r) : []), [choix]);
+
+  if (!enregistree || !choix)
     return (
       <>
         <EnTete titre="Séance introuvable" gauche={<Retour repli="/entrainement" />} />
         <p className="px-5 text-[15px] text-muted-foreground">Cette séance cardio n&apos;existe plus sur ce téléphone.</p>
       </>
     );
+
+  const titre = nom.trim() || enregistree.nom || nomSeanceCardio(choix.f, choix.m);
+  const modifiee = nom.trim() !== enregistree.nom || JSON.stringify({ f: enregistree.f, m: enregistree.m, n: enregistree.n, r: enregistree.r }) !== JSON.stringify(choix);
 
   if (course) return <Minuteur phases={phases} titre={titre} choix={choix} course={course} setCourse={setCourse} />;
 
@@ -62,15 +62,13 @@ function Cardio() {
     <>
       <EnTete surtitre={<span className="flex items-center gap-1.5"><I className="size-3.5" weight="fill" />Cardio · {FORMATS[choix.f].nom}</span>} titre={titre} gauche={<Retour repli="/entrainement" />} />
       <div className="px-4 pb-32">
-        {enregistree && (
-          <section className="mb-6">
-            <h2 className="eyebrow mb-2 px-1">Nom de la séance</h2>
-            <Input value={nom} onChange={(e) => setNom(e.target.value)} maxLength={60} className="h-12 rounded-2xl bg-card text-[16px]" aria-label="Nom de la séance" />
-          </section>
-        )}
-        <ReglagesCardio choix={choix} onChange={setChoix} avecFormat={!enregistree} />
+        <section className="mb-6">
+          <h2 className="eyebrow mb-2 px-1">Nom de la séance</h2>
+          <Input value={nom} onChange={(e) => setNom(e.target.value)} maxLength={60} className="h-12 rounded-2xl bg-card text-[16px]" aria-label="Nom de la séance" />
+        </section>
+        <ReglagesCardio choix={choix} onChange={setChoix} avecFormat={false} />
         {modifiee && (
-          <Button variant="soft" size="lg" className="mt-4 w-full rounded-xl" onClick={() => { muter((E) => { const s = E.SEANCES_CARDIO![iS!]; Object.assign(s, choix, { nom: nom.trim().slice(0, 60) || s.nom }); }); toast.success("Séance enregistrée"); }}>
+          <Button variant="soft" size="lg" className="mt-4 w-full rounded-xl" onClick={() => { muter((E) => { const s = E.SEANCES_CARDIO![i]; Object.assign(s, choix, { nom: nom.trim().slice(0, 60) || s.nom }); }); toast.success("Séance enregistrée"); }}>
             Enregistrer ces réglages dans la séance
           </Button>
         )}

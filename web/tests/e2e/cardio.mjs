@@ -1,6 +1,6 @@
-/* Cardio guidé, de bout en bout, avec une horloge accélérée :
-   Entraînement › Cardio › Fractionné › réglages › Démarrer › pause, passer, fin et bilan ;
-   puis une séance cardio créée depuis l'assistant, rangée à part dans Mes séances.
+/* Cardio guidé, de bout en bout, avec une horloge accélérée. Un seul chemin :
+   Créer une séance pour moi › Cardio › réglages › Créer et démarrer › pause,
+   passer, fin et bilan ; la séance est rangée dans le groupe Cardio de Mes séances.
    VIDEO=dossier pour filmer. */
 import { chromium } from "@playwright/test";
 import { servir } from "./serveur.mjs";
@@ -23,23 +23,23 @@ await pg.clock.install();
 const avancer = async (s) => { for (let i = 0; i < s; i++) { await pg.clock.runFor(1000); await pg.waitForTimeout(process.env.VIDEO ? 90 : 5); } };
 
 await pg.goto(U + "/entrainement/");
-await pg.getByRole("heading", { name: "Cardio" }).waitFor();
-ok(true, "section Cardio dans Entraînement");
-await pg.getByRole("button", { name: /Fractionné/ }).first().click();
-await pg.waitForURL(/\/entrainement\/cardio\/\?f=fractionne/);
-ok(await pg.locator('nav[aria-label="Navigation principale"]').count() === 0, "préparation : barre d'onglets masquée");
-ok(await pg.getByRole("button", { name: "Entraînement" }).isVisible(), "retour libellé « Entraînement »");
+await pg.getByRole("heading", { name: "Mes séances" }).waitFor();
+ok(await pg.getByRole("heading", { name: "Cardio", exact: true }).count() === 0, "Entraînement : pas de rubrique Cardio à part");
+ok(await pg.getByText("Créer une séance cardio").count() === 0, "Mes séances : pas de raccourci cardio");
 
-// rameur, sans échauffement ni retour au calme, 2 tours d'effort 60 s / récupération 90 s
+// le seul chemin : Créer une séance pour moi › Cardio
+await pg.getByText("Créer une séance pour moi").click();
+await pg.waitForURL(/\/entrainement\/assistant\/$/);
+await pg.getByRole("tab", { name: "Cardio" }).click();
 await pg.getByRole("button", { name: /Rameur/ }).click();
 for (let i = 0; i < 5; i++) await pg.getByRole("button", { name: "Échauffement : moins" }).click();
 for (let i = 0; i < 3; i++) await pg.getByRole("button", { name: "Retour au calme : moins" }).click();
 while (!(await pg.getByRole("button", { name: "Tours : moins" }).isDisabled())) await pg.getByRole("button", { name: "Tours : moins" }).click();
-await pg.waitForTimeout(300);
-ok(await pg.getByRole("button", { name: /Démarrer · 4 min/ }).isVisible(), "durée totale recalculée (2 × 60 s + 90 s ≈ 4 min)");
-await pg.getByRole("button", { name: /Démarrer/ }).click();
+await pg.getByPlaceholder(/Fractionné/).fill("Rameur du mardi");
+await pg.getByRole("button", { name: "Créer et démarrer" }).click();
+await pg.waitForURL(/\/entrainement\/cardio\/\?s=0&go=1/);
 await pg.getByRole("timer").waitFor();
-ok(await pg.getByText("Effort", { exact: true }).isVisible(), "minuteur : phase d'effort");
+ok(await pg.getByText("Effort", { exact: true }).isVisible(), "créer et démarrer : minuteur lancé, phase d'effort");
 ok(await pg.getByText("1 / 2", { exact: true }).isVisible(), "tour 1 / 2");
 
 await avancer(30);
@@ -57,27 +57,33 @@ await avancer(160);
 await pg.getByText("Séance terminée").waitFor({ timeout: 5000 }).catch(() => {});
 ok(await pg.getByText("Séance terminée").isVisible(), "fin : bilan affiché");
 const e1 = await etatLu();
-ok(e1.CARDIO?.length === 1 && e1.CARDIO[0].m === "ram" && e1.CARDIO[0].f === "fractionne", "séance enregistrée dans l'historique cardio");
+ok(e1.SEANCES_CARDIO?.length === 1 && e1.SEANCES_CARDIO[0].nom === "Rameur du mardi", "séance cardio enregistrée");
+ok(e1.CARDIO?.length === 1 && e1.CARDIO[0].m === "ram", "séance faite ajoutée à l'historique");
 await pg.waitForTimeout(process.env.VIDEO ? 1800 : 300);
 await pg.getByRole("button", { name: "Terminer" }).click();
+
+// retour : l'assistant a été remplacé, on revient à Entraînement
+ok(await pg.getByRole("button", { name: "Entraînement" }).waitFor({ timeout: 3000 }).then(() => true, () => false), "retour libellé « Entraînement » (l'assistant n'est pas dans l'historique)");
 await pg.getByRole("button", { name: "Entraînement" }).click();
 await pg.waitForURL(/\/entrainement\/$/);
-ok(await pg.getByText(/dernière : fractionné, aujourd'hui/).isVisible(), "Entraînement : dernière séance cardio affichée");
-
-// séance cardio créée depuis l'assistant, catégorie à part
-await pg.getByText("Créer une séance cardio").click();
-await pg.waitForURL(/\/entrainement\/assistant\/\?type=cardio/);
-await pg.getByRole("button", { name: /Tabata/ }).click();
-await pg.getByPlaceholder(/Tabata/).fill("Tabata du jeudi");
-await pg.getByRole("button", { name: "Créer ma séance cardio" }).click();
-await pg.waitForURL(/\/entrainement\/$/);
-await pg.waitForTimeout(400);
-const e2 = await etatLu();
-ok(e2.SEANCES_CARDIO?.length === 1 && e2.SEANCES_CARDIO[0].f === "tabata", "séance cardio enregistrée à part");
 ok(await pg.getByRole("heading", { name: "Cardio", level: 3 }).isVisible(), "Mes séances : groupe Cardio");
-await pg.getByText("Tabata du jeudi", { exact: true }).click();
-await pg.waitForURL(/\/entrainement\/cardio\/\?s=0/);
-ok(await pg.getByRole("textbox", { name: "Nom de la séance" }).inputValue() === "Tabata du jeudi", "séance enregistrée : nom modifiable");
+await pg.getByText("Rameur du mardi", { exact: true }).click();
+await pg.waitForURL(/\/entrainement\/cardio\/\?s=0$/);
+ok(await pg.getByRole("textbox", { name: "Nom de la séance" }).inputValue() === "Rameur du mardi", "séance rouverte : nom modifiable");
+ok(await pg.getByRole("button", { name: /Démarrer/ }).isVisible(), "séance rouverte : prête à démarrer");
+
+// « Enregistrer » seul : retour à Entraînement
+await pg.goto(U + "/entrainement/assistant/?type=cardio");
+await pg.getByRole("button", { name: /Tabata/ }).click();
+await pg.getByRole("button", { name: "Enregistrer", exact: true }).click();
+await pg.waitForURL(/\/entrainement\/$/);
+await pg.waitForTimeout(300);
+ok((await etatLu()).SEANCES_CARDIO.length === 2, "enregistrer sans démarrer");
+
+// ancienne adresse de départ rapide
+await pg.goto(U + "/entrainement/cardio/?f=tabata");
+await pg.waitForURL(/\/entrainement\/assistant\/\?type=cardio/, { timeout: 5000 }).catch(() => {});
+ok(/assistant\/\?type=cardio/.test(pg.url()), "ancienne adresse ?f= : vers l'assistant, côté Cardio");
 
 console.log("erreurs:", JSON.stringify(errs));
 await ctx.close(); await b.close(); srv.close();

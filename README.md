@@ -13,7 +13,7 @@ web/                    l'app (Next.js, TypeScript)
   app/                  écrans, en trois onglets : entrainement (séance du jour, programme, séance,
                         assistant, composeur), exercices, profil ; plus questionnaire et bienvenue.
                         Les anciennes adresses (/plan, /seances, /explorer, /compte) redirigent.
-                        Cardio guidé : entrainement/cardio (logique dans lib/logic/cardio.ts, sons dans lib/sons.ts).
+                        Cardio guidé : créé depuis l'assistant (catégorie Cardio), joué dans entrainement/cardio (logique dans lib/logic/cardio.ts, sons dans lib/sons.ts).
   components/ui/        composants shadcn/ui
   components/repere/    composants de l'app (carte d'exercice, tableau des séries, minuteur…)
   lib/data/             bibliothèque : 231 exercices, référentiels, schéma du corps
