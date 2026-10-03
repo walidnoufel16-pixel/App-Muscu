@@ -13,6 +13,6 @@ await ctx.setOffline(true);
 await pg.goto("http://localhost:8801/explorer/");
 await pg.waitForTimeout(1200);
 const titre = await pg.textContent("h1").catch(() => null);
-const img = await pg.evaluate(async () => !!(await caches.match("/img/Barbell_Squat_0.jpg")));
+const img = await pg.evaluate(async () => !!(await caches.match("/img/Barbell_Squat_0.avif")));
 console.log(JSON.stringify({ fichiersEnCache: nb, horsLigneTitre: titre, photoEnCache: img }));
 await b.close(); srv.close();

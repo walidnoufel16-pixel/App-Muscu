@@ -1,11 +1,11 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, ViewTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CaretLeftIcon, PencilSimpleIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { EnTete } from "@/components/repere/en-tete";
-import { ExerciceCarte } from "@/components/repere/exercice-carte";
+import { ExerciceCarte, Vignette } from "@/components/repere/exercice-carte";
 import { FicheExercice, type FicheOuverte } from "@/components/repere/fiche-exercice";
 import { Collation, Echauffement } from "@/components/repere/seance-vues";
 import { Segmente } from "@/components/repere/segmente";
@@ -18,6 +18,7 @@ import { useRepere } from "@/lib/store";
 import { ARRIERE, AVANT } from "@/lib/nav";
 import { useBrouillon } from "@/lib/brouillon";
 import { tactile } from "@/lib/repos";
+import { enchainer } from "@/lib/enchainement";
 
 function Seance() {
   const router = useRouter();
@@ -47,7 +48,12 @@ function Seance() {
         gauche={<Button variant="ghost" size="sm" className="-ml-2 text-[15px]" onClick={() => router.push("/seances", ARRIERE)}><CaretLeftIcon className="size-5" />Séances</Button>}
         actions={<Button variant="ghost" size="sm" className="text-[15px]" onClick={modifier}><PencilSimpleIcon className="size-4" />Modifier</Button>}
       >
-        <div className="mt-2 flex flex-wrap gap-1.5">
+        <ViewTransition name={`vignettes-${i}`} share="morph" default="none">
+          <span className="mt-3 flex -space-x-4">
+            {S.ex.slice(0, 3).map((e) => EX[e.id] && <Vignette key={e.id} id={e.id} className="size-16 rounded-[16px] ring-[3px] ring-background" />)}
+          </span>
+        </ViewTransition>
+        <div className="mt-3 flex flex-wrap gap-1.5">
           {musclesDe(S.ex.map((e) => e.id)).map((m) => <span key={m} className="rounded-full bg-card px-2.5 py-1 text-[12.5px] font-medium">{m}</span>)}
         </div>
       </EnTete>
@@ -62,16 +68,18 @@ function Seance() {
             const c = ctxLibre(etat, i, j);
             if (!c) return null;
             const x = EX[e.id], L = etat.LOG[c.k], r = noRPE(e.id) ? 0 : 8;
+            const fini = () => enchainer({ k: c.k, cles: S.ex.map((_, m) => ctxLibre(etat, i, m)?.k).filter((q): q is string => !!q), titre: S.nom, setOuvert });
             const prescr = x.ch === "temps" ? `${e.s} × ${e.r}s` : x.ch === "dist" ? `${e.s} × ${e.r}m` : `${e.s} × ${e.r}`;
             return (
               <ExerciceCarte
                 key={c.k}
+                ancre={c.k}
                 num={j + 1} id={e.id} prescr={prescr} repos={e.p} rpe={r} L={L} n={e.s} ouvert={ouvert === c.k}
                 onToggle={() => { tactile(5); setOuvert(ouvert === c.k ? null : c.k); }}
                 onFiche={() => setFiche({ id: e.id, idx: -1, pres: [e.s, e.r, e.p], libelle: "séance libre", rpe: r || undefined })}
-                onTout={() => { tactile(12); muter((E) => act.toutCocher(E, c)); }}
+                onTout={() => { tactile(12); muter((E) => act.toutCocher(E, c)); if (!L?.done && useRepere.getState().etat.LOG[c.k]?.done) fini(); }}
               >
-                <TableauSeries c={c} rpe={r} onReplier={() => setOuvert(null)} />
+                <TableauSeries c={c} rpe={r} onReplier={() => setOuvert(null)} onFini={fini} />
               </ExerciceCarte>
             );
           })}

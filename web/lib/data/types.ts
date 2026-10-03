@@ -6,7 +6,7 @@ export type Charge = "kg" | "lest" | "aucune" | "temps" | "dist";
 export type Exercice = {
   n: string; // nom
   m: string; // muscles, texte libre
-  img: string; // préfixe des photos img/<img>_0.jpg et _1.jpg
+  img: string; // préfixe des photos img/<img>_0.avif et _1.avif (voir lib/medias.ts)
   pat: string; // schéma moteur principal
   pat2?: string; // schéma secondaire
   eq: number; // 0 machine/poulie · 1 barre · 2 haltères · 3 poids du corps

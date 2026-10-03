@@ -34,7 +34,7 @@ export function SchemaCorps({
               d={r.d}
               className={cn(
                 "stroke-card transition-[fill] duration-200 [stroke-linejoin:round] [stroke-width:1.5px] [vector-effect:non-scaling-stroke]",
-                sel ? "fill-plate" : on ? "fill-foreground/35" : "fill-foreground/10",
+                sel ? "animate-[muscle_.45s_ease-out] fill-plate" : on ? "fill-foreground/35" : "fill-foreground/10",
               )}
             />
           );

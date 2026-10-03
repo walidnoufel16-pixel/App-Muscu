@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { CheckIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
 import { EX } from "@/lib/data/exercices";
 import { LESTABLE } from "@/lib/data/referentiels";
@@ -9,6 +9,8 @@ import * as act from "@/lib/logic/actions";
 import type { Journal, Serie } from "@/lib/logic/types";
 import { useRepere } from "@/lib/store";
 import { tactile, useRepos } from "@/lib/repos";
+import { estRecord } from "@/lib/logic/records";
+import { gerbe, mouvementReduit, seanceDe, useCelebrer } from "@/lib/celebrer";
 import { cn } from "@/lib/utils";
 
 const RESSENTIS = ["Facile", "Juste", "Trop dur"];
@@ -19,11 +21,17 @@ const CONSEIL = [
 ];
 
 /* Champ numérique : texte local pendant la saisie, validé à la sortie. */
-function Champ({ valeur, onValide, label, mode }: { valeur: string; onValide: (v: string) => void; label: string; mode: "decimal" | "numeric" }) {
-  /* Monté avec key={valeur} : une valeur venue d'ailleurs (report sur les séries suivantes) réinitialise le champ. */
+function Champ({ valeur, onValide, label, mode, depuis }: { valeur: string; onValide: (v: string) => void; label: string; mode: "decimal" | "numeric"; depuis: number }) {
+  /* Monté avec key={valeur} : une valeur venue d'ailleurs (report sur les séries suivantes) réinitialise le champ.
+     Ce remontage fait « rouler » le chiffre, sauf à l'ouverture de la carte. */
   const [t, setT] = useState(valeur);
+  const rouler = useCallback((el: HTMLInputElement | null) => {
+    if (el && performance.now() - depuis > 500 && !mouvementReduit())
+      el.animate([{ transform: "translateY(-40%)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 280, easing: "cubic-bezier(.2,.9,.25,1.15)" });
+  }, [depuis]);
   return (
     <input
+      ref={rouler}
       value={t}
       inputMode={mode}
       enterKeyHint="next"
@@ -38,10 +46,33 @@ function Champ({ valeur, onValide, label, mode }: { valeur: string; onValide: (v
 }
 
 /* Tableau des séries façon Hevy / Strong : # · précédent · valeurs · ✓. */
-export function TableauSeries({ c, rpe, onReplier }: { c: Ctx; rpe: number; onReplier: () => void }) {
+export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: number; onReplier: () => void; onFini?: () => void }) {
   const L: Journal | undefined = useRepere((s) => s.etat.LOG[c.k]);
   const muter = useRepere((s) => s.muter);
   const lancer = useRepos((s) => s.lancer);
+  const [depuis] = useState(() => performance.now());
+  const [vient, setVient] = useState<number | null>(null); // série qui vient d'être validée
+  const [records, setRecords] = useState<number[]>([]);
+
+  const valider = (n: number, s: Serie, bouton: HTMLElement) => {
+    const avant = useRepere.getState().etat.LOG;
+    const fini = !!avant[c.k]?.done, rec = !(L && okDe(L, s)) && estRecord(avant, c.id, c.k, s);
+    let valide = false;
+    muter((E) => { valide = act.serOk(E, c, n); });
+    setVient(valide ? n : null);
+    setRecords((r) => (valide && rec ? [...r, n] : r.filter((x) => x !== n)));
+    if (valide) {
+      useCelebrer.getState().marquerDebut(seanceDe(c.k));
+      lancer(secondesDe(c.repos));
+      if (rec) {
+        useCelebrer.getState().ajouterRecord(seanceDe(c.k));
+        const b = bouton.getBoundingClientRect();
+        gerbe(b.left + b.width / 2, b.top + b.height / 2);
+        try { navigator.vibrate?.([14, 60, 28]); } catch {}
+      } else tactile(12);
+    } else tactile(6);
+    if (!fini && useRepere.getState().etat.LOG[c.k]?.done) onFini?.();
+  };
   const x = EX[c.id], dbl = ["kg", "lest"].includes(x.ch);
   const lestable = !dbl && LESTABLE.has(c.id), avecLest = lestable && (L ? !!L.lest : !!c.prev?.lest);
   const Pp = c.prev?.series || [];
@@ -65,33 +96,30 @@ export function TableauSeries({ c, rpe, onReplier }: { c: Ctx; rpe: number; onRe
       </div>
       <div className="flex flex-col gap-1">
         {S.map((s, n) => {
-          const ok = !!L && okDe(L, s);
+          const ok = !!L && okDe(L, s), record = ok && records.includes(n);
           return (
-            <div
-              key={n}
-              className={cn(
-                "grid items-center gap-x-2 rounded-xl px-1 py-1 transition-colors duration-200",
-                cols,
-                ok && "bg-plate-soft",
+            <div key={n} className={cn("relative isolate grid items-center gap-x-2 overflow-hidden rounded-xl px-1 py-1", cols)}>
+              {/* fond jaune : il se remplit de gauche à droite quand on valide */}
+              {ok && <span aria-hidden className={cn("absolute inset-0 -z-10 origin-left bg-plate-soft", vient === n && "animate-[remplir_.42s_cubic-bezier(.2,.8,.2,1)]")} />}
+              <span className={cn("num text-center text-[15px] font-bold transition-colors", ok ? "text-foreground" : "text-muted-foreground")}>{n + 1}</span>
+              {record ? (
+                <span className="inline-flex w-fit animate-[pop_.5s_cubic-bezier(.3,1.6,.5,1)] items-center rounded-full bg-plate px-2 py-0.5 text-[11px] font-bold tracking-wide text-plate-foreground uppercase">
+                  Record
+                </span>
+              ) : (
+                <span className="truncate text-[13px] text-muted-foreground">{fmtSerie(x, P2[n] || P2[P2.length - 1])}</span>
               )}
-            >
-              <span className={cn("num text-center text-[15px] font-bold", ok ? "text-foreground" : "text-muted-foreground")}>{n + 1}</span>
-              <span className="truncate text-[13px] text-muted-foreground">{fmtSerie(x, P2[n] || P2[P2.length - 1])}</span>
-              <Champ key={"v" + s.v} valeur={nb(s.v)} mode="decimal" label={`${tete} série ${n + 1}`} onValide={(v) => muter((E) => act.serVal(E, c, n, "v", v))} />
-              {dbl && <Champ key={"r" + s.reps} valeur={String(s.reps)} mode="numeric" label={`répétitions série ${n + 1}`} onValide={(v) => muter((E) => act.serVal(E, c, n, "reps", v))} />}
-              {!dbl && avecLest && <Champ key={"l" + s.lest} valeur={nb(+(s.lest ?? 0) || 0)} mode="decimal" label={`lest série ${n + 1}`} onValide={(v) => muter((E) => act.serVal(E, c, n, "lest", v))} />}
+              <Champ depuis={depuis} key={"v" + s.v} valeur={nb(s.v)} mode="decimal" label={`${tete} série ${n + 1}`} onValide={(v) => muter((E) => act.serVal(E, c, n, "v", v))} />
+              {dbl && <Champ depuis={depuis} key={"r" + s.reps} valeur={String(s.reps)} mode="numeric" label={`répétitions série ${n + 1}`} onValide={(v) => muter((E) => act.serVal(E, c, n, "reps", v))} />}
+              {!dbl && avecLest && <Champ depuis={depuis} key={"l" + s.lest} valeur={nb(+(s.lest ?? 0) || 0)} mode="decimal" label={`lest série ${n + 1}`} onValide={(v) => muter((E) => act.serVal(E, c, n, "lest", v))} />}
               <button
-                onClick={() => {
-                  let valide = false;
-                  muter((E) => { valide = act.serOk(E, c, n); });
-                  tactile(valide ? 12 : 6);
-                  if (valide) lancer(secondesDe(c.repos));
-                }}
+                onClick={(e) => valider(n, s, e.currentTarget)}
                 aria-label={`${ok ? "Décocher" : "Valider"} la série ${n + 1}`}
                 aria-pressed={ok}
                 className={cn(
-                  "grid size-10 place-items-center rounded-full border-2 transition-all duration-200 active:scale-90",
+                  "grid size-10 place-items-center rounded-full border-2 transition-[background-color,border-color,color] duration-200 active:scale-90",
                   ok ? "border-plate bg-plate text-plate-foreground" : "border-border text-transparent hover:text-muted-foreground",
+                  vient === n && "animate-[pop_.45s_cubic-bezier(.3,1.6,.5,1)]",
                 )}
               >
                 <CheckIcon className="size-[18px]" weight="bold" />

@@ -21,6 +21,8 @@ import * as act from "@/lib/logic/actions";
 import { useRepere } from "@/lib/store";
 import { AVANT_T } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
+import { enchainer } from "@/lib/enchainement";
+import { usePremiereVisite } from "@/lib/entree";
 import { cn } from "@/lib/utils";
 
 export default function PagePlan() {
@@ -31,6 +33,7 @@ export default function PagePlan() {
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);
   const [remp, setRemp] = useState<number | null>(null);
   const [reperes, setReperes] = useState(false);
+  const premiere = usePremiereVisite();
 
   const W = useMemo(() => week(etat), [etat]);
   const { wk } = etat;
@@ -146,23 +149,25 @@ export default function PagePlan() {
           )}
           {sect === 2 && <Collation obj={etat.A.objectif ?? 0} />}
           {sect === 1 && (
-            <div className="flex flex-col gap-2.5 px-4">
-              {(S.x || []).map((e, i) => {
+            <div className={cn("flex flex-col gap-2.5 px-4", premiere && "entree")}>
+              {(S.x || []).map((e, i, tous) => {
                 const c = ctxPlan(etat, i, W)!, x = EX[c.id], k = c.k, L = etat.LOG[k];
                 const r = noRPE(c.id) ? 0 : rpeOf(etat.A, wk, c.id, e[4]);
                 const prescr = x.ch === "temps" ? `${e[1]} × ${e[2]}s` : x.ch === "dist" ? `${e[1]} × ${e[2]}m` : `${e[1]} × ${e[2]}`;
                 const badge = etat.SWAP[k] ? "aujourd'hui" : etat.SWAPP[day + "|" + i] ? "remplacé" : undefined;
+                const fini = () => enchainer({ k, cles: tous.map((_, j) => key(wk, day, j)), titre: titreSeance(S.t), setOuvert });
                 return (
                   <ExerciceCarte
                     key={k}
+                    ancre={k}
                     num={i + 1} id={c.id} prescr={prescr} repos={e[3]} rpe={r} role={e[4]} badge={badge}
                     L={L} n={e[1]} ouvert={ouvert === k}
                     onToggle={() => { tactile(5); setOuvert(ouvert === k ? null : k); }}
                     onFiche={() => ouvrirFiche(i)}
                     onRemplacer={L?.done ? undefined : () => setRemp(i)}
-                    onTout={() => { tactile(12); muter((E) => act.toutCocher(E, c)); }}
+                    onTout={() => { tactile(12); muter((E) => act.toutCocher(E, c)); if (!L?.done && useRepere.getState().etat.LOG[k]?.done) fini(); }}
                   >
-                    <TableauSeries c={c} rpe={r} onReplier={() => setOuvert(null)} />
+                    <TableauSeries c={c} rpe={r} onReplier={() => setOuvert(null)} onFini={fini} />
                   </ExerciceCarte>
                 );
               })}

@@ -37,7 +37,7 @@ export function TabBar() {
               )}
             >
               <span className="relative">
-                <Icone className="size-[22px]" weight={actif ? "fill" : "regular"} />
+                <Icone className={cn("size-[22px]", actif && "animate-[rebond_.45s_cubic-bezier(.3,1.6,.5,1)]")} weight={actif ? "fill" : "regular"} />
                 {href === "/compte" && sync !== null && (
                   <span
                     className={cn("absolute -top-0.5 -right-1 size-2 rounded-full ring-2 ring-card", sync ? "bg-success" : "bg-muted-foreground")}

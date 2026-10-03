@@ -9,7 +9,7 @@ import { useRepere } from "@/lib/store";
 import { useFiche } from "@/lib/fiches";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { imgEx } from "./exercice-carte";
+import { imgEx, sourceEx } from "@/lib/medias";
 
 export type FicheOuverte = {
   id: string;
@@ -66,7 +66,7 @@ export function FicheExercice({ fiche, onClose }: { fiche: FicheOuverte | null; 
           <div className="overflow-y-auto overscroll-contain px-5 pb-[max(env(safe-area-inset-bottom),20px)]">
             <div className="pt-2">
               <Duo id={fiche.id} />
-              <p className="mt-1.5 text-center text-[10.5px] text-muted-foreground">Illustrations · free-exercise-db · domaine public</p>
+              <p className="mt-1.5 text-center text-[10.5px] text-muted-foreground">{sourceEx(fiche.id).mention}</p>
             </div>
             <div className="eyebrow mt-4">{e.m} · {nomPat(e.pat)}</div>
             <DrawerTitle className="mt-1 text-[26px] leading-tight font-bold tracking-[-0.02em]">{e.n}</DrawerTitle>

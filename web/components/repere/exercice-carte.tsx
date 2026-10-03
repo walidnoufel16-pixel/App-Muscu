@@ -4,14 +4,15 @@ import { ArrowsLeftRightIcon, CaretDownIcon, CheckIcon, CrosshairIcon, InfoIcon 
 import { EX } from "@/lib/data/exercices";
 import { musclesDe, okDe, resumeDe } from "@/lib/logic/core";
 import type { Journal } from "@/lib/logic/types";
+import { useCelebrer } from "@/lib/celebrer";
 import { cn } from "@/lib/utils";
 
-export const imgEx = (id: string, n: 0 | 1 = 0) => `/img/${EX[id]?.img}_${n}.jpg`;
+import { imgEx } from "@/lib/medias";
 
 const UNITE_RESUME: Record<string, string> = { kg: "kg", lest: "kg de lest", aucune: "", temps: "s", dist: "m" };
 
 /* Vignette photo d'un exercice, avec repli discret si l'image manque. */
-export function Vignette({ id, num, fait, className }: { id: string; num?: number; fait?: boolean; className?: string }) {
+export function Vignette({ id, num, fait, trace, className }: { id: string; num?: number; fait?: boolean; trace?: boolean; className?: string }) {
   return (
     <span className={cn("relative block size-14 shrink-0 overflow-hidden rounded-[14px] bg-muted", className)}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -28,8 +29,15 @@ export function Vignette({ id, num, fait, className }: { id: string; num?: numbe
         </span>
       )}
       {fait && (
-        <span className="absolute right-1 bottom-1 grid size-5 place-items-center rounded-full bg-plate text-plate-foreground ring-2 ring-card">
-          <CheckIcon className="size-3" weight="bold" />
+        <span className={cn("absolute right-1 bottom-1 grid size-5 place-items-center rounded-full bg-plate text-plate-foreground ring-2 ring-card", trace && "animate-[pop_.5s_cubic-bezier(.3,1.6,.5,1)]")}>
+          {trace ? (
+            /* la coche se dessine d'un trait */
+            <svg viewBox="0 0 16 16" className="size-3" aria-hidden>
+              <path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" pathLength={1} className="[stroke-dasharray:1] animate-[tracer_.42s_.12s_ease-out_both]" />
+            </svg>
+          ) : (
+            <CheckIcon className="size-3" weight="bold" />
+          )}
         </span>
       )}
     </span>
@@ -55,24 +63,28 @@ export function EtatCarte({ L, id, n }: { L?: Journal; id: string; n: number }) 
 
 /* Carte d'exercice repliable, commune au plan et aux séances libres. */
 export function ExerciceCarte({
-  num, id, prescr, repos, rpe, role, badge, L, n, ouvert, onToggle, onFiche, onRemplacer, onTout, children,
+  ancre, num, id, prescr, repos, rpe, role, badge, L, n, ouvert, onToggle, onFiche, onRemplacer, onTout, children,
 }: {
-  num: number; id: string; prescr: string; repos: string; rpe?: number; role?: number; badge?: string;
+  ancre: string; num: number; id: string; prescr: string; repos: string; rpe?: number; role?: number; badge?: string;
   L?: Journal; n: number; ouvert: boolean;
   onToggle: () => void; onFiche: () => void; onRemplacer?: () => void; onTout: () => void;
   children?: React.ReactNode;
 }) {
   const x = EX[id], fait = !!L?.done, mus = musclesDe([id]);
+  const celebre = useCelebrer((s) => s.fini === ancre);
   return (
     <div
+      id={"ex-" + ancre}
+      data-ex={id}
       className={cn(
-        "overflow-hidden rounded-[20px] border bg-card transition-[border-color,box-shadow] duration-200",
+        "scroll-mt-3 overflow-hidden rounded-[20px] border bg-card transition-[border-color,box-shadow] duration-200",
+        celebre && "animate-[eclat_.9s_ease-out]",
         fait ? "border-plate/60" : "border-border/80",
         ouvert && "shadow-[0_10px_30px_-18px_rgba(0,0,0,.35)]",
       )}
     >
       <button onClick={onToggle} aria-expanded={ouvert} className="flex w-full items-center gap-3.5 p-3 text-left">
-        <Vignette id={id} num={num} fait={fait} />
+        <Vignette id={id} num={num} fait={fait} trace={celebre} />
         <span className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="flex items-center gap-2">
             <span className="truncate text-[16px] leading-tight font-semibold tracking-[-0.01em]">{x.n}</span>

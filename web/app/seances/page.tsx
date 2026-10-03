@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, ViewTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CaretRightIcon, CheckIcon, DownloadSimpleIcon, ExportIcon, PersonSimpleIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
@@ -19,10 +19,13 @@ import * as act from "@/lib/logic/actions";
 import { useRepere } from "@/lib/store";
 import { AVANT, AVANT_T } from "@/lib/nav";
 import { useBrouillon } from "@/lib/brouillon";
+import { usePremiereVisite } from "@/lib/entree";
+import { cn } from "@/lib/utils";
 
 export default function PageSeances() {
   const router = useRouter();
   const { etat, muter, partager, importer } = useRepere();
+  const premiere = usePremiereVisite();
   const setLibre = useBrouillon((s) => s.setLibre);
   const [imp, setImp] = useState(false);
   const [code, setCode] = useState("");
@@ -55,7 +58,7 @@ export default function PageSeances() {
   return (
     <>
       <EnTete surtitre="Séances libres" titre="Mes séances" />
-      <div className="flex flex-col gap-2 px-4">
+      <div className={cn("flex flex-col gap-2 px-4", premiere && "entree")}>
         {etat.SEANCES.length ? (
           etat.SEANCES.map((s, i) => {
             const absents = s.ex.filter((e) => !dispoDeclare(etat.A, e.id)).length;
@@ -63,9 +66,12 @@ export default function PageSeances() {
               <LigneBalayable key={i + s.nom} label={s.nom} onSupprimer={() => supprimer(i)}>
                 <div className="flex items-stretch rounded-[20px] border border-border/80 bg-card">
                   <button onClick={() => router.push(`/seances/seance?i=${i}`, AVANT)} className="flex min-w-0 flex-1 items-center gap-3 p-3 text-left">
-                    <span className="flex -space-x-3">
-                      {s.ex.slice(0, 3).map((e) => EX[e.id] && <Vignette key={e.id} id={e.id} className="size-11 rounded-[12px] ring-2 ring-card" />)}
-                    </span>
+                    {/* même nom que dans l'en-tête de la séance : les vignettes s'y transforment */}
+                    <ViewTransition name={`vignettes-${i}`} share="morph" default="none">
+                      <span className="flex -space-x-3">
+                        {s.ex.slice(0, 3).map((e) => EX[e.id] && <Vignette key={e.id} id={e.id} className="size-11 rounded-[12px] ring-2 ring-card" />)}
+                      </span>
+                    </ViewTransition>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[16px] font-semibold tracking-[-0.01em]">{s.nom}</span>
                       <span className="block truncate text-[12.5px] text-muted-foreground">
