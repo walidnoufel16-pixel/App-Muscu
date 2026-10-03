@@ -72,9 +72,8 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-geist-sans), "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --font-num: var(--font-num), var(--font-geist-sans), sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -133,7 +132,7 @@
 @layer utilities {
   /* chiffres de séance : condensés, à largeur fixe */
   .num {
-    font-family: var(--font-num);
+    font-family: var(--font-chiffres), "Barlow Condensed", var(--font-geist-sans), "Geist", sans-serif;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.01em;
   }

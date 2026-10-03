@@ -14,7 +14,7 @@ const chiffres = localFont({
     { path: "./fonts/barlow-condensed-latin-700-normal.woff2", weight: "700" },
     { path: "./fonts/barlow-condensed-latin-800-normal.woff2", weight: "800" },
   ],
-  variable: "--font-num",
+  variable: "--font-chiffres",
   display: "swap",
 });
 
@@ -43,6 +43,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
       className={`${GeistSans.variable} ${GeistMono.variable} ${chiffres.variable} h-full`}
     >
+      <head>
+        {/* Secours : si la politique de sécurité du site bloque les polices
+            auto-hébergées, les mêmes polices viennent de Google Fonts. */}
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Geist:wght@400..800&display=swap" />
+      </head>
       <body className="min-h-full">
         <ThemeProvider>
           <AppShell>{children}</AppShell>

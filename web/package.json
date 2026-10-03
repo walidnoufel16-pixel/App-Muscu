@@ -9,8 +9,6 @@
     "lint": "eslint",
     "test": "vitest run",
     "fixtures": "node tests/genere-fixtures.mjs",
-    "prebuild": "rm -rf public/img && cp -r ../public/img public/img",
-    "predev": "test -d public/img || cp -r ../public/img public/img",
     "postbuild": "node scripts/sw.mjs"
   },
   "dependencies": {
