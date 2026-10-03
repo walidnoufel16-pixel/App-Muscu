@@ -32,6 +32,7 @@ const TITRES: [RegExp, string][] = [
   [/^\/entrainement\/seance/, "Séance"],
   [/^\/entrainement\/assistant/, "Créer une séance"],
   [/^\/entrainement\/composer/, "Composer"],
+  [/^\/entrainement\/cardio/, "Cardio"],
   [/^\/entrainement/, "Entraînement"],
   [/^\/exercices/, "Exercices"],
   [/^\/profil/, "Profil"],

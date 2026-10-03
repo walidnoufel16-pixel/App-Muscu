@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { ReglagesCardio, type ChoixCardio } from "@/components/repere/reglages-cardio";
+import { niveauDe, nomSeanceCardio, reglagesDe } from "@/lib/logic/cardio";
 import { Button } from "@/components/ui/button";
 import { EnTete } from "@/components/repere/en-tete";
 import { SchemaCorps } from "@/components/repere/schema-corps";
@@ -12,15 +17,34 @@ import { DUREES, FULLBODY, MUSC, OBJS, PAT2MUSC } from "@/lib/data/referentiels"
 import { selDeclare } from "@/lib/logic/core";
 import { construireSeance, nomSeance } from "@/lib/logic/assistant";
 import { useRepere } from "@/lib/store";
-import { AVANT } from "@/lib/nav";
+import { ARRIERE, AVANT, revenirA } from "@/lib/nav";
 import { Retour } from "@/components/repere/retour";
 import { useBrouillon } from "@/lib/brouillon";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 
 export default function PageAssistant() {
+  return (
+    <Suspense>
+      <Assistant />
+    </Suspense>
+  );
+}
+
+function Assistant() {
   const router = useRouter();
   const A = useRepere((s) => s.etat.A);
+  const muter = useRepere((s) => s.muter);
+  /* Deux catégories à part : musculation (muscles, puis composeur) ou cardio (format, machine, durées). */
+  const [type, setType] = useState<"muscu" | "cardio">(useSearchParams().get("type") === "cardio" ? "cardio" : "muscu");
+  const [choix, setChoix] = useState<ChoixCardio>(() => { const n = niveauDe(A.regularite); return { f: "fractionne", m: "tapis", n, r: reglagesDe("fractionne", n) }; });
+  const [nomCardio, setNomCardio] = useState("");
+  const creerCardio = () => {
+    const nom = nomCardio.trim().slice(0, 60) || nomSeanceCardio(choix.f, choix.m);
+    muter((E) => { (E.SEANCES_CARDIO ??= []).push({ nom, ...choix }); });
+    toast.success(`« ${nom} » ajoutée à tes séances cardio`);
+    revenirA("/entrainement", () => router.replace("/entrainement", ARRIERE));
+  };
   const { sel: selB, setSel, setLibre } = useBrouillon();
   const sel = selB ?? selDeclare(A);
   const [m, setM] = useState<string[]>([]);
@@ -48,9 +72,29 @@ export default function PageAssistant() {
         titre="Créer une séance pour moi"
         gauche={<Retour repli="/entrainement" />}
       >
-        <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">Choisis ce que tu veux travailler : Repère te propose une séance, que tu modifies ensuite comme tu veux.</p>
+        <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
+          {type === "muscu"
+            ? "Choisis ce que tu veux travailler : Repère te propose une séance, que tu modifies ensuite comme tu veux."
+            : "Une séance guidée : Repère annonce chaque effort et chaque récupération, avec un signal sonore."}
+        </p>
+        <Segmente label="Catégorie" className="mt-4" valeur={type} onChange={setType} options={[{ v: "muscu", n: "Musculation" }, { v: "cardio", n: "Cardio" }]} />
       </EnTete>
 
+      {type === "cardio" ? (
+        <>
+          <div className="flex flex-col gap-6 px-4 pb-28">
+            <ReglagesCardio choix={choix} onChange={setChoix} />
+            <section>
+              <h2 className="eyebrow mb-2 px-1">Nom de la séance</h2>
+              <Input value={nomCardio} onChange={(e) => setNomCardio(e.target.value)} maxLength={60} placeholder={nomSeanceCardio(choix.f, choix.m)} className="h-12 rounded-2xl bg-card text-[16px]" />
+            </section>
+          </div>
+          <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
+            <Button variant="plate" size="xl" className="w-full" onClick={creerCardio}>Créer ma séance cardio</Button>
+          </div>
+        </>
+      ) : (
+      <>
       <div className="flex flex-col gap-6 px-4 pb-24">
         <section>
           <div className="mb-2 flex items-baseline justify-between px-1">
@@ -133,6 +177,8 @@ export default function PageAssistant() {
           Créer ma séance
         </Button>
       </div>
+      </>
+      )}
     </>
   );
 }

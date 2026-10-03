@@ -2,7 +2,7 @@
 
 import { useState, ViewTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CaretRightIcon, CheckIcon, DownloadSimpleIcon, ExportIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
+import { CaretRightIcon, CheckIcon, DownloadSimpleIcon, ExportIcon, HeartbeatIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -17,12 +17,16 @@ import * as act from "@/lib/logic/actions";
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
 import { useBrouillon } from "@/lib/brouillon";
+import type { Route } from "next";
+import { construireSeance, dureeTotale, FORMATS, MACHINES } from "@/lib/logic/cardio";
+import { ICONE_FORMAT } from "./reglages-cardio";
 import { cn } from "@/lib/utils";
 
 /* Séances libres : la liste (balayer pour supprimer, partager), puis les façons d'en créer une. */
 export function MesSeances() {
   const router = useRouter();
-  const { etat, muter, partager, importer } = useRepere();
+  const { etat, muter, partager, partagerCardio, importer } = useRepere();
+  const cardio = etat.SEANCES_CARDIO || [];
   const setLibre = useBrouillon((s) => s.setLibre);
   const [imp, setImp] = useState(false);
   const [code, setCode] = useState("");
@@ -36,10 +40,15 @@ export function MesSeances() {
     if (ok) muter((E) => act.supprimerSeance(E, i));
   };
 
-  const partagerSeance = async (i: number) => {
-    const r = await partager(i);
+  const supprimerCardio = async (i: number) => {
+    if (await confirmer({ titre: `Supprimer « ${cardio[i].nom} » ?`, texte: "Ton historique de cardio est conservé.", ok: "Supprimer", danger: true }))
+      muter((E) => { E.SEANCES_CARDIO!.splice(i, 1); });
+  };
+
+  const partagerSeance = async (i: number, estCardio = false) => {
+    const r = await (estCardio ? partagerCardio(i) : partager(i));
     if (r.erreur || !r.code) { dire("Partage impossible", r.erreur); return; }
-    const lien = location.origin + "/?s=" + r.code, nom = etat.SEANCES[i].nom;
+    const lien = location.origin + "/?s=" + r.code, nom = estCardio ? cardio[i].nom : etat.SEANCES[i].nom;
     if (navigator.share) { try { await navigator.share({ title: nom, text: `Ma séance « ${nom} » sur Repère`, url: lien }); return; } catch {} }
     try { await navigator.clipboard.writeText(lien); toast.success("Lien copié", { description: "Code à dicter : " + r.code }); }
     catch { dire("Ta séance partagée", lien + "\n\nCode à dicter : " + r.code); }
@@ -49,12 +58,13 @@ export function MesSeances() {
     const r = await importer(code);
     if (r.erreur) { dire("Import impossible", r.erreur); return; }
     setImp(false); setCode("");
-    toast.success(`« ${r.nom} » ajoutée à tes séances`);
+    toast.success(`« ${r.nom} » ajoutée à tes séances${r.cardio ? " cardio" : ""}`);
   };
 
   return (
     <>
       <div className="flex flex-col gap-2">
+        {cardio.length > 0 && <h3 className="px-1 text-[13px] font-semibold text-muted-foreground">Musculation</h3>}
         {etat.SEANCES.length ? (
           etat.SEANCES.map((s, i) => {
             const absents = s.ex.filter((e) => !dispoDeclare(etat.A, e.id)).length;
@@ -85,13 +95,38 @@ export function MesSeances() {
           })
         ) : (
           <div className="rounded-[22px] border border-dashed bg-card/50 p-5 text-center text-[14px] leading-relaxed text-muted-foreground">
-            Aucune séance enregistrée pour l&apos;instant. Crée la première : elle restera disponible ensuite.
+            Aucune séance {cardio.length ? "de musculation " : ""}enregistrée pour l&apos;instant. Crée la première : elle restera disponible ensuite.
           </div>
         )}
-        {etat.SEANCES.length > 0 && <p className="px-2 text-center text-[11.5px] text-muted-foreground">Fais glisser une séance vers la gauche pour la supprimer.</p>}
+
+        {/* séances cardio : une catégorie à part */}
+        {cardio.length > 0 && <h3 className="mt-3 px-1 text-[13px] font-semibold text-muted-foreground">Cardio</h3>}
+        {cardio.map((c, i) => {
+          const I = ICONE_FORMAT[c.f];
+          return (
+            <LigneBalayable key={"c" + i + c.nom} label={c.nom} onSupprimer={() => supprimerCardio(i)}>
+              <div className="flex items-stretch rounded-[20px] border border-border/80 bg-card">
+                <button onClick={() => router.push(`/entrainement/cardio?s=${i}` as Route, AVANT)} className="flex min-w-0 flex-1 items-center gap-3 p-3 text-left">
+                  <span className="grid size-11 shrink-0 place-items-center rounded-[12px] bg-plate-soft text-plate-ink"><I className="size-6" weight="fill" /></span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[16px] font-semibold tracking-[-0.01em]">{c.nom}</span>
+                    <span className="block truncate text-[12.5px] text-muted-foreground">
+                      {FORMATS[c.f].nom} · {MACHINES[c.m].nom} · {Math.round(dureeTotale(construireSeance(c.f, c.m, c.r)) / 60)} min
+                    </span>
+                  </span>
+                </button>
+                <button onClick={() => partagerSeance(i, true)} aria-label="Partager" className="grid w-12 place-items-center border-l border-border/70 text-muted-foreground">
+                  {c.code ? <CheckIcon className="size-5" /> : <ExportIcon className="size-5" />}
+                </button>
+              </div>
+            </LigneBalayable>
+          );
+        })}
+        {etat.SEANCES.length + cardio.length > 0 && <p className="px-2 text-center text-[11.5px] text-muted-foreground">Fais glisser une séance vers la gauche pour la supprimer.</p>}
 
         <div className="mt-1 overflow-hidden rounded-[20px] border border-border/80 bg-card">
           <Action accent icone={<SparkleIcon className="size-5" weight="fill" />} label="Créer une séance pour moi" onClick={() => router.push("/entrainement/assistant", AVANT)} />
+          <Action icone={<HeartbeatIcon className="size-5" />} label="Créer une séance cardio" onClick={() => router.push("/entrainement/assistant?type=cardio" as Route, AVANT)} />
           <Action icone={<PlusIcon className="size-5" />} label="Composer exercice par exercice" onClick={() => { setLibre({ nom: "Séance libre", ex: [], idx: null }); router.push("/entrainement/composer", AVANT); }} />
           <Action icone={<DownloadSimpleIcon className="size-5" />} label="Importer une séance avec un code" onClick={() => setImp(true)} />
         </div>

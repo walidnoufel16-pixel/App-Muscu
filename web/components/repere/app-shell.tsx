@@ -13,7 +13,7 @@ import { usePile, useSens } from "@/lib/nav";
 /* Démarre l'app une fois (session Supabase, état local) et pose la barre
    d'onglets. Les écrans plein écran (accueil, questionnaire) et les tâches
    en cours (une séance, l'assistant, le composeur) s'en passent. */
-const SANS_ONGLETS = ["/", "/questionnaire", "/bienvenue", "/entrainement/seance", "/entrainement/assistant", "/entrainement/composer"];
+const SANS_ONGLETS = ["/", "/questionnaire", "/bienvenue", "/entrainement/seance", "/entrainement/assistant", "/entrainement/composer", "/entrainement/cardio"];
 const glisse = (sens: string | null) => ({ "nav-forward": "nav-forward", "nav-back": "nav-back", default: sens ?? "none" });
 
 export function AppShell({ children }: { children: React.ReactNode }) {

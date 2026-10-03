@@ -28,14 +28,12 @@ function Compteur({ valeur, delai = 0 }: { valeur: number; delai?: number }) {
 export function Bilan() {
   const bilan = useCelebrer((s) => s.bilan);
   const fermer = useCelebrer((s) => s.fermerBilan);
-  const stats = bilan
-    ? [
+  const stats = !bilan ? [] : bilan.cases ? bilan.cases : [
         bilan.volume > 0 ? { n: "kg soulevés", v: bilan.volume } : { n: "exercices", v: bilan.exercices },
         { n: "séries validées", v: bilan.series },
         bilan.minutes != null ? { n: "minutes", v: bilan.minutes } : { n: "exercices", v: bilan.exercices },
         { n: bilan.records > 1 ? "records battus" : "record battu", v: bilan.records, accent: bilan.records > 0 },
-      ]
-    : [];
+      ];
   return (
     <Drawer open={!!bilan} onOpenChange={(o) => !o && fermer()}>
       <DrawerContent>
