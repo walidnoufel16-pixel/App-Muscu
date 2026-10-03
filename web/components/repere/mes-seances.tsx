@@ -2,23 +2,24 @@
 
 import { useState, ViewTransition } from "react";
 import { useRouter } from "next/navigation";
-import { BarbellIcon, CaretDownIcon, CaretRightIcon, CheckIcon, DownloadSimpleIcon, ExportIcon, HeartbeatIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
+import { BarbellIcon, StackIcon, CaretDownIcon, CaretRightIcon, CheckIcon, DownloadSimpleIcon, ExportIcon, HeartbeatIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
+import { FeuillePartage, type Partage } from "./feuille-partage";
 import { Input } from "@/components/ui/input";
 import { LigneBalayable } from "@/components/repere/ligne-balayable";
 import { Vignette } from "@/components/repere/exercice-carte";
 import { confirmer, dire } from "@/components/repere/confirmer";
 import { EX } from "@/lib/data/exercices";
 import { dispoDeclare, musclesDe } from "@/lib/logic/core";
-import { dureeEstimee } from "@/lib/logic/assistant";
 import * as act from "@/lib/logic/actions";
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
 import { useBrouillon } from "@/lib/brouillon";
 import type { Route } from "next";
 import { construireSeance, dureeTotale, FORMATS, MACHINES } from "@/lib/logic/cardio";
+import { dureeTotale as dureeSeance, estCombinee } from "@/lib/logic/combinee";
 import { ICONE_FORMAT } from "./reglages-cardio";
 import { cn } from "@/lib/utils";
 
@@ -27,8 +28,12 @@ export function MesSeances() {
   const router = useRouter();
   const { etat, muter, partager, partagerCardio, importer } = useRepere();
   const cardio = etat.SEANCES_CARDIO || [];
+  /* index des séances libres, rangées en deux groupes : musculation seule, ou avec des blocs cardio */
+  const muscu = etat.SEANCES.map((_, i) => i).filter((i) => !estCombinee(etat.SEANCES[i]));
+  const combinees = etat.SEANCES.map((_, i) => i).filter((i) => estCombinee(etat.SEANCES[i]));
   const setLibre = useBrouillon((s) => s.setLibre);
   const [imp, setImp] = useState(false);
+  const [partage, setPartage] = useState<Partage | null>(null);
   const [code, setCode] = useState("");
 
   const supprimer = async (i: number) => {
@@ -48,10 +53,9 @@ export function MesSeances() {
   const partagerSeance = async (i: number, estCardio = false) => {
     const r = await (estCardio ? partagerCardio(i) : partager(i));
     if (r.erreur || !r.code) { dire("Partage impossible", r.erreur); return; }
-    const lien = location.origin + "/?s=" + r.code, nom = estCardio ? cardio[i].nom : etat.SEANCES[i].nom;
-    if (navigator.share) { try { await navigator.share({ title: nom, text: `Ma séance « ${nom} » sur Repère`, url: lien }); return; } catch {} }
-    try { await navigator.clipboard.writeText(lien); toast.success("Lien copié", { description: "Code à dicter : " + r.code }); }
-    catch { dire("Ta séance partagée", lien + "\n\nCode à dicter : " + r.code); }
+    const av = (r as { avertissement?: string }).avertissement;
+    if (av) toast(av);
+    setPartage({ nom: estCardio ? cardio[i].nom : etat.SEANCES[i].nom, code: r.code });
   };
 
   const lancerImport = async () => {
@@ -59,6 +63,36 @@ export function MesSeances() {
     if (r.erreur) { dire("Import impossible", r.erreur); return; }
     setImp(false); setCode("");
     toast.success(`« ${r.nom} » ajoutée à tes séances${r.cardio ? " cardio" : ""}`);
+  };
+
+  /* Ligne d'une séance de musculation ou combinée (index dans SEANCES). */
+  const ligneMuscu = (i: number) => {
+    const s = etat.SEANCES[i];
+    const absents = s.ex.filter((e) => !dispoDeclare(etat.A, e.id)).length;
+    return (
+      <LigneBalayable key={i + s.nom} label={s.nom} onSupprimer={() => supprimer(i)}>
+        <div className="flex items-stretch rounded-[20px] border border-border/80 bg-card">
+          <button onClick={() => router.push(`/entrainement/seance?l=${i}`, AVANT)} className="flex min-w-0 flex-1 items-center gap-3 p-3 text-left">
+            {/* même nom que dans l'en-tête de la séance : les vignettes s'y transforment */}
+            <ViewTransition name={`vignettes-${i}`} share="morph" default="none">
+              <span className="flex -space-x-3">
+                {s.ex.slice(0, 3).map((e) => EX[e.id] && <Vignette key={e.id} id={e.id} className="size-11 rounded-[12px] ring-2 ring-card" />)}
+              </span>
+            </ViewTransition>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[16px] font-semibold tracking-[-0.01em]">{s.nom}</span>
+              <span className="block truncate text-[12.5px] text-muted-foreground">
+                {s.ex.length} exercice{s.ex.length > 1 ? "s" : ""}{s.blocs?.length ? ` + ${s.blocs.length} cardio` : ""} · environ {dureeSeance(s)} min · {musclesDe(s.ex.map((e) => e.id)).slice(0, 3).join(", ")}
+              </span>
+              {absents > 0 && <span className="block text-[12px] text-destructive">{absents} hors de ton matériel</span>}
+            </span>
+          </button>
+          <button onClick={() => partagerSeance(i)} aria-label="Partager" className="grid w-12 place-items-center border-l border-border/70 text-muted-foreground">
+            {s.code ? <CheckIcon className="size-5" /> : <ExportIcon className="size-5" />}
+          </button>
+        </div>
+      </LigneBalayable>
+    );
   };
 
   return (
@@ -70,35 +104,15 @@ export function MesSeances() {
           </div>
         )}
 
-        {etat.SEANCES.length > 0 && (
-          <Groupe cle="muscu" titre="Musculation" icone={<BarbellIcon className="size-5" weight="fill" />} noms={etat.SEANCES.map((s) => s.nom)}>
-            {etat.SEANCES.map((s, i) => {
-              const absents = s.ex.filter((e) => !dispoDeclare(etat.A, e.id)).length;
-              return (
-                <LigneBalayable key={i + s.nom} label={s.nom} onSupprimer={() => supprimer(i)}>
-                  <div className="flex items-stretch rounded-[20px] border border-border/80 bg-card">
-                    <button onClick={() => router.push(`/entrainement/seance?l=${i}`, AVANT)} className="flex min-w-0 flex-1 items-center gap-3 p-3 text-left">
-                      {/* même nom que dans l'en-tête de la séance : les vignettes s'y transforment */}
-                      <ViewTransition name={`vignettes-${i}`} share="morph" default="none">
-                        <span className="flex -space-x-3">
-                          {s.ex.slice(0, 3).map((e) => EX[e.id] && <Vignette key={e.id} id={e.id} className="size-11 rounded-[12px] ring-2 ring-card" />)}
-                        </span>
-                      </ViewTransition>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[16px] font-semibold tracking-[-0.01em]">{s.nom}</span>
-                        <span className="block truncate text-[12.5px] text-muted-foreground">
-                          {s.ex.length} exercice{s.ex.length > 1 ? "s" : ""} · environ {dureeEstimee(s.ex)} min · {musclesDe(s.ex.map((e) => e.id)).slice(0, 3).join(", ")}
-                        </span>
-                        {absents > 0 && <span className="block text-[12px] text-destructive">{absents} hors de ton matériel</span>}
-                      </span>
-                    </button>
-                    <button onClick={() => partagerSeance(i)} aria-label="Partager" className="grid w-12 place-items-center border-l border-border/70 text-muted-foreground">
-                      {s.code ? <CheckIcon className="size-5" /> : <ExportIcon className="size-5" />}
-                    </button>
-                  </div>
-                </LigneBalayable>
-              );
-            })}
+        {muscu.length > 0 && (
+          <Groupe cle="muscu" titre="Musculation" icone={<BarbellIcon className="size-5" weight="fill" />} noms={muscu.map((i) => etat.SEANCES[i].nom)}>
+            {muscu.map((i) => ligneMuscu(i))}
+          </Groupe>
+        )}
+
+        {combinees.length > 0 && (
+          <Groupe cle="combinees" titre="Combinées" icone={<StackIcon className="size-5" weight="fill" />} noms={combinees.map((i) => etat.SEANCES[i].nom)}>
+            {combinees.map((i) => ligneMuscu(i))}
           </Groupe>
         )}
 
@@ -136,23 +150,29 @@ export function MesSeances() {
         </div>
       </div>
 
-      <Dialog open={imp} onOpenChange={setImp}>
-        <DialogContent className="max-w-[360px] rounded-[22px]">
-          <DialogTitle>Importer une séance</DialogTitle>
-          <DialogDescription>Le code que t&apos;a transmis la personne qui partage la séance : cinq caractères.</DialogDescription>
-          <Input
-            value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-            onKeyDown={(e) => e.key === "Enter" && lancerImport()}
-            placeholder="AB12C"
-            maxLength={8}
-            autoCapitalize="characters"
-            autoComplete="off"
-            className="num h-12 text-center text-[24px] tracking-[0.3em]"
-          />
-          <Button size="lg" className="rounded-xl" onClick={lancerImport}>Importer</Button>
-        </DialogContent>
-      </Dialog>
+      <FeuillePartage partage={partage} onClose={() => setPartage(null)} />
+
+      {/* import : une feuille qui remonte du bas et reste au-dessus du clavier */}
+      <Drawer open={imp} onOpenChange={setImp} repositionInputs>
+        <DrawerContent>
+          <div className="px-5 pt-2 pb-[max(env(safe-area-inset-bottom),20px)]">
+            <DrawerTitle className="text-center text-[20px] font-bold">Importer une séance</DrawerTitle>
+            <DrawerDescription className="mt-1 text-center text-[13.5px] text-muted-foreground">Le code que t&apos;a transmis la personne qui partage la séance : cinq caractères.</DrawerDescription>
+            <Input
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              onKeyDown={(e) => e.key === "Enter" && lancerImport()}
+              placeholder="AB12C"
+              maxLength={8}
+              autoCapitalize="characters"
+              autoComplete="off"
+              aria-label="Code de la séance"
+              className="num mt-4 h-16 rounded-2xl text-center text-[34px] font-bold tracking-[0.3em]"
+            />
+            <Button variant="plate" size="xl" className="mt-3 w-full" onClick={lancerImport}>Importer</Button>
+          </div>
+        </DrawerContent>
+      </Drawer>
     </>
   );
 }

@@ -31,14 +31,43 @@ const NOM_PHASE: Record<TypePhase, string> = { echauf: "Échauffement", effort: 
    cet écran ouvre une séance enregistrée (?s=index), et démarre aussitôt avec &go=1. */
 function Cardio() {
   const q = useSearchParams();
-  const s = q.get("s");
+  const s = q.get("s"), l = q.get("l"), b = q.get("b");
+  if (l != null && b != null) return <PreparationBloc i={Number(l)} id={b} />;
   if (s == null) return <Redirige vers="/entrainement/assistant" force={{ type: "cardio" }} />;
-  return <Preparation i={Number(s)} go={q.get("go") === "1"} />;
+  return <PreparationSeance i={Number(s)} go={q.get("go") === "1"} />;
 }
 
-function Preparation({ i, go }: { i: number; go: boolean }) {
+/* Séance cardio enregistrée (SEANCES_CARDIO). */
+function PreparationSeance({ i, go }: { i: number; go: boolean }) {
   const muter = useRepere((s) => s.muter);
   const enregistree = useRepere((s) => s.etat.SEANCES_CARDIO?.[i]);
+  return (
+    <Preparation
+      source={enregistree} go={go} nomModifiable
+      sauver={(choix, nom) => muter((E) => { const s = E.SEANCES_CARDIO![i]; Object.assign(s, choix, { nom: nom.trim().slice(0, 60) || s.nom }); })}
+    />
+  );
+}
+
+/* Bloc cardio d'une séance combinée : ses réglages restent dans le bloc, et la
+   séance jouée est notée avec la référence du bloc (« fait aujourd'hui »). */
+function PreparationBloc({ i, id }: { i: number; id: string }) {
+  const muter = useRepere((s) => s.muter);
+  const seance = useRepere((s) => s.etat.SEANCES[i]);
+  const bloc = seance?.blocs?.find((x) => x.id === id);
+  return (
+    <Preparation
+      source={bloc && { nom: `Cardio · ${seance!.nom}`, f: bloc.f, m: bloc.m, n: bloc.n, r: bloc.r }} go={false} refBloc={id}
+      sauver={(choix) => muter((E) => { const x = E.SEANCES[i]?.blocs?.find((y) => y.id === id); if (x) Object.assign(x, choix); })}
+    />
+  );
+}
+
+type Source = { nom: string } & ChoixCardio;
+
+function Preparation({ source: enregistree, go, nomModifiable, refBloc, sauver }: {
+  source: Source | undefined; go: boolean; nomModifiable?: boolean; refBloc?: string; sauver: (c: ChoixCardio, nom: string) => void;
+}) {
   const [choix, setChoix] = useState<ChoixCardio | null>(() => (enregistree ? { f: enregistree.f, m: enregistree.m, n: enregistree.n, r: enregistree.r } : null));
   const [course, setCourse] = useState<Course | null>(() => (go && enregistree ? { debut: Date.now(), pause: null, cumulPause: 0, saut: 0 } : null));
   const [nom, setNom] = useState(enregistree?.nom ?? "");
@@ -55,20 +84,22 @@ function Preparation({ i, go }: { i: number; go: boolean }) {
   const titre = nom.trim() || enregistree.nom || nomSeanceCardio(choix.f, choix.m);
   const modifiee = nom.trim() !== enregistree.nom || JSON.stringify({ f: enregistree.f, m: enregistree.m, n: enregistree.n, r: enregistree.r }) !== JSON.stringify(choix);
 
-  if (course) return <Minuteur phases={phases} titre={titre} choix={choix} course={course} setCourse={setCourse} />;
+  if (course) return <Minuteur phases={phases} titre={titre} choix={choix} course={course} setCourse={setCourse} refBloc={refBloc} />;
 
   const I = ICONE_FORMAT[choix.f];
   return (
     <>
       <EnTete surtitre={<span className="flex items-center gap-1.5"><I className="size-3.5" weight="fill" />Cardio · {FORMATS[choix.f].nom}</span>} titre={titre} gauche={<Retour repli="/entrainement" />} />
       <div className="px-4 pb-32">
-        <section className="mb-6">
-          <h2 className="eyebrow mb-2 px-1">Nom de la séance</h2>
-          <Input value={nom} onChange={(e) => setNom(e.target.value)} maxLength={60} className="h-12 rounded-2xl bg-card text-[16px]" aria-label="Nom de la séance" />
-        </section>
+        {nomModifiable && (
+          <section className="mb-6">
+            <h2 className="eyebrow mb-2 px-1">Nom de la séance</h2>
+            <Input value={nom} onChange={(e) => setNom(e.target.value)} maxLength={60} className="h-12 rounded-2xl bg-card text-[16px]" aria-label="Nom de la séance" />
+          </section>
+        )}
         <ReglagesCardio choix={choix} onChange={setChoix} avecFormat={false} />
         {modifiee && (
-          <Button variant="soft" size="lg" className="mt-4 w-full rounded-xl" onClick={() => { muter((E) => { const s = E.SEANCES_CARDIO![i]; Object.assign(s, choix, { nom: nom.trim().slice(0, 60) || s.nom }); }); toast.success("Séance enregistrée"); }}>
+          <Button variant="soft" size="lg" className="mt-4 w-full rounded-xl" onClick={() => { sauver(choix, nom); toast.success("Séance enregistrée"); }}>
             Enregistrer ces réglages dans la séance
           </Button>
         )}
@@ -104,7 +135,7 @@ function bipsDe(P: Phase[], ecoule: number): Bip[] {
   return b;
 }
 
-function Minuteur({ phases, titre, choix, course, setCourse }: { phases: Phase[]; titre: string; choix: ChoixCardio; course: Course; setCourse: (c: Course | null) => void }) {
+function Minuteur({ phases, titre, choix, course, setCourse, refBloc }: { phases: Phase[]; titre: string; choix: ChoixCardio; course: Course; setCourse: (c: Course | null) => void; refBloc?: string }) {
   const muter = useRepere((s) => s.muter);
   const [maintenant, setMaintenant] = useState(course.debut);
   const termine = useRef(false);
@@ -122,7 +153,7 @@ function Minuteur({ phases, titre, choix, course, setCourse }: { phases: Phase[]
     setCourse(null);
     if (e < 60) return;
     const b = bilanCardio(phases, e);
-    muter((E) => { (E.CARDIO ??= []).push({ nom: titre, f: choix.f, m: choix.m, min: b.minutes, effort: b.effort, ts: Date.now() }); });
+    muter((E) => { (E.CARDIO ??= []).push({ nom: titre, f: choix.f, m: choix.m, min: b.minutes, effort: b.effort, ts: Date.now(), ...(refBloc ? { ref: refBloc } : {}) }); });
     try { navigator.vibrate?.([180, 90, 180]); } catch {}
     useCelebrer.getState().montrerBilan({
       titre,

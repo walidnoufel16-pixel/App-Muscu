@@ -4,7 +4,7 @@
    dans l'état) et pour une séance libre (?l=index). La barre d'onglets s'efface. */
 import { Suspense, useMemo, useState, ViewTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { InfoIcon, PencilSimpleIcon } from "@phosphor-icons/react";
+import { CheckIcon, HeartbeatIcon, InfoIcon, PencilSimpleIcon, PlayIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { EnTete } from "@/components/repere/en-tete";
@@ -20,9 +20,13 @@ import { AXES } from "@/lib/data/referentiels";
 import {
   alternativesDe, baseRPE, ctxLibre, ctxPlan, curId, espacementDe, key, musclesDe, nomPat, noRPE, rirTxt, rpeOf, sportsChoisis, titreSeance, typeSeance, week,
 } from "@/lib/logic/core";
-import { dureeEstimee, objCollation } from "@/lib/logic/assistant";
+import { objCollation } from "@/lib/logic/assistant";
 import * as act from "@/lib/logic/actions";
-import type { Journal } from "@/lib/logic/types";
+import type { BlocCardio, Journal } from "@/lib/logic/types";
+import type { Route } from "next";
+import { dureeTotale as dureeSeance, minutesBloc, ordre } from "@/lib/logic/combinee";
+import { FORMATS, MACHINES } from "@/lib/logic/cardio";
+import { ICONE_FORMAT } from "@/components/repere/reglages-cardio";
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
 import { useBrouillon } from "@/lib/brouillon";
@@ -207,19 +211,23 @@ function SeanceLibre({ i }: { i: number }) {
   const [sect, setSect] = useState<Partie>(1);
   const [ouvert, setOuvert] = useState<string | null>(null);
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);
+  const [maintenant] = useState(() => Date.now());
   const S = etat.SEANCES[i];
   if (!S) return <Introuvable />;
 
   const faux = { t: S.nom, x: S.ex.map((e) => [e.id, e.s, e.r, e.p, 0] as [string, number, number, string, number]) };
   const cles = S.ex.map((_, m) => ctxLibre(etat, i, m)?.k).filter((q): q is string => !!q);
-  const faits = cles.filter((k) => etat.LOG[k]?.done).length;
+  /* un bloc cardio est fait s'il a été joué aujourd'hui */
+  const blocFait = (id: string) => (etat.CARDIO || []).some((h) => h.ref === id && new Date(h.ts).toDateString() === new Date(maintenant).toDateString());
+  const blocs = S.blocs || [];
+  const faits = cles.filter((k) => etat.LOG[k]?.done).length + blocs.filter((b) => blocFait(b.id)).length;
   const modifier = () => { setLibre({ ...structuredClone(S), idx: i }); router.push("/entrainement/composer", AVANT); };
 
   return (
     <Cadre
-      surtitre={`Séance libre · ${S.ex.length} exercices · environ ${dureeEstimee(S.ex)} min`}
+      surtitre={`${blocs.length ? "Séance combinée" : "Séance libre"} · ${S.ex.length} exercices${blocs.length ? ` + ${blocs.length} cardio` : ""} · environ ${dureeSeance(S)} min`}
       titre={S.nom}
-      faits={faits} total={cles.length}
+      faits={faits} total={cles.length + blocs.length}
       sect={sect} setSect={setSect}
       actions={<Button variant="ghost" size="sm" className="text-[15px] text-plate-ink" onClick={modifier}><PencilSimpleIcon className="size-4" />Modifier</Button>}
       entete={
@@ -237,7 +245,9 @@ function SeanceLibre({ i }: { i: number }) {
       {sect === 2 && <Collation obj={objCollation(etat.A, S)} onChanger={(o) => muter((E) => { E.SEANCES[i].colObj = o; })} />}
       {sect === 1 && (
         <div className={cn("flex flex-col gap-2.5 px-4", premiere && "entree")}>
-          {S.ex.map((e, j) => {
+          {ordre(S).map((el) => {
+            if (el.t === "bloc") return <BlocSeance key={el.b.id} b={el.b} fait={blocFait(el.b.id)} onLancer={() => router.push(`/entrainement/cardio?l=${i}&b=${el.b.id}` as Route, AVANT)} />;
+            const e = el.e, j = el.i;
             const c = ctxLibre(etat, i, j);
             if (!c) return null;
             const x = EX[e.id], L = etat.LOG[c.k], r = noRPE(e.id) ? 0 : 8;
@@ -284,5 +294,25 @@ export default function PageSeance() {
     <Suspense>
       <Seance />
     </Suspense>
+  );
+}
+
+/* Bloc cardio dans une séance combinée : il se lance dans le minuteur cardio. */
+function BlocSeance({ b, fait, onLancer }: { b: BlocCardio; fait: boolean; onLancer: () => void }) {
+  const I = ICONE_FORMAT[b.f];
+  return (
+    <div className={cn("flex items-center gap-3.5 rounded-[20px] border p-3", fait ? "border-plate/60 bg-card" : "border-plate/40 bg-plate-soft")}>
+      <span className="grid size-14 shrink-0 place-items-center rounded-[14px] bg-plate text-plate-foreground"><I className="size-7" weight="fill" /></span>
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.1em] text-plate-ink uppercase"><HeartbeatIcon className="size-3.5" weight="fill" />Bloc cardio</span>
+        <span className="truncate text-[16px] font-semibold tracking-[-0.01em]">{FORMATS[b.f].nom}</span>
+        <span className="truncate text-[12.5px] text-muted-foreground">{MACHINES[b.m].nom} · {minutesBloc(b)} min{fait ? " · fait aujourd'hui" : ""}</span>
+      </span>
+      {fait ? (
+        <span className="grid size-9 place-items-center rounded-full bg-plate text-plate-foreground" aria-label="Fait aujourd'hui"><CheckIcon className="size-4" weight="bold" /></span>
+      ) : (
+        <Button variant="plate" size="sm" className="rounded-full px-4" onClick={onLancer}><PlayIcon weight="fill" />Lancer</Button>
+      )}
+    </div>
   );
 }
