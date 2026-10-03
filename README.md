@@ -10,7 +10,9 @@ Application web (PWA) de musculation : programme personnalisé sur 8 semaines, p
 
 ```
 web/                    l'app (Next.js, TypeScript)
-  app/                  écrans : plan, séances, assistant, composeur, explorer, compte, questionnaire…
+  app/                  écrans, en trois onglets : entrainement (séance du jour, programme, séance,
+                        assistant, composeur), exercices, profil ; plus questionnaire et bienvenue.
+                        Les anciennes adresses (/plan, /seances, /explorer, /compte) redirigent.
   components/ui/        composants shadcn/ui
   components/repere/    composants de l'app (carte d'exercice, tableau des séries, minuteur…)
   lib/data/             bibliothèque : 231 exercices, référentiels, schéma du corps

@@ -23,7 +23,7 @@ const errs = []; pg.on("pageerror", (e) => errs.push(e.message));
 const ok = (c, m) => { console.log(c ? "OK  " : "ÉCHEC", m); if (!c) process.exitCode = 1; };
 
 /* Historique des semaines 1 et 2 sur le premier exercice de la séance, pour qu'un record soit possible. */
-await pg.goto("http://localhost:8804/plan/");
+await pg.goto("http://localhost:8804/entrainement/seance/");
 await pg.waitForSelector("#ex-2\\|0\\|0");
 await pg.evaluate(() => {
   const s = JSON.parse(localStorage.getItem("palier.state.v1")), ex = document.getElementById("ex-2|0|0").dataset.ex;
@@ -77,10 +77,10 @@ await pg.getByRole("button", { name: "Terminer" }).click();
 await pg.waitForTimeout(600);
 
 // séances libres : les vignettes deviennent l'en-tête
-await pg.locator("nav a", { hasText: "Séances" }).click();
+await pg.goto("http://localhost:8804/entrainement/");
 await pg.waitForTimeout(900);
 await pg.getByText("Épaules · Triceps", { exact: true }).click();
 await pg.waitForTimeout(1200);
-ok(/\/seances\/seance\//.test(pg.url()), "séance libre ouverte");
+ok(/\/entrainement\/seance\/\?l=0/.test(pg.url()), "séance libre ouverte");
 console.log("erreurs:", JSON.stringify(errs));
 await ctx.close(); await b.close(); srv.close();

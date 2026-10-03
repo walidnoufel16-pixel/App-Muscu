@@ -9,23 +9,9 @@ import { messageErreur, sb, valideMail } from "@/lib/supabase";
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
 import { cn } from "@/lib/utils";
+import { LogoTuile } from "@/components/repere/logo";
 
 type Etape = "accueil" | "compte" | "choix" | "recup" | "code";
-
-/* Barre chargée : la signature visuelle de Repère. */
-function Barre() {
-  return (
-    <svg viewBox="30 140 452 232" className="w-full max-w-[300px]" role="img" aria-label="Barre chargée">
-      <rect x="40" y="244" width="432" height="24" rx="12" className="fill-foreground/25" />
-      <rect x="96" y="150" width="46" height="212" rx="12" className="fill-foreground" />
-      <rect x="150" y="176" width="36" height="160" rx="10" className="fill-plate" />
-      <rect x="194" y="226" width="16" height="60" rx="5" className="fill-foreground/40" />
-      <rect x="370" y="150" width="46" height="212" rx="12" className="fill-foreground" />
-      <rect x="326" y="176" width="36" height="160" rx="10" className="fill-plate" />
-      <rect x="302" y="226" width="16" height="60" rx="5" className="fill-foreground/40" />
-    </svg>
-  );
-}
 
 function Bienvenue() {
   const router = useRouter();
@@ -87,10 +73,10 @@ function Bienvenue() {
       {etape === "accueil" && (
         <>
           <div className="mt-6 flex flex-1 flex-col">
-            <div className="eyebrow">Musculation · piloté à l&apos;effort</div>
+            <LogoTuile className="size-20 animate-[medaille_.8s_cubic-bezier(.3,1.5,.5,1)_both] shadow-[0_18px_40px_-18px_#2346c4]" />
+            <div className="eyebrow mt-7">Musculation · piloté à l&apos;effort</div>
             <h1 className="mt-2 text-[56px] leading-[.95] font-bold tracking-[-0.04em]">Repère</h1>
-            <p className="mt-3 text-[19px] leading-snug font-medium">Ton point de repère à la salle.</p>
-            <div className="my-8 flex justify-center"><Barre /></div>
+            <p className="mt-3 mb-8 text-[19px] leading-snug font-medium">Ton point de repère à la salle.</p>
             <ul className="flex flex-col gap-3.5">
               {[
                 [CalendarDotsIcon, "Un plan sur huit semaines", "Un effort qui monte chaque semaine"],
@@ -154,7 +140,7 @@ function Bienvenue() {
             <span className="mt-2 block text-[14px] leading-relaxed text-background/75">Une douzaine de questions, puis un cycle complet qui suit tes charges et fait monter l&apos;effort semaine après semaine. C&apos;est le mode qui te fait progresser.</span>
             <span className="mt-3 block text-[13px] font-medium text-plate">Compter trois minutes →</span>
           </button>
-          <button onClick={() => router.push("/seances", AVANT)} className="mt-3 rounded-[24px] border bg-card p-5 text-left active:scale-[.99]">
+          <button onClick={() => router.push("/entrainement", AVANT)} className="mt-3 rounded-[24px] border bg-card p-5 text-left active:scale-[.99]">
             <b className="text-[19px] font-semibold">Une séance à la carte</b>
             <span className="mt-2 block text-[14px] leading-relaxed text-muted-foreground">Tu choisis les muscles, Repère compose, ou tu choisis tes exercices un par un. Aucune question préalable.</span>
             <span className="mt-3 block text-[13px] font-medium">Prêt tout de suite →</span>

@@ -17,7 +17,7 @@ const errs = []; pg.on("pageerror", (e) => errs.push(e.message));
 await pg.goto("http://localhost:8802/"); await pg.waitForTimeout(1500);
 const r = { url: pg.url(), sombre: await pg.evaluate(() => document.documentElement.classList.contains("dark")), titre: await pg.textContent("h1") };
 r.etat = await pg.evaluate(() => { const s = JSON.parse(localStorage.getItem("palier.state.v1")); return { sport: s.A.sport, sportFreq: s.A.sportFreq, blessure: s.A.blessure, nom: s.SEANCES[0].nom, log: Object.keys(s.LOG), wk: s.wk, swapp: s.SWAPP }; });
-await pg.goto("http://localhost:8802/seances/"); await pg.waitForTimeout(800);
+await pg.goto("http://localhost:8802/entrainement/"); await pg.waitForTimeout(800);
 r.seance = await pg.textContent("main");
 r.seance = r.seance.includes("Abdos b") ? "ok" : r.seance.slice(0, 120);
 console.log(JSON.stringify(r), "erreurs:", JSON.stringify(errs));

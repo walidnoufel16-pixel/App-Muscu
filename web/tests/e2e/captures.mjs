@@ -3,7 +3,7 @@ import { chromium } from "@playwright/test";
 import { servir } from "./serveur.mjs";
 const OUT = new URL("../../out/", import.meta.url).pathname;
 const DEST = process.env.DEST || "/tmp";
-const pages = (process.env.PAGES || "/plan/").split(",");
+const pages = (process.env.PAGES || "/entrainement/").split(",");
 const srv = servir(OUT, 8800);
 const demo = {
   A: { objectif: 0, regularite: 3, socle: 2, axe: 0, materiel: 0, acc: [], sexe: 0, sport: [1], sportFreq: { 1: 1 } },
