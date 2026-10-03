@@ -13,7 +13,8 @@ const lcg = (s: number) => () => ((s = (s * 1103515245 + 12345) % 2147483648) / 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const F = fx as any;
 
-describe.each(F.profils.map((p: unknown, i: number) => [i, p]))("profil %i", (_i, p) => {
+const PROFILS: [number, unknown][] = F.profils.map((p: unknown, i: number) => [i, p]);
+describe.each(PROFILS)("profil %i", (_i, p) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const P = p as any;
   const E: Etat = { A: P.A, PLAN: P.PLAN, SWAP: P.SWAP, SWAPP: P.SWAPP, LOG: structuredClone(P.LOG), SEANCES: [], wk: 0, day: 0, FINI: false };
@@ -44,7 +45,7 @@ describe.each(F.profils.map((p: unknown, i: number) => [i, p]))("profil %i", (_i
 });
 
 describe("assistant", () => {
-  it.each(F.assistant.map((c: unknown, i: number) => [i, c]))("cas %i : même séance à hasard égal", (_i, c) => {
+  it.each(F.assistant.map((c: unknown, i: number) => [i, c]) as [number, unknown][])("cas %i : même séance à hasard égal", (_i, c) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const C = c as any;
     const ex = construireSeance(C.m, C.d, C.o, C.sel, lcg(C.seed));

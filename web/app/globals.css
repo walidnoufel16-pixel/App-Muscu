@@ -37,6 +37,7 @@
   --plate: #f2c230;               /* disque de fonte */
   --plate-foreground: #141210;
   --plate-soft: color-mix(in oklab, var(--plate) 18%, transparent);
+  --plate-ink: #9a7300;           /* jaune lisible sur fond clair */
   --success: #2f9e5f;
   --success-soft: color-mix(in oklab, var(--success) 14%, transparent);
   --rpe7: #2f9e5f;
@@ -66,6 +67,7 @@
 
   --plate: #f5c94a;
   --plate-foreground: #141210;
+  --plate-ink: #f5c94a;
   --success: #3fbf75;
 }
 
@@ -102,6 +104,7 @@
   --color-plate: var(--plate);
   --color-plate-foreground: var(--plate-foreground);
   --color-plate-soft: var(--plate-soft);
+  --color-plate-ink: var(--plate-ink);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --color-rpe7: var(--rpe7);
@@ -158,4 +161,11 @@
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Photos départ / fin qui alternent en fondu (fiche d'exercice). */
+@keyframes duo {
+  0%, 38% { opacity: 0; }
+  50%, 88% { opacity: 1; }
+  100% { opacity: 0; }
 }

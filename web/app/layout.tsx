@@ -4,6 +4,7 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { ThemeProvider } from "@/components/repere/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { AppShell } from "@/components/repere/app-shell";
 import "./globals.css";
 
 /* Chiffres de séance : condensés, pour les charges, répétitions et le minuteur. */
@@ -44,7 +45,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full">
         <ThemeProvider>
-          {children}
+          <AppShell>{children}</AppShell>
           <Toaster position="top-center" />
         </ThemeProvider>
       </body>

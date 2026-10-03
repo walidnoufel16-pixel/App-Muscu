@@ -45,7 +45,7 @@ export const freqDe = (A: Reponses, i: number) => (A.sportFreq || {})[i] ?? 0;
 export const sportsTotal = (A: Reponses) => sportsChoisis(A).reduce((n, i) => n + freqDe(A, i) + 1, 0);
 export const aTrait = (A: Reponses, t: string) => sportsInfo(A).some((s) => (s as Record<string, unknown>)[t]);
 export const maxTrait = (A: Reponses, t: string) =>
-  sportsInfo(A).reduce((m, s) => Math.max(m, ((s as Record<string, number>)[t] as number) || 0), 0);
+  sportsInfo(A).reduce((m, s) => Math.max(m, ((s as unknown as Record<string, number>)[t]) || 0), 0);
 export const groupes = (A: Reponses) => GROUPES[A.sexe === 0 ? "h" : A.sexe === 1 ? "f" : "n"];
 
 /* ---------------- semaine ---------------- */
