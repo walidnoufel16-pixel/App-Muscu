@@ -87,6 +87,7 @@ type Store = {
   pousser: () => Promise<void>;
   setUser: (u: User | null) => void;
   toutEffacer: () => Promise<void>;
+  changerDeCompte: () => Promise<void>;
   partager: (i: number) => Promise<{ code?: string; erreur?: string }>;
   importer: (code: string) => Promise<{ nom?: string; absents?: number; erreur?: string }>;
 };
@@ -207,6 +208,20 @@ export const useRepere = create<Store>((set, get) => ({
     // Rechargement complet voulu : repartir d'un état vierge.
     // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     location.href = "/";
+  },
+
+  /* Changer de compte : dernière synchronisation, déconnexion, puis le
+     téléphone est vidé. Les données restent sur le serveur, rattachées au
+     compte qu'on quitte ; elles reviennent en s'y reconnectant. */
+  async changerDeCompte() {
+    if (minuteurPush) { clearTimeout(minuteurPush); minuteurPush = null; }
+    const c = await sb();
+    if (get().user) {
+      await get().pousser();
+      try { await c?.auth.signOut(); } catch {}
+    }
+    try { localStorage.removeItem(SKEY); localStorage.removeItem(PKEY); } catch {}
+    set({ etat: vide(), user: null, pseudo: "", sync: null, session: "aucune" });
   },
 
   /* ---------- partage d'une séance ---------- */

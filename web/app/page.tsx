@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useRepere } from "@/lib/store";
 
 /* Aiguillage : un lien de séance partagée (?s=CODE) l'importe ; sinon, sans
-   compte, l'accueil ; avec un cycle, le plan ; sinon les séances. */
+   compte ni données, l'accueil ; sinon Entraînement. */
 export default function Racine() {
   const router = useRouter();
   const { user, etat, importer, session } = useRepere();
@@ -19,12 +19,12 @@ export default function Racine() {
       importer(code).then((r) => {
         if (r.erreur) toast.error(r.erreur);
         else toast.success(`« ${r.nom} » a été ajoutée à tes séances`);
-        router.replace("/seances");
+        router.replace("/entrainement");
       });
       return;
     }
     if (!user && !etat.FINI && !etat.SEANCES.length) router.replace("/bienvenue");
-    else router.replace(etat.FINI || etat.PLAN ? "/plan" : "/seances");
+    else router.replace("/entrainement");
   }, [router, user, etat.FINI, etat.PLAN, etat.SEANCES.length, importer, session]);
   return null;
 }

@@ -10,7 +10,7 @@ import { accDeclares, freqDe, sportsChoisis, sportsTotal } from "@/lib/logic/cor
 import { buildQ, prioNoms, repondue, sportWarn } from "@/lib/logic/questionnaire";
 import type { Reponses } from "@/lib/logic/types";
 import { useRepere } from "@/lib/store";
-import { AVANT } from "@/lib/nav";
+import { ARRIERE, AVANT } from "@/lib/nav";
 import { genererCycle } from "@/lib/generer";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
@@ -37,7 +37,7 @@ export default function PageQuestionnaire() {
     const i = Q.findIndex((x) => x.k === q.k);
     if (i > 0) { setQi(i - 1); majA((a) => { a.reprise = i - 1; }); return; }
     if (await confirmer({ titre: "Quitter le questionnaire ?", texte: "Tes réponses sont gardées : tu pourras reprendre où tu en étais.", ok: "Quitter" }))
-      router.push(etat.FINI ? "/plan/synthese" : "/bienvenue");
+      router.replace(etat.FINI ? "/profil" : "/bienvenue", ARRIERE);
   };
 
   const lancerGeneration = async (forcer = false) => {
@@ -50,7 +50,7 @@ export default function PageQuestionnaire() {
     muter((E) => { E.PLAN = r.plan; E.FINI = true; });
     await new Promise((z) => setTimeout(z, 380));
     if (r.erreur) await dire("Génération par IA indisponible", r.erreur + "\n\nLe programme affiché vient des règles intégrées.");
-    router.push("/plan/synthese", AVANT);
+    router.replace("/entrainement/programme", AVANT);
   };
 
   /* ----- choix ----- */

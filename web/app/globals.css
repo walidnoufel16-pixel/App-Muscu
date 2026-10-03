@@ -14,30 +14,32 @@
 :root {
   --radius: 0.75rem;
 
-  --background: #f2f2f4;          /* fond groupé, façon iOS */
-  --foreground: #0a0a0b;
+  /* neutres légèrement bleutés, accordés au cobalt */
+  --background: #f2f3f7;          /* fond groupé, façon iOS */
+  --foreground: #0b0d12;
   --card: #ffffff;
-  --card-foreground: #0a0a0b;
+  --card-foreground: #0b0d12;
   --popover: #ffffff;
-  --popover-foreground: #0a0a0b;
-  --primary: #111113;
-  --primary-foreground: #fafafa;
-  --secondary: #e9e9ec;
-  --secondary-foreground: #111113;
-  --muted: #ececef;
-  --muted-foreground: #6b6b74;
-  --accent: #ececef;
-  --accent-foreground: #111113;
+  --popover-foreground: #0b0d12;
+  --primary: #0f1218;
+  --primary-foreground: #f8f9fb;
+  --secondary: #e8eaf0;
+  --secondary-foreground: #0f1218;
+  --muted: #eceef3;
+  --muted-foreground: #6a7180;
+  --accent: #eceef3;
+  --accent-foreground: #0f1218;
   --destructive: #e5484d;
-  --border: #e2e2e6;
-  --input: #dcdce1;
-  --ring: #a1a1aa;
+  --border: #e1e4eb;
+  --input: #d6dae3;
+  --ring: #9aa3b5;
 
-  /* identité */
-  --plate: #f2c230;               /* disque de fonte */
-  --plate-foreground: #141210;
-  --plate-soft: color-mix(in oklab, var(--plate) 18%, transparent);
-  --plate-ink: #9a7300;           /* jaune lisible sur fond clair */
+  /* identité : cobalt, la couleur du disque de 20 kg.
+     (Les jetons gardent le nom « plate », le disque de fonte.) */
+  --plate: #2f5bea;
+  --plate-foreground: #ffffff;
+  --plate-soft: color-mix(in oklab, var(--plate) 12%, transparent);
+  --plate-ink: #2448c8;           /* cobalt lisible en texte sur fond clair */
   --success: #2f9e5f;
   --success-soft: color-mix(in oklab, var(--success) 14%, transparent);
   --rpe7: #2f9e5f;
@@ -46,28 +48,29 @@
 }
 
 .dark {
-  --background: #09090b;
-  --foreground: #f4f4f5;
-  --card: #141417;
-  --card-foreground: #f4f4f5;
-  --popover: #18181b;
-  --popover-foreground: #f4f4f5;
-  --primary: #f4f4f5;
-  --primary-foreground: #111113;
-  --secondary: #222226;
-  --secondary-foreground: #f4f4f5;
-  --muted: #1d1d21;
-  --muted-foreground: #9a9aa4;
-  --accent: #232328;
-  --accent-foreground: #f4f4f5;
+  --background: #0a0b0f;
+  --foreground: #f3f4f7;
+  --card: #14161c;
+  --card-foreground: #f3f4f7;
+  --popover: #191c23;
+  --popover-foreground: #f3f4f7;
+  --primary: #f3f4f7;
+  --primary-foreground: #0f1218;
+  --secondary: #20232c;
+  --secondary-foreground: #f3f4f7;
+  --muted: #1c1f27;
+  --muted-foreground: #9097a6;
+  --accent: #222632;
+  --accent-foreground: #f3f4f7;
   --destructive: #ff5c61;
-  --border: #26262b;
-  --input: #2e2e34;
-  --ring: #52525b;
+  --border: #252935;
+  --input: #2f3442;
+  --ring: #4f5668;
 
-  --plate: #f5c94a;
-  --plate-foreground: #141210;
-  --plate-ink: #f5c94a;
+  --plate: #5b7cff;
+  --plate-foreground: #ffffff;
+  --plate-soft: color-mix(in oklab, var(--plate) 17%, transparent);
+  --plate-ink: #8aa2ff;
   --success: #3fbf75;
 }
 
