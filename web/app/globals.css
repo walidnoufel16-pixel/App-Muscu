@@ -1,0 +1,161 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================
+   Repère — système de design
+   Base shadcn (gris zinc, bordures fines, rayon 12 px) ; une seule
+   couleur d'accent, le jaune « disque de fonte », utilisée avec
+   parcimonie. Les chiffres (charges, répétitions, minuteur) ont leur
+   propre police condensée : c'est là que l'app a du caractère.
+   ============================================================ */
+
+:root {
+  --radius: 0.75rem;
+
+  --background: #f2f2f4;          /* fond groupé, façon iOS */
+  --foreground: #0a0a0b;
+  --card: #ffffff;
+  --card-foreground: #0a0a0b;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0b;
+  --primary: #111113;
+  --primary-foreground: #fafafa;
+  --secondary: #e9e9ec;
+  --secondary-foreground: #111113;
+  --muted: #ececef;
+  --muted-foreground: #6b6b74;
+  --accent: #ececef;
+  --accent-foreground: #111113;
+  --destructive: #e5484d;
+  --border: #e2e2e6;
+  --input: #dcdce1;
+  --ring: #a1a1aa;
+
+  /* identité */
+  --plate: #f2c230;               /* disque de fonte */
+  --plate-foreground: #141210;
+  --plate-soft: color-mix(in oklab, var(--plate) 18%, transparent);
+  --success: #2f9e5f;
+  --success-soft: color-mix(in oklab, var(--success) 14%, transparent);
+  --rpe7: #2f9e5f;
+  --rpe8: #e0a400;
+  --rpe9: #e5484d;
+}
+
+.dark {
+  --background: #09090b;
+  --foreground: #f4f4f5;
+  --card: #141417;
+  --card-foreground: #f4f4f5;
+  --popover: #18181b;
+  --popover-foreground: #f4f4f5;
+  --primary: #f4f4f5;
+  --primary-foreground: #111113;
+  --secondary: #222226;
+  --secondary-foreground: #f4f4f5;
+  --muted: #1d1d21;
+  --muted-foreground: #9a9aa4;
+  --accent: #232328;
+  --accent-foreground: #f4f4f5;
+  --destructive: #ff5c61;
+  --border: #26262b;
+  --input: #2e2e34;
+  --ring: #52525b;
+
+  --plate: #f5c94a;
+  --plate-foreground: #141210;
+  --success: #3fbf75;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-num: var(--font-num), var(--font-geist-sans), sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-plate: var(--plate);
+  --color-plate-foreground: var(--plate-foreground);
+  --color-plate-soft: var(--plate-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-rpe7: var(--rpe7);
+  --color-rpe8: var(--rpe8);
+  --color-rpe9: var(--rpe9);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    -webkit-tap-highlight-color: transparent;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "ss01", "cv11";
+    overscroll-behavior-y: none;
+  }
+  button {
+    cursor: pointer;
+  }
+}
+
+@layer utilities {
+  /* chiffres de séance : condensés, à largeur fixe */
+  .num {
+    font-family: var(--font-num);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+  }
+  .eyebrow {
+    @apply text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground;
+  }
+  .safe-top {
+    padding-top: max(env(safe-area-inset-top), 0px);
+  }
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
