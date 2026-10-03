@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowsClockwiseIcon, ArrowsLeftRightIcon, CaretDownIcon, DotsSixVerticalIcon, InfoIcon, MinusIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
+import { ArrowsClockwiseIcon, ArrowsLeftRightIcon, CaretDownIcon, CaretRightIcon, DotsSixVerticalIcon, HeartbeatIcon, InfoIcon, MinusIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EnTete } from "@/components/repere/en-tete";
@@ -16,9 +16,13 @@ import { confirmer } from "@/components/repere/confirmer";
 import { EX } from "@/lib/data/exercices";
 import { OBJS, PAS_REPOS } from "@/lib/data/referentiels";
 import { exoFiltre, musclesDe, nomPat, selDeclare } from "@/lib/logic/core";
-import { construireSeance, dureeEstimee, exParDefaut } from "@/lib/logic/assistant";
+import { construireSeance, exParDefaut } from "@/lib/logic/assistant";
 import * as act from "@/lib/logic/actions";
-import type { ExLibre } from "@/lib/logic/types";
+import type { BlocCardio, ExLibre } from "@/lib/logic/types";
+import { deplacer as deplacerElement, dureeTotale as dureeSeance, minutesBloc, nouveauBloc, ordre } from "@/lib/logic/combinee";
+import { FORMATS, MACHINES, niveauDe } from "@/lib/logic/cardio";
+import { ICONE_FORMAT, ReglagesCardio } from "@/components/repere/reglages-cardio";
+import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { useRepere } from "@/lib/store";
 import { ARRIERE, revenirA } from "@/lib/nav";
 import { Retour, useRetour } from "@/components/repere/retour";
@@ -39,6 +43,7 @@ export default function PageComposer() {
   const [q, setQ] = useState("");
   const liste = useRef<HTMLDivElement>(null);
   const [glisse, setGlisse] = useState<string | null>(null);
+  const [blocOuvert, setBlocOuvert] = useState<string | null>(null); // id du bloc cardio dont les réglages sont ouverts
 
   const retour = useRetour("/entrainement");
   const versEntrainement = () => revenirA("/entrainement", () => router.replace("/entrainement", ARRIERE));
@@ -67,7 +72,7 @@ export default function PageComposer() {
         if (j === pos) continue;
         const r = cartes[j].getBoundingClientRect(), mid = r.top + r.height / 2;
         if ((j < pos && e.clientY < mid) || (j > pos && e.clientY > mid)) {
-          useBrouillon.getState().majLibre((l) => { const t = l.ex.splice(pos, 1)[0]; l.ex.splice(j, 0, t); });
+          useBrouillon.getState().majLibre((l) => { const r = deplacerElement(l, pos, j); l.ex = r.ex; l.blocs = r.blocs; });
           tactile(4);
           break;
         }
@@ -79,9 +84,21 @@ export default function PageComposer() {
     document.addEventListener("pointercancel", fin);
   };
 
+  /* Blocs cardio : ajoutés à la fin, puis déplaçables comme un exercice. */
+  const ajouterBloc = () => {
+    tactile(8);
+    const derniere = etat.CARDIO?.at(-1)?.m;
+    const b = nouveauBloc(L.ex.length, "fractionne", derniere && derniere !== "pdc" ? derniere : "tapis", niveauDe(etat.A.regularite));
+    majLibre((l) => { (l.blocs ??= []).push(b); });
+    setBlocOuvert(b.id);
+  };
+  const blocActif = L.blocs?.find((b) => b.id === blocOuvert);
+  const majBloc = (id: string, c: Partial<BlocCardio>) => majLibre((l) => { const b = l.blocs?.find((x) => x.id === id); if (b) Object.assign(b, c); });
+  const retirerBloc = (id: string) => { majLibre((l) => { l.blocs = (l.blocs || []).filter((x) => x.id !== id); }); setBlocOuvert(null); };
+
   const enregistrer = () => {
     const nom = L.nom.trim() || "Séance libre";
-    const s = { nom, ex: L.ex, ...(L.obj != null ? { obj: L.obj } : {}), ...(L.colObj != null ? { colObj: L.colObj } : {}), ...(L.gen ? { gen: L.gen } : {}), ...(L.code ? { code: L.code } : {}) };
+    const s = { nom, ex: L.ex, ...(L.blocs?.length ? { blocs: L.blocs } : {}), ...(L.obj != null ? { obj: L.obj } : {}), ...(L.colObj != null ? { colObj: L.colObj } : {}), ...(L.gen ? { gen: L.gen } : {}), ...(L.code ? { code: L.code } : {}) };
     muter((E) => { if (L.idx != null) E.SEANCES[L.idx] = s; else E.SEANCES.push(s); });
     part.current = true;
     setLibre(null);
@@ -135,26 +152,33 @@ export default function PageComposer() {
 
         <section>
           <div className="eyebrow mb-2 px-1">
-            Ta séance · {L.ex.length} exercice{L.ex.length > 1 ? "s" : ""}{L.ex.length ? ` · environ ${dureeEstimee(L.ex)} min` : ""}
+            Ta séance · {L.ex.length} exercice{L.ex.length > 1 ? "s" : ""}
+            {L.blocs?.length ? ` + ${L.blocs.length} bloc${L.blocs.length > 1 ? "s" : ""} cardio` : ""}
+            {L.ex.length ? ` · environ ${dureeSeance(L)} min` : ""}
           </div>
           <div ref={liste} className="flex flex-col gap-2">
-            {L.ex.length ? L.ex.map((e, i) => (
+            {L.ex.length || L.blocs?.length ? ordre(L).map((x) => x.t === "ex" ? (
               <CarteCompo
-                key={e.id}
-                e={e} i={i} n={L.ex.length}
-                ouvert={ouv === e.id}
-                glisse={glisse === e.id}
-                onToggle={() => setOuv(ouv === e.id ? null : e.id)}
-                onSaisir={(ev) => saisir(ev, e.id)}
+                key={x.e.id}
+                e={x.e} i={x.i} n={L.ex.length}
+                ouvert={ouv === x.e.id}
+                glisse={glisse === x.e.id}
+                onToggle={() => setOuv(ouv === x.e.id ? null : x.e.id)}
+                onSaisir={(ev) => saisir(ev, x.e.id)}
                 regl={regl} reglRepos={reglRepos} deplacer={deplacer}
-                onFiche={() => setFiche({ id: e.id, idx: -1, pres: [e.s, e.r, e.p], libelle: "séance libre" })}
-                onRemplacer={() => setRemp(i)}
-                onRetirer={() => retirer(i)}
+                onFiche={() => setFiche({ id: x.e.id, idx: -1, pres: [x.e.s, x.e.r, x.e.p], libelle: "séance libre" })}
+                onRemplacer={() => setRemp(x.i)}
+                onRetirer={() => retirer(x.i)}
               />
+            ) : (
+              <CarteBloc key={x.b.id} b={x.b} glisse={glisse === "bloc-" + x.b.id} onSaisir={(ev) => saisir(ev, "bloc-" + x.b.id)} onOuvrir={() => setBlocOuvert(x.b.id)} />
             )) : (
               <p className="rounded-[20px] border border-dashed bg-card/50 p-5 text-center text-[14px] text-muted-foreground">Touche un exercice ci-dessous pour l&apos;ajouter.</p>
             )}
           </div>
+          <button onClick={ajouterBloc} className="mt-2 flex w-full items-center justify-center gap-2 rounded-[18px] border border-dashed border-plate/60 py-3 text-[14.5px] font-semibold text-plate-ink active:scale-[.99]">
+            <PlusIcon className="size-4" weight="bold" />Bloc cardio
+          </button>
         </section>
 
         <section className="flex flex-col gap-3">
@@ -174,6 +198,21 @@ export default function PageComposer() {
       </div>
 
       <FicheExercice fiche={fiche} onClose={() => setFiche(null)} />
+      <Drawer open={!!blocActif} onOpenChange={(o) => !o && setBlocOuvert(null)}>
+        <DrawerContent className="max-h-[92dvh]">
+          {blocActif && (
+            <div className="overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),20px)]">
+              <DrawerTitle className="mt-2 px-1 text-[22px] font-bold">Bloc cardio</DrawerTitle>
+              <DrawerDescription className="mt-1 mb-4 px-1 text-[13.5px] text-muted-foreground">Il se place où tu veux dans la séance : fais-le glisser par sa poignée.</DrawerDescription>
+              <ReglagesCardio choix={blocActif} onChange={(c) => majBloc(blocActif.id, c)} />
+              <div className="mt-5 grid grid-cols-2 gap-2">
+                <Button variant="soft" size="lg" className="rounded-xl text-destructive" onClick={() => retirerBloc(blocActif.id)}><TrashIcon />Retirer</Button>
+                <Button variant="plate" size="lg" className="rounded-xl" onClick={() => setBlocOuvert(null)}>OK</Button>
+              </div>
+            </div>
+          )}
+        </DrawerContent>
+      </Drawer>
       <Remplacer
         ouvert={remp != null && !!rempCur}
         onClose={() => setRemp(null)}
@@ -262,3 +301,25 @@ function Outil({ onClick, icone, label }: { onClick: () => void; icone: React.Re
   );
 }
 
+/* Carte d'un bloc cardio dans le composeur : poignée, résumé, réglages au toucher. */
+function CarteBloc({ b, glisse, onSaisir, onOuvrir }: { b: BlocCardio; glisse: boolean; onSaisir: (ev: React.PointerEvent) => void; onOuvrir: () => void }) {
+  const I = ICONE_FORMAT[b.f];
+  return (
+    <div data-carte={"bloc-" + b.id} className={cn("overflow-hidden rounded-[20px] border bg-plate-soft transition-shadow", glisse ? "z-10 border-plate shadow-[0_14px_34px_-14px_rgba(0,0,0,.45)]" : "border-plate/40")}>
+      <div className="flex items-center">
+        <button onPointerDown={onSaisir} aria-label="Glisser pour déplacer" className="grid h-16 w-8 shrink-0 cursor-grab touch-none place-items-center text-plate-ink/70 active:cursor-grabbing">
+          <DotsSixVerticalIcon className="size-5" />
+        </button>
+        <button onClick={onOuvrir} className="flex min-w-0 flex-1 items-center gap-3 py-3 pr-3 text-left" aria-label={`Bloc cardio : ${FORMATS[b.f].nom}, réglages`}>
+          <span className="grid size-14 shrink-0 place-items-center rounded-[14px] bg-plate text-plate-foreground"><I className="size-7" weight="fill" /></span>
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.1em] text-plate-ink uppercase"><HeartbeatIcon className="size-3.5" weight="fill" />Bloc cardio</span>
+            <span className="truncate text-[16px] font-semibold tracking-[-0.01em]">{FORMATS[b.f].nom}</span>
+            <span className="truncate text-[12.5px] text-muted-foreground">{MACHINES[b.m].nom} · {minutesBloc(b)} min</span>
+          </span>
+          <CaretRightIcon className="size-5 shrink-0 text-muted-foreground" />
+        </button>
+      </div>
+    </div>
+  );
+}

@@ -14,6 +14,7 @@ import { EX } from "@/lib/data/exercices";
 import { sb, SB_KEY, SB_URL } from "@/lib/supabase";
 import type { Etat, Reponses, SeanceLibre } from "@/lib/logic/types";
 import { decoderCardio, encoderCardio } from "@/lib/logic/cardio";
+import { decoderBlocs, encoderBlocs } from "@/lib/logic/combinee";
 
 export const SKEY = "palier.state.v1";
 export const PKEY = "palier.pseudo.v1";
@@ -91,7 +92,7 @@ type Store = {
   setUser: (u: User | null) => void;
   toutEffacer: () => Promise<void>;
   changerDeCompte: () => Promise<void>;
-  partager: (i: number) => Promise<{ code?: string; erreur?: string }>;
+  partager: (i: number) => Promise<{ code?: string; erreur?: string; avertissement?: string }>;
   partagerCardio: (i: number) => Promise<{ code?: string; erreur?: string }>;
   importer: (code: string) => Promise<{ nom?: string; absents?: number; erreur?: string; cardio?: boolean }>;
 };
@@ -248,9 +249,12 @@ export const useRepere = create<Store>((set, get) => ({
     const s = get().etat.SEANCES[i];
     if (!s) return { erreur: "Séance introuvable." };
     if (s.code) return { code: s.code };
-    const r = await publier(s.nom, s.ex.map((e) => ({ id: e.id, s: e.s, r: e.r, p: e.p }))); // jamais les charges
+    /* Séance combinée : les blocs cardio voyagent aussi, s'il reste de la place (12 éléments au plus). */
+    const blocs = encoderBlocs(s.blocs);
+    const place = s.ex.length + blocs.length <= 12;
+    const r = await publier(s.nom, [...s.ex.map((e) => ({ id: e.id, s: e.s, r: e.r, p: e.p })), ...(place ? blocs : [])]); // jamais les charges
     if (r.code) get().muter((e) => { e.SEANCES[i].code = r.code!; });
-    return r;
+    return blocs.length && !place && r.code ? { ...r, avertissement: "Séance trop longue : les blocs cardio n'ont pas pu être joints au partage." } : r;
   },
 
   /* Une séance cardio voyage dans le même format (voir encoderCardio). */
@@ -284,7 +288,8 @@ export const useRepere = create<Store>((set, get) => ({
         }));
       if (!ex.length) return { erreur: "Cette séance ne contient aucun exercice reconnu." };
       const nom = sansBalise(data.nom).slice(0, 60) || "Séance";
-      get().muter((e) => { e.SEANCES.push({ nom: nom + " (reçue)", ex } as SeanceLibre); });
+      const blocs = decoderBlocs(data.ex).map((b) => ({ ...b, apres: Math.min(b.apres, ex.length) }));
+      get().muter((e) => { e.SEANCES.push({ nom: nom + " (reçue)", ex, ...(blocs.length ? { blocs } : {}) } as SeanceLibre); });
       return { nom, absents: 0 };
     } catch (e) {
       return { erreur: "Import impossible : " + (e as Error).message };

@@ -26,8 +26,8 @@ export function Confirmateur() {
         {q && (
           <>
             <div className="px-5 pt-5 pb-4 text-center">
-              <DialogTitle className="text-[17px] font-semibold">{q.titre}</DialogTitle>
-              <DialogDescription className="mt-1.5 text-[14px] leading-relaxed whitespace-pre-line text-muted-foreground">{q.texte || ""}</DialogDescription>
+              <DialogTitle className="text-[17px] font-semibold [overflow-wrap:anywhere]">{q.titre}</DialogTitle>
+              <DialogDescription className="mt-1.5 text-[14px] leading-relaxed [overflow-wrap:anywhere] whitespace-pre-line text-muted-foreground">{q.texte || ""}</DialogDescription>
             </div>
             <div className={q.seulOk ? "p-3 pt-0" : "grid grid-cols-2 gap-2 p-3 pt-0"}>
               {!q.seulOk && <Button variant="soft" size="lg" className="rounded-xl" onClick={() => fermer(false)}>{q.non || "Annuler"}</Button>}

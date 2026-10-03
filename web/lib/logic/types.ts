@@ -43,7 +43,12 @@ export type SeanceLibre = {
   obj?: number;
   colObj?: number;
   gen?: { m: string[]; d: number; obj: number };
+  /* Blocs cardio d'une séance combinée, placés librement entre les exercices. */
+  blocs?: BlocCardio[];
 };
+
+/** Bloc cardio : `apres` = nombre d'exercices de musculation placés avant lui. */
+export type BlocCardio = { id: string; apres: number; f: FormatCardio; m: Machine; n: Niveau; r: Reglages };
 
 /* Réponses au questionnaire. */
 export type Reponses = {
@@ -80,9 +85,9 @@ export type Etat = {
   CARDIO?: HistoCardio[];
 };
 
-export type HistoCardio = { nom: string; f: FormatCardio; m: Machine; min: number; effort: number; ts: number };
+export type HistoCardio = { nom: string; f: FormatCardio; m: Machine; min: number; effort: number; ts: number; ref?: string };
 
-import type { FormatCardio, Machine, SeanceCardio } from "./cardio";
+import type { FormatCardio, Machine, Niveau, Reglages, SeanceCardio } from "./cardio";
 
 /* Séance de la semaine telle qu'affichée (plan IA converti, ou socle par défaut). */
 export type SeanceSemaine = {

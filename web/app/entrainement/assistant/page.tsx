@@ -6,7 +6,8 @@ import { Suspense } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { ReglagesCardio, type ChoixCardio } from "@/components/repere/reglages-cardio";
-import { niveauDe, nomSeanceCardio, reglagesDe } from "@/lib/logic/cardio";
+import { construireSeance as construireCardio, dureeTotale as dureeTotaleCardio, niveauDe, nomSeanceCardio, reglagesDe } from "@/lib/logic/cardio";
+import { nouveauBloc } from "@/lib/logic/combinee";
 import { preparer } from "@/lib/sons";
 import type { Route } from "next";
 import { Button } from "@/components/ui/button";
@@ -38,7 +39,8 @@ function Assistant() {
   const A = useRepere((s) => s.etat.A);
   const muter = useRepere((s) => s.muter);
   /* Deux catégories à part : musculation (muscles, puis composeur) ou cardio (format, machine, durées). */
-  const [type, setType] = useState<"muscu" | "cardio">(useSearchParams().get("type") === "cardio" ? "cardio" : "muscu");
+  const typeUrl = useSearchParams().get("type");
+  const [type, setType] = useState<"muscu" | "cardio" | "mixte">(typeUrl === "cardio" || typeUrl === "mixte" ? typeUrl : "muscu");
   const [choix, setChoix] = useState<ChoixCardio>(() => { const n = niveauDe(A.regularite); return { f: "fractionne", m: "tapis", n, r: reglagesDe("fractionne", n) }; });
   const [nomCardio, setNomCardio] = useState("");
   /* Enregistrer la séance cardio ; avec `demarrer`, son minuteur s'ouvre aussitôt (à la place de l'assistant). */
@@ -66,7 +68,9 @@ function Assistant() {
     if (obj == null) return;
     const ex = construireSeance(m, d, obj, sel);
     if (!ex.length) { dire("Pas d'exercice disponible", "Aucun exercice ne correspond à ces muscles avec le matériel coché. Ajoute du matériel ou choisis d'autres muscles."); return; }
-    setLibre({ nom: nomSeance(m), ex, idx: null, obj, gen: { m: [...m], d, obj } });
+    /* combinée : le bloc cardio arrive à la fin, sans échauffement ; il se déplace ensuite dans le composeur */
+    const blocs = type === "mixte" ? [{ ...nouveauBloc(ex.length, choix.f, choix.m, choix.n), r: { ...choix.r, echauf: 0 } }] : undefined;
+    setLibre({ nom: nomSeance(m) + (blocs ? " + cardio" : ""), ex, idx: null, obj, gen: { m: [...m], d, obj }, ...(blocs ? { blocs } : {}) });
     router.push("/entrainement/composer", AVANT);
   };
 
@@ -80,9 +84,11 @@ function Assistant() {
         <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
           {type === "muscu"
             ? "Choisis ce que tu veux travailler : Repère te propose une séance, que tu modifies ensuite comme tu veux."
-            : "Une séance guidée : Repère annonce chaque effort et chaque récupération, avec un signal sonore."}
+            : type === "mixte"
+              ? "De la musculation et un bloc cardio dans la même séance. Le bloc se place où tu veux : avant, entre deux exercices ou à la fin."
+              : "Une séance guidée : Repère annonce chaque effort et chaque récupération, avec un signal sonore."}
         </p>
-        <Segmente label="Catégorie" className="mt-4" valeur={type} onChange={setType} options={[{ v: "muscu", n: "Musculation" }, { v: "cardio", n: "Cardio" }]} />
+        <Segmente label="Catégorie" className="mt-4" valeur={type} onChange={setType} options={[{ v: "muscu", n: "Musculation" }, { v: "cardio", n: "Cardio" }, { v: "mixte", n: "Combinée" }]} />
       </EnTete>
 
       {type === "cardio" ? (
@@ -178,6 +184,17 @@ function Assistant() {
           </div>
           {obj == null && <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">Choisis un objectif : il règle les répétitions, les repos et la collation.</p>}
         </section>
+
+        {type === "mixte" && (
+          <section className="rounded-[24px] border border-plate/40 bg-plate-soft/60 p-4">
+            <div className="mb-3 flex items-baseline justify-between">
+              <h2 className="text-[17px] font-bold">Bloc cardio</h2>
+              <span className="text-[13px] text-muted-foreground">Total ≈ <b className="num text-[16px] text-foreground">{d + Math.round(dureeTotaleCardio(construireCardio(choix.f, choix.m, { ...choix.r, echauf: 0 })) / 60)} min</b></span>
+            </div>
+            <ReglagesCardio choix={choix} onChange={setChoix} />
+            <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">Il est placé à la fin, sans échauffement puisque la musculation t&apos;aura chauffé. Dans le composeur, tu le déplaces où tu veux.</p>
+          </section>
+        )}
       </div>
 
       <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
