@@ -12,6 +12,7 @@ import { Segmente } from "@/components/repere/segmente";
 import { confirmer } from "@/components/repere/confirmer";
 import { messageErreur, sb, valideMail } from "@/lib/supabase";
 import { useRepere } from "@/lib/store";
+import { CREDITS } from "@/lib/medias";
 import { AVANT } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
@@ -163,6 +164,22 @@ export default function PageCompte() {
           <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">Automatique suit le réglage clair ou sombre de ton téléphone.</p>
         </section>
 
+        {/* crédits */}
+        <section>
+          <h2 className="eyebrow mb-2 px-1">Crédits</h2>
+          <div className="overflow-hidden rounded-[22px] border border-border/80 bg-card">
+            {CREDITS.map((c) => (
+              <a key={c.quoi} href={c.lien} target="_blank" rel="noreferrer" className="flex items-center gap-3 border-b border-border/70 px-4 py-3 last:border-b-0 active:bg-muted">
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[12px] font-medium text-muted-foreground">{c.quoi}</span>
+                  <span className="block truncate text-[14.5px] font-medium">{c.nom}</span>
+                </span>
+                <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">{c.licence}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+
         {/* zone sensible */}
         <section>
           <div className="rounded-[22px] border border-destructive/30 bg-card p-4">
@@ -173,7 +190,7 @@ export default function PageCompte() {
             <Button variant="destructive" className="mt-3 w-full rounded-xl" onClick={effacer}>Tout effacer</Button>
           </div>
           <p className="mt-4 text-center text-[11.5px] leading-relaxed text-muted-foreground">
-            Une seule adresse par compte. Nous ne t&apos;écrirons que pour ça.<br />Photos : free-exercise-db (domaine public).
+            Une seule adresse par compte. Nous ne t&apos;écrirons que pour ça.
           </p>
         </section>
       </div>

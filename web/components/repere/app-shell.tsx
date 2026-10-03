@@ -6,6 +6,7 @@ import { useRepere } from "@/lib/store";
 import { TabBar } from "./tab-bar";
 import { RestTimer } from "./rest-timer";
 import { Confirmateur } from "./confirmer";
+import { Bilan } from "./bilan";
 
 /* Démarre l'app une fois (session Supabase, état local) et pose la barre
    d'onglets. Les écrans plein écran (questionnaire, accueil) s'en passent. */
@@ -46,6 +47,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <RestTimer avecOnglets={onglets} />
       {onglets && <TabBar />}
       <Confirmateur />
+      <Bilan />
     </div>
   );
 }

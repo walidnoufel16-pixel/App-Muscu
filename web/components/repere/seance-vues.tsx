@@ -30,8 +30,11 @@ export function FriseSemaines({ wk, avancement, onChoisir }: { wk: number; avanc
           >
             {/* disque : un anneau qui se remplit avec les séances faites */}
             <span
-              className="relative grid size-8 place-items-center rounded-full"
-              style={{ background: `conic-gradient(var(--plate) ${pct * 360}deg, ${sel ? "rgba(255,255,255,.18)" : "var(--muted)"} 0)` }}
+              className="disque relative grid size-8 place-items-center rounded-full"
+              style={{
+                "--p": pct, animationDelay: i * 70 + "ms",
+                background: `conic-gradient(var(--plate) calc(var(--p) * 360deg), ${sel ? "rgba(255,255,255,.18)" : "var(--muted)"} 0)`,
+              } as React.CSSProperties}
             >
               <span className={cn("num grid size-[24px] place-items-center rounded-full text-[15px] font-bold", sel ? "bg-foreground" : "bg-card", plein && !sel && "bg-plate text-plate-foreground")}>
                 {i + 1}

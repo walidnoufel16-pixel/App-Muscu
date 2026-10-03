@@ -216,3 +216,81 @@
     animation-delay: 0s !important;
   }
 }
+
+/* ---------- micro-animations (séries, records, minuteur, bilan…) ---------- */
+@keyframes pop {
+  0% { transform: scale(.7); }
+  55% { transform: scale(1.14); }
+  100% { transform: scale(1); }
+}
+@keyframes remplir {
+  from { transform: scaleX(0); opacity: .4; }
+  to { transform: scaleX(1); opacity: 1; }
+}
+@keyframes tracer {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes eclat {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--plate) 70%, transparent); }
+  100% { box-shadow: 0 0 0 14px transparent; }
+}
+@keyframes defiler {
+  from { transform: translateY(-55%); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes battre {
+  0%, 100% { scale: 1; }
+  50% { scale: 1.12; }
+}
+@keyframes rebond {
+  0% { transform: scale(.82) translateY(2px); }
+  60% { transform: scale(1.12) translateY(-2px); }
+  100% { transform: none; }
+}
+@keyframes muscle {
+  from { opacity: .35; }
+  to { opacity: 1; }
+}
+@keyframes monter {
+  from { transform: translateY(14px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes medaille {
+  0% { transform: scale(.3) rotate(-25deg); opacity: 0; }
+  60% { transform: scale(1.12) rotate(6deg); opacity: 1; }
+  100% { transform: none; }
+}
+/* disques de la frise : l'anneau se remplit à l'arrivée sur Mon plan */
+@property --p {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@keyframes remplir-disque {
+  from { --p: 0; }
+}
+.disque {
+  animation: remplir-disque .7s cubic-bezier(.3, .7, .2, 1) both;
+}
+/* cartes d'un écran, à la première visite : elles arrivent en léger décalé */
+.entree > * {
+  animation: monter .45s cubic-bezier(.2, .8, .2, 1) both;
+}
+.entree > :nth-child(2) { animation-delay: 40ms; }
+.entree > :nth-child(3) { animation-delay: 80ms; }
+.entree > :nth-child(4) { animation-delay: 120ms; }
+.entree > :nth-child(5) { animation-delay: 160ms; }
+.entree > :nth-child(6) { animation-delay: 200ms; }
+.entree > :nth-child(n+7) { animation-delay: 240ms; }
+/* vignettes d'une séance qui deviennent l'en-tête de la séance ouverte */
+::view-transition-group(.morph) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(.3, 0, 0, 1);
+}
+::view-transition-image-pair(.morph) {
+  animation-name: vt-flou;
+}
+@keyframes vt-flou {
+  30% { filter: blur(2px); }
+}
