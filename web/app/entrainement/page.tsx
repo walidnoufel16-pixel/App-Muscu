@@ -70,6 +70,11 @@ export default function PageEntrainement() {
           />
         )}
 
+        <section>
+          <h2 className="eyebrow mb-2 px-1">Mes séances</h2>
+          <MesSeances />
+        </section>
+
         {plan && (
           <section>
             <h2 className="eyebrow mb-2 px-1">Ma semaine</h2>
@@ -102,11 +107,6 @@ export default function PageEntrainement() {
             </div>
           </section>
         )}
-
-        <section>
-          <h2 className="eyebrow mb-2 px-1">Mes séances</h2>
-          <MesSeances />
-        </section>
       </div>
     </>
   );

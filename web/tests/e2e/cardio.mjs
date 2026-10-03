@@ -66,7 +66,7 @@ await pg.getByRole("button", { name: "Terminer" }).click();
 ok(await pg.getByRole("button", { name: "Entraînement" }).waitFor({ timeout: 3000 }).then(() => true, () => false), "retour libellé « Entraînement » (l'assistant n'est pas dans l'historique)");
 await pg.getByRole("button", { name: "Entraînement" }).click();
 await pg.waitForURL(/\/entrainement\/$/);
-ok(await pg.getByRole("heading", { name: "Cardio", level: 3 }).isVisible(), "Mes séances : groupe Cardio");
+ok(await pg.getByRole("button", { name: /^Cardio 1/ }).isVisible(), "Mes séances : groupe Cardio");
 await pg.getByText("Rameur du mardi", { exact: true }).click();
 await pg.waitForURL(/\/entrainement\/cardio\/\?s=0$/);
 ok(await pg.getByRole("textbox", { name: "Nom de la séance" }).inputValue() === "Rameur du mardi", "séance rouverte : nom modifiable");
@@ -79,6 +79,18 @@ await pg.getByRole("button", { name: "Enregistrer", exact: true }).click();
 await pg.waitForURL(/\/entrainement\/$/);
 await pg.waitForTimeout(300);
 ok((await etatLu()).SEANCES_CARDIO.length === 2, "enregistrer sans démarrer");
+
+// nouveau format : 4×4 norvégien (10 min d'échauffement, puis 4 min d'effort)
+await pg.goto(U + "/entrainement/assistant/?type=cardio");
+await pg.getByRole("button", { name: /4×4 norvégien/ }).click();
+await pg.getByRole("button", { name: "Créer et démarrer" }).click();
+await pg.getByRole("timer").waitFor();
+ok(await pg.getByText("Échauffement", { exact: true }).isVisible() && await pg.getByText("10:00").isVisible(), "4×4 : échauffement de 10 min");
+await avancer(601);
+ok(await pg.getByText("Effort", { exact: true }).isVisible() && await pg.getByText("RPE 8-9").isVisible(), "4×4 : effort de 4 min à RPE 8-9");
+await pg.getByRole("button", { name: "Arrêter" }).click();
+await pg.getByRole("button", { name: "Arrêter" }).last().click();
+await pg.waitForTimeout(500);
 
 // ancienne adresse de départ rapide
 await pg.goto(U + "/entrainement/cardio/?f=tabata");

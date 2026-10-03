@@ -36,7 +36,7 @@ await pg.waitForTimeout(1200); // frise + cartes qui arrivent
 const cartes = pg.locator('[id^="ex-2|0|"]');
 const nb = await cartes.count();
 ok(nb >= 3, `${nb} exercices dans la séance`);
-await cartes.first().locator("button").first().click();
+await cartes.first().locator("button[aria-expanded]").first().click();
 await pg.waitForTimeout(500);
 const valides = () => pg.getByRole("button", { name: /^Valider la série/ });
 

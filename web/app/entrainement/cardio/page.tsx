@@ -223,7 +223,7 @@ function Minuteur({ phases, titre, choix, course, setCourse }: { phases: Phase[]
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-            <span key={o.i} className="animate-[pop_.45s_cubic-bezier(.3,1.6,.5,1)] text-[22px] font-bold tracking-[-0.01em]">{p ? NOM_PHASE[p.type] : "Terminé"}</span>
+            <span key={o.i} className="animate-[pop_.45s_cubic-bezier(.3,1.6,.5,1)] text-[22px] font-bold tracking-[-0.01em]">{p ? p.titre ?? NOM_PHASE[p.type] : "Terminé"}</span>
             <span className={cn("num text-[78px] leading-none font-bold", !effort && o.reste <= 3 && "text-plate")}>{mmss(Math.ceil(o.reste))}</span>
             {p && <span className={cn("mt-1 rounded-full px-2.5 py-0.5 text-[12.5px] font-semibold", effort ? "bg-white/15" : "bg-muted text-muted-foreground")}>{p.rpe}</span>}
           </div>
@@ -231,7 +231,7 @@ function Minuteur({ phases, titre, choix, course, setCourse }: { phases: Phase[]
         {p?.consigne && <p className={cn("max-w-[30ch] text-center text-[17px] leading-snug font-medium", !effort && "text-foreground/85")}>{p.consigne}</p>}
         {o.suivante && (
           <p className={cn("text-[14px]", effort ? "opacity-80" : "text-muted-foreground")}>
-            Ensuite : <b className="font-semibold">{NOM_PHASE[o.suivante.type]}</b> · {mmss(o.suivante.duree)}
+            Ensuite : <b className="font-semibold">{o.suivante.titre ?? NOM_PHASE[o.suivante.type]}</b> · {mmss(o.suivante.duree)}
           </p>
         )}
       </div>

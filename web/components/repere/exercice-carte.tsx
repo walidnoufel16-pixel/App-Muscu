@@ -83,8 +83,12 @@ export function ExerciceCarte({
         ouvert && "shadow-[0_10px_30px_-18px_rgba(0,0,0,.35)]",
       )}
     >
-      <button onClick={onToggle} aria-expanded={ouvert} className="flex w-full items-center gap-3.5 p-3 text-left">
-        <Vignette id={id} num={num} fait={fait} trace={celebre} />
+      <div className="flex items-center gap-3.5 p-3">
+        {/* la photo ouvre la fiche ; le reste de la carte déplie les séries */}
+        <button onClick={onFiche} aria-label={`Fiche : ${x.n}`} className="shrink-0 rounded-[14px] active:scale-95">
+          <Vignette id={id} num={num} fait={fait} trace={celebre} />
+        </button>
+        <button onClick={onToggle} aria-expanded={ouvert} className="flex min-w-0 flex-1 items-center gap-3.5 text-left">
         <span className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="flex items-center gap-2">
             <span className="truncate text-[16px] leading-tight font-semibold tracking-[-0.01em]">{x.n}</span>
@@ -105,7 +109,8 @@ export function ExerciceCarte({
           )}
         </span>
         <CaretDownIcon className={cn("size-5 shrink-0 text-muted-foreground transition-transform duration-200", ouvert && "rotate-180")} />
-      </button>
+        </button>
+      </div>
 
       {ouvert && (
         <div className="animate-in fade-in-0 slide-in-from-top-1 duration-200">
