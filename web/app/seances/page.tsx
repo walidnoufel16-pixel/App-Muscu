@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronRight, Download, Plus, Share, Sparkles, PersonStanding, Check } from "lucide-react";
+import { CaretRightIcon, CheckIcon, DownloadSimpleIcon, ExportIcon, PersonSimpleIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -17,6 +17,7 @@ import { dispoDeclare, musclesDe } from "@/lib/logic/core";
 import { dureeEstimee } from "@/lib/logic/assistant";
 import * as act from "@/lib/logic/actions";
 import { useRepere } from "@/lib/store";
+import { AVANT, AVANT_T } from "@/lib/nav";
 import { useBrouillon } from "@/lib/brouillon";
 
 export default function PageSeances() {
@@ -61,7 +62,7 @@ export default function PageSeances() {
             return (
               <LigneBalayable key={i + s.nom} label={s.nom} onSupprimer={() => supprimer(i)}>
                 <div className="flex items-stretch rounded-[20px] border border-border/80 bg-card">
-                  <button onClick={() => router.push(`/seances/seance/?i=${i}`)} className="flex min-w-0 flex-1 items-center gap-3 p-3 text-left">
+                  <button onClick={() => router.push(`/seances/seance?i=${i}`, AVANT)} className="flex min-w-0 flex-1 items-center gap-3 p-3 text-left">
                     <span className="flex -space-x-3">
                       {s.ex.slice(0, 3).map((e) => EX[e.id] && <Vignette key={e.id} id={e.id} className="size-11 rounded-[12px] ring-2 ring-card" />)}
                     </span>
@@ -74,7 +75,7 @@ export default function PageSeances() {
                     </span>
                   </button>
                   <button onClick={() => partagerSeance(i)} aria-label="Partager" className="grid w-12 place-items-center border-l border-border/70 text-muted-foreground">
-                    {s.code ? <Check className="size-5" /> : <Share className="size-5" />}
+                    {s.code ? <CheckIcon className="size-5" /> : <ExportIcon className="size-5" />}
                   </button>
                 </div>
               </LigneBalayable>
@@ -88,13 +89,13 @@ export default function PageSeances() {
         {etat.SEANCES.length > 0 && <p className="px-2 text-center text-[11.5px] text-muted-foreground">Fais glisser une séance vers la gauche pour la supprimer.</p>}
 
         <Button asChild variant="plate" size="xl" className="mt-3 w-full">
-          <Link href="/seances/assistant/"><Sparkles />Créer une séance pour moi</Link>
+          <Link href="/seances/assistant" transitionTypes={AVANT_T}><SparkleIcon />Créer une séance pour moi</Link>
         </Button>
 
         <div className="mt-2 overflow-hidden rounded-[20px] border border-border/80 bg-card">
-          <Action icone={<Plus className="size-5" />} label="Composer exercice par exercice" onClick={() => { setLibre({ nom: "Séance libre", ex: [], idx: null }); router.push("/seances/composer/"); }} />
-          <Action icone={<PersonStanding className="size-5" />} label="Explorer les exercices par le corps" onClick={() => router.push("/explorer/")} />
-          <Action icone={<Download className="size-5" />} label="Importer une séance avec un code" onClick={() => setImp(true)} />
+          <Action icone={<PlusIcon className="size-5" />} label="Composer exercice par exercice" onClick={() => { setLibre({ nom: "Séance libre", ex: [], idx: null }); router.push("/seances/composer", AVANT); }} />
+          <Action icone={<PersonSimpleIcon className="size-5" />} label="Explorer les exercices par le corps" onClick={() => router.push("/explorer", AVANT)} />
+          <Action icone={<DownloadSimpleIcon className="size-5" />} label="Importer une séance avec un code" onClick={() => setImp(true)} />
         </div>
       </div>
 
@@ -124,7 +125,7 @@ function Action({ icone, label, onClick }: { icone: React.ReactNode; label: stri
     <button onClick={onClick} className="flex w-full items-center gap-3.5 border-b border-border/70 px-4 py-3.5 text-left text-[15px] font-medium last:border-b-0 active:bg-muted">
       <span className="text-muted-foreground">{icone}</span>
       <span className="flex-1">{label}</span>
-      <ChevronRight className="size-4 text-muted-foreground" />
+      <CaretRightIcon className="size-4 text-muted-foreground" />
     </button>
   );
 }

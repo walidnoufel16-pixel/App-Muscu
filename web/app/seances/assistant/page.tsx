@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { CaretLeftIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { EnTete } from "@/components/repere/en-tete";
 import { SchemaCorps } from "@/components/repere/schema-corps";
@@ -13,6 +13,7 @@ import { DUREES, FULLBODY, MUSC, OBJS, PAT2MUSC } from "@/lib/data/referentiels"
 import { selDeclare } from "@/lib/logic/core";
 import { construireSeance, nomSeance } from "@/lib/logic/assistant";
 import { useRepere } from "@/lib/store";
+import { ARRIERE, AVANT } from "@/lib/nav";
 import { useBrouillon } from "@/lib/brouillon";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
@@ -37,7 +38,7 @@ export default function PageAssistant() {
     const ex = construireSeance(m, d, obj, sel);
     if (!ex.length) { dire("Pas d'exercice disponible", "Aucun exercice ne correspond à ces muscles avec le matériel coché. Ajoute du matériel ou choisis d'autres muscles."); return; }
     setLibre({ nom: nomSeance(m), ex, idx: null, obj, gen: { m: [...m], d, obj } });
-    router.push("/seances/composer/");
+    router.push("/seances/composer", AVANT);
   };
 
   return (
@@ -45,7 +46,7 @@ export default function PageAssistant() {
       <EnTete
         surtitre="Séance sur mesure"
         titre="Créer une séance pour moi"
-        gauche={<Button variant="ghost" size="sm" className="-ml-2 text-[15px]" onClick={() => router.push("/seances/")}><ChevronLeft className="size-5" />Séances</Button>}
+        gauche={<Button variant="ghost" size="sm" className="-ml-2 text-[15px]" onClick={() => router.push("/seances", ARRIERE)}><CaretLeftIcon className="size-5" />Séances</Button>}
       >
         <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">Choisis ce que tu veux travailler : Repère te propose une séance, que tu modifies ensuite comme tu veux.</p>
       </EnTete>

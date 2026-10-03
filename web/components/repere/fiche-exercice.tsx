@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeftRight, ChevronRight } from "lucide-react";
+import { ArrowsLeftRightIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { EX } from "@/lib/data/exercices";
 import { histo, nb, nomPat, noRPE, rirTxt, UNITE } from "@/lib/logic/core";
 import { useRepere } from "@/lib/store";
+import { useFiche } from "@/lib/fiches";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { imgEx } from "./exercice-carte";
 
@@ -53,6 +55,7 @@ export function FicheExercice({ fiche, onClose }: { fiche: FicheOuverte | null; 
   const etat = useRepere((s) => s.etat);
   const ouvert = !!fiche;
   const e = fiche ? EX[fiche.id] : null;
+  const t = useFiche(fiche?.id);
   const lignes = fiche ? histo(etat, fiche.id, fiche.idx) : [];
   const max = Math.max(1, ...lignes.map((l) => l.v));
   const u = e ? UNITE[e.ch] : "";
@@ -84,12 +87,12 @@ export function FicheExercice({ fiche, onClose }: { fiche: FicheOuverte | null; 
 
             {fiche.onRemplacer && (
               <button onClick={fiche.onRemplacer} className="mt-2 flex w-full items-center gap-3 rounded-2xl border bg-card p-3 text-left active:scale-[.99]">
-                <ArrowLeftRight className="size-5 text-muted-foreground" />
+                <ArrowsLeftRightIcon className="size-5 text-muted-foreground" />
                 <span className="flex-1">
                   <span className="block text-[15px] font-semibold">Exercice alternatif</span>
                   <span className="block text-[12.5px] text-muted-foreground">Même muscle, compatible avec ton matériel</span>
                 </span>
-                <ChevronRight className="size-4 text-muted-foreground" />
+                <CaretRightIcon className="size-4 text-muted-foreground" />
               </button>
             )}
 
@@ -112,20 +115,31 @@ export function FicheExercice({ fiche, onClose }: { fiche: FicheOuverte | null; 
                 <p className="text-[14px] text-muted-foreground">Rien d&apos;enregistré pour l&apos;instant sur cet exercice.</p>
               )}
             </Bloc>
-            <Bloc titre="Exécution"><p className="text-[15px] leading-relaxed">{e.e}</p></Bloc>
-            <Bloc titre="Erreurs fréquentes">
-              <ul className="flex flex-col gap-2">
-                {e.err.map((t, i) => (
-                  <li key={i} className="flex gap-2.5 text-[15px] leading-relaxed">
-                    <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-destructive" />
-                    {t}
-                  </li>
-                ))}
-              </ul>
-            </Bloc>
-            <Bloc titre="Comment progresser">
-              <p className="rounded-2xl bg-plate-soft p-3.5 text-[15px] leading-relaxed">{e.p}</p>
-            </Bloc>
+            {t ? (
+              <>
+                <Bloc titre="Exécution"><p className="text-[15px] leading-relaxed">{t.e}</p></Bloc>
+                <Bloc titre="Erreurs fréquentes">
+                  <ul className="flex flex-col gap-2">
+                    {t.err.map((x, i) => (
+                      <li key={i} className="flex gap-2.5 text-[15px] leading-relaxed">
+                        <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-destructive" />
+                        {x}
+                      </li>
+                    ))}
+                  </ul>
+                </Bloc>
+                <Bloc titre="Comment progresser">
+                  <p className="rounded-2xl bg-plate-soft p-3.5 text-[15px] leading-relaxed">{t.p}</p>
+                </Bloc>
+              </>
+            ) : (
+              <div className="mt-6 flex flex-col gap-2" aria-busy="true">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-24 w-full" />
+              </div>
+            )}
           </div>
         )}
       </DrawerContent>

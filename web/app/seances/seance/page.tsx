@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft, Pencil } from "lucide-react";
+import { CaretLeftIcon, PencilSimpleIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { EnTete } from "@/components/repere/en-tete";
 import { ExerciceCarte } from "@/components/repere/exercice-carte";
@@ -15,6 +15,7 @@ import { ctxLibre, musclesDe, noRPE, rirTxt, typeSeance } from "@/lib/logic/core
 import { dureeEstimee, objCollation } from "@/lib/logic/assistant";
 import * as act from "@/lib/logic/actions";
 import { useRepere } from "@/lib/store";
+import { ARRIERE, AVANT } from "@/lib/nav";
 import { useBrouillon } from "@/lib/brouillon";
 import { tactile } from "@/lib/repos";
 
@@ -31,20 +32,20 @@ function Seance() {
   if (!S)
     return (
       <div className="p-8 text-center text-muted-foreground">
-        Séance introuvable. <Button variant="link" onClick={() => router.push("/seances/")}>Retour</Button>
+        Séance introuvable. <Button variant="link" onClick={() => router.push("/seances", ARRIERE)}>Retour</Button>
       </div>
     );
 
   const faux = { t: S.nom, x: S.ex.map((e) => [e.id, e.s, e.r, e.p, 0] as [string, number, number, string, number]) };
-  const modifier = () => { setLibre({ ...structuredClone(S), idx: i }); router.push("/seances/composer/"); };
+  const modifier = () => { setLibre({ ...structuredClone(S), idx: i }); router.push("/seances/composer", AVANT); };
 
   return (
     <>
       <EnTete
         surtitre={`Séance libre · ${S.ex.length} exercices · environ ${dureeEstimee(S.ex)} min`}
         titre={S.nom}
-        gauche={<Button variant="ghost" size="sm" className="-ml-2 text-[15px]" onClick={() => router.push("/seances/")}><ChevronLeft className="size-5" />Séances</Button>}
-        actions={<Button variant="ghost" size="sm" className="text-[15px]" onClick={modifier}><Pencil className="size-4" />Modifier</Button>}
+        gauche={<Button variant="ghost" size="sm" className="-ml-2 text-[15px]" onClick={() => router.push("/seances", ARRIERE)}><CaretLeftIcon className="size-5" />Séances</Button>}
+        actions={<Button variant="ghost" size="sm" className="text-[15px]" onClick={modifier}><PencilSimpleIcon className="size-4" />Modifier</Button>}
       >
         <div className="mt-2 flex flex-wrap gap-1.5">
           {musclesDe(S.ex.map((e) => e.id)).map((m) => <span key={m} className="rounded-full bg-card px-2.5 py-1 text-[12.5px] font-medium">{m}</span>)}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, RefreshCw, TriangleAlert } from "lucide-react";
+import { ArrowsClockwiseIcon, CaretLeftIcon, WarningIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { EnTete } from "@/components/repere/en-tete";
 import { confirmer, dire } from "@/components/repere/confirmer";
@@ -11,6 +11,7 @@ import { groupes } from "@/lib/logic/core";
 import { choixDef, recap, txtRefus, volReel } from "@/lib/logic/questionnaire";
 import { genererCycle } from "@/lib/generer";
 import { useRepere } from "@/lib/store";
+import { ARRIERE, AVANT } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
 export default function PageSynthese() {
@@ -45,7 +46,7 @@ export default function PageSynthese() {
       <EnTete
         surtitre="Ce qu'on va faire"
         titre={titre}
-        gauche={<Button variant="ghost" size="sm" className="-ml-2 text-[15px]" onClick={() => router.push("/plan/")}><ChevronLeft className="size-5" />Mon plan</Button>}
+        gauche={<Button variant="ghost" size="sm" className="-ml-2 text-[15px]" onClick={() => router.push("/plan", ARRIERE)}><CaretLeftIcon className="size-5" />Mon plan</Button>}
       >
         <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{intro}</p>
       </EnTete>
@@ -78,7 +79,7 @@ export default function PageSynthese() {
 
         {gen && P?.notes?.refus?.length ? (
           <div className="flex gap-3 rounded-[20px] bg-plate-soft p-4 text-[13.5px] leading-relaxed">
-            <TriangleAlert className="mt-0.5 size-4 shrink-0 text-plate-ink" />
+            <WarningIcon className="mt-0.5 size-4 shrink-0 text-plate-ink" />
             {txtRefus(P.notes.refus)}
           </div>
         ) : null}
@@ -125,11 +126,11 @@ export default function PageSynthese() {
         </section>
 
         <div className="flex flex-col gap-2">
-          <Button variant="plate" size="xl" onClick={() => router.push("/plan/")}>Voir mes séances</Button>
+          <Button variant="plate" size="xl" onClick={() => router.push("/plan", ARRIERE)}>Voir mes séances</Button>
           <Button variant="soft" size="lg" className="rounded-xl" disabled={enCours} onClick={regen}>
-            <RefreshCw className={cn(enCours && "animate-spin")} />{enCours ? "Génération en cours…" : "Régénérer mon cycle avec les mêmes réponses"}
+            <ArrowsClockwiseIcon className={cn(enCours && "animate-spin")} />{enCours ? "Génération en cours…" : "Régénérer mon cycle avec les mêmes réponses"}
           </Button>
-          <Button variant="ghost" onClick={() => router.push("/questionnaire/")}>Modifier mes réponses</Button>
+          <Button variant="ghost" onClick={() => router.push("/questionnaire", AVANT)}>Modifier mes réponses</Button>
         </div>
       </div>
     </>

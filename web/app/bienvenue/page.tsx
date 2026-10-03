@@ -2,11 +2,12 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, CalendarRange, ChevronLeft, Dumbbell, Share2, Sparkles, WifiOff } from "lucide-react";
+import { ArrowRightIcon, BarbellIcon, CalendarDotsIcon, CaretLeftIcon, ShareNetworkIcon, SparkleIcon, WifiSlashIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { messageErreur, sb, valideMail } from "@/lib/supabase";
 import { useRepere } from "@/lib/store";
+import { AVANT } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
 type Etape = "accueil" | "compte" | "choix" | "recup" | "code";
@@ -51,7 +52,7 @@ function Bienvenue() {
   };
 
   const demanderCode = async () => {
-    const m = mail.trim().toLowerCase(), c = sb();
+    const m = mail.trim().toLowerCase(), c = await sb();
     if (!valideMail(m)) { setErr("Cette adresse n'a pas l'air valide."); return; }
     if (!c) { setErr("Pas de connexion au serveur : impossible pour l'instant."); return; }
     setErr(""); setOccupe(true);
@@ -62,7 +63,7 @@ function Bienvenue() {
   };
 
   const validerCode = async () => {
-    const k = code.replace(/\D/g, ""), c = sb();
+    const k = code.replace(/\D/g, ""), c = await sb();
     if (!c) return;
     if (k.length !== 6) { setErr("Le code fait six chiffres."); return; }
     setErr(""); setOccupe(true);
@@ -79,7 +80,7 @@ function Bienvenue() {
     <div className="flex min-h-dvh flex-col px-6 pt-[max(env(safe-area-inset-top),24px)] pb-[max(env(safe-area-inset-bottom),20px)]">
       {etape !== "accueil" && etape !== "choix" && (
         <button onClick={() => { setErr(""); setEtape(etape === "code" ? "recup" : "accueil"); }} className="-ml-1 flex items-center gap-0.5 self-start py-2 text-[15px] font-medium text-muted-foreground">
-          <ChevronLeft className="size-5" />Retour
+          <CaretLeftIcon className="size-5" />Retour
         </button>
       )}
 
@@ -92,13 +93,13 @@ function Bienvenue() {
             <div className="my-8 flex justify-center"><Barre /></div>
             <ul className="flex flex-col gap-3.5">
               {[
-                [CalendarRange, "Un plan sur huit semaines", "Un effort qui monte chaque semaine"],
-                [Sparkles, "Des séances sur mesure", "Tu choisis les muscles, Repère compose"],
-                [Share2, "Partagées avec tes proches", "Un lien, et ils ont la même séance"],
-                [Dumbbell, "231 exercices illustrés", "Classés par muscle et selon ton matériel"],
-                [WifiOff, "Fonctionne sans réseau", "Même au sous-sol de ta salle"],
+                [CalendarDotsIcon, "Un plan sur huit semaines", "Un effort qui monte chaque semaine"],
+                [SparkleIcon, "Des séances sur mesure", "Tu choisis les muscles, Repère compose"],
+                [ShareNetworkIcon, "Partagées avec tes proches", "Un lien, et ils ont la même séance"],
+                [BarbellIcon, "231 exercices illustrés", "Classés par muscle et selon ton matériel"],
+                [WifiSlashIcon, "Fonctionne sans réseau", "Même au sous-sol de ta salle"],
               ].map(([I, t, d]) => {
-                const Icone = I as typeof Dumbbell;
+                const Icone = I as typeof BarbellIcon;
                 return (
                   <li key={t as string} className="flex items-center gap-3.5">
                     <span className="grid size-10 shrink-0 place-items-center rounded-[12px] bg-card"><Icone className="size-5" /></span>
@@ -109,7 +110,7 @@ function Bienvenue() {
             </ul>
           </div>
           <div className="mt-8 flex flex-col gap-2">
-            <Button variant="plate" size="xl" onClick={() => setEtape(user ? "choix" : "compte")}>Commencer<ArrowRight /></Button>
+            <Button variant="plate" size="xl" onClick={() => setEtape(user ? "choix" : "compte")}>Commencer<ArrowRightIcon /></Button>
             <Button variant="ghost" onClick={() => setEtape("recup")}>J&apos;ai déjà un compte</Button>
           </div>
         </>
@@ -148,12 +149,12 @@ function Bienvenue() {
         <div className="mt-6 flex flex-1 flex-col">
           <div className="eyebrow">Par où commencer</div>
           <h1 className="mt-2 text-[34px] leading-[1.05] font-bold tracking-[-0.025em]">Deux façons de t&apos;entraîner</h1>
-          <button onClick={() => router.push("/questionnaire/")} className="mt-6 rounded-[24px] bg-foreground p-5 text-left text-background active:scale-[.99]">
+          <button onClick={() => router.push("/questionnaire", AVANT)} className="mt-6 rounded-[24px] bg-foreground p-5 text-left text-background active:scale-[.99]">
             <span className="flex items-center justify-between"><b className="text-[19px] font-semibold">Un plan sur huit semaines</b><span className="num rounded-full bg-plate px-2.5 py-0.5 text-[15px] font-bold text-plate-foreground">8 sem.</span></span>
             <span className="mt-2 block text-[14px] leading-relaxed text-background/75">Une douzaine de questions, puis un cycle complet qui suit tes charges et fait monter l&apos;effort semaine après semaine. C&apos;est le mode qui te fait progresser.</span>
             <span className="mt-3 block text-[13px] font-medium text-plate">Compter trois minutes →</span>
           </button>
-          <button onClick={() => router.push("/seances/")} className="mt-3 rounded-[24px] border bg-card p-5 text-left active:scale-[.99]">
+          <button onClick={() => router.push("/seances", AVANT)} className="mt-3 rounded-[24px] border bg-card p-5 text-left active:scale-[.99]">
             <b className="text-[19px] font-semibold">Une séance à la carte</b>
             <span className="mt-2 block text-[14px] leading-relaxed text-muted-foreground">Tu choisis les muscles, Repère compose, ou tu choisis tes exercices un par un. Aucune question préalable.</span>
             <span className="mt-3 block text-[13px] font-medium">Prêt tout de suite →</span>

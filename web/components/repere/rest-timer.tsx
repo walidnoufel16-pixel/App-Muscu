@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Minus, Plus, X } from "lucide-react";
+import { MinusIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
 import { useRepos } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 
@@ -47,13 +47,13 @@ export function RestTimer({ avecOnglets }: { avecOnglets: boolean }) {
           {!fini && (
             <>
               <button onClick={() => ajuster(-15)} className="grid size-10 place-items-center rounded-full bg-background/12 active:scale-95" aria-label="Retirer 15 secondes">
-                <Minus className="size-4" />
+                <MinusIcon className="size-4" />
               </button>
               <button onClick={() => ajuster(15)} className="grid size-10 place-items-center rounded-full bg-background/12 active:scale-95" aria-label="Ajouter 15 secondes">
-                <Plus className="size-4" />
+                <PlusIcon className="size-4" />
               </button>
               <button onClick={arreter} className="flex h-10 items-center gap-1.5 rounded-full bg-plate px-3.5 text-sm font-semibold text-plate-foreground active:scale-95">
-                Passer <X className="size-3.5" />
+                Passer <XIcon className="size-3.5" />
               </button>
             </>
           )}

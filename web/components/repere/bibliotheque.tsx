@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Search } from "lucide-react";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 import { SchemaCorps } from "./schema-corps";
 import { LigneExercice } from "./ligne-exercice";
@@ -74,7 +74,7 @@ export function ListeRecherche({ sel, q, setQ, pris, onAjouter, onFiche }: { sel
   return (
     <div className="flex flex-col gap-3">
       <div className="relative">
-        <Search className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+        <MagnifyingGlassIcon className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un exercice…" className="h-11 rounded-2xl bg-card pl-10 text-[15px]" />
       </div>
       {Object.keys(groupes).length ? Object.entries(groupes).map(([g, l]) => (

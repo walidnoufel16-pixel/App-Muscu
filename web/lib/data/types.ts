@@ -16,6 +16,10 @@ export type Exercice = {
   capDeb?: number; // RPE plafond pour un débutant
   acc?: string; // matériel en plus exigé (kb, el)
   ou?: string; // matériel en plus qui suffit aussi
+};
+
+/* Textes d'une fiche, chargés à part (public/data/fiches.json). */
+export type Fiche = {
   e: string; // exécution
   err: string[]; // erreurs fréquentes
   p: string; // comment progresser

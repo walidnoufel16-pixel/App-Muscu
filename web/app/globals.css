@@ -168,3 +168,51 @@
   50%, 88% { opacity: 1; }
   100% { opacity: 0; }
 }
+
+/* ---------- transitions de page (View Transitions, voir lib/nav.ts) ---------- */
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-old(.nav-forward) {
+  --glisse: -60px;
+  animation: 150ms ease-in both vt-fondu reverse, 400ms cubic-bezier(.3, 0, 0, 1) both vt-glisse reverse;
+}
+::view-transition-new(.nav-forward) {
+  --glisse: 60px;
+  animation: 210ms ease-out 150ms both vt-fondu, 400ms cubic-bezier(.3, 0, 0, 1) both vt-glisse;
+}
+::view-transition-old(.nav-back) {
+  --glisse: 60px;
+  animation: 150ms ease-in both vt-fondu reverse, 400ms cubic-bezier(.3, 0, 0, 1) both vt-glisse reverse;
+}
+::view-transition-new(.nav-back) {
+  --glisse: -60px;
+  animation: 210ms ease-out 150ms both vt-fondu, 400ms cubic-bezier(.3, 0, 0, 1) both vt-glisse;
+}
+@keyframes vt-fondu {
+  from { opacity: 0; filter: blur(3px); }
+  to { opacity: 1; filter: blur(0); }
+}
+@keyframes vt-glisse {
+  from { translate: var(--glisse); }
+  to { translate: 0; }
+}
+/* La barre d'onglets reste immobile pendant que le contenu glisse. */
+::view-transition-group(onglets) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(onglets) {
+  display: none;
+}
+::view-transition-new(onglets) {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}

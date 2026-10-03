@@ -2,29 +2,30 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, CircleUserRound, Dumbbell, PersonStanding } from "lucide-react";
+import { BarbellIcon, CalendarDotsIcon, PersonSimpleIcon, UserCircleIcon } from "@phosphor-icons/react";
 import { useRepere } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 const ONGLETS = [
-  { href: "/plan/", nom: "Mon plan", Icone: CalendarDays },
-  { href: "/seances/", nom: "Séances", Icone: Dumbbell },
-  { href: "/explorer/", nom: "Explorer", Icone: PersonStanding },
-  { href: "/compte/", nom: "Compte", Icone: CircleUserRound },
-];
+  { href: "/plan", nom: "Mon plan", Icone: CalendarDotsIcon },
+  { href: "/seances", nom: "Séances", Icone: BarbellIcon },
+  { href: "/explorer", nom: "Explorer", Icone: PersonSimpleIcon },
+  { href: "/compte", nom: "Compte", Icone: UserCircleIcon },
+] as const;
 
 /* Barre d'onglets flottante, translucide, au-dessus de la zone sûre. */
 export function TabBar() {
-  const chemin = usePathname();
+  const chemin = usePathname().replace(/(.)\/$/, "$1");
   const sync = useRepere((s) => s.sync);
   return (
     <nav
       aria-label="Navigation principale"
+      style={{ viewTransitionName: "onglets" }}
       className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[480px] px-3 pb-[max(env(safe-area-inset-bottom),10px)]"
     >
       <div className="grid grid-cols-4 rounded-[22px] border border-border/70 bg-card/80 p-1.5 shadow-[0_8px_30px_-12px_rgba(0,0,0,.25)] backdrop-blur-xl backdrop-saturate-150">
         {ONGLETS.map(({ href, nom, Icone }) => {
-          const actif = chemin.startsWith(href);
+          const actif = chemin === href || chemin.startsWith(href + "/");
           return (
             <Link
               key={href}
@@ -36,8 +37,8 @@ export function TabBar() {
               )}
             >
               <span className="relative">
-                <Icone className="size-[22px]" strokeWidth={actif ? 2.2 : 1.8} />
-                {href === "/compte/" && sync !== null && (
+                <Icone className="size-[22px]" weight={actif ? "fill" : "regular"} />
+                {href === "/compte" && sync !== null && (
                   <span
                     className={cn("absolute -top-0.5 -right-1 size-2 rounded-full ring-2 ring-card", sync ? "bg-success" : "bg-muted-foreground")}
                     aria-label={sync ? "Synchronisé" : "Hors ligne"}

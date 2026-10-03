@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Plus, X } from "lucide-react";
+import { CheckIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
 import { EX } from "@/lib/data/exercices";
 import { LESTABLE } from "@/lib/data/referentiels";
 import { fmtSerie, maxV, nb, okDe, secondesDe, seriesDe, type Ctx } from "@/lib/logic/core";
@@ -94,7 +94,7 @@ export function TableauSeries({ c, rpe, onReplier }: { c: Ctx; rpe: number; onRe
                   ok ? "border-plate bg-plate text-plate-foreground" : "border-border text-transparent hover:text-muted-foreground",
                 )}
               >
-                <Check className="size-[18px]" strokeWidth={3} />
+                <CheckIcon className="size-[18px]" weight="bold" />
               </button>
             </div>
           );
@@ -106,7 +106,7 @@ export function TableauSeries({ c, rpe, onReplier }: { c: Ctx; rpe: number; onRe
           onClick={() => muter((E) => (avecLest ? act.retirerLest(E, c) : act.ajouterLest(E, c)))}
           className="mt-2 ml-1 inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[13px] font-medium text-muted-foreground hover:text-foreground"
         >
-          {avecLest ? <X className="size-3.5" /> : <Plus className="size-3.5" />}
+          {avecLest ? <XIcon className="size-3.5" /> : <PlusIcon className="size-3.5" />}
           {avecLest ? "Retirer le lest" : "Ajouter un lest (disque, haltère…)"}
         </button>
       )}

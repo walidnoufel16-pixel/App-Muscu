@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeftRight, ChevronDown, ChevronLeft, GripVertical, Info, Minus, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { ArrowsClockwiseIcon, ArrowsLeftRightIcon, CaretDownIcon, CaretLeftIcon, DotsSixVerticalIcon, InfoIcon, MinusIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EnTete } from "@/components/repere/en-tete";
@@ -20,6 +20,7 @@ import { construireSeance, dureeEstimee, exParDefaut } from "@/lib/logic/assista
 import * as act from "@/lib/logic/actions";
 import type { ExLibre } from "@/lib/logic/types";
 import { useRepere } from "@/lib/store";
+import { ARRIERE } from "@/lib/nav";
 import { useBrouillon } from "@/lib/brouillon";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
@@ -38,7 +39,7 @@ export default function PageComposer() {
   const liste = useRef<HTMLDivElement>(null);
   const [glisse, setGlisse] = useState<string | null>(null);
 
-  useEffect(() => { if (!libre) router.replace("/seances/"); }, [libre, router]);
+  useEffect(() => { if (!libre) router.replace("/seances"); }, [libre, router]);
   if (!libre) return null;
   const L = libre;
 
@@ -79,15 +80,15 @@ export default function PageComposer() {
     const s = { nom, ex: L.ex, ...(L.obj != null ? { obj: L.obj } : {}), ...(L.colObj != null ? { colObj: L.colObj } : {}), ...(L.gen ? { gen: L.gen } : {}), ...(L.code ? { code: L.code } : {}) };
     muter((E) => { if (L.idx != null) E.SEANCES[L.idx] = s; else E.SEANCES.push(s); });
     setLibre(null);
-    router.push("/seances/");
+    router.push("/seances", ARRIERE);
   };
   const supprimer = async () => {
-    if (L.idx == null) { setLibre(null); router.push("/seances/"); return; }
+    if (L.idx == null) { setLibre(null); router.push("/seances", ARRIERE); return; }
     if (!(await confirmer({ titre: `Supprimer « ${etat.SEANCES[L.idx]?.nom} » ?`, texte: "Les charges enregistrées sur cette séance seront effacées aussi.", ok: "Supprimer", danger: true }))) return;
     const i = L.idx;
     muter((E) => act.supprimerSeance(E, i));
     setLibre(null);
-    router.push("/seances/");
+    router.push("/seances", ARRIERE);
   };
 
   const rempCur = remp != null ? L.ex[remp]?.id : undefined;
@@ -98,8 +99,8 @@ export default function PageComposer() {
       <EnTete
         surtitre={L.idx != null ? "Modifier la séance" : "Nouvelle séance"}
         titre={L.nom || "Séance libre"}
-        gauche={<Button variant="ghost" size="sm" className="-ml-2 text-[15px]" onClick={() => router.push("/seances/")}><ChevronLeft className="size-5" />Séances</Button>}
-        actions={<Button variant="ghost" size="icon" aria-label="Supprimer" onClick={supprimer}><Trash2 className="size-5 text-destructive" /></Button>}
+        gauche={<Button variant="ghost" size="sm" className="-ml-2 text-[15px]" onClick={() => router.push("/seances", ARRIERE)}><CaretLeftIcon className="size-5" />Séances</Button>}
+        actions={<Button variant="ghost" size="icon" aria-label="Supprimer" onClick={supprimer}><TrashIcon className="size-5 text-destructive" /></Button>}
       />
       <div className="flex flex-col gap-5 px-4 pb-28">
         <section>
@@ -120,7 +121,7 @@ export default function PageComposer() {
           <div className="flex items-center gap-3 rounded-[20px] bg-plate-soft p-3.5">
             <p className="flex-1 text-[13.5px] leading-snug">Proposition de départ : réordonne, remplace ou ajoute ce que tu veux.</p>
             <Button variant="outline" size="sm" className="rounded-full bg-card" onClick={() => { tactile(10); majLibre((l) => { const ex = construireSeance(l.gen!.m, l.gen!.d, l.gen!.obj, sel); if (ex.length) l.ex = ex; }); setOuv(null); }}>
-              <RefreshCw />Autre
+              <ArrowsClockwiseIcon />Autre
             </Button>
           </div>
         )}
@@ -201,7 +202,7 @@ function CarteCompo({
     <div data-carte={e.id} className={cn("overflow-hidden rounded-[20px] border bg-card transition-shadow", glisse ? "z-10 border-plate shadow-[0_14px_34px_-14px_rgba(0,0,0,.45)]" : "border-border/80")}>
       <div className="flex items-center">
         <button onPointerDown={onSaisir} aria-label="Glisser pour déplacer" className="grid h-16 w-8 shrink-0 cursor-grab touch-none place-items-center text-muted-foreground/70 active:cursor-grabbing">
-          <GripVertical className="size-5" />
+          <DotsSixVerticalIcon className="size-5" />
         </button>
         <button onClick={onToggle} aria-expanded={ouvert} className="flex min-w-0 flex-1 items-center gap-3 py-3 pr-3 text-left">
           <Vignette id={e.id} num={i + 1} />
@@ -210,7 +211,7 @@ function CarteCompo({
             {mus.length > 0 && <span className="truncate text-[12.5px] text-muted-foreground">{mus.join(" · ")}</span>}
             <span className="num text-[15px] font-semibold text-foreground/80">{prescr} <span className="font-sans text-[12.5px] font-normal text-muted-foreground">· repos {e.p}</span></span>
           </span>
-          <ChevronDown className={cn("size-5 shrink-0 text-muted-foreground transition-transform", ouvert && "rotate-180")} />
+          <CaretDownIcon className={cn("size-5 shrink-0 text-muted-foreground transition-transform", ouvert && "rotate-180")} />
         </button>
       </div>
       {ouvert && (
@@ -222,9 +223,9 @@ function CarteCompo({
             <Pas titre="Position" val={`${i + 1} / ${n}`} moins={() => deplacer(i, -1)} plus={() => deplacer(i, 1)} d1={i === 0} d2={i === n - 1} />
           </div>
           <div className="grid grid-cols-3 border-t border-border/70">
-            <Outil onClick={onFiche} icone={<Info className="size-5" />} label="Fiche" />
-            <Outil onClick={onRemplacer} icone={<ArrowLeftRight className="size-5" />} label="Remplacer" />
-            <Outil onClick={onRetirer} icone={<Trash2 className="size-5 text-destructive" />} label="Retirer" />
+            <Outil onClick={onFiche} icone={<InfoIcon className="size-5" />} label="Fiche" />
+            <Outil onClick={onRemplacer} icone={<ArrowsLeftRightIcon className="size-5" />} label="Remplacer" />
+            <Outil onClick={onRetirer} icone={<TrashIcon className="size-5 text-destructive" />} label="Retirer" />
           </div>
         </div>
       )}
@@ -237,9 +238,9 @@ function Pas({ titre, val, moins, plus, d1, d2 }: { titre: string; val: React.Re
     <div className="rounded-2xl bg-muted/70 p-2.5">
       <div className="mb-1.5 text-[10.5px] font-medium tracking-[0.1em] text-muted-foreground uppercase">{titre}</div>
       <div className="flex items-center justify-between gap-1">
-        <button onClick={moins} disabled={d1} aria-label={`${titre} moins`} className="grid size-9 place-items-center rounded-full bg-card shadow-sm active:scale-90 disabled:opacity-30"><Minus className="size-4" /></button>
+        <button onClick={moins} disabled={d1} aria-label={`${titre} moins`} className="grid size-9 place-items-center rounded-full bg-card shadow-sm active:scale-90 disabled:opacity-30"><MinusIcon className="size-4" /></button>
         <b className="num text-[19px] font-bold whitespace-nowrap">{val}</b>
-        <button onClick={plus} disabled={d2} aria-label={`${titre} plus`} className="grid size-9 place-items-center rounded-full bg-card shadow-sm active:scale-90 disabled:opacity-30"><Plus className="size-4" /></button>
+        <button onClick={plus} disabled={d2} aria-label={`${titre} plus`} className="grid size-9 place-items-center rounded-full bg-card shadow-sm active:scale-90 disabled:opacity-30"><PlusIcon className="size-4" /></button>
       </div>
     </div>
   );
