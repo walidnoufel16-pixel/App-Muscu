@@ -2,7 +2,7 @@
 
 import { useState, ViewTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CaretRightIcon, CheckIcon, DownloadSimpleIcon, ExportIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
+import { BarbellIcon, CaretDownIcon, CaretRightIcon, CheckIcon, DownloadSimpleIcon, ExportIcon, HeartbeatIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -64,64 +64,69 @@ export function MesSeances() {
   return (
     <>
       <div className="flex flex-col gap-2">
-        {cardio.length > 0 && <h3 className="px-1 text-[13px] font-semibold text-muted-foreground">Musculation</h3>}
-        {etat.SEANCES.length ? (
-          etat.SEANCES.map((s, i) => {
-            const absents = s.ex.filter((e) => !dispoDeclare(etat.A, e.id)).length;
-            return (
-              <LigneBalayable key={i + s.nom} label={s.nom} onSupprimer={() => supprimer(i)}>
-                <div className="flex items-stretch rounded-[20px] border border-border/80 bg-card">
-                  <button onClick={() => router.push(`/entrainement/seance?l=${i}`, AVANT)} className="flex min-w-0 flex-1 items-center gap-3 p-3 text-left">
-                    {/* même nom que dans l'en-tête de la séance : les vignettes s'y transforment */}
-                    <ViewTransition name={`vignettes-${i}`} share="morph" default="none">
-                      <span className="flex -space-x-3">
-                        {s.ex.slice(0, 3).map((e) => EX[e.id] && <Vignette key={e.id} id={e.id} className="size-11 rounded-[12px] ring-2 ring-card" />)}
-                      </span>
-                    </ViewTransition>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[16px] font-semibold tracking-[-0.01em]">{s.nom}</span>
-                      <span className="block truncate text-[12.5px] text-muted-foreground">
-                        {s.ex.length} exercice{s.ex.length > 1 ? "s" : ""} · environ {dureeEstimee(s.ex)} min · {musclesDe(s.ex.map((e) => e.id)).slice(0, 3).join(", ")}
-                      </span>
-                      {absents > 0 && <span className="block text-[12px] text-destructive">{absents} hors de ton matériel</span>}
-                    </span>
-                  </button>
-                  <button onClick={() => partagerSeance(i)} aria-label="Partager" className="grid w-12 place-items-center border-l border-border/70 text-muted-foreground">
-                    {s.code ? <CheckIcon className="size-5" /> : <ExportIcon className="size-5" />}
-                  </button>
-                </div>
-              </LigneBalayable>
-            );
-          })
-        ) : (
+        {!etat.SEANCES.length && !cardio.length && (
           <div className="rounded-[22px] border border-dashed bg-card/50 p-5 text-center text-[14px] leading-relaxed text-muted-foreground">
-            Aucune séance {cardio.length ? "de musculation " : ""}enregistrée pour l&apos;instant. Crée la première : elle restera disponible ensuite.
+            Aucune séance enregistrée pour l&apos;instant. Crée la première : elle restera disponible ensuite.
           </div>
         )}
 
-        {/* séances cardio : une catégorie à part */}
-        {cardio.length > 0 && <h3 className="mt-3 px-1 text-[13px] font-semibold text-muted-foreground">Cardio</h3>}
-        {cardio.map((c, i) => {
-          const I = ICONE_FORMAT[c.f];
-          return (
-            <LigneBalayable key={"c" + i + c.nom} label={c.nom} onSupprimer={() => supprimerCardio(i)}>
-              <div className="flex items-stretch rounded-[20px] border border-border/80 bg-card">
-                <button onClick={() => router.push(`/entrainement/cardio?s=${i}` as Route, AVANT)} className="flex min-w-0 flex-1 items-center gap-3 p-3 text-left">
-                  <span className="grid size-11 shrink-0 place-items-center rounded-[12px] bg-plate-soft text-plate-ink"><I className="size-6" weight="fill" /></span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[16px] font-semibold tracking-[-0.01em]">{c.nom}</span>
-                    <span className="block truncate text-[12.5px] text-muted-foreground">
-                      {FORMATS[c.f].nom} · {MACHINES[c.m].nom} · {Math.round(dureeTotale(construireSeance(c.f, c.m, c.r)) / 60)} min
-                    </span>
-                  </span>
-                </button>
-                <button onClick={() => partagerSeance(i, true)} aria-label="Partager" className="grid w-12 place-items-center border-l border-border/70 text-muted-foreground">
-                  {c.code ? <CheckIcon className="size-5" /> : <ExportIcon className="size-5" />}
-                </button>
-              </div>
-            </LigneBalayable>
-          );
-        })}
+        {etat.SEANCES.length > 0 && (
+          <Groupe cle="muscu" titre="Musculation" icone={<BarbellIcon className="size-5" weight="fill" />} noms={etat.SEANCES.map((s) => s.nom)}>
+            {etat.SEANCES.map((s, i) => {
+              const absents = s.ex.filter((e) => !dispoDeclare(etat.A, e.id)).length;
+              return (
+                <LigneBalayable key={i + s.nom} label={s.nom} onSupprimer={() => supprimer(i)}>
+                  <div className="flex items-stretch rounded-[20px] border border-border/80 bg-card">
+                    <button onClick={() => router.push(`/entrainement/seance?l=${i}`, AVANT)} className="flex min-w-0 flex-1 items-center gap-3 p-3 text-left">
+                      {/* même nom que dans l'en-tête de la séance : les vignettes s'y transforment */}
+                      <ViewTransition name={`vignettes-${i}`} share="morph" default="none">
+                        <span className="flex -space-x-3">
+                          {s.ex.slice(0, 3).map((e) => EX[e.id] && <Vignette key={e.id} id={e.id} className="size-11 rounded-[12px] ring-2 ring-card" />)}
+                        </span>
+                      </ViewTransition>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[16px] font-semibold tracking-[-0.01em]">{s.nom}</span>
+                        <span className="block truncate text-[12.5px] text-muted-foreground">
+                          {s.ex.length} exercice{s.ex.length > 1 ? "s" : ""} · environ {dureeEstimee(s.ex)} min · {musclesDe(s.ex.map((e) => e.id)).slice(0, 3).join(", ")}
+                        </span>
+                        {absents > 0 && <span className="block text-[12px] text-destructive">{absents} hors de ton matériel</span>}
+                      </span>
+                    </button>
+                    <button onClick={() => partagerSeance(i)} aria-label="Partager" className="grid w-12 place-items-center border-l border-border/70 text-muted-foreground">
+                      {s.code ? <CheckIcon className="size-5" /> : <ExportIcon className="size-5" />}
+                    </button>
+                  </div>
+                </LigneBalayable>
+              );
+            })}
+          </Groupe>
+        )}
+
+        {cardio.length > 0 && (
+          <Groupe cle="cardio" titre="Cardio" icone={<HeartbeatIcon className="size-5" weight="fill" />} noms={cardio.map((c) => c.nom)}>
+            {cardio.map((c, i) => {
+              const I = ICONE_FORMAT[c.f];
+              return (
+                <LigneBalayable key={"c" + i + c.nom} label={c.nom} onSupprimer={() => supprimerCardio(i)}>
+                  <div className="flex items-stretch rounded-[20px] border border-border/80 bg-card">
+                    <button onClick={() => router.push(`/entrainement/cardio?s=${i}` as Route, AVANT)} className="flex min-w-0 flex-1 items-center gap-3 p-3 text-left">
+                      <span className="grid size-11 shrink-0 place-items-center rounded-[12px] bg-plate-soft text-plate-ink"><I className="size-6" weight="fill" /></span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[16px] font-semibold tracking-[-0.01em]">{c.nom}</span>
+                        <span className="block truncate text-[12.5px] text-muted-foreground">
+                          {FORMATS[c.f].nom} · {MACHINES[c.m].nom} · {Math.round(dureeTotale(construireSeance(c.f, c.m, c.r)) / 60)} min
+                        </span>
+                      </span>
+                    </button>
+                    <button onClick={() => partagerSeance(i, true)} aria-label="Partager" className="grid w-12 place-items-center border-l border-border/70 text-muted-foreground">
+                      {c.code ? <CheckIcon className="size-5" /> : <ExportIcon className="size-5" />}
+                    </button>
+                  </div>
+                </LigneBalayable>
+              );
+            })}
+          </Groupe>
+        )}
         {etat.SEANCES.length + cardio.length > 0 && <p className="px-2 text-center text-[11.5px] text-muted-foreground">Fais glisser une séance vers la gauche pour la supprimer.</p>}
 
         <div className="mt-1 overflow-hidden rounded-[20px] border border-border/80 bg-card">
@@ -159,5 +164,47 @@ function Action({ icone, label, onClick, accent }: { icone: React.ReactNode; lab
       <span className="flex-1">{label}</span>
       <CaretRightIcon className="size-4 text-muted-foreground" />
     </button>
+  );
+}
+
+/* Groupe repliable (Musculation, Cardio). Ouvert par défaut jusqu'à 3 séances ;
+   le choix de l'utilisateur est mémorisé sur ce téléphone. */
+const CLE_GROUPES = "repere.groupes.v1";
+function lireGroupes(): Record<string, boolean> {
+  try { return JSON.parse(localStorage.getItem(CLE_GROUPES) || "{}"); } catch { return {}; }
+}
+
+function Groupe({ cle, titre, icone, noms, children }: { cle: string; titre: string; icone: React.ReactNode; noms: string[]; children: React.ReactNode }) {
+  const [ouvert, setOuvert] = useState(() => lireGroupes()[cle] ?? noms.length <= 3);
+  const basculer = () => {
+    const o = !ouvert;
+    setOuvert(o);
+    try { localStorage.setItem(CLE_GROUPES, JSON.stringify({ ...lireGroupes(), [cle]: o })); } catch {}
+  };
+  return (
+    <section className="flex flex-col">
+      <button
+        onClick={basculer}
+        aria-expanded={ouvert}
+        className="flex items-center gap-3 rounded-[20px] border border-border/80 bg-card px-3.5 py-3 text-left active:scale-[.99]"
+      >
+        <span className="grid size-9 shrink-0 place-items-center rounded-[11px] bg-plate-soft text-plate-ink">{icone}</span>
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center gap-2">
+            <span className="text-[16px] font-semibold">{titre}</span>
+            <span className="num rounded-full bg-muted px-2 text-[13px] font-bold text-muted-foreground">{noms.length}</span>
+          </span>
+          {!ouvert && <span className="block truncate text-[12.5px] text-muted-foreground">{noms.join(", ")}</span>}
+        </span>
+        <CaretDownIcon className={cn("size-5 shrink-0 text-muted-foreground transition-transform duration-300", ouvert && "rotate-180")} />
+      </button>
+      <div className={cn("grid transition-[grid-template-rows] duration-300 ease-out", ouvert ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
+        <div className="overflow-hidden">
+          <div className="flex flex-col gap-2 pt-2 pl-3" inert={!ouvert}>
+            {children}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

@@ -32,18 +32,19 @@ export function EnTete({
           replie ? "border-border/70 bg-background/90 backdrop-blur-xl" : "border-transparent bg-transparent",
         )}
       >
-        <div className="flex h-11 items-center gap-2 px-4">
-          <div className="flex min-w-0 flex-1 items-center">{gauche}</div>
+        {/* retour à gauche, titre réduit au centre (tronqué plutôt que chevauchant), actions à droite */}
+        <div className="grid h-11 grid-cols-[minmax(0,auto)_minmax(0,1fr)_minmax(0,auto)] items-center gap-2 px-4">
+          <div className="flex min-w-0 items-center">{gauche}</div>
           <div
             className={cn(
-              "pointer-events-none absolute left-1/2 max-w-[42%] -translate-x-1/2 truncate text-[15px] font-semibold transition-opacity duration-200",
+              "pointer-events-none truncate text-center text-[15px] font-semibold transition-opacity duration-200",
               replie ? "opacity-100" : "opacity-0",
             )}
             aria-hidden
           >
             {titre}
           </div>
-          <div className="flex shrink-0 items-center gap-1">{actions}</div>
+          <div className="flex shrink-0 items-center justify-end gap-1">{actions}</div>
         </div>
       </div>
       <header className={cn("px-5 pt-1 pb-3", className)}>

@@ -2,11 +2,11 @@
 
 /* Réglages d'une séance cardio, communs à l'écran de préparation et à l'assistant :
    format, machine, niveau, puis durées ajustables au pas près. */
-import { HeartbeatIcon, LightningIcon, MinusIcon, PlusIcon, TimerIcon, WaveSineIcon } from "@phosphor-icons/react";
+import { FireIcon, HeartbeatIcon, LightningIcon, MinusIcon, MountainsIcon, PlusIcon, RepeatIcon, StairsIcon, TimerIcon, TriangleIcon, WaveSineIcon } from "@phosphor-icons/react";
 import { Segmente } from "./segmente";
 import { Vignette } from "./exercice-carte";
 import {
-  construireSeance, dureeTotale, FORMATS, MACHINES, machinesDe, NIVEAUX, ORDRE_FORMATS, reglagesDe,
+  construireSeance, dureeTotale, FAMILLES, FORMATS, MACHINES, machinesDe, NIVEAUX, reglagesDe,
   type FormatCardio, type Machine, type Niveau, type Reglages,
 } from "@/lib/logic/cardio";
 import { tactile } from "@/lib/repos";
@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 
 export const ICONE_FORMAT: Record<FormatCardio, typeof TimerIcon> = {
   fractionne: WaveSineIcon, tabata: LightningIcon, emom: TimerIcon, endurance: HeartbeatIcon,
+  norvegien: FireIcon, trente: RepeatIcon, pyramide: TriangleIcon, cote: MountainsIcon, paliers: StairsIcon,
 };
 
 export const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
@@ -28,6 +29,11 @@ const CHAMPS: Record<FormatCardio, Champ[]> = {
   tabata: [["blocs", "Blocs de 8 tours", 1, 1, 6, String], ["pauseBlocs", "Pause entre blocs", 15, 30, 180, mmss]],
   emom: [["tours", "Minutes", 1, 4, 30, String], ["reps", "Répétitions par minute", 1, 4, 30, String]],
   endurance: [["duree", "Durée", 5, 10, 90, (v) => `${v} min`]],
+  norvegien: [["effort", "Effort", 30, 120, 300, mmss], ["recup", "Récupération", 30, 60, 240, mmss], ["tours", "Tours", 1, 2, 6, String]],
+  trente: [["tours", "Tours par bloc", 1, 4, 20, String], ["blocs", "Blocs", 1, 1, 4, String], ["pauseBlocs", "Pause entre blocs", 15, 30, 240, mmss]],
+  pyramide: [["effort", "Pas de la pyramide", 15, 15, 60, mmss], ["tours", "Marches jusqu'au sommet", 1, 2, 6, String], ["recup", "Récupération", 15, 15, 180, mmss]],
+  cote: [["effort", "Sprint", 5, 10, 60, mmss], ["recup", "Récupération", 15, 30, 180, mmss], ["tours", "Sprints", 1, 3, 15, String]],
+  paliers: [["duree", "Durée", 3, 12, 90, (v) => `${v} min`], ["tours", "Paliers", 1, 2, 5, String]],
 };
 const COMMUNS: Champ[] = [["echauf", "Échauffement", 60, 0, 600, enMin], ["calme", "Retour au calme", 60, 0, 600, enMin]];
 
@@ -44,8 +50,11 @@ export function ReglagesCardio({ choix, onChange, avecFormat = true }: { choix: 
       {avecFormat && (
         <section>
           <h2 className="eyebrow mb-2 px-1">Format</h2>
+          {FAMILLES.map((fam) => (
+          <div key={fam.nom} className="mb-3">
+          <h3 className="mb-1.5 px-1 text-[13px] font-semibold text-muted-foreground">{fam.nom}</h3>
           <div className="grid grid-cols-2 gap-2">
-            {ORDRE_FORMATS.map((g) => {
+            {fam.formats.map((g) => {
               const I = ICONE_FORMAT[g], on = g === f;
               return (
                 <button
@@ -59,7 +68,9 @@ export function ReglagesCardio({ choix, onChange, avecFormat = true }: { choix: 
               );
             })}
           </div>
-          <p className="mt-2 px-1 text-[13px] leading-relaxed text-muted-foreground">{FORMATS[f].texte}</p>
+          </div>
+          ))}
+          <p className="px-1 text-[13px] leading-relaxed text-muted-foreground">{FORMATS[f].texte}</p>
         </section>
       )}
 

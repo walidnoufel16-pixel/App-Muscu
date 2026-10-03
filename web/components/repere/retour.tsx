@@ -20,7 +20,7 @@ export function Retour({ repli }: { repli: Route }) {
   return (
     <Button variant="ghost" size="sm" className="-ml-2 text-[15px] text-plate-ink" onClick={retour}>
       <CaretLeftIcon className="size-5" weight="bold" />
-      {titreDe(prec ?? repli)}
+      <span className="max-w-[26vw] truncate">{titreDe(prec ?? repli)}</span>
     </Button>
   );
 }

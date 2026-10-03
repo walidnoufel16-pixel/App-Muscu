@@ -26,6 +26,18 @@ ok(await actif() === "Entraînement", "accueil : onglet Entraînement actif");
 ok(await pg.locator("nav a").count() === 3, "trois onglets");
 ok(await pg.getByText("Construis ton programme").isVisible(), "sans programme : la carte propose de le construire");
 
+// Mes séances : groupe Musculation repliable, choix mémorisé
+const groupe = pg.getByRole("button", { name: /^Musculation/ });
+ok(await groupe.getAttribute("aria-expanded") === "true", "groupe Musculation ouvert (1 séance)");
+await groupe.click();
+await pg.waitForTimeout(400);
+ok(await groupe.getAttribute("aria-expanded") === "false" && await pg.getByRole("button", { name: /^Test 1 exercice/, includeHidden: true }).evaluate((el) => !!el.closest("[inert]")), "groupe replié : séances masquées");
+await pg.reload();
+await pg.getByRole("button", { name: /^Musculation/ }).waitFor();
+ok(await pg.getByRole("button", { name: /^Musculation/ }).getAttribute("aria-expanded") === "false", "groupe toujours replié après rechargement");
+await pg.getByRole("button", { name: /^Musculation/ }).click();
+await pg.waitForTimeout(400);
+
 // séance libre en plein écran
 await pg.getByText("Test", { exact: true }).click();
 await pg.waitForURL(/\/entrainement\/seance\/\?l=0/);
@@ -49,9 +61,24 @@ ok(true, "enregistrer une modification ramène à la séance");
 // fiche chargée à part
 ok(fiches === 0, "fiches.json pas chargé avant d'ouvrir une fiche");
 await pg.locator("button").filter({ hasText: /Développé couché/ }).first().click();
-await pg.getByRole("button", { name: "Fiche" }).click();
+await pg.getByRole("button", { name: "Fiche", exact: true }).click();
 await pg.getByText("Exécution").waitFor({ timeout: 5000 });
 ok(fiches === 1, "fiches.json chargé à l'ouverture de la fiche");
+// variantes : on ouvre une variante dans la même feuille, puis on revient
+const variante = pg.locator('[role="dialog"] button').filter({ hasText: /Développé couché haltères|Pompes|Développé incliné/ }).first();
+const nomVariante = (await variante.locator("span.font-semibold").first().textContent()).trim();
+await variante.click();
+await pg.waitForTimeout(300);
+ok(await pg.locator('[role="dialog"] h2').first().textContent() === nomVariante, `variante ouverte dans la fiche (${nomVariante})`);
+await pg.getByRole("button", { name: /Retour à développé couché barre/ }).click();
+await pg.waitForTimeout(300);
+ok(await pg.locator('[role="dialog"] h2').first().textContent() === "Développé couché barre", "retour à la fiche d'origine");
+await pg.keyboard.press("Escape");
+await pg.waitForTimeout(400);
+// toucher la photo d'une carte ouvre directement la fiche
+await pg.getByRole("button", { name: "Fiche : Développé couché barre" }).click();
+await pg.getByText("Exécution").waitFor({ timeout: 3000 }).catch(() => {});
+ok(await pg.getByText("Exécution").isVisible(), "photo de la carte : fiche ouverte");
 await pg.keyboard.press("Escape");
 await pg.waitForTimeout(400);
 

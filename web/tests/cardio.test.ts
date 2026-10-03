@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bilanCardio, changements, construireSeance, decoderCardio, dureeTotale, encoderCardio, ORDRE_FORMATS, ou, reglagesDe, type Niveau } from "@/lib/logic/cardio";
+import { bilanCardio, changements, construireSeance, decoderCardio, dureeTotale, encoderCardio, machinesDe, ORDRE_FORMATS, ou, reglagesDe, type Niveau } from "@/lib/logic/cardio";
 
 describe("cardio", () => {
   it("fractionné intermédiaire : 5 min + 8 × 60 s + 7 × 90 s + 3 min", () => {
@@ -49,5 +49,44 @@ describe("cardio", () => {
     }
     expect(decoderCardio(s.nom, JSON.parse(JSON.stringify(ex)))).toEqual(s);
     expect(decoderCardio("x", [{ id: "dc", s: 3, r: 8 }])).toBeNull();
+  });
+});
+
+describe("cardio : nouveaux formats", () => {
+  it("4×4 norvégien : 4 min d'effort, 3 min de récupération, 10 min d'échauffement", () => {
+    const P = construireSeance("norvegien", "tapis", reglagesDe("norvegien", 1));
+    expect(P.filter((p) => p.type === "effort").map((p) => p.duree)).toEqual([240, 240, 240]);
+    expect(P.filter((p) => p.type === "recup")).toHaveLength(2);
+    expect(P[0]).toMatchObject({ type: "echauf", duree: 600 });
+  });
+  it("30/30 : blocs de tours égaux, pause entre les blocs", () => {
+    const P = construireSeance("trente", "velo", reglagesDe("trente", 2));
+    expect(P.filter((p) => p.type === "effort")).toHaveLength(24);
+    expect(P.filter((p) => p.type === "pause")).toHaveLength(1);
+  });
+  it("pyramide : monte jusqu'au sommet puis redescend", () => {
+    const P = construireSeance("pyramide", "ram", reglagesDe("pyramide", 1));
+    expect(P.filter((p) => p.type === "effort").map((p) => p.duree)).toEqual([30, 60, 90, 120, 90, 60, 30]);
+    expect(P.find((p) => p.titre === "Sommet")!.duree).toBe(120);
+  });
+  it("sprints en côte : seulement sur tapis, vélo ou stairmaster, consigne de pente", () => {
+    expect(machinesDe("cote")).toEqual(["tapis", "velo", "stair"]);
+    const P = construireSeance("cote", "tapis", reglagesDe("cote", 0));
+    expect(P.filter((p) => p.type === "effort")).toHaveLength(6);
+    expect(P.find((p) => p.type === "effort")!.consigne).toMatch(/Inclinaison/);
+  });
+  it("endurance à paliers : 3 paliers d'intensité croissante", () => {
+    const P = construireSeance("paliers", "ellip", reglagesDe("paliers", 1)).filter((p) => p.type === "continu");
+    expect(P.map((p) => p.titre)).toEqual(["Palier 1 sur 3", "Palier 2 sur 3", "Palier 3 sur 3"]);
+    expect(P.map((p) => p.rpe)).toEqual(["RPE 3", "RPE 4", "RPE 5"]);
+    expect(P.reduce((s, p) => s + p.duree, 0)).toBe(30 * 60);
+  });
+  it("partage : les nouveaux formats voyagent aussi", () => {
+    for (const f of ["norvegien", "trente", "pyramide", "cote", "paliers"] as const) {
+      const s = { nom: "x", f, m: "tapis" as const, n: 1 as Niveau, r: reglagesDe(f, 1) };
+      const ex = encoderCardio(s);
+      for (const e of ex) { expect(e.s).toBeLessThanOrEqual(20); expect(e.r).toBeLessThanOrEqual(1000); }
+      expect(decoderCardio("x", ex)).toEqual(s);
+    }
   });
 });
