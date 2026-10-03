@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeftRight, Check, ChevronDown, Info, Target } from "lucide-react";
+import { ArrowsLeftRightIcon, CaretDownIcon, CheckIcon, CrosshairIcon, InfoIcon } from "@phosphor-icons/react";
 import { EX } from "@/lib/data/exercices";
 import { musclesDe, okDe, resumeDe } from "@/lib/logic/core";
 import type { Journal } from "@/lib/logic/types";
@@ -29,7 +29,7 @@ export function Vignette({ id, num, fait, className }: { id: string; num?: numbe
       )}
       {fait && (
         <span className="absolute right-1 bottom-1 grid size-5 place-items-center rounded-full bg-plate text-plate-foreground ring-2 ring-card">
-          <Check className="size-3" strokeWidth={3.5} />
+          <CheckIcon className="size-3" weight="bold" />
         </span>
       )}
     </span>
@@ -80,7 +80,7 @@ export function ExerciceCarte({
           </span>
           {mus.length > 0 && (
             <span className="flex items-center gap-1.5 truncate text-[12.5px] font-medium text-muted-foreground">
-              <Target className="size-3.5 shrink-0 text-plate-ink" />
+              <CrosshairIcon className="size-3.5 shrink-0 text-plate-ink" />
               {mus.join(" · ")}
             </span>
           )}
@@ -92,7 +92,7 @@ export function ExerciceCarte({
             </span>
           )}
         </span>
-        <ChevronDown className={cn("size-5 shrink-0 text-muted-foreground transition-transform duration-200", ouvert && "rotate-180")} />
+        <CaretDownIcon className={cn("size-5 shrink-0 text-muted-foreground transition-transform duration-200", ouvert && "rotate-180")} />
       </button>
 
       {ouvert && (
@@ -109,13 +109,13 @@ export function ExerciceCarte({
           </div>
           {children}
           <div className="grid grid-cols-3 border-t border-border/70">
-            <OutilBtn onClick={onFiche} icone={<Info className="size-5" />} label="Fiche" />
+            <OutilBtn onClick={onFiche} icone={<InfoIcon className="size-5" />} label="Fiche" />
             {onRemplacer ? (
-              <OutilBtn onClick={onRemplacer} icone={<ArrowLeftRight className="size-5" />} label="Remplacer" />
+              <OutilBtn onClick={onRemplacer} icone={<ArrowsLeftRightIcon className="size-5" />} label="Remplacer" />
             ) : (
               <span />
             )}
-            <OutilBtn onClick={onTout} icone={<Check className="size-5" strokeWidth={2.5} />} label={fait ? "Tout décocher" : "Tout valider"} accent />
+            <OutilBtn onClick={onTout} icone={<CheckIcon className="size-5" weight="bold" />} label={fait ? "Tout décocher" : "Tout valider"} accent />
           </div>
         </div>
       )}

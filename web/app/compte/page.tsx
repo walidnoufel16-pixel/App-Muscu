@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { CircleCheck, CloudOff, Mail, ShieldAlert } from "lucide-react";
+import { CheckCircleIcon, CloudSlashIcon, EnvelopeIcon, ShieldWarningIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Segmente } from "@/components/repere/segmente";
 import { confirmer } from "@/components/repere/confirmer";
 import { messageErreur, sb, valideMail } from "@/lib/supabase";
 import { useRepere } from "@/lib/store";
+import { AVANT } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
 export default function PageCompte() {
@@ -28,7 +29,7 @@ export default function PageCompte() {
     const m = mail.trim().toLowerCase();
     setMsg(null);
     if (!valideMail(m)) { setMsg({ t: "Cette adresse n'a pas l'air valide." }); return; }
-    const c = sb();
+    const c = await sb();
     if (!c || !user) { setMsg({ t: "Pas de connexion au serveur : impossible pour l'instant." }); return; }
     if (adresse === m) { setMsg({ t: "C'est déjà l'adresse de ce compte." }); return; }
     setOccupe(true);
@@ -44,7 +45,7 @@ export default function PageCompte() {
   };
 
   const confirmerCode = async () => {
-    const c = sb(), k = code.replace(/\D/g, "");
+    const c = await sb(), k = code.replace(/\D/g, "");
     if (!c || !user?.new_email) return;
     if (k.length !== 6) { setMsg({ t: "Le code fait six chiffres." }); return; }
     setOccupe(true);
@@ -66,7 +67,7 @@ export default function PageCompte() {
   };
 
   const renvoyer = async () => {
-    const c = sb(), m = user?.new_email;
+    const c = await sb(), m = user?.new_email;
     if (!c || !m) return;
     const { error } = await c.auth.updateUser({ email: m });
     setMsg(error ? { t: messageErreur(error) } : { t: "Nouveau code envoyé à " + m + ".", ok: true });
@@ -97,7 +98,7 @@ export default function PageCompte() {
             <div className="truncate text-[13.5px] text-muted-foreground">{adresse || "Aucune adresse rattachée"}</div>
           </div>
           <span className={cn("flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium", sync ? "bg-success-soft text-success" : "bg-muted text-muted-foreground")}>
-            {sync ? <CircleCheck className="size-3.5" /> : <CloudOff className="size-3.5" />}
+            {sync ? <CheckCircleIcon className="size-3.5" /> : <CloudSlashIcon className="size-3.5" />}
             {sync ? "Synchronisé" : "Local"}
           </span>
         </div>
@@ -134,7 +135,7 @@ export default function PageCompte() {
             </p>
             <div className="mt-3 flex gap-2">
               <div className="relative flex-1">
-                <Mail className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                <EnvelopeIcon className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   type="email" inputMode="email" autoComplete="email" autoCapitalize="off" spellCheck={false}
                   value={mail} onChange={(e) => setMail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && lier()}
@@ -144,7 +145,7 @@ export default function PageCompte() {
               <Button size="lg" className="h-11 rounded-xl" disabled={occupe || !mail} onClick={lier}>{adresse ? "Changer" : "Rattacher"}</Button>
             </div>
             {msg && <p className={cn("mt-2 text-[13px]", msg.ok ? "text-success" : "text-destructive")}>{msg.t}</p>}
-            <button onClick={() => router.push("/bienvenue/?recup=1")} className="mt-3 text-[13px] font-medium text-muted-foreground hover:text-foreground">
+            <button onClick={() => router.push("/bienvenue?recup=1", AVANT)} className="mt-3 text-[13px] font-medium text-muted-foreground hover:text-foreground">
               Retrouver un compte avec une autre adresse
             </button>
           </div>
@@ -165,7 +166,7 @@ export default function PageCompte() {
         {/* zone sensible */}
         <section>
           <div className="rounded-[22px] border border-destructive/30 bg-card p-4">
-            <div className="flex items-center gap-2 text-[15px] font-semibold"><ShieldAlert className="size-4 text-destructive" />Tout effacer et recommencer</div>
+            <div className="flex items-center gap-2 text-[15px] font-semibold"><ShieldWarningIcon className="size-4 text-destructive" />Tout effacer et recommencer</div>
             <p className="mt-1 text-[13.5px] leading-relaxed text-muted-foreground">
               Ton cycle, tes séances composées, tes charges et tes réponses au questionnaire. Rien n&apos;est conservé, ni ici ni sur le serveur.
             </p>

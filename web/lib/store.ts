@@ -79,6 +79,7 @@ type Store = {
   user: User | null;
   pseudo: string;
   sync: boolean | null; // vert : synchronisé · gris : hors ligne · null : inconnu
+  session: "inconnue" | "ouverte" | "aucune";
   muter: (fn: (e: Etat) => void) => void;
   demarrer: () => Promise<void>;
   apresConnexion: (forcerDistant?: boolean) => Promise<string | null>;
@@ -98,19 +99,20 @@ export const useRepere = create<Store>((set, get) => ({
   user: null,
   pseudo: "",
   sync: null,
+  session: "inconnue",
 
   muter(fn) {
     const etat = produce(get().etat, fn);
     set({ etat });
     try { localStorage.setItem(SKEY, JSON.stringify(instantane(etat))); } catch {}
-    if (sb() && get().user) {
+    if (get().user) {
       if (minuteurPush) clearTimeout(minuteurPush);
       minuteurPush = setTimeout(() => get().pousser(), 1500);
     }
   },
 
   async pousser() {
-    const c = sb(), u = get().user;
+    const c = await sb(), u = get().user;
     if (!c || !u) return;
     try {
       const { error } = await c.from("etats").upsert({ user_id: u.id, pseudo: get().pseudo, etat: instantane(get().etat), maj: new Date().toISOString() });
@@ -120,28 +122,31 @@ export const useRepere = create<Store>((set, get) => ({
     }
   },
 
-  setUser(u) { set({ user: u }); },
+  setUser(u) { set({ user: u, session: u ? "ouverte" : "aucune" }); },
 
+  /* L'écran s'affiche tout de suite avec l'état local ; la session Supabase
+     (client chargé en différé) arrive ensuite et peut le remplacer s'il est
+     plus récent sur le serveur. */
   async demarrer() {
-    const c = sb();
     let pseudo = "";
     try { pseudo = sansBalise(localStorage.getItem(PKEY)) || ""; } catch {}
-    if (!c) { set({ etat: versEtat(lireLocal()), pret: true, sync: false, pseudo }); return; }
+    set({ etat: versEtat(lireLocal()), pret: true, pseudo });
+    const c = await sb();
+    if (!c) { set({ sync: false, session: "aucune" }); return; }
     try {
       const { data } = await c.auth.getSession();
       if (data?.session) {
-        set({ user: data.session.user, pseudo: pseudo || "toi" });
+        set({ user: data.session.user, pseudo: pseudo || "toi", session: "ouverte" });
         await get().apresConnexion();
         return;
       }
     } catch {}
-    /* Pas de session : l'écran d'accueil propose de créer le compte. */
-    set({ etat: versEtat(lireLocal()), pret: true, pseudo });
+    set({ session: "aucune" });
   },
 
   /* forcerDistant : à la récupération sur un nouvel appareil, le compte a raison. */
   async apresConnexion(forcerDistant) {
-    const c = sb(), u = get().user;
+    const c = await sb(), u = get().user;
     let distant: Stocke | null = null, info: string | null = null;
     if (c && u) {
       try {
@@ -164,14 +169,14 @@ export const useRepere = create<Store>((set, get) => ({
   },
 
   async creerCompte(pseudo, mail) {
-    const c = sb();
+    const c = await sb();
     const p = sansBalise(pseudo.trim());
     set({ pseudo: p });
     try { localStorage.setItem(PKEY, p); } catch {}
     if (!c) { set({ etat: versEtat(lireLocal()), pret: true }); return { ok: true, message: "Mode local : tes données restent sur ce téléphone." }; }
     const { data, error } = await c.auth.signInAnonymously();
     if (error || !data.user) return { ok: false, message: error?.message };
-    set({ user: data.user });
+    set({ user: data.user, session: "ouverte" });
     let message: string | undefined;
     if (mail) {
       const r = await c.auth.updateUser({ email: mail });
@@ -184,7 +189,7 @@ export const useRepere = create<Store>((set, get) => ({
 
   /* Tout effacer : ici comme sur le serveur, compte compris. */
   async toutEffacer() {
-    const c = sb(), u = get().user;
+    const c = await sb(), u = get().user;
     try {
       if (c && u) {
         await c.from("etats").delete().eq("user_id", u.id);
@@ -199,12 +204,14 @@ export const useRepere = create<Store>((set, get) => ({
       }
     } catch {}
     try { localStorage.removeItem(SKEY); localStorage.removeItem(PKEY); } catch {}
+    // Rechargement complet voulu : repartir d'un état vierge.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     location.href = "/";
   },
 
   /* ---------- partage d'une séance ---------- */
   async partager(i) {
-    const c = sb(), u = get().user, s = get().etat.SEANCES[i];
+    const c = await sb(), u = get().user, s = get().etat.SEANCES[i];
     if (!s) return { erreur: "Séance introuvable." };
     if (s.code) return { code: s.code };
     if (!c || !u) return { erreur: "Le partage demande un compte." };
@@ -226,7 +233,7 @@ export const useRepere = create<Store>((set, get) => ({
   async importer(codeBrut) {
     const code = (codeBrut || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
     if (code.length < 4) return { erreur: "Le code fait cinq caractères." };
-    const c = sb();
+    const c = await sb();
     if (!c) return { erreur: "L'import demande une connexion." };
     try {
       const { data, error } = await c.rpc("lire_seance", { p_code: code }).maybeSingle<{ nom: string; ex: unknown }>();

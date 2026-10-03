@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Check, Info, Sparkles } from "lucide-react";
+import { CheckIcon, InfoIcon, SparkleIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { EnTete } from "@/components/repere/en-tete";
@@ -19,6 +19,7 @@ import {
 } from "@/lib/logic/core";
 import * as act from "@/lib/logic/actions";
 import { useRepere } from "@/lib/store";
+import { AVANT_T } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 
@@ -44,16 +45,16 @@ export default function PagePlan() {
         <EnTete surtitre="Programme sur 8 semaines" titre="Mon plan" />
         <div className="px-5">
           <div className="rounded-[24px] border bg-card p-5">
-            <Sparkles className="size-6 text-plate-ink" />
+            <SparkleIcon className="size-6 text-plate-ink" />
             <h2 className="mt-3 text-[20px] leading-tight font-bold">Ton cycle n&apos;est pas encore construit</h2>
             <p className="mt-2 text-[14.5px] leading-relaxed text-muted-foreground">
               Une douzaine de questions sur ton objectif, ton matériel et ton rythme : Repère construit huit semaines de séances, puis ajuste l&apos;effort semaine après semaine.
             </p>
             <Button asChild variant="plate" size="xl" className="mt-5 w-full">
-              <Link href="/questionnaire/">Construire mon programme</Link>
+              <Link href="/questionnaire" transitionTypes={AVANT_T}>Construire mon programme</Link>
             </Button>
             <Button asChild variant="ghost" className="mt-1 w-full">
-              <Link href="/seances/">Plutôt une séance à la carte</Link>
+              <Link href="/seances" transitionTypes={AVANT_T}>Plutôt une séance à la carte</Link>
             </Button>
           </div>
         </div>
@@ -84,9 +85,9 @@ export default function PagePlan() {
         titre="Mon plan"
         actions={
           <>
-            <Button asChild variant="ghost" size="sm" className="text-[14px]"><Link href="/plan/synthese/">Synthèse</Link></Button>
+            <Button asChild variant="ghost" size="sm" className="text-[14px]"><Link href="/plan/synthese" transitionTypes={AVANT_T}>Synthèse</Link></Button>
             <Button variant="ghost" size="icon" aria-label="Repères de placement" onClick={() => setReperes(true)}>
-              <Info className="size-5" />
+              <InfoIcon className="size-5" />
             </Button>
           </>
         }
@@ -109,7 +110,7 @@ export default function PagePlan() {
                 p.b && !sel && "border-dashed",
               )}
             >
-              {fait && <Check className={cn("size-3.5", sel ? "text-plate" : "text-plate-ink")} strokeWidth={3} />}
+              {fait && <CheckIcon className={cn("size-3.5", sel ? "text-plate" : "text-plate-ink")} weight="bold" />}
               {p.b ? "Bonus" : p.sportOnly ? "Ton sport" : `Séance ${i + 1}`}
             </button>
           );

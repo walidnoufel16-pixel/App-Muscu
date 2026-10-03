@@ -10,7 +10,7 @@ import type { PlanIA, Reponses } from "@/lib/logic/types";
 
 export async function genererCycle(A: Reponses, forcer: boolean, info: (t: string) => void): Promise<{ plan: PlanIA | null; erreur?: string; avertissement?: string }> {
   try {
-    const c = sb();
+    const c = await sb();
     if (!c) throw new Error("compte non connecté");
     const { data } = await c.auth.getSession();
     if (!data.session) throw new Error("session expirée, relance l'app");

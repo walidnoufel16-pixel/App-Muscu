@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ChevronLeft, Minus, Plus } from "lucide-react";
+import { CaretLeftIcon, CheckIcon, MinusIcon, PlusIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { confirmer, dire } from "@/components/repere/confirmer";
 import { ACC, MATCATS, SPORTS } from "@/lib/data/referentiels";
@@ -10,6 +10,7 @@ import { accDeclares, freqDe, sportsChoisis, sportsTotal } from "@/lib/logic/cor
 import { buildQ, prioNoms, repondue, sportWarn } from "@/lib/logic/questionnaire";
 import type { Reponses } from "@/lib/logic/types";
 import { useRepere } from "@/lib/store";
+import { AVANT } from "@/lib/nav";
 import { genererCycle } from "@/lib/generer";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
@@ -36,7 +37,7 @@ export default function PageQuestionnaire() {
     const i = Q.findIndex((x) => x.k === q.k);
     if (i > 0) { setQi(i - 1); majA((a) => { a.reprise = i - 1; }); return; }
     if (await confirmer({ titre: "Quitter le questionnaire ?", texte: "Tes réponses sont gardées : tu pourras reprendre où tu en étais.", ok: "Quitter" }))
-      router.push(etat.FINI ? "/plan/synthese/" : "/bienvenue/");
+      router.push(etat.FINI ? "/plan/synthese" : "/bienvenue");
   };
 
   const lancerGeneration = async (forcer = false) => {
@@ -49,7 +50,7 @@ export default function PageQuestionnaire() {
     muter((E) => { E.PLAN = r.plan; E.FINI = true; });
     await new Promise((z) => setTimeout(z, 380));
     if (r.erreur) await dire("Génération par IA indisponible", r.erreur + "\n\nLe programme affiché vient des règles intégrées.");
-    router.push("/plan/synthese/");
+    router.push("/plan/synthese", AVANT);
   };
 
   /* ----- choix ----- */
@@ -93,7 +94,7 @@ export default function PageQuestionnaire() {
     <div className="flex min-h-dvh flex-col">
       <div className="safe-top sticky top-0 z-20 bg-background/90 backdrop-blur-xl">
         <div className="flex h-12 items-center gap-2 px-3">
-          <Button variant="ghost" size="icon" aria-label="Question précédente" onClick={precedent}><ChevronLeft className="size-6" /></Button>
+          <Button variant="ghost" size="icon" aria-label="Question précédente" onClick={precedent}><CaretLeftIcon className="size-6" /></Button>
           {/* progression : des disques qui se chargent */}
           <div className="flex flex-1 items-center gap-1" aria-label={`Question ${idx + 1} sur ${total}`}>
             {Q.map((x, n) => (
@@ -135,7 +136,7 @@ export default function PageQuestionnaire() {
                     )}
                   >
                     <span className={cn("grid size-6 shrink-0 place-items-center border-2 transition-colors", q.t === "multi" ? "rounded-[7px]" : "rounded-full", on ? "border-foreground bg-foreground text-background" : "border-border")}>
-                      {on && <Check className="size-3.5" strokeWidth={3.5} />}
+                      {on && <CheckIcon className="size-3.5" weight="bold" />}
                     </span>
                     <span>
                       <span className="block text-[16px] font-semibold">{t}</span>
@@ -252,7 +253,7 @@ function Profil({ A, majA, loads }: { A: Reponses; majA: Maj; loads: [string, nu
         <div key={l} className="flex items-center justify-between rounded-[18px] bg-card p-3 pl-4">
           <span className="text-[15.5px] font-semibold">{l}</span>
           <div className="flex items-center gap-2">
-            <button onClick={() => majA((a) => { a.profil = { ...(a.profil || {}), [l]: Math.max(0, val(l, d) - pas) }; })} aria-label={`${l} moins`} className="grid size-10 place-items-center rounded-full bg-muted active:scale-90"><Minus className="size-4" /></button>
+            <button onClick={() => majA((a) => { a.profil = { ...(a.profil || {}), [l]: Math.max(0, val(l, d) - pas) }; })} aria-label={`${l} moins`} className="grid size-10 place-items-center rounded-full bg-muted active:scale-90"><MinusIcon className="size-4" /></button>
             <span className="flex w-24 items-baseline justify-center gap-1">
               <input
                 value={val(l, d)}
@@ -263,7 +264,7 @@ function Profil({ A, majA, loads }: { A: Reponses; majA: Maj; loads: [string, nu
               />
               <span className="text-[13px] text-muted-foreground">{u}</span>
             </span>
-            <button onClick={() => majA((a) => { a.profil = { ...(a.profil || {}), [l]: val(l, d) + pas }; })} aria-label={`${l} plus`} className="grid size-10 place-items-center rounded-full bg-muted active:scale-90"><Plus className="size-4" /></button>
+            <button onClick={() => majA((a) => { a.profil = { ...(a.profil || {}), [l]: val(l, d) + pas }; })} aria-label={`${l} plus`} className="grid size-10 place-items-center rounded-full bg-muted active:scale-90"><PlusIcon className="size-4" /></button>
           </div>
         </div>
       ))}

@@ -1,21 +1,20 @@
 /* Client Supabase. La clé est la clé publishable (publique par nature : la
    sécurité repose sur les règles RLS). Surchargeable au build par
    NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_KEY. */
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const SB_URL = (process.env.NEXT_PUBLIC_SUPABASE_URL || "https://iyjiwfzrmyvcnmzwlgxe.supabase.co").trim();
 export const SB_KEY = (process.env.NEXT_PUBLIC_SUPABASE_KEY || "sb_publishable_lZmQsTMMyzcaY9A80Zr26Q_V_zHmf3R").trim();
 
-let client: SupabaseClient | null = null;
-export function sb(): SupabaseClient | null {
-  if (typeof window === "undefined") return null;
-  if (client) return client;
-  if (!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(SB_URL) || !/^eyJ|^sb_publishable_/.test(SB_KEY)) return null;
-  try {
-    client = createClient(SB_URL, SB_KEY);
-  } catch {
-    client = null;
-  }
+/* Le client (≈ 50 Ko compressés) est chargé à part, en différé : l'écran
+   s'affiche d'abord avec l'état local, la session arrive juste après. */
+let client: Promise<SupabaseClient | null> | null = null;
+export function sb(): Promise<SupabaseClient | null> {
+  if (typeof window === "undefined") return Promise.resolve(null);
+  if (!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(SB_URL) || !/^eyJ|^sb_publishable_/.test(SB_KEY)) return Promise.resolve(null);
+  client ??= import("@supabase/supabase-js")
+    .then(({ createClient }) => createClient(SB_URL, SB_KEY))
+    .catch(() => { client = null; return null; });
   return client;
 }
 

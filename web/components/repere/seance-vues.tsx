@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronRight, Clock, Lightbulb } from "lucide-react";
+import { CaretRightIcon, ClockIcon, LightbulbIcon } from "@phosphor-icons/react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { EX } from "@/lib/data/exercices";
 import { COLLATION, ECHAUF, OBJS } from "@/lib/data/referentiels";
@@ -51,7 +51,7 @@ export function Echauffement({ type, onFiche }: { type: "haut" | "bas" | "bonus"
   return (
     <div className="px-4">
       <div className="mb-3 flex items-center gap-2 rounded-2xl bg-card px-4 py-3 text-[14px]">
-        <Clock className="size-4 text-muted-foreground" />
+        <ClockIcon className="size-4 text-muted-foreground" />
         <span><b className="font-semibold">Environ {e.d}</b> avant de toucher aux charges</span>
         <span className="ml-auto text-[12.5px] text-muted-foreground">{e.l.length} étapes</span>
       </div>
@@ -70,7 +70,7 @@ export function Echauffement({ type, onFiche }: { type: "haut" | "bas" | "bonus"
                   <button onClick={() => onFiche(id)} className="mt-2.5 flex w-full items-center gap-3 rounded-xl bg-muted p-1.5 pr-3 text-left active:scale-[.99]">
                     <Vignette id={id} className="size-10 rounded-[10px]" />
                     <span className="flex-1 text-[13.5px] font-medium">Voir le mouvement</span>
-                    <ChevronRight className="size-4 text-muted-foreground" />
+                    <CaretRightIcon className="size-4 text-muted-foreground" />
                   </button>
                 )}
               </div>
@@ -121,7 +121,7 @@ export function Collation({ obj, onChanger }: { obj: number; onChanger?: (o: num
         ))}
       </div>
       <div className="mt-2 flex gap-3 rounded-[20px] bg-plate-soft p-3.5">
-        <Lightbulb className="mt-0.5 size-5 shrink-0 text-plate-ink" />
+        <LightbulbIcon className="mt-0.5 size-5 shrink-0 text-plate-ink" />
         <p className="text-[14px] leading-relaxed">{c.n}</p>
       </div>
       <p className="mt-3 px-1 text-[12px] leading-relaxed text-muted-foreground">
@@ -172,7 +172,7 @@ export function Remplacer({
                     {cur ? (
                       <span className="rounded-full bg-plate px-2.5 py-1 text-[11.5px] font-semibold text-plate-foreground">En cours</span>
                     ) : (
-                      <ChevronRight className={cn("size-4 text-muted-foreground transition-transform", choisi && "rotate-90")} />
+                      <CaretRightIcon className={cn("size-4 text-muted-foreground transition-transform", choisi && "rotate-90")} />
                     )}
                   </button>
                   {choisi && actions && <div className="grid grid-cols-2 gap-2 px-2.5 pb-2.5 animate-in fade-in-0 duration-150">{actions(o)}</div>}

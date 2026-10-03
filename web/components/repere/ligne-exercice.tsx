@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Plus } from "lucide-react";
+import { CheckIcon, PlusIcon } from "@phosphor-icons/react";
 import { EX } from "@/lib/data/exercices";
 import { Vignette } from "./exercice-carte";
 import { cn } from "@/lib/utils";
@@ -24,7 +24,7 @@ export function LigneExercice({ id, onOuvrir, onAjouter, pris }: { id: string; o
           aria-label={pris ? "Déjà dans ta séance" : "Ajouter " + x.n}
           className="mr-2.5 grid size-9 shrink-0 place-items-center rounded-full bg-muted text-foreground active:scale-90 disabled:bg-transparent"
         >
-          {pris ? <Check className="size-4" strokeWidth={3} /> : <Plus className="size-4" strokeWidth={2.5} />}
+          {pris ? <CheckIcon className="size-4" weight="bold" /> : <PlusIcon className="size-4" weight="bold" />}
         </button>
       )}
     </div>
