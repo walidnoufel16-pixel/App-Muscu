@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { ReglagesCardio, type ChoixCardio } from "@/components/repere/reglages-cardio";
 import { niveauDe, nomSeanceCardio, reglagesDe } from "@/lib/logic/cardio";
+import { preparer } from "@/lib/sons";
+import type { Route } from "next";
 import { Button } from "@/components/ui/button";
 import { EnTete } from "@/components/repere/en-tete";
 import { SchemaCorps } from "@/components/repere/schema-corps";
@@ -17,7 +19,7 @@ import { DUREES, FULLBODY, MUSC, OBJS, PAT2MUSC } from "@/lib/data/referentiels"
 import { selDeclare } from "@/lib/logic/core";
 import { construireSeance, nomSeance } from "@/lib/logic/assistant";
 import { useRepere } from "@/lib/store";
-import { ARRIERE, AVANT, revenirA } from "@/lib/nav";
+import { ARRIERE, AVANT, remplacement, revenirA } from "@/lib/nav";
 import { Retour } from "@/components/repere/retour";
 import { useBrouillon } from "@/lib/brouillon";
 import { tactile } from "@/lib/repos";
@@ -39,10 +41,13 @@ function Assistant() {
   const [type, setType] = useState<"muscu" | "cardio">(useSearchParams().get("type") === "cardio" ? "cardio" : "muscu");
   const [choix, setChoix] = useState<ChoixCardio>(() => { const n = niveauDe(A.regularite); return { f: "fractionne", m: "tapis", n, r: reglagesDe("fractionne", n) }; });
   const [nomCardio, setNomCardio] = useState("");
-  const creerCardio = () => {
+  /* Enregistrer la séance cardio ; avec `demarrer`, son minuteur s'ouvre aussitôt (à la place de l'assistant). */
+  const creerCardio = (demarrer = false) => {
     const nom = nomCardio.trim().slice(0, 60) || nomSeanceCardio(choix.f, choix.m);
+    const i = useRepere.getState().etat.SEANCES_CARDIO?.length ?? 0;
     muter((E) => { (E.SEANCES_CARDIO ??= []).push({ nom, ...choix }); });
     toast.success(`« ${nom} » ajoutée à tes séances cardio`);
+    if (demarrer) { preparer(); remplacement(); router.replace(`/entrainement/cardio?s=${i}&go=1` as Route, AVANT); return; }
     revenirA("/entrainement", () => router.replace("/entrainement", ARRIERE));
   };
   const { sel: selB, setSel, setLibre } = useBrouillon();
@@ -90,7 +95,10 @@ function Assistant() {
             </section>
           </div>
           <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
-            <Button variant="plate" size="xl" className="w-full" onClick={creerCardio}>Créer ma séance cardio</Button>
+            <div className="flex gap-2">
+              <Button variant="soft" size="xl" className="flex-1 border border-border/80 bg-card" onClick={() => creerCardio()}>Enregistrer</Button>
+              <Button variant="plate" size="xl" className="flex-[1.4]" onClick={() => creerCardio(true)}>Créer et démarrer</Button>
+            </div>
           </div>
         </>
       ) : (

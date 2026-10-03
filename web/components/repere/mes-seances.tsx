@@ -2,7 +2,7 @@
 
 import { useState, ViewTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CaretRightIcon, CheckIcon, DownloadSimpleIcon, ExportIcon, HeartbeatIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
+import { CaretRightIcon, CheckIcon, DownloadSimpleIcon, ExportIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -126,7 +126,6 @@ export function MesSeances() {
 
         <div className="mt-1 overflow-hidden rounded-[20px] border border-border/80 bg-card">
           <Action accent icone={<SparkleIcon className="size-5" weight="fill" />} label="Créer une séance pour moi" onClick={() => router.push("/entrainement/assistant", AVANT)} />
-          <Action icone={<HeartbeatIcon className="size-5" />} label="Créer une séance cardio" onClick={() => router.push("/entrainement/assistant?type=cardio" as Route, AVANT)} />
           <Action icone={<PlusIcon className="size-5" />} label="Composer exercice par exercice" onClick={() => { setLibre({ nom: "Séance libre", ex: [], idx: null }); router.push("/entrainement/composer", AVANT); }} />
           <Action icone={<DownloadSimpleIcon className="size-5" />} label="Importer une séance avec un code" onClick={() => setImp(true)} />
         </div>

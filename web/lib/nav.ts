@@ -16,16 +16,21 @@ export const useSens = create<{ sens: "nav-back" | null }>(() => ({ sens: null }
 
 /* Écrans visités, du plus ancien au plus récent : sert au libellé et au
    comportement du bouton retour. */
-type Pile = { pile: string[]; noter: (p: string) => void };
+type Pile = { pile: string[]; remplace: boolean; noter: (p: string) => void };
 export const usePile = create<Pile>((set, get) => ({
   pile: [],
+  remplace: false,
   noter(p) {
     const l = get().pile;
+    if (get().remplace) { set({ pile: [...l.slice(0, -1), p], remplace: false }); return; }
     if (l[l.length - 1] === p) return;
     if (l[l.length - 2] === p) set({ pile: l.slice(0, -1) }); // retour
     else set({ pile: [...l.slice(-19), p] });
   },
 }));
+
+/* À appeler juste avant un router.replace : l'écran courant est remplacé dans la pile, pas empilé. */
+export const remplacement = () => usePile.setState({ remplace: true });
 
 const TITRES: [RegExp, string][] = [
   [/^\/entrainement\/programme/, "Programme"],
