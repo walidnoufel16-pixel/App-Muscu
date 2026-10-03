@@ -75,7 +75,14 @@ export type Etat = {
   wk: number;
   day: number;
   FINI: boolean;
+  /* Cardio : séances enregistrées et historique des séances faites (champs facultatifs, ajoutés après coup). */
+  SEANCES_CARDIO?: SeanceCardio[];
+  CARDIO?: HistoCardio[];
 };
+
+export type HistoCardio = { nom: string; f: FormatCardio; m: Machine; min: number; effort: number; ts: number };
+
+import type { FormatCardio, Machine, SeanceCardio } from "./cardio";
 
 /* Séance de la semaine telle qu'affichée (plan IA converti, ou socle par défaut). */
 export type SeanceSemaine = {

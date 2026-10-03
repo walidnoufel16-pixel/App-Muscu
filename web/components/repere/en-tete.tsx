@@ -36,7 +36,7 @@ export function EnTete({
           <div className="flex min-w-0 flex-1 items-center">{gauche}</div>
           <div
             className={cn(
-              "pointer-events-none absolute left-1/2 max-w-[60%] -translate-x-1/2 truncate text-[15px] font-semibold transition-opacity duration-200",
+              "pointer-events-none absolute left-1/2 max-w-[42%] -translate-x-1/2 truncate text-[15px] font-semibold transition-opacity duration-200",
               replie ? "opacity-100" : "opacity-0",
             )}
             aria-hidden

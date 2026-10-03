@@ -5,6 +5,10 @@
 import { create } from "zustand";
 import type { Bilan } from "@/lib/logic/records";
 
+/* Le bilan d'une séance de musculation, ou des cases au choix (cardio). */
+export type CaseBilan = { n: string; v: number; accent?: boolean };
+export type BilanAffiche = (Bilan & { titre: string; cases?: undefined }) | { titre: string; cases: CaseBilan[] };
+
 /* Séance d'une ligne du journal : « semaine|séance » pour le plan, « L|i » pour une séance libre. */
 export const seanceDe = (k: string) => k.split("|").slice(0, 2).join("|");
 
@@ -12,11 +16,11 @@ type Celebrer = {
   fini: string | null; // ligne qui vient d'être terminée (coche dessinée)
   records: Record<string, number>; // records battus, par séance
   debut: Record<string, number>; // première série validée, par séance
-  bilan: (Bilan & { titre: string }) | null;
+  bilan: BilanAffiche | null;
   marquerDebut: (seance: string) => void;
   ajouterRecord: (seance: string) => void;
   terminer: (k: string) => void;
-  montrerBilan: (b: Bilan & { titre: string }) => void;
+  montrerBilan: (b: BilanAffiche) => void;
   fermerBilan: () => void;
 };
 

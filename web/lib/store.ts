@@ -13,6 +13,7 @@ import type { User } from "@supabase/supabase-js";
 import { EX } from "@/lib/data/exercices";
 import { sb, SB_KEY, SB_URL } from "@/lib/supabase";
 import type { Etat, Reponses, SeanceLibre } from "@/lib/logic/types";
+import { decoderCardio, encoderCardio } from "@/lib/logic/cardio";
 
 export const SKEY = "palier.state.v1";
 export const PKEY = "palier.pseudo.v1";
@@ -68,6 +69,8 @@ function versEtat(s: Stocke | null): Etat {
   e.wk = s.wk || 0;
   e.day = s.day || 0;
   e.FINI = !!s.FINI;
+  e.SEANCES_CARDIO = Array.isArray(s.SEANCES_CARDIO) ? nettoieArbre(s.SEANCES_CARDIO) : [];
+  e.CARDIO = Array.isArray(s.CARDIO) ? nettoieArbre(s.CARDIO).slice(-300) : [];
   return e;
 }
 const instantane = (e: Etat) => ({ ...e, ts: Date.now() });
@@ -89,10 +92,26 @@ type Store = {
   toutEffacer: () => Promise<void>;
   changerDeCompte: () => Promise<void>;
   partager: (i: number) => Promise<{ code?: string; erreur?: string }>;
-  importer: (code: string) => Promise<{ nom?: string; absents?: number; erreur?: string }>;
+  partagerCardio: (i: number) => Promise<{ code?: string; erreur?: string }>;
+  importer: (code: string) => Promise<{ nom?: string; absents?: number; erreur?: string; cardio?: boolean }>;
 };
 
 let minuteurPush: ReturnType<typeof setTimeout> | null = null;
+
+/* Publie une séance sous un code de cinq caractères (quatre essais en cas de collision). */
+async function publier(nom: string, ex: unknown[]): Promise<{ code?: string; erreur?: string }> {
+  const c = await sb(), u = useRepere.getState().user;
+  if (!c || !u) return { erreur: "Le partage demande un compte." };
+  const ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let err: string | undefined;
+  for (let essai = 0; essai < 4; essai++) {
+    const x = Array.from({ length: 5 }, () => ALPHA[Math.floor(Math.random() * ALPHA.length)]).join("");
+    const { error } = await c.from("seances_partagees").insert({ code: x, nom: nom.slice(0, 60), auteur: u.id, ex });
+    if (!error) return { code: x };
+    err = error.message;
+  }
+  return { erreur: "Partage impossible : " + (err || "réessaie") };
+}
 
 export const useRepere = create<Store>((set, get) => ({
   pret: false,
@@ -226,23 +245,22 @@ export const useRepere = create<Store>((set, get) => ({
 
   /* ---------- partage d'une séance ---------- */
   async partager(i) {
-    const c = await sb(), u = get().user, s = get().etat.SEANCES[i];
+    const s = get().etat.SEANCES[i];
     if (!s) return { erreur: "Séance introuvable." };
     if (s.code) return { code: s.code };
-    if (!c || !u) return { erreur: "Le partage demande un compte." };
-    const ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let code: string | null = null, err: string | undefined;
-    for (let essai = 0; essai < 4 && !code; essai++) {
-      const x = Array.from({ length: 5 }, () => ALPHA[Math.floor(Math.random() * ALPHA.length)]).join("");
-      const { error } = await c.from("seances_partagees").insert({
-        code: x, nom: s.nom.slice(0, 60), auteur: u.id,
-        ex: s.ex.map((e) => ({ id: e.id, s: e.s, r: e.r, p: e.p })), // jamais les charges
-      });
-      if (!error) code = x; else err = error.message;
-    }
-    if (!code) return { erreur: "Partage impossible : " + (err || "réessaie") };
-    get().muter((e) => { e.SEANCES[i].code = code!; });
-    return { code };
+    const r = await publier(s.nom, s.ex.map((e) => ({ id: e.id, s: e.s, r: e.r, p: e.p }))); // jamais les charges
+    if (r.code) get().muter((e) => { e.SEANCES[i].code = r.code!; });
+    return r;
+  },
+
+  /* Une séance cardio voyage dans le même format (voir encoderCardio). */
+  async partagerCardio(i) {
+    const s = get().etat.SEANCES_CARDIO?.[i];
+    if (!s) return { erreur: "Séance introuvable." };
+    if (s.code) return { code: s.code };
+    const r = await publier(s.nom, encoderCardio(s));
+    if (r.code) get().muter((e) => { e.SEANCES_CARDIO![i].code = r.code!; });
+    return r;
   },
 
   async importer(codeBrut) {
@@ -254,6 +272,11 @@ export const useRepere = create<Store>((set, get) => ({
       const { data, error } = await c.rpc("lire_seance", { p_code: code }).maybeSingle<{ nom: string; ex: unknown }>();
       if (error) throw error;
       if (!data) return { erreur: "Aucune séance ne correspond au code " + code + "." };
+      const cardio = decoderCardio(sansBalise(data.nom).slice(0, 60) || "Cardio", data.ex);
+      if (cardio) {
+        get().muter((e) => { (e.SEANCES_CARDIO ??= []).push({ ...cardio, nom: cardio.nom + " (reçue)" }); });
+        return { nom: cardio.nom, cardio: true };
+      }
       const ex = (Array.isArray(data.ex) ? data.ex : [])
         .filter((e: { id?: string }) => e && e.id && EX[e.id]).slice(0, 12)
         .map((e: { id: string; s: unknown; r: unknown; p: unknown }) => ({
