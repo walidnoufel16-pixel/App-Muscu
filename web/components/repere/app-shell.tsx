@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useRepere } from "@/lib/store";
 import { TabBar } from "./tab-bar";
 import { RestTimer } from "./rest-timer";
+import { Confirmateur } from "./confirmer";
 
 /* Démarre l'app une fois (session Supabase, état local) et pose la barre
    d'onglets. Les écrans plein écran (questionnaire, accueil) s'en passent. */
@@ -16,6 +17,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const chemin = usePathname();
 
   useEffect(() => { demarrer(); }, [demarrer]);
+  /* Mode hors ligne : service worker généré au build (scripts/sw.mjs). */
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+  }, []);
 
   if (!pret)
     return (
@@ -33,6 +38,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className={onglets ? "pb-[calc(env(safe-area-inset-bottom)+96px)]" : ""}>{children}</main>
       <RestTimer avecOnglets={onglets} />
       {onglets && <TabBar />}
+      <Confirmateur />
     </div>
   );
 }

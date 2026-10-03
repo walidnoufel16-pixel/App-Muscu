@@ -83,9 +83,12 @@ export default function PagePlan() {
         surtitre={<>Semaine {wk + 1} · effort visé <span className="num text-[13px]">RPE {baseRPE(wk)}</span></>}
         titre="Mon plan"
         actions={
-          <Button variant="ghost" size="icon" aria-label="Repères de placement" onClick={() => setReperes(true)}>
-            <Info className="size-5" />
-          </Button>
+          <>
+            <Button asChild variant="ghost" size="sm" className="text-[14px]"><Link href="/plan/synthese/">Synthèse</Link></Button>
+            <Button variant="ghost" size="icon" aria-label="Repères de placement" onClick={() => setReperes(true)}>
+              <Info className="size-5" />
+            </Button>
+          </>
         }
       >
         <FriseSemaines wk={wk} avancement={avancement} onChoisir={choisirSemaine} />

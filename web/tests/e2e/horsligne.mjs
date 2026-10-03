@@ -1,0 +1,18 @@
+import { chromium } from "@playwright/test";
+import { servir } from "./serveur.mjs";
+const srv = servir(new URL("../../out/", import.meta.url).pathname, 8801);
+const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+const ctx = await b.newContext();
+await ctx.route(/supabase\.co/, (r) => r.abort());
+const pg = await ctx.newPage();
+await pg.goto("http://localhost:8801/seances/");
+await pg.waitForFunction(() => navigator.serviceWorker.controller || navigator.serviceWorker.ready.then(() => true), null, { timeout: 30000 });
+await pg.waitForTimeout(4000);
+const nb = await pg.evaluate(async () => (await (await caches.open((await caches.keys())[0])).keys()).length);
+await ctx.setOffline(true);
+await pg.goto("http://localhost:8801/explorer/");
+await pg.waitForTimeout(1200);
+const titre = await pg.textContent("h1").catch(() => null);
+const img = await pg.evaluate(async () => !!(await caches.match("/img/Barbell_Squat_0.jpg")));
+console.log(JSON.stringify({ fichiersEnCache: nb, horsLigneTitre: titre, photoEnCache: img }));
+await b.close(); srv.close();

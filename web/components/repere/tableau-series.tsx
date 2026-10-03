@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Check, Plus, X } from "lucide-react";
 import { EX } from "@/lib/data/exercices";
 import { LESTABLE } from "@/lib/data/referentiels";
@@ -20,8 +20,8 @@ const CONSEIL = [
 
 /* Champ numérique : texte local pendant la saisie, validé à la sortie. */
 function Champ({ valeur, onValide, label, mode }: { valeur: string; onValide: (v: string) => void; label: string; mode: "decimal" | "numeric" }) {
+  /* Monté avec key={valeur} : une valeur venue d'ailleurs (report sur les séries suivantes) réinitialise le champ. */
   const [t, setT] = useState(valeur);
-  useEffect(() => setT(valeur), [valeur]);
   return (
     <input
       value={t}
@@ -77,9 +77,9 @@ export function TableauSeries({ c, rpe, onReplier }: { c: Ctx; rpe: number; onRe
             >
               <span className={cn("num text-center text-[15px] font-bold", ok ? "text-foreground" : "text-muted-foreground")}>{n + 1}</span>
               <span className="truncate text-[13px] text-muted-foreground">{fmtSerie(x, P2[n] || P2[P2.length - 1])}</span>
-              <Champ valeur={nb(s.v)} mode="decimal" label={`${tete} série ${n + 1}`} onValide={(v) => muter((E) => act.serVal(E, c, n, "v", v))} />
-              {dbl && <Champ valeur={String(s.reps)} mode="numeric" label={`répétitions série ${n + 1}`} onValide={(v) => muter((E) => act.serVal(E, c, n, "reps", v))} />}
-              {!dbl && avecLest && <Champ valeur={nb(+(s.lest ?? 0) || 0)} mode="decimal" label={`lest série ${n + 1}`} onValide={(v) => muter((E) => act.serVal(E, c, n, "lest", v))} />}
+              <Champ key={"v" + s.v} valeur={nb(s.v)} mode="decimal" label={`${tete} série ${n + 1}`} onValide={(v) => muter((E) => act.serVal(E, c, n, "v", v))} />
+              {dbl && <Champ key={"r" + s.reps} valeur={String(s.reps)} mode="numeric" label={`répétitions série ${n + 1}`} onValide={(v) => muter((E) => act.serVal(E, c, n, "reps", v))} />}
+              {!dbl && avecLest && <Champ key={"l" + s.lest} valeur={nb(+(s.lest ?? 0) || 0)} mode="decimal" label={`lest série ${n + 1}`} onValide={(v) => muter((E) => act.serVal(E, c, n, "lest", v))} />}
               <button
                 onClick={() => {
                   let valide = false;

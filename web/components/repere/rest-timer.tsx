@@ -8,18 +8,17 @@ import { cn } from "@/lib/utils";
 /* Barre flottante du repos : un grand chiffre condensé, ±15 s, passer. */
 export function RestTimer({ avecOnglets }: { avecOnglets: boolean }) {
   const { fin, total, fini, ajuster, arreter, terminer } = useRepos();
-  const [, tic] = useState(0);
+  const [maintenant, setMaintenant] = useState(0);
   useEffect(() => {
     if (!fin) return;
-    const t = setInterval(() => {
-      if (Date.now() >= fin) terminer();
-      tic((n) => n + 1);
-    }, 250);
-    return () => clearInterval(t);
+    const pas = () => { const t = Date.now(); setMaintenant(t); if (t >= fin) terminer(); };
+    const raf = requestAnimationFrame(pas);
+    const t = setInterval(pas, 250);
+    return () => { clearInterval(t); cancelAnimationFrame(raf); };
   }, [fin, terminer]);
 
   if (!fin && !fini) return null;
-  const reste = fin ? Math.max(0, Math.ceil((fin - Date.now()) / 1000)) : 0;
+  const reste = fin ? Math.max(0, Math.min(total, Math.ceil((fin - (maintenant || fin - total * 1000)) / 1000))) : 0;
   const pct = fin ? 100 - (reste / total) * 100 : 100;
   return (
     <div

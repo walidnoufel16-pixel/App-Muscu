@@ -56,7 +56,7 @@ export function construireSeance(muscles: string[], duree: number, obj: number, 
   const total = () => l.reduce((a, e) => a + e.s, 0);
   for (const cond of [(e: (typeof l)[number]) => !e.big, () => true])
     l.forEach((e) => { if (total() > series && cond(e) && e.s > 2) e.s = 2; });
-  return l.map(({ big: _b, ...e }) => e);
+  return l.map((e) => ({ id: e.id, s: e.s, r: e.r, p: e.p }));
 }
 
 /* Nom de la séance générée. */
