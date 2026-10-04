@@ -120,6 +120,7 @@ function Detail({ d, onPartager, onFermer }: { d: Defi; onPartager: () => void; 
       <div className="eyebrow">{TYPES_DEFI[d.type].nom} · {fini ? "terminé" : `encore ${j} jour${j > 1 ? "s" : ""}`}</div>
       <DrawerTitle className="mt-1 text-[24px] leading-tight font-bold">{d.nom}</DrawerTitle>
       <DrawerDescription className="mt-0.5 text-[13.5px] text-muted-foreground">Objectif : {val(d, d.cible)} · code <b className="num tracking-wider">{d.code}</b></DrawerDescription>
+      <p className="mt-1 text-[12.5px] leading-snug text-muted-foreground">{TYPES_DEFI[d.type].aide}</p>
       <ol className="mt-4 flex flex-col gap-2">
         {d.participants.map((p, i) => (
           <li key={i} className={cn("rounded-2xl border p-3", p.moi ? "border-plate bg-plate-soft" : "bg-card")}>
@@ -157,6 +158,7 @@ function Creation({ onCree }: { onCree: (code: string) => void }) {
       <DrawerDescription className="mt-0.5 text-[13px] text-muted-foreground">Tu recevras un code à envoyer à tes amis.</DrawerDescription>
       <div className="mt-4 flex flex-col gap-3">
         <Segmente label="Type de défi" valeur={type} onChange={choisirType} options={(Object.keys(TYPES_DEFI) as TypeDefi[]).map((t) => ({ v: t, n: TYPES_DEFI[t].nom }))} />
+        <p className="-mt-1 px-1 text-[12.5px] leading-snug text-muted-foreground">{T.aide}</p>
         <div>
           <div className="mb-1 text-[12.5px] font-medium text-muted-foreground">Objectif</div>
           <div className="grid grid-cols-5 gap-1.5">
