@@ -3,6 +3,7 @@
 import { ArrowsLeftRightIcon, CaretDownIcon, CheckIcon, CrosshairIcon, InfoIcon } from "@phosphor-icons/react";
 import { EX } from "@/lib/data/exercices";
 import { musclesDe, okDe, resumeDe } from "@/lib/logic/core";
+import { EtiquetteZone } from "./forme";
 import type { Journal } from "@/lib/logic/types";
 import { useCelebrer } from "@/lib/celebrer";
 import { cn } from "@/lib/utils";
@@ -93,6 +94,7 @@ export function ExerciceCarte({
           <span className="flex items-center gap-2">
             <span className="truncate text-[16px] leading-tight font-semibold tracking-[-0.01em]">{x.n}</span>
             {badge && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10.5px] font-medium text-muted-foreground">{badge}</span>}
+            <EtiquetteZone id={id} />
           </span>
           {mus.length > 0 && (
             <span className="flex items-center gap-1.5 truncate text-[12.5px] font-medium text-muted-foreground">

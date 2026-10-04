@@ -19,6 +19,7 @@ import { dire } from "@/components/repere/confirmer";
 import { DUREES, FULLBODY, MUSC, OBJS, PAT2MUSC } from "@/lib/data/referentiels";
 import { selDeclare } from "@/lib/logic/core";
 import { construireSeance, nomSeance } from "@/lib/logic/assistant";
+import { zonesActives, zonesDe } from "@/lib/logic/forme";
 import { useRepere } from "@/lib/store";
 import { ARRIERE, AVANT, remplacement, revenirA } from "@/lib/nav";
 import { Retour } from "@/components/repere/retour";
@@ -66,7 +67,8 @@ function Assistant() {
 
   const creer = () => {
     if (obj == null) return;
-    const ex = construireSeance(m, d, obj, sel);
+    const zones = zonesActives(A);
+    const ex = construireSeance(m, d, obj, sel, Math.random, (o) => zonesDe(o, zones).length > 0);
     if (!ex.length) { dire("Pas d'exercice disponible", "Aucun exercice ne correspond à ces muscles avec le matériel coché. Ajoute du matériel ou choisis d'autres muscles."); return; }
     /* combinée : le bloc cardio arrive à la fin, sans échauffement ; il se déplace ensuite dans le composeur */
     const blocs = type === "mixte" ? [{ ...nouveauBloc(ex.length, choix.f, choix.m, choix.n), r: { ...choix.r, echauf: 0 } }] : undefined;

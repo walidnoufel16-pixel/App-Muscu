@@ -17,6 +17,7 @@ import { EX } from "@/lib/data/exercices";
 import { OBJS, PAS_REPOS } from "@/lib/data/referentiels";
 import { exoFiltre, musclesDe, nomPat, selDeclare } from "@/lib/logic/core";
 import { construireSeance, exParDefaut } from "@/lib/logic/assistant";
+import { zonesActives, zonesDe } from "@/lib/logic/forme";
 import * as act from "@/lib/logic/actions";
 import type { BlocCardio, ExLibre } from "@/lib/logic/types";
 import { deplacer as deplacerElement, dureeTotale as dureeSeance, minutesBloc, nouveauBloc, ordre } from "@/lib/logic/combinee";
@@ -144,7 +145,7 @@ export default function PageComposer() {
         {L.gen && (
           <div className="flex items-center gap-3 rounded-[20px] bg-plate-soft p-3.5">
             <p className="flex-1 text-[13.5px] leading-snug">Proposition de départ : réordonne, remplace ou ajoute ce que tu veux.</p>
-            <Button variant="outline" size="sm" className="rounded-full bg-card" onClick={() => { tactile(10); majLibre((l) => { const ex = construireSeance(l.gen!.m, l.gen!.d, l.gen!.obj, sel); if (ex.length) l.ex = ex; }); setOuv(null); }}>
+            <Button variant="outline" size="sm" className="rounded-full bg-card" onClick={() => { tactile(10); majLibre((l) => { const zones = zonesActives(etat.A), ex = construireSeance(l.gen!.m, l.gen!.d, l.gen!.obj, sel, Math.random, (o) => zonesDe(o, zones).length > 0); if (ex.length) l.ex = ex; }); setOuv(null); }}>
               <ArrowsClockwiseIcon />Autre
             </Button>
           </div>

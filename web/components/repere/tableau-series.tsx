@@ -1,5 +1,6 @@
 "use client";
 
+import { ConseilZone } from "./forme";
 import { useCallback, useState } from "react";
 import { CheckIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
 import { EX } from "@/lib/data/exercices";
@@ -86,6 +87,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
 
   return (
     <div className="px-3 pb-3">
+      <ConseilZone id={c.id} />
       {why && <p className="mx-1 mb-2 text-[13px] leading-snug text-muted-foreground">{why}</p>}
       <div className={cn("grid items-center gap-x-2 px-1 pb-1.5 text-[10.5px] font-medium tracking-[0.1em] text-muted-foreground uppercase", cols)}>
         <span>#</span>

@@ -10,6 +10,7 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/compone
 import { EnTete } from "@/components/repere/en-tete";
 import { Retour } from "@/components/repere/retour";
 import { ExerciceCarte, Vignette } from "@/components/repere/exercice-carte";
+import { FormeDuJour } from "@/components/repere/forme";
 import { FicheExercice, type FicheOuverte } from "@/components/repere/fiche-exercice";
 import { Collation, Echauffement, Remplacer } from "@/components/repere/seance-vues";
 import { Segmente } from "@/components/repere/segmente";
@@ -123,6 +124,7 @@ function SeancePlan() {
           {sect === 2 && <Collation obj={etat.A.objectif ?? 0} />}
           {sect === 1 && (
             <div className={cn("flex flex-col gap-2.5 px-4", premiere && "entree")}>
+              <FormeDuJour cles={cles} />
               {(S.x || []).map((e, i) => {
                 const c = ctxPlan(etat, i, W)!, x = EX[c.id], k = c.k, L: Journal | undefined = etat.LOG[k];
                 const r = noRPE(c.id) ? 0 : rpeOf(etat.A, wk, c.id, e[4]);
@@ -245,6 +247,7 @@ function SeanceLibre({ i }: { i: number }) {
       {sect === 2 && <Collation obj={objCollation(etat.A, S)} onChanger={(o) => muter((E) => { E.SEANCES[i].colObj = o; })} />}
       {sect === 1 && (
         <div className={cn("flex flex-col gap-2.5 px-4", premiere && "entree")}>
+          <FormeDuJour cles={cles} />
           {ordre(S).map((el) => {
             if (el.t === "bloc") return <BlocSeance key={el.b.id} b={el.b} fait={blocFait(el.b.id)} onLancer={() => router.push(`/entrainement/cardio?l=${i}&b=${el.b.id}` as Route, AVANT)} />;
             const e = el.e, j = el.i;

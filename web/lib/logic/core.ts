@@ -8,6 +8,7 @@ import {
   ACC, BAS, BONUS, HAUT, MUSCLES, PAT, PAT2GRP, PATN, SOCLE, SPORTS, VARIANTES, GROUPES,
 } from "@/lib/data/referentiels";
 import type { Exercice } from "@/lib/data/types";
+import { ajuster, formeDuJour, zonesDe } from "./forme";
 import type { Etat, Journal, Reponses, SeanceIA, SeanceSemaine, Serie } from "./types";
 
 /* ---------------- petits utilitaires ---------------- */
@@ -276,22 +277,30 @@ export function ctxPlan(E: Etat, i: number, W = week(E)): Ctx | null {
   let prev: Journal | null = null;
   for (let p = E.wk - 1; p >= 0 && !prev; p--)
     if (curId(E, p, E.day, i, e[0], W) === id && E.LOG[key(p, E.day, i)]?.done) prev = E.LOG[key(p, E.day, i)];
+  const aj = selonForme(E.A, x, id, g ? { v: g.v, reps: g.reps } : { v: x.d, reps: e[2] });
   return {
     k, id, n: e[1],
-    base: g ? { v: g.v, reps: g.reps } : { v: x.d, reps: e[2] },
-    why: g ? g.t : undefined, repos: e[3],
+    base: aj.base,
+    why: joindre(g ? g.t : undefined, aj.texte), repos: e[3],
     prev: prev || precedentDe(E.LOG, id, k),
   };
 }
 export const kLibre = (idx: number, j: number) => `L|${idx}|${j}`;
+/* Forme du jour et douleur signalée : charge de départ ajustée, et dite (lib/logic/forme.ts). */
+function selonForme(A: Reponses, x: Exercice, id: string, base: { v: number; reps: number }) {
+  const f = formeDuJour(A);
+  return ajuster(x, base, pasDe(x), f, zonesDe(id, f?.douleur || []).length > 0);
+}
+const joindre = (...t: (string | undefined)[]) => t.filter(Boolean).join(" ") || undefined;
 export function ctxLibre(E: Etat, idx: number, j: number): Ctx | null {
   const S = E.SEANCES[idx], e = S?.ex[j];
   if (!e || !EX[e.id]) return null;
   const x = EX[e.id], k = kLibre(idx, j), d = precedentDe(E.LOG, e.id, k);
+  const aj = selonForme(E.A, x, e.id, d ? { v: maxV(d), reps: d.reps ?? e.r } : { v: x.d, reps: e.r });
   return {
     k, id: e.id, n: e.s,
-    base: d ? { v: maxV(d), reps: d.reps ?? e.r } : { v: x.d, reps: e.r },
-    why: d ? "Reprise de ta dernière séance sur cet exercice." : undefined,
+    base: aj.base,
+    why: joindre(d ? "Reprise de ta dernière séance sur cet exercice." : undefined, aj.texte),
     repos: e.p, prev: d,
   };
 }
