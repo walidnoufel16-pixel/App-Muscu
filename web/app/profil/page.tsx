@@ -1,5 +1,6 @@
 "use client";
 
+import { ReglageCycle, useCycleCharge } from "@/components/repere/cycle";
 import { ReglageZones } from "@/components/repere/forme";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -22,6 +23,7 @@ export default function PageProfil() {
   const router = useRouter();
   const { user, pseudo, sync, etat, setUser, pousser, toutEffacer, changerDeCompte } = useRepere();
   const { theme, setTheme } = useTheme();
+  const cycleActif = !!useCycleCharge()?.actif;
   const [mail, setMail] = useState("");
   const [code, setCode] = useState("");
   const [msg, setMsg] = useState<{ t: string; ok?: boolean } | null>(null);
@@ -197,6 +199,14 @@ export default function PageProfil() {
             <Ligne onClick={changer} icone={<ArrowsLeftRightIcon className="size-5" />}>Changer de compte</Ligne>
           </div>
         </section>
+
+        {/* cycle menstruel (facultatif, données locales) */}
+        {(etat.A.sexe === 1 || cycleActif) && (
+          <section>
+            <h2 className="eyebrow mb-2 px-1">Cycle menstruel</h2>
+            <ReglageCycle />
+          </section>
+        )}
 
         {/* apparence */}
         <section>
