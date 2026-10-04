@@ -12,6 +12,7 @@ import { EnTete } from "@/components/repere/en-tete";
 import { Barres, Calendrier, Courbe } from "@/components/repere/graphes";
 import { SchemaCorps } from "@/components/repere/schema-corps";
 import { CarteRegularite, GrilleBadges } from "@/components/repere/motivation";
+import { SectionDefis } from "@/components/repere/defis";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { EX } from "@/lib/data/exercices";
@@ -35,6 +36,7 @@ export default function PageProgres() {
 
 function Progres() {
   const etat = useRepere((s) => s.etat);
+  const codeDefi = useSearchParams().get("d");
   const premiere = usePremiereVisite();
   const H = useMemo(() => etat.HIST || [], [etat.HIST]);
   const C = useMemo(() => etat.CARDIO || [], [etat.CARDIO]);
@@ -53,6 +55,7 @@ function Progres() {
               Chaque série validée s&apos;ajoute ici : tes charges, tes records, le volume de chaque muscle et ta régularité.
             </p>
           </div>
+          <div className="mt-6"><SectionDefis ouvrirCode={codeDefi} /></div>
         </div>
       </>
     );
@@ -72,6 +75,7 @@ function Progres() {
         <Section titre="Muscles travaillés · 7 derniers jours">
           <Muscles H={H} auj={auj} />
         </Section>
+        <SectionDefis ouvrirCode={codeDefi} />
         <Records H={H} />
         <GrilleBadges />
         <Section titre="Ma progression par exercice">
@@ -121,9 +125,9 @@ function Ecart({ v, avant }: { v: number; avant: number }) {
 function CetteSemaine({ H, C, auj }: { H: LigneHist[]; C: NonNullable<ReturnType<typeof useRepere.getState>["etat"]["CARDIO"]>; auj: string }) {
   const [a, b] = semaines(H, C, 2, auj);
   const cases = [
-    { n: "séances", v: b.seances, a: a.seances, f: (x: number) => String(x) },
+    { n: b.seances > 1 ? "séances" : "séance", v: b.seances, a: a.seances, f: (x: number) => String(x) },
     { n: "soulevés", v: b.vol, a: a.vol, f: kg },
-    { n: "séries", v: b.ser, a: a.ser, f: (x: number) => String(x) },
+    { n: b.ser > 1 ? "séries" : "série", v: b.ser, a: a.ser, f: (x: number) => String(x) },
     { n: "min de cardio", v: b.cardio, a: a.cardio, f: (x: number) => String(Math.round(x)) },
   ];
   return (
