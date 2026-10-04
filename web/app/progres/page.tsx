@@ -7,6 +7,7 @@ import { ArrowDownIcon, ArrowUpIcon, CaretDownIcon, CaretRightIcon, ChartLineUpI
 import { EnTete } from "@/components/repere/en-tete";
 import { Barres, Calendrier, Courbe } from "@/components/repere/graphes";
 import { SchemaCorps } from "@/components/repere/schema-corps";
+import { CarteRegularite, GrilleBadges } from "@/components/repere/motivation";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { EX } from "@/lib/data/exercices";
@@ -53,13 +54,17 @@ export default function PageProgres() {
       <EnTete surtitre="Ton évolution" titre="Progrès" />
       <div className={cn("flex flex-col gap-6 px-4", premiere && "entree")}>
         <CetteSemaine H={H} C={C} auj={auj} />
-        <Section titre="Régularité · 12 semaines">
-          <Activite H={H} C={C} auj={auj} onJour={setJour} />
+        <Section titre="Régularité">
+          <div className="flex flex-col gap-2">
+            <CarteRegularite reglable />
+            <Activite H={H} C={C} auj={auj} onJour={setJour} />
+          </div>
         </Section>
         <Section titre="Muscles travaillés · 7 derniers jours">
           <Muscles H={H} auj={auj} />
         </Section>
         <Records H={H} />
+        <GrilleBadges />
         <Section titre="Ma progression par exercice">
           <ParExercice H={H} />
         </Section>

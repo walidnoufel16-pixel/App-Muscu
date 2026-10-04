@@ -225,7 +225,7 @@ function SeanceLibre({ i }: { i: number }) {
 
   return (
     <Cadre
-      surtitre={`${blocs.length ? "Séance combinée" : "Séance libre"} · ${S.ex.length} exercices${blocs.length ? ` + ${blocs.length} cardio` : ""} · environ ${dureeSeance(S)} min`}
+      surtitre={`${blocs.length ? "Séance combinée" : "Séance libre"} · ${S.ex.length} exercice${S.ex.length > 1 ? "s" : ""}${blocs.length ? ` + ${blocs.length} cardio` : ""} · environ ${dureeSeance(S)} min`}
       titre={S.nom}
       faits={faits} total={cles.length + blocs.length}
       sect={sect} setSect={setSect}
