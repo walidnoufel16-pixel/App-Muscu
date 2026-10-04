@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useRepere } from "@/lib/store";
 
-/* Aiguillage : un lien de séance partagée (?s=CODE) l'importe ; sinon, sans
+/* Aiguillage : un lien de séance partagée (?s=CODE) l'importe, un lien de défi (?d=CODE)
+   mène à Progrès pour le rejoindre ; sinon, sans
    compte ni données, l'accueil ; sinon Entraînement. */
 export default function Racine() {
   const router = useRouter();
@@ -14,7 +15,9 @@ export default function Racine() {
   useEffect(() => {
     if (fait.current || session === "inconnue") return;
     fait.current = true;
-    const code = new URLSearchParams(window.location.search).get("s");
+    const q = new URLSearchParams(window.location.search), code = q.get("s"), defi = q.get("d");
+    /* lien de défi : on le rejoint depuis Progrès */
+    if (defi && /^[A-Za-z0-9]{5}$/.test(defi)) { router.replace(`/progres?d=${defi.toUpperCase()}` as "/progres"); return; }
     if (code) {
       importer(code).then((r) => {
         if (r.erreur) toast.error(r.erreur);

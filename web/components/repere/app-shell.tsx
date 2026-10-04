@@ -11,6 +11,7 @@ import { SurveillantBadges } from "./motivation";
 import { LogoDisque } from "./logo";
 import { usePile, useSens } from "@/lib/nav";
 import { suivreHistorique } from "@/lib/suivi";
+import { suivreDefis } from "@/lib/defis";
 
 /* Démarre l'app une fois (session Supabase, état local) et pose la barre
    d'onglets. Les écrans plein écran (accueil, questionnaire) et les tâches
@@ -24,7 +25,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const chemin = usePathname().replace(/(.)\/$/, "$1");
   const sens = useSens((s) => s.sens);
 
-  useEffect(() => { suivreHistorique(); demarrer(); }, [demarrer]);
+  useEffect(() => { suivreHistorique(); suivreDefis(); demarrer(); }, [demarrer]);
   /* Pile des écrans (bouton retour) ; le sens d'un retour ne sert qu'une fois. */
   useEffect(() => {
     usePile.getState().noter(chemin + location.search);

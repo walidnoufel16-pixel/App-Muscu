@@ -20,7 +20,6 @@ await ctx.route(/supabase\.co/, (r) => r.abort());
 const pg = await ctx.newPage();
 const errs = []; pg.on("pageerror", (e) => errs.push(e.message));
 const ok = (c, m) => { console.log(c ? "OK  " : "ÉCHEC", m); if (!c) process.exitCode = 1; };
-const etatLu = () => pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")));
 const cap = async (n) => { if (process.env.CAPTURES) await pg.screenshot({ path: `${process.env.CAPTURES}/${n}.png` }); };
 
 // protéines

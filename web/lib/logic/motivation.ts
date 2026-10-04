@@ -41,7 +41,7 @@ export function serie(H: LigneHist[], C: HistoCardio[], objectif: number, auj = 
 /* ---------------- badges ---------------- */
 export type Stats = {
   seances: number; muscu: number; cardio: number; combinees: number; records: number; tonnes: number; heuresCardio: number;
-  tabata: number; norvegien: number; serie: number; max: Record<string, number>; poidsCorps: boolean;
+  tabata: number; norvegien: number; serie: number; max: Record<string, number>; poidsCorps: boolean; defis: number;
 };
 export function stats(E: Etat, auj = jourDe(Date.now())): Stats {
   const H = E.HIST || [], C = E.CARDIO || [];
@@ -56,6 +56,7 @@ export function stats(E: Etat, auj = jourDe(Date.now())): Stats {
     tabata: C.filter((c) => c.f === "tabata").length, norvegien: C.filter((c) => c.f === "norvegien").length,
     serie: serie(H, C, objectifHebdo(E.A), auj).record, max,
     poidsCorps: !!poids && Object.values(max).some((v) => v >= poids),
+    defis: Object.keys((E.A.defisOk as Record<string, string> | undefined) || {}).length,
   };
 }
 
@@ -67,6 +68,7 @@ export const BADGES: Badge[] = [
   premiere("c1", "Souffle", "Ta première séance cardio", 1, (s) => s.cardio),
   premiere("m1", "Deux en un", "Ta première séance combinée", 1, (s) => s.combinees),
   premiere("r1", "Premier record", "Battre un record pour la première fois", 1, (s) => s.records),
+  premiere("d1", "Défi relevé", "Atteindre l'objectif d'un défi entre amis", 1, (s) => s.defis),
   regul("s10", "Lancé", "10 séances", 10, (s) => s.seances),
   regul("s50", "Habitué", "50 séances", 50, (s) => s.seances),
   regul("s100", "Pilier", "100 séances", 100, (s) => s.seances),

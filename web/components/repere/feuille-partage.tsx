@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { tactile } from "@/lib/repos";
 
-export type Partage = { nom: string; code: string };
+export type Partage = { nom: string; code: string; defi?: boolean };
 
 export function FeuillePartage({ partage, onClose }: { partage: Partage | null; onClose: () => void }) {
   return (
@@ -20,8 +20,8 @@ export function FeuillePartage({ partage, onClose }: { partage: Partage | null; 
   );
 }
 
-function Contenu({ nom, code }: Partage) {
-  const lien = (typeof location !== "undefined" ? location.origin : "") + "/?s=" + code;
+function Contenu({ nom, code, defi }: Partage) {
+  const lien = (typeof location !== "undefined" ? location.origin : "") + (defi ? "/?d=" : "/?s=") + code;
   const [copie, setCopie] = useState<"code" | "lien" | null>(null);
   const copier = async (quoi: "code" | "lien") => {
     tactile(8);
@@ -34,12 +34,12 @@ function Contenu({ nom, code }: Partage) {
     }
   };
   const envoyer = async () => {
-    try { await navigator.share({ title: nom, text: `Ma séance « ${nom} » sur Repère. Code : ${code}`, url: lien }); } catch {}
+    try { await navigator.share({ title: nom, text: defi ? `Rejoins mon défi « ${nom} » sur Repère. Code : ${code}` : `Ma séance « ${nom} » sur Repère. Code : ${code}`, url: lien }); } catch {}
   };
   return (
     <div className="px-5 pt-2 pb-[max(env(safe-area-inset-bottom),20px)]">
       <DrawerTitle className="text-center text-[20px] leading-tight font-bold text-balance">Partager « {nom} »</DrawerTitle>
-      <DrawerDescription className="mt-1 text-center text-[13.5px] text-muted-foreground">Code de la séance, à lire ou à dicter</DrawerDescription>
+      <DrawerDescription className="mt-1 text-center text-[13.5px] text-muted-foreground">{defi ? "Code du défi" : "Code de la séance"}, à lire ou à dicter</DrawerDescription>
 
       <div className="mt-4 flex justify-center gap-1.5 select-all" aria-label={`Code : ${code.split("").join(" ")}`}>
         {code.split("").map((c, i) => (
@@ -66,7 +66,9 @@ function Contenu({ nom, code }: Partage) {
         </Button>
       )}
       <p className="mt-3 text-center text-[12.5px] leading-relaxed text-muted-foreground">
-        Ton ami ouvre le lien, ou saisit le code dans Entraînement › Mes séances › Importer une séance avec un code.
+        {defi
+          ? "Ton ami ouvre le lien, ou saisit le code dans Progrès › Défis entre amis › Rejoindre."
+          : "Ton ami ouvre le lien, ou saisit le code dans Entraînement › Mes séances › Importer une séance avec un code."}
       </p>
     </div>
   );
