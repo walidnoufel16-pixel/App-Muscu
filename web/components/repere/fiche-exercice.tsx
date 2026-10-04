@@ -1,7 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ArrowsLeftRightIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
+import { ArrowsLeftRightIcon, CaretLeftIcon, CaretRightIcon, ChartLineUpIcon } from "@phosphor-icons/react";
+import { useRouter } from "next/navigation";
+import { AVANT } from "@/lib/nav";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { EX } from "@/lib/data/exercices";
 import { histo, nb, nomPat, noRPE, rirTxt, UNITE } from "@/lib/logic/core";
@@ -80,6 +82,8 @@ function Contenu({ fiche }: { fiche: FicheOuverte }) {
   const variantes = variantesDe(etat.A, id);
   const aller = (p: string[]) => { setPile(p); defile.current?.scrollTo({ top: 0 }); };
   const prec = pile.length > 1 ? pile[pile.length - 2] : fiche.id;
+  const router = useRouter();
+  const suivi = (etat.HIST || []).filter((l) => l.ex[id]).length;
   return (
     <div ref={defile} className="overflow-y-auto overscroll-contain px-5 pb-[max(env(safe-area-inset-bottom),20px)]">
       {!origine && (
@@ -138,6 +142,13 @@ function Contenu({ fiche }: { fiche: FicheOuverte }) {
           </div>
         ) : (
           <p className="text-[14px] text-muted-foreground">Rien d&apos;enregistré pour l&apos;instant sur cet exercice.</p>
+        )}
+        {suivi > 1 && (
+          <button onClick={() => router.push(`/progres?ex=${id}` as "/progres", AVANT)} className="mt-3 flex w-full items-center gap-3 rounded-2xl border bg-card p-3 text-left active:scale-[.99]">
+            <ChartLineUpIcon className="size-5 text-plate-ink" weight="bold" />
+            <span className="flex-1 text-[15px] font-semibold">Ma progression sur {suivi} séances</span>
+            <CaretRightIcon className="size-4 text-muted-foreground" />
+          </button>
         )}
       </Bloc>
       {t ? (

@@ -8,12 +8,14 @@ import { cn } from "@/lib/utils";
 /* Schéma anatomique — tracés react-native-body-highlighter (Hicham Elabbassi), licence MIT.
    `actif(r)` dit si une région est touchable, `choisi(r)` si elle est surlignée. */
 export function SchemaCorps({
-  actif, choisi, onToucher, legende,
+  actif, choisi, onToucher, legende, teinte,
 }: {
   actif: (r: { z?: string; p?: string }) => boolean;
   choisi: (r: { z?: string; p?: string }) => boolean;
   onToucher: (r: { z?: string; p?: string; n?: string }) => void;
   legende?: string;
+  /* Intensité de 0 à 1 par région (carte du volume) ; remplace `choisi`. */
+  teinte?: (r: { z?: string; p?: string }) => number;
 }) {
   const [cote, setCote] = useState<"front" | "back">("front");
   const regions = CORPS[cote];
@@ -27,11 +29,12 @@ export function SchemaCorps({
       />
       <svg viewBox={CORPS_VB[cote]} className="mx-auto mt-2 block max-h-[58vh] w-full touch-manipulation" role="img" aria-label="Schéma du corps">
         {regions.map((r) => {
-          const on = actif(r), sel = on && choisi(r);
+          const on = actif(r), sel = on && choisi(r), t = teinte?.(r) ?? 0;
           return (
             <path
               key={r.i}
               d={r.d}
+              style={teinte && t > 0 ? { fill: `color-mix(in oklab, var(--plate) ${Math.round(25 + t * 75)}%, transparent)` } : undefined}
               className={cn(
                 "stroke-card transition-[fill] duration-200 [stroke-linejoin:round] [stroke-width:1.5px] [vector-effect:non-scaling-stroke]",
                 sel ? "animate-[muscle_.45s_ease-out] fill-plate" : on ? "fill-foreground/35" : "fill-foreground/10",

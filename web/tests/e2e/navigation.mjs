@@ -23,7 +23,7 @@ const actif = () => pg.locator('nav a[aria-current="page"]').textContent();
 await pg.goto(U + "/");
 await pg.waitForURL(/\/entrainement\/$/);
 ok(await actif() === "Entraînement", "accueil : onglet Entraînement actif");
-ok(await pg.locator("nav a").count() === 3, "trois onglets");
+ok(await pg.locator("nav a").count() === 4, "quatre onglets");
 ok(await pg.getByText("Construis ton programme").isVisible(), "sans programme : la carte propose de le construire");
 
 // Mes séances : groupe Musculation repliable, choix mémorisé

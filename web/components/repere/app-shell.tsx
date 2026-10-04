@@ -9,6 +9,7 @@ import { Confirmateur } from "./confirmer";
 import { Bilan } from "./bilan";
 import { LogoDisque } from "./logo";
 import { usePile, useSens } from "@/lib/nav";
+import { suivreHistorique } from "@/lib/suivi";
 
 /* Démarre l'app une fois (session Supabase, état local) et pose la barre
    d'onglets. Les écrans plein écran (accueil, questionnaire) et les tâches
@@ -22,7 +23,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const chemin = usePathname().replace(/(.)\/$/, "$1");
   const sens = useSens((s) => s.sens);
 
-  useEffect(() => { demarrer(); }, [demarrer]);
+  useEffect(() => { suivreHistorique(); demarrer(); }, [demarrer]);
   /* Pile des écrans (bouton retour) ; le sens d'un retour ne sert qu'une fois. */
   useEffect(() => {
     usePile.getState().noter(chemin + location.search);
