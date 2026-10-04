@@ -8,10 +8,8 @@ import { Input } from "@/components/ui/input";
 import { EnTete } from "@/components/repere/en-tete";
 import { Vignette } from "@/components/repere/exercice-carte";
 import { FicheExercice, type FicheOuverte } from "@/components/repere/fiche-exercice";
-import { FiltreMateriel } from "@/components/repere/filtre-materiel";
 import { Remplacer } from "@/components/repere/seance-vues";
-import { Bibliotheque, ListeRecherche } from "@/components/repere/bibliotheque";
-import { Segmente } from "@/components/repere/segmente";
+import { FeuilleAjout } from "@/components/repere/ajout-exercice";
 import { confirmer } from "@/components/repere/confirmer";
 import { EX } from "@/lib/data/exercices";
 import { OBJS, PAS_REPOS } from "@/lib/data/referentiels";
@@ -39,9 +37,7 @@ export default function PageComposer() {
   const [ouv, setOuv] = useState<string | null>(null);
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);
   const [remp, setRemp] = useState<number | null>(null);
-  const [vueBib, setVueBib] = useState<"corps" | "liste">("corps");
-  const [zone, setZone] = useState<{ z: string; p: string | null } | null>(null);
-  const [q, setQ] = useState("");
+  const [ajout, setAjout] = useState(false);
   const liste = useRef<HTMLDivElement>(null);
   const [glisse, setGlisse] = useState<string | null>(null);
   const [blocOuvert, setBlocOuvert] = useState<string | null>(null); // id du bloc cardio dont les réglages sont ouverts
@@ -174,26 +170,26 @@ export default function PageComposer() {
             ) : (
               <CarteBloc key={x.b.id} b={x.b} glisse={glisse === "bloc-" + x.b.id} onSaisir={(ev) => saisir(ev, "bloc-" + x.b.id)} onOuvrir={() => setBlocOuvert(x.b.id)} />
             )) : (
-              <p className="rounded-[20px] border border-dashed bg-card/50 p-5 text-center text-[14px] text-muted-foreground">Touche un exercice ci-dessous pour l&apos;ajouter.</p>
+              <button onClick={() => setAjout(true)} className="flex flex-col items-center gap-1.5 rounded-[20px] border border-dashed border-plate/60 bg-card/50 p-6 text-[15px] font-semibold text-plate-ink active:scale-[.99]">
+                <PlusIcon className="size-6" weight="bold" />Ajouter un exercice
+              </button>
             )}
           </div>
-          <button onClick={ajouterBloc} className="mt-2 flex w-full items-center justify-center gap-2 rounded-[18px] border border-dashed border-plate/60 py-3 text-[14.5px] font-semibold text-plate-ink active:scale-[.99]">
-            <PlusIcon className="size-4" weight="bold" />Bloc cardio
-          </button>
-        </section>
-
-        <section className="flex flex-col gap-3">
-          <div className="eyebrow px-1">Bibliothèque</div>
-          <FiltreMateriel sel={sel} declare={selDeclare(etat.A)} onChange={setSel} />
-          <Segmente label="Affichage de la bibliothèque" valeur={vueBib} onChange={setVueBib} options={[{ v: "corps", n: "Sur le corps" }, { v: "liste", n: "Liste" }]} />
-          {vueBib === "corps" ? (
-            <Bibliotheque sel={sel} zone={zone} setZone={setZone} pris={pris} onAjouter={ajouter} onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, "90 s"], libelle: "bibliothèque" })} />
-          ) : (
-            <ListeRecherche sel={sel} q={q} setQ={setQ} pris={pris} onAjouter={ajouter} onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, "90 s"], libelle: "bibliothèque" })} />
-          )}
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <button onClick={() => { tactile(6); setAjout(true); }} className="flex items-center justify-center gap-2 rounded-[18px] bg-plate py-3 text-[14.5px] font-semibold text-plate-foreground active:scale-[.98]">
+              <PlusIcon className="size-4" weight="bold" />Exercice
+            </button>
+            <button onClick={ajouterBloc} className="flex items-center justify-center gap-2 rounded-[18px] border border-dashed border-plate/60 py-3 text-[14.5px] font-semibold text-plate-ink active:scale-[.98]">
+              <PlusIcon className="size-4" weight="bold" />Bloc cardio
+            </button>
+          </div>
         </section>
       </div>
 
+      <FeuilleAjout
+        ouvert={ajout} onClose={() => setAjout(false)} onAjouter={ajouter} pris={pris} sel={sel} onSel={setSel}
+        onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, "90 s"], libelle: "bibliothèque" })}
+      />
       <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
         <Button variant="plate" size="xl" className="w-full" disabled={!L.ex.length} onClick={enregistrer}>Enregistrer la séance</Button>
       </div>

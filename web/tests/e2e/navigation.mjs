@@ -110,11 +110,40 @@ await pg.waitForURL(/\/entrainement\/assistant\/$/);
 await pg.getByRole("button", { name: "Full body" }).click();
 await pg.getByRole("button", { name: "Créer ma séance" }).click();
 await pg.waitForURL(/\/entrainement\/composer\/$/);
+// ajouter des exercices à la séance générée : bouton « + Exercice », feuille de la bibliothèque
+const nbAvant = +(await pg.getByText(/^Ta séance · \d+ exercice/).textContent()).match(/(\d+) exercice/)[1];
+await pg.getByRole("button", { name: "Exercice", exact: true }).click();
+await pg.getByRole("heading", { name: "Ajouter un exercice" }).waitFor();
+await pg.getByPlaceholder(/Rechercher/).fill("curl");
+await pg.getByRole("button", { name: /^Ajouter Curl/ }).first().click();
+await pg.getByPlaceholder(/Rechercher/).fill("gainage");
+await pg.getByRole("button", { name: /^Ajouter / }).first().click();
+await pg.getByRole("button", { name: /^Terminé/ }).click();
+await pg.waitForTimeout(500);
+const nbApres = +(await pg.getByText(/^Ta séance · \d+ exercice/).textContent()).match(/(\d+) exercice/)[1];
+ok(nbApres === nbAvant + 2, `composeur : 2 exercices ajoutés (${nbAvant} → ${nbApres})`);
 await pg.getByRole("button", { name: "Enregistrer la séance" }).click();
 await pg.waitForURL(/\/entrainement\/$/);
 await pg.waitForTimeout(400);
+ok(await pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")).SEANCES.at(-1).ex.length) === nbApres, "séance enregistrée avec les exercices ajoutés");
 ok(await pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")).SEANCES.length) === 2, "séance créée, retour à Entraînement");
 ok(!(await pg.goBack().then(() => /assistant|composer/.test(pg.url()))), "le retour arrière ne repasse pas par l'assistant");
+
+// pendant une séance libre : ajouter un exercice à la fin, les séries déjà validées restent
+await pg.goto(U + "/entrainement/seance/?l=0");
+await pg.waitForTimeout(1000);
+if (await pg.getByRole("button", { name: "Passer" }).isVisible().catch(() => false)) await pg.getByRole("button", { name: "Passer" }).click();
+await pg.locator('[id="ex-L|0|0"] button[aria-expanded]').first().click();
+await pg.getByRole("button", { name: /^Valider la série/ }).first().click();
+await pg.waitForTimeout(300);
+await pg.getByRole("button", { name: "Ajouter un exercice" }).click();
+await pg.getByPlaceholder(/Rechercher/).fill("curl");
+await pg.getByRole("button", { name: /^Ajouter Curl/ }).first().click();
+await pg.waitForTimeout(900);
+const e9 = await pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")));
+ok(e9.SEANCES[0].ex.length === 2 && /^curl|^c/i.test(e9.SEANCES[0].ex[1].id) !== null, "séance libre : exercice ajouté à la fin");
+ok(e9.LOG["L|0|0"]?.series?.[0]?.ok === true, "les séries déjà validées sont conservées");
+ok(await pg.locator('[id="ex-L|0|1"] [aria-expanded="true"]').count() === 1, "le nouvel exercice s'ouvre directement");
 
 // changer de compte (mode local : les données du téléphone seront effacées, on le dit)
 await pg.goto(U + "/profil/");
