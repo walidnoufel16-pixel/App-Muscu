@@ -7,6 +7,7 @@ import { TabBar } from "./tab-bar";
 import { RestTimer } from "./rest-timer";
 import { Confirmateur } from "./confirmer";
 import { Bilan } from "./bilan";
+import { SurveillantBadges } from "./motivation";
 import { LogoDisque } from "./logo";
 import { usePile, useSens } from "@/lib/nav";
 import { suivreHistorique } from "@/lib/suivi";
@@ -58,6 +59,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {onglets && <TabBar />}
       <Confirmateur />
       <Bilan />
+      <SurveillantBadges />
     </div>
   );
 }

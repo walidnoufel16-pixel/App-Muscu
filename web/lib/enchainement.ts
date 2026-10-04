@@ -24,6 +24,6 @@ export function enchainer({ k, cles, titre, setOuvert }: { k: string; cles: stri
     setOuvert(null);
     useRepos.getState().arreter();
     const s = seanceDe(k), c = useCelebrer.getState();
-    c.montrerBilan({ titre, ...bilanDe(cles.map((x) => LOG[x]), c.records[s] || 0, c.debut[s] || null) });
+    c.montrerBilan({ titre, s, ...bilanDe(cles.map((x) => LOG[x]), c.records[s] || 0, c.debut[s] || null) });
   }, 650);
 }

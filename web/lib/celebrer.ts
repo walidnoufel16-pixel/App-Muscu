@@ -7,7 +7,7 @@ import type { Bilan } from "@/lib/logic/records";
 
 /* Le bilan d'une séance de musculation, ou des cases au choix (cardio). */
 export type CaseBilan = { n: string; v: number; accent?: boolean };
-export type BilanAffiche = (Bilan & { titre: string; cases?: undefined }) | { titre: string; cases: CaseBilan[] };
+export type BilanAffiche = (Bilan & { titre: string; cases?: undefined; s?: string }) | { titre: string; cases: CaseBilan[]; s?: undefined };
 
 /* Séance d'une ligne du journal : « semaine|séance » pour le plan, « L|i » pour une séance libre. */
 export const seanceDe = (k: string) => k.split("|").slice(0, 2).join("|");

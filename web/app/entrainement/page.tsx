@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRightIcon, CaretRightIcon, CheckIcon, StarIcon, TrophyIcon, PersonSimpleRunIcon } from "@phosphor-icons/react";
 import { EnTete } from "@/components/repere/en-tete";
 import { MesSeances } from "@/components/repere/mes-seances";
+import { CarteRegularite, Reprise } from "@/components/repere/motivation";
 import { LogoDisque } from "@/components/repere/logo";
 import { baseRPE, curId, musclesDe, titreSeance, week, wkDone } from "@/lib/logic/core";
 import type { SeanceSemaine } from "@/lib/logic/types";
@@ -69,6 +70,9 @@ export default function PageEntrainement() {
             onClick={() => router.push("/entrainement/programme", AVANT)}
           />
         )}
+
+        <Reprise />
+        {(plan || !!etat.HIST?.length || !!etat.CARDIO?.length) && <CarteRegularite lien />}
 
         <section>
           <h2 className="eyebrow mb-2 px-1">Mes séances</h2>
