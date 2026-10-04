@@ -15,6 +15,7 @@ import { sb, SB_KEY, SB_URL } from "@/lib/supabase";
 import type { Etat, Reponses, SeanceLibre } from "@/lib/logic/types";
 import { decoderCardio, encoderCardio } from "@/lib/logic/cardio";
 import { decoderBlocs, encoderBlocs } from "@/lib/logic/combinee";
+import { MAX_HIST, reconstruire } from "@/lib/logic/historique";
 
 export const SKEY = "palier.state.v1";
 export const PKEY = "palier.pseudo.v1";
@@ -72,6 +73,8 @@ function versEtat(s: Stocke | null): Etat {
   e.FINI = !!s.FINI;
   e.SEANCES_CARDIO = Array.isArray(s.SEANCES_CARDIO) ? nettoieArbre(s.SEANCES_CARDIO) : [];
   e.CARDIO = Array.isArray(s.CARDIO) ? nettoieArbre(s.CARDIO).slice(-300) : [];
+  /* Historique : absent d'un état plus ancien, on le reconstruit depuis le journal. */
+  e.HIST = Array.isArray(s.HIST) ? nettoieArbre(s.HIST).slice(-MAX_HIST) : reconstruire(e);
   return e;
 }
 const instantane = (e: Etat) => ({ ...e, ts: Date.now() });

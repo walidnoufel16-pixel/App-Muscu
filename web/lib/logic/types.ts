@@ -83,11 +83,14 @@ export type Etat = {
   /* Cardio : séances enregistrées et historique des séances faites (champs facultatifs, ajoutés après coup). */
   SEANCES_CARDIO?: SeanceCardio[];
   CARDIO?: HistoCardio[];
+  /* Historique durable des séances de musculation (lib/logic/historique.ts). */
+  HIST?: LigneHist[];
 };
 
 export type HistoCardio = { nom: string; f: FormatCardio; m: Machine; min: number; effort: number; ts: number; ref?: string };
 
 import type { FormatCardio, Machine, Niveau, Reglages, SeanceCardio } from "./cardio";
+import type { LigneHist } from "./historique";
 
 /* Séance de la semaine telle qu'affichée (plan IA converti, ou socle par défaut). */
 export type SeanceSemaine = {

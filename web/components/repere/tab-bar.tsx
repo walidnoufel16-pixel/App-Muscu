@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarbellIcon, PersonSimpleIcon, UserCircleIcon } from "@phosphor-icons/react";
+import { BarbellIcon, ChartLineUpIcon, PersonSimpleIcon, UserCircleIcon } from "@phosphor-icons/react";
 import { useRepere } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-/* Trois onglets, un rôle chacun : faire, chercher, régler. */
+/* Quatre onglets, un rôle chacun : faire, chercher, mesurer, régler. */
 const ONGLETS = [
   { href: "/entrainement", nom: "Entraînement", Icone: BarbellIcon },
   { href: "/exercices", nom: "Exercices", Icone: PersonSimpleIcon },
+  { href: "/progres", nom: "Progrès", Icone: ChartLineUpIcon },
   { href: "/profil", nom: "Profil", Icone: UserCircleIcon },
 ] as const;
 
@@ -23,7 +24,7 @@ export function TabBar() {
       style={{ viewTransitionName: "onglets" }}
       className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[480px] px-3 pb-[max(env(safe-area-inset-bottom),10px)]"
     >
-      <div className="grid grid-cols-3 rounded-[22px] border border-border/70 bg-card/80 p-1.5 shadow-[0_8px_30px_-12px_rgba(0,0,0,.25)] backdrop-blur-xl backdrop-saturate-150">
+      <div className="grid grid-cols-4 rounded-[22px] border border-border/70 bg-card/80 p-1.5 shadow-[0_8px_30px_-12px_rgba(0,0,0,.25)] backdrop-blur-xl backdrop-saturate-150">
         {ONGLETS.map(({ href, nom, Icone }) => {
           const actif = chemin === href || chemin.startsWith(href + "/");
           return (
