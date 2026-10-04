@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { BatteryMediumIcon, WarningIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
+import { PhaseDuJour } from "./cycle";
 import { BLESN } from "@/lib/data/referentiels";
 import { formeDuJour, NOMS_NIVEAU, niveau, nomZone, QUESTIONS_FORME, zonesActives, zonesDe, type Forme } from "@/lib/logic/forme";
 import { jourDe } from "@/lib/logic/historique";
@@ -52,7 +53,8 @@ export function FormeDuJour({ cles }: { cles: string[] }) {
         <h3 className="text-[16px] font-semibold">Comment tu te sens ?</h3>
         <button onClick={() => { muter((E) => { E.A.formePassee = auj; }); setOuvert(false); }} className="text-[13px] font-medium text-muted-foreground">Passer</button>
       </div>
-      <p className="mt-0.5 text-[12.5px] leading-snug text-muted-foreground">Les charges proposées s&apos;adaptent à ta forme du jour{entamee ? " (pour les exercices pas encore commencés)" : ""}.</p>
+      <PhaseDuJour className="mt-2" />
+      <p className="mt-2 text-[12.5px] leading-snug text-muted-foreground">Les charges proposées s&apos;adaptent à ta forme du jour{entamee ? " (pour les exercices pas encore commencés)" : ""}.</p>
       <div className="mt-3 flex flex-col gap-2.5">
         {QUESTIONS_FORME.map((q) => (
           <div key={q.k}>

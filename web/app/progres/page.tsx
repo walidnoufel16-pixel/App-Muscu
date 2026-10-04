@@ -2,8 +2,12 @@
 
 /* Progrès : ce que l'entraînement a changé, en un coup d'œil.
    Tout vient de l'historique (HIST) et du cardio (CARDIO), rien n'est envoyé ailleurs. */
-import { useEffect, useMemo, useState } from "react";
-import { ArrowDownIcon, ArrowUpIcon, CaretDownIcon, CaretRightIcon, ChartLineUpIcon, ScalesIcon, TrophyIcon } from "@phosphor-icons/react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { ArrowDownIcon, ArrowUpIcon, CaretDownIcon, CaretRightIcon, ChartLineUpIcon, ScalesIcon, SparkleIcon, TrophyIcon } from "@phosphor-icons/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { LogoDisque } from "@/components/repere/logo";
+import { moisPrecedent, recap } from "@/lib/logic/recap";
+import { AVANT } from "@/lib/nav";
 import { EnTete } from "@/components/repere/en-tete";
 import { Barres, Calendrier, Courbe } from "@/components/repere/graphes";
 import { SchemaCorps } from "@/components/repere/schema-corps";
@@ -26,6 +30,10 @@ const long = (j: string) => dateDe(j).toLocaleDateString("fr-FR", { weekday: "lo
 const kg = (v: number) => (v >= 10000 ? nb(Math.round(v / 100) / 10) + " t" : Math.round(v).toLocaleString("fr-FR") + " kg");
 
 export default function PageProgres() {
+  return <Suspense><Progres /></Suspense>;
+}
+
+function Progres() {
   const etat = useRepere((s) => s.etat);
   const premiere = usePremiereVisite();
   const H = useMemo(() => etat.HIST || [], [etat.HIST]);
@@ -54,6 +62,7 @@ export default function PageProgres() {
       <EnTete surtitre="Ton évolution" titre="Progrès" />
       <div className={cn("flex flex-col gap-6 px-4", premiere && "entree")}>
         <CetteSemaine H={H} C={C} auj={auj} />
+        <Bilans auj={auj} />
         <Section titre="Régularité">
           <div className="flex flex-col gap-2">
             <CarteRegularite reglable />
@@ -212,11 +221,12 @@ function Records({ H }: { H: LigneHist[] }) {
 function ParExercice({ H }: { H: LigneHist[] }) {
   const faits = useMemo(() => exercicesFaits(H).filter((e) => EX[e.id]), [H]);
   /* ?ex= : ouvert depuis la fiche d'un exercice */
-  const [id, setId] = useState<string | null>(() => { const q = new URLSearchParams(location.search).get("ex"); return q && EX[q] ? q : null; });
+  const q = useSearchParams().get("ex");
+  const [id, setId] = useState<string | null>(q && EX[q] ? q : null);
   const [choix, setChoix] = useState(false);
   useEffect(() => {
-    if (new URLSearchParams(location.search).get("ex")) requestAnimationFrame(() => document.getElementById("par-exercice")?.scrollIntoView({ block: "center" }));
-  }, []);
+    if (q) requestAnimationFrame(() => document.getElementById("par-exercice")?.scrollIntoView({ block: "center" }));
+  }, [q]);
   const courant = id ?? (faits.find((e) => EX[e.id].ch === "kg" && e.n > 1) || faits[0])?.id;
   const pts = useMemo(() => (courant ? courbe(H, courant) : []), [H, courant]);
   if (!courant) return <Carte><p className="text-[14px] text-muted-foreground">Fais une séance pour voir ta progression.</p></Carte>;
@@ -368,5 +378,30 @@ function DetailJour({ jour, onClose, H, C }: { jour: string | null; onClose: () 
         )}
       </DrawerContent>
     </Drawer>
+  );
+}
+
+/* Bilans à partager : le mois écoulé, et l'année en décembre et en janvier. */
+function Bilans({ auj }: { auj: string }) {
+  const router = useRouter();
+  const etat = useRepere((s) => s.etat);
+  const ids = [moisPrecedent(auj), ...(auj.slice(5, 7) === "12" ? [auj.slice(0, 4)] : auj.slice(5, 7) === "01" ? [String(+auj.slice(0, 4) - 1)] : [])];
+  const liste = ids.map((id) => recap(etat, id)).filter((r): r is NonNullable<typeof r> => !!r && r.seances > 0);
+  if (!liste.length) return null;
+  return (
+    <div className="flex flex-col gap-2">
+      {liste.map((r) => (
+        <button key={r.p.id} onClick={() => router.push(`/progres/bilan?p=${r.p.id}` as "/progres/bilan", AVANT)}
+          className="relative isolate flex items-center gap-3 overflow-hidden rounded-[20px] bg-gradient-to-br from-[#3b67f5] to-[#1b36a0] p-4 text-left text-white active:scale-[.99]">
+          <LogoDisque className="pointer-events-none absolute -right-8 -bottom-10 -z-10 size-36 text-white/10" />
+          <SparkleIcon className="size-7 shrink-0" weight="fill" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-[17px] font-bold first-letter:uppercase">{r.p.annee ? `Ton année ${r.p.nom}` : `Ton bilan de ${r.p.nom.split(" ")[0]}`}</span>
+            <span className="block text-[13px] opacity-85">{r.seances} séances{r.tonnes >= 1 ? ` · ${nb(Math.round(r.tonnes * 10) / 10)} t soulevées` : ""} · à partager</span>
+          </span>
+          <CaretRightIcon className="size-4 shrink-0 opacity-80" />
+        </button>
+      ))}
+    </div>
   );
 }

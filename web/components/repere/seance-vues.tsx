@@ -1,5 +1,6 @@
 "use client";
 
+import { CarteProteines } from "./proteines";
 import { useState } from "react";
 import { CaretRightIcon, ClockIcon, LightbulbIcon } from "@phosphor-icons/react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
@@ -108,6 +109,7 @@ export function Collation({ obj, onChanger }: { obj: number; onChanger?: (o: num
           ))}
         </div>
       )}
+      <div className="mb-2"><CarteProteines /></div>
       <div className="rounded-[22px] bg-card p-4">
         <h3 className="text-[19px] leading-tight font-bold tracking-[-0.01em]">{c.t}</h3>
         <p className="mt-1.5 text-[14px] leading-relaxed text-muted-foreground">{c.i}</p>

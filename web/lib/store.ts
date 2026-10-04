@@ -227,7 +227,7 @@ export const useRepere = create<Store>((set, get) => ({
         await c.auth.signOut();
       }
     } catch {}
-    try { localStorage.removeItem(SKEY); localStorage.removeItem(PKEY); } catch {}
+    try { localStorage.removeItem(SKEY); localStorage.removeItem(PKEY); localStorage.removeItem("repere.cycle.v1"); } catch {}
     // Rechargement complet voulu : repartir d'un état vierge.
     // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     location.href = "/";
@@ -243,7 +243,7 @@ export const useRepere = create<Store>((set, get) => ({
       await get().pousser();
       try { await c?.auth.signOut(); } catch {}
     }
-    try { localStorage.removeItem(SKEY); localStorage.removeItem(PKEY); } catch {}
+    try { localStorage.removeItem(SKEY); localStorage.removeItem(PKEY); localStorage.removeItem("repere.cycle.v1"); } catch {}
     set({ etat: vide(), user: null, pseudo: "", sync: null, session: "aucune" });
   },
 
