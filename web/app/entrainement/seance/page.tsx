@@ -4,7 +4,8 @@
    dans l'état) et pour une séance libre (?l=index). La barre d'onglets s'efface. */
 import { Suspense, useMemo, useState, ViewTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CheckIcon, HeartbeatIcon, InfoIcon, PencilSimpleIcon, PlayIcon } from "@phosphor-icons/react";
+import { CheckIcon, HeartbeatIcon, InfoIcon, PencilSimpleIcon, PlayIcon, PlusIcon } from "@phosphor-icons/react";
+import { FeuilleAjout } from "@/components/repere/ajout-exercice";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { EnTete } from "@/components/repere/en-tete";
@@ -19,9 +20,9 @@ import { CarteSport } from "@/components/repere/carte-sport";
 import { EX } from "@/lib/data/exercices";
 import { AXES } from "@/lib/data/referentiels";
 import {
-  alternativesDe, baseRPE, ctxLibre, ctxPlan, curId, espacementDe, key, musclesDe, nomPat, noRPE, rirTxt, rpeOf, sportsChoisis, titreSeance, typeSeance, week,
+  alternativesDe, baseRPE, ctxLibre, ctxPlan, kLibre, curId, espacementDe, key, musclesDe, nomPat, noRPE, rirTxt, rpeOf, sportsChoisis, titreSeance, typeSeance, week,
 } from "@/lib/logic/core";
-import { objCollation } from "@/lib/logic/assistant";
+import { exParDefaut, objCollation } from "@/lib/logic/assistant";
 import * as act from "@/lib/logic/actions";
 import type { BlocCardio, Journal } from "@/lib/logic/types";
 import type { Route } from "next";
@@ -213,6 +214,7 @@ function SeanceLibre({ i }: { i: number }) {
   const [sect, setSect] = useState<Partie>(1);
   const [ouvert, setOuvert] = useState<string | null>(null);
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);
+  const [ajout, setAjout] = useState(false);
   const [maintenant] = useState(() => Date.now());
   const S = etat.SEANCES[i];
   if (!S) return <Introuvable />;
@@ -224,6 +226,14 @@ function SeanceLibre({ i }: { i: number }) {
   const blocs = S.blocs || [];
   const faits = cles.filter((k) => etat.LOG[k]?.done).length + blocs.filter((b) => blocFait(b.id)).length;
   const modifier = () => { setLibre({ ...structuredClone(S), idx: i }); router.push("/entrainement/composer", AVANT); };
+  /* ajout en cours de séance : à la fin, ouvert tout de suite (les clés des exercices existants ne bougent pas) */
+  const ajouterExo = (id: string) => {
+    const j = S.ex.length;
+    tactile(8);
+    muter((E) => { E.SEANCES[i].ex.push(exParDefaut(id)); });
+    setOuvert(kLibre(i, j));
+    setTimeout(() => document.getElementById("ex-" + kLibre(i, j))?.scrollIntoView({ behavior: "smooth", block: "start" }), 450);
+  };
 
   return (
     <Cadre
@@ -268,11 +278,18 @@ function SeanceLibre({ i }: { i: number }) {
               </ExerciceCarte>
             );
           })}
+          <button onClick={() => { tactile(6); setAjout(true); }} className="flex items-center justify-center gap-2 rounded-[18px] border border-dashed border-plate/60 py-3 text-[14.5px] font-semibold text-plate-ink active:scale-[.99]">
+            <PlusIcon className="size-4" weight="bold" />Ajouter un exercice
+          </button>
           <p className="px-2 pt-1 text-center text-[12.5px] text-muted-foreground">
             Effort visé <b className="font-semibold text-foreground">RPE 8</b> : {rirTxt(8)} à la fin de chaque série.
           </p>
         </div>
       )}
+      <FeuilleAjout
+        une ouvert={ajout} onClose={() => setAjout(false)} onAjouter={ajouterExo} pris={(o) => S.ex.some((e) => e.id === o)}
+        onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, "90 s"], libelle: "bibliothèque" })}
+      />
       <FicheExercice fiche={fiche} onClose={() => setFiche(null)} />
     </Cadre>
   );

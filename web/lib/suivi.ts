@@ -20,6 +20,8 @@ export function suivreHistorique() {
   useRepere.subscribe((st, avant) => {
     const LOG = st.etat.LOG, LOG0 = avant.etat.LOG;
     if (LOG === LOG0 || !st.pret || !avant.pret) return;
+    /* état remplacé en entier (chargement, compte synchronisé, changement de compte) : rien à noter */
+    if (st.etat.HIST !== avant.etat.HIST) return;
     const auj = jourDe(Date.now()), touchees = new Set<string>();
     for (const k in LOG) if (LOG[k] !== LOG0[k] && valides(LOG[k]) !== valides(LOG0[k]) && jourDe(LOG[k]?.ts || 0) === auj) touchees.add(seanceDe(k));
     for (const k in LOG0) if (!(k in LOG) && jourDe(LOG0[k]?.ts || 0) === auj) touchees.add(seanceDe(k));
