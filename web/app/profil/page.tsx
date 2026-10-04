@@ -1,5 +1,6 @@
 "use client";
 
+import { ReglageZones } from "@/components/repere/forme";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -140,6 +141,10 @@ export default function PageProfil() {
                 <span className="text-right font-medium">{v}</span>
               </div>
             ))}
+            <div className="border-b border-border/60 px-4 py-3">
+              <div className="mb-2 text-[14.5px] text-muted-foreground">Zones à ménager</div>
+              <ReglageZones />
+            </div>
             <Ligne onClick={() => router.push("/questionnaire", AVANT)}>{plan ? "Modifier mes réponses" : "Construire mon programme"}</Ligne>
           </div>
           {plan && <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">Le détail du programme est dans Entraînement › Programme.</p>}

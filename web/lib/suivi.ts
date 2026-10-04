@@ -8,6 +8,7 @@ import { useRepere } from "@/lib/store";
 import { useCelebrer, seanceDe } from "@/lib/celebrer";
 import { okDe } from "@/lib/logic/core";
 import { inscrire, jourDe, ligneDe } from "@/lib/logic/historique";
+import { formeDuJour, niveau } from "@/lib/logic/forme";
 import type { Journal } from "@/lib/logic/types";
 
 const valides = (L?: Journal) => (L?.series || []).filter((s) => okDe(L!, s)).length + (L?.done ? 0.5 : 0);
@@ -28,10 +29,12 @@ export function suivreHistorique() {
       const c = useCelebrer.getState();
       useRepere.getState().muter((E) => {
         let H = E.HIST || [];
+        const f = formeDuJour(E.A);
         for (const s of touchees) {
           const debut = c.debut[s];
           H = inscrire(H, auj, s, ligneDe(E, s, auj, {
             ...(c.records[s] ? { rec: c.records[s] } : {}),
+            ...(f ? { fo: niveau(f) } : {}),
             ...(debut ? { min: Math.max(1, Math.round((Date.now() - debut) / 60000)) } : {}),
           }));
         }

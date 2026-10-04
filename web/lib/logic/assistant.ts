@@ -20,7 +20,8 @@ export function prescription(id: string, poly: boolean, obj: number): ExLibre {
   return { id, s, r, p };
 }
 
-export function construireSeance(muscles: string[], duree: number, obj: number, sel: string[], rnd: Hasard = Math.random): ExLibre[] {
+/* `evite` : exercices à éviter (zones sensibles), gardés seulement s'il n'y a rien d'autre. */
+export function construireSeance(muscles: string[], duree: number, obj: number, sel: string[], rnd: Hasard = Math.random, evite: (o: string) => boolean = () => false): ExLibre[] {
   const series = (DUREES.find((d) => d[0] === duree) || DUREES[1])[1];
   const parEx = obj === 1 ? 4 : 3, n = Math.max(muscles.length, Math.round(series / parEx));
   const G = muscles.map((k) => MUSC.find((g) => g.k === k)).filter(Boolean) as typeof MUSC;
@@ -41,7 +42,7 @@ export function construireSeance(muscles: string[], duree: number, obj: number, 
   const estPoly = (o: string) => !!EX[o].pat2 && o !== "pull";
   parts.forEach(({ g, n: k }) => {
     for (let j = 0; j < k; j++) {
-      const pat = g.pats[j % g.pats.length], l = libres(pat);
+      const pat = g.pats[j % g.pats.length], tous = libres(pat), surs = tous.filter((o) => !evite(o)), l = surs.length ? surs : tous;
       if (!l.length) continue;
       const poly = l.filter(estPoly), iso = l.filter((o) => !estPoly(o));
       const o = j === 0 ? choisir(poly.length ? poly : l) : choisir(iso.length ? iso : l);
