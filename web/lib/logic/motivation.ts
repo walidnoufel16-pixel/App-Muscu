@@ -42,7 +42,7 @@ export function serie(H: LigneHist[], C: HistoCardio[], objectif: number, auj = 
 /* ---------------- badges ---------------- */
 export type Stats = {
   seances: number; muscu: number; cardio: number; combinees: number; records: number; tonnes: number; heuresCardio: number;
-  tabata: number; norvegien: number; serie: number; max: Record<string, number>; poidsCorps: boolean; defis: number;
+  tabata: number; norvegien: number; serie: number; max: Record<string, number>; poidsCorps: boolean; defis: number; km: number; sorties: number; courses: number;
 };
 export function stats(E: Etat, auj = jourDe(Date.now())): Stats {
   const H = E.HIST || [], C = avecSorties(E.CARDIO, E.SORTIES);
@@ -58,12 +58,13 @@ export function stats(E: Etat, auj = jourDe(Date.now())): Stats {
     serie: serie(H, C, objectifHebdo(E.A), auj).record, max,
     poidsCorps: !!poids && Object.values(max).some((v) => v >= poids),
     defis: Object.keys((E.A.defisOk as Record<string, string> | undefined) || {}).length,
+    km: (E.SORTIES || []).reduce((n, s) => n + s.km, 0), sorties: (E.SORTIES || []).length, courses: (E.SORTIES || []).filter((s) => s.course).length,
   };
 }
 
 export type Badge = { id: string; nom: string; texte: string; icone: string; famille: string; cible: number; valeur: (s: Stats) => number };
 const B = (famille: string, icone: string) => (id: string, nom: string, texte: string, cible: number, valeur: (s: Stats) => number): Badge => ({ id, nom, texte, icone, famille, cible, valeur });
-const premiere = B("Premières fois", "etoile"), regul = B("Régularité", "flamme"), force = B("Force", "haltere"), volume = B("Volume", "poids"), cardio = B("Cardio", "coeur");
+const course = B("Course à pied", "course"), premiere = B("Premières fois", "etoile"), regul = B("Régularité", "flamme"), force = B("Force", "haltere"), volume = B("Volume", "poids"), cardio = B("Cardio", "coeur");
 export const BADGES: Badge[] = [
   premiere("s1", "Premier pas", "Ta première séance", 1, (s) => s.seances),
   premiere("c1", "Souffle", "Ta première séance cardio", 1, (s) => s.cardio),
@@ -90,6 +91,10 @@ export const BADGES: Badge[] = [
   cardio("tab10", "Tabata ×10", "10 séances de Tabata", 10, (s) => s.tabata),
   cardio("nor1", "Norvégien", "Un 4×4 norvégien bouclé", 1, (s) => s.norvegien),
   cardio("c25", "Cardio régulier", "25 séances de cardio", 25, (s) => s.cardio),
+  course("run1", "Premiers kilomètres", "Ta première sortie de course notée", 1, (s) => s.sorties),
+  course("km100", "100 km", "100 km courus au total", 100, (s) => s.km),
+  course("km500", "500 km", "500 km courus au total", 500, (s) => s.km),
+  course("jourj", "Jour J", "Ta course préparée avec Repère, bouclée", 1, (s) => s.courses),
 ];
 export const obtenu = (b: Badge, s: Stats) => b.valeur(s) >= b.cible;
 

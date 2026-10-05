@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  BarbellIcon, CaretRightIcon, FlameIcon, HandWavingIcon, HeartbeatIcon, LockIcon, MinusIcon, MountainsIcon, PlusIcon, ShieldCheckIcon, StarIcon,
+  BarbellIcon, CaretRightIcon, FlameIcon, HandWavingIcon, PersonSimpleRunIcon, HeartbeatIcon, LockIcon, MinusIcon, MountainsIcon, PlusIcon, ShieldCheckIcon, StarIcon,
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
@@ -17,7 +17,7 @@ import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
-const ICONES = { etoile: StarIcon, flamme: FlameIcon, haltere: BarbellIcon, poids: MountainsIcon, coeur: HeartbeatIcon } as const;
+const ICONES = { etoile: StarIcon, flamme: FlameIcon, haltere: BarbellIcon, poids: MountainsIcon, coeur: HeartbeatIcon, course: PersonSimpleRunIcon } as const;
 export function IconeBadge({ b, on, className }: { b: Badge; on: boolean; className?: string }) {
   const I = ICONES[b.icone as keyof typeof ICONES] || StarIcon;
   return (

@@ -4,13 +4,14 @@ import { dateDe, decaler, jourDe } from "./historique";
 import type { Etat } from "./types";
 import { avecSorties } from "./course";
 
-export type TypeDefi = "seances" | "tonnage" | "cardio";
+export type TypeDefi = "seances" | "tonnage" | "cardio" | "km";
 export type Participant = { pseudo: string; score: number; moi: boolean };
 export type Defi = { code: string; nom: string; type: TypeDefi; cible: number; debut: string; fin: string; participants: Participant[] };
 
 export const TYPES_DEFI: Record<TypeDefi, { nom: string; unite: string; aide: string; cibles: number[]; exemple: (c: number, sem: number) => string }> = {
   seances: { nom: "Séances", unite: "séances", aide: "Chaque séance de muscu ou de cardio compte pour 1.", cibles: [4, 8, 12, 16, 20], exemple: (c, s) => `${c} séances en ${s} semaine${s > 1 ? "s" : ""}` },
   tonnage: { nom: "Poids soulevé", unite: "kg", aide: "Charge × répétitions de chaque série, additionnées. Exemple : 3 séries de 10 à 60 kg = 1 800 kg.", cibles: [5000, 10000, 20000, 40000, 80000], exemple: (c, s) => `${(c / 1000).toLocaleString("fr-FR")} t soulevées en ${s} semaine${s > 1 ? "s" : ""}` },
+  km: { nom: "Kilomètres", unite: "km", aide: "Kilomètres courus, notés après chaque sortie (montre, Strava ou minuteur).", cibles: [20, 50, 100, 150, 250], exemple: (c, s) => `${c} km courus en ${s} semaine${s > 1 ? "s" : ""}` },
   cardio: { nom: "Cardio", unite: "min", aide: "Minutes de cardio guidé.", cibles: [60, 120, 200, 300, 500], exemple: (c, s) => `${c} min de cardio en ${s} semaine${s > 1 ? "s" : ""}` },
 };
 
@@ -20,6 +21,7 @@ export function scoreDe(E: Etat, d: Pick<Defi, "type" | "debut" | "fin">): numbe
   const H = (E.HIST || []).filter((l) => dans(l.d)), C = avecSorties(E.CARDIO, E.SORTIES).filter((c) => dans(jourDe(c.ts)));
   if (d.type === "tonnage") return Math.round(H.reduce((n, l) => n + l.vol, 0));
   if (d.type === "cardio") return Math.round(C.reduce((n, c) => n + c.min, 0));
+  if (d.type === "km") return Math.round((E.SORTIES || []).filter((s) => dans(s.d)).reduce((n, s) => n + s.km, 0));
   return H.length + C.filter((c) => !c.ref).length;
 }
 

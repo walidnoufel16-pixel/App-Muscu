@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
-  adapter, allures, avertissement, calendrier, genererPlan, reprendre, riegel, semaineDe, tempsPrevu, vdot, type PlanCourse,
+  adapter, allures, avertissement, calendrier, estimation, genererPlan, reprendre, riegel, semaineDe, tempsPrevu, vdot, type PlanCourse,
 } from "@/lib/logic/course";
+import { scoreDe } from "@/lib/logic/defis";
+import { BADGES, stats } from "@/lib/logic/motivation";
+import type { Etat } from "@/lib/logic/types";
 
 const proche = (a: number, b: number, tol: number) => expect(Math.abs(a - b)).toBeLessThanOrEqual(tol);
 const plan = (x: Partial<PlanCourse> = {}): PlanCourse => {
@@ -90,5 +93,27 @@ describe("adaptation et pause", () => {
     expect(p.ajust[k]).toBe(0.7);
     expect(p.ajust[k + 1]).toBe(0.9);
     expect(p.pauses[0].a).toBe("2026-11-12");
+  });
+});
+
+
+describe("suivi course", () => {
+  it("chrono estimé : amélioré par une sortie soutenue récente, pas par un footing", () => {
+    const p = plan(); // 50 min au 10 km
+    const base = estimation(p, [], "2026-10-05").sec;
+    expect(estimation(p, [{ d: "2026-10-01", km: 12, sec: 12 * 330, rpe: 4 }], "2026-10-05").sec).toBe(base); // footing facile
+    const mieux = estimation(p, [{ d: "2026-10-01", km: 10, sec: 46 * 60, rpe: 9 }], "2026-10-05");
+    expect(mieux.sec).toBeLessThan(base);
+    expect(mieux.depuis?.km).toBe(10);
+    expect(estimation(p, [{ d: "2026-06-01", km: 10, sec: 40 * 60, rpe: 9 }], "2026-10-05").sec).toBe(base); // trop ancienne
+  });
+  it("défi kilomètres et badges course", () => {
+    const E = { A: {}, LOG: {}, SWAP: {}, SWAPP: {}, PLAN: null, SEANCES: [], wk: 0, day: 0, FINI: false,
+      SORTIES: [{ d: "2026-10-02", km: 60.4, sec: 20000, rpe: 5 }, { d: "2026-10-04", km: 42.2, sec: 13000, rpe: 9, course: true }, { d: "2026-09-01", km: 10, sec: 3000, rpe: 5 }] } as unknown as Etat;
+    expect(scoreDe(E, { type: "km", debut: "2026-10-01", fin: "2026-10-31" })).toBe(103);
+    expect(scoreDe(E, { type: "seances", debut: "2026-10-01", fin: "2026-10-31" })).toBe(2);
+    const s = stats(E, "2026-10-05"), ok = BADGES.filter((b) => b.valeur(s) >= b.cible).map((b) => b.id);
+    expect(ok).toEqual(expect.arrayContaining(["run1", "km100", "jourj"]));
+    expect(ok).not.toContain("km500");
   });
 });

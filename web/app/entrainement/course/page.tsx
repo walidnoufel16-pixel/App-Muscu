@@ -17,7 +17,7 @@ import { Minuteur, departCourse, preparer, type Course } from "@/components/repe
 import { SaisieSortie } from "@/components/repere/course";
 import { mmss } from "@/components/repere/reglages-cardio";
 import {
-  allures, allureDe, allureTxt, chronoTxt, DISTANCES, enPause, genererPlan, joursAvantCourse, NOMS_PHASE, reprendre, semaineDe, tempsPrevu, vdotDe,
+  allures, allureDe, allureTxt, chronoTxt, DISTANCES, enPause, estimation, genererPlan, joursAvantCourse, NOMS_PHASE, reprendre, semaineDe, vdotDe,
   type SeanceCourse, type SemaineCourse, type Sortie, type TypeSeance,
 } from "@/lib/logic/course";
 import { dureeTotale } from "@/lib/logic/cardio";
@@ -104,7 +104,7 @@ function Plan() {
       />
       <div className="flex flex-col gap-5 px-4 pb-10">
         <div className="grid grid-cols-2 gap-2">
-          {[["Chrono estimé", chronoTxt(tempsPrevu(V, DISTANCES[c.obj].km))], ["Allure course", allureTxt(c.obj === "10k" ? A.dix : c.obj === "semi" ? A.semi : A.marathon)], ["Footing", allureTxt(A.facile)], ["Seuil", allureTxt(A.seuil)]].map(([n, v]) => (
+          {[["Chrono estimé", chronoTxt(estimation(c, S, auj).sec)], ["Allure course", allureTxt(c.obj === "10k" ? A.dix : c.obj === "semi" ? A.semi : A.marathon)], ["Footing", allureTxt(A.facile)], ["Seuil", allureTxt(A.seuil)]].map(([n, v]) => (
             <div key={n} className="rounded-[18px] border border-border/80 bg-card p-3">
               <div className="text-[12px] text-muted-foreground">{n}</div>
               <div className="num text-[22px] leading-tight font-bold">{v}</div>

@@ -11,12 +11,14 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/compone
 import { Segmente } from "./segmente";
 import { confirmer } from "./confirmer";
 import {
-  adapter, allures, allureTxt, avertissement, calendrier, chronoTxt, DISTANCES, enPause, genererPlan, joursAvantCourse, semaineDe, seancesRenfo,
+  adapter, allures, allureTxt, avertissement, calendrier, chronoTxt, DISTANCES, enPause, estimation, genererPlan, joursAvantCourse, semaineDe, seancesRenfo,
   tempsPrevu, vdotDe, NOMS_PHASE, type ObjectifCourse, type PlanCourse, type SeanceCourse,
 } from "@/lib/logic/course";
 import { dispoDeclare } from "@/lib/logic/core";
-import { decaler, jourDe } from "@/lib/logic/historique";
+import { decaler, jourDe, lundiDe } from "@/lib/logic/historique";
+import { Barres } from "./graphes";
 import { useRepere } from "@/lib/store";
+import { useCelebrer } from "@/lib/celebrer";
 import { ARRIERE, AVANT, remplacement } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
@@ -169,7 +171,19 @@ export function SaisieSortie({ ouvert, onClose, seance, cle, dureeMin }: {
       (E.SORTIES ??= []).push({ d: auj, km: Math.round(d * 100) / 100, sec: t, rpe: rpe!, ...(douleur ? { douleur: true } : {}), ...(cle ? { s: cle } : {}), ...(seance?.type === "course" ? { course: true } : {}) });
       if (E.COURSE && cle) msg = adapter(E.COURSE, +cle.split("|")[0], { rpe: rpe!, douleur });
     });
-    toast.success(`Sortie notée : ${String(Math.round(d * 10) / 10).replace(".", ",")} km à ${allureTxt(t / d)}`, msg ? { description: msg, duration: 6000 } : undefined);
+    if (seance?.type === "course") {
+      /* jour J : le bilan de toute la préparation */
+      const E = useRepere.getState().etat, debut = E.COURSE?.debut ?? "", prepa = (E.SORTIES || []).filter((x) => x.d >= debut);
+      useCelebrer.getState().montrerBilan({
+        titre: `${seance.titre.replace("Jour J : ", "")} bouclé !`,
+        cases: [
+          { n: "minutes de course", v: Math.round(t / 60) },
+          { n: "km de course", v: Math.round(d) },
+          { n: "sorties de préparation", v: prepa.length },
+          { n: "km de préparation", v: Math.round(prepa.reduce((n, x) => n + x.km, 0)), accent: true },
+        ],
+      });
+    } else toast.success(`Sortie notée : ${String(Math.round(d * 10) / 10).replace(".", ",")} km à ${allureTxt(t / d)}`, msg ? { description: msg, duration: 6000 } : undefined);
     onClose();
     if (seance?.type === "course") router.replace("/entrainement/course", ARRIERE);
   };
@@ -200,5 +214,48 @@ export function SaisieSortie({ ouvert, onClose, seance, cle, dureeMin }: {
         </div>
       </DrawerContent>
     </Drawer>
+  );
+}
+
+/* ---------------- Progrès : course à pied ---------------- */
+export function SectionCourse() {
+  const etat = useRepere((x) => x.etat);
+  const [auj] = useState(() => jourDe(Date.now()));
+  const [libre, setLibre] = useState(false);
+  const S = etat.SORTIES || [], c = etat.COURSE;
+  if (!S.length && !c) return null;
+  const lundi = lundiDe(auj);
+  const semaines = Array.from({ length: 12 }, (_, i) => decaler(lundi, -7 * (11 - i)));
+  const parSem = semaines.map((l) => S.filter((x) => x.d >= l && x.d <= decaler(l, 6)).reduce((n, x) => n + x.km, 0));
+  const recentes = S.filter((x) => x.d >= decaler(auj, -28));
+  const kmR = recentes.reduce((n, x) => n + x.km, 0), secR = recentes.reduce((n, x) => n + x.sec, 0);
+  const longue = S.reduce((m, x) => Math.max(m, x.km), 0);
+  const est = c ? estimation(c, S, auj) : null;
+  const kmTxt = (v: number) => String(Math.round(v * 10) / 10).replace(".", ",");
+  return (
+    <section>
+      <div className="mb-2 flex items-baseline justify-between px-1">
+        <h2 className="eyebrow">Course à pied</h2>
+        <button onClick={() => setLibre(true)} className="text-[13px] font-semibold text-plate-ink">Noter une sortie</button>
+      </div>
+      <div className="rounded-[20px] border border-border/80 bg-card p-4">
+        <div className="grid grid-cols-3 gap-2 text-center">
+          {[[kmTxt(parSem[11]), "km cette semaine"], [kmTxt(longue), "km, plus longue"], [kmR ? allureTxt(secR / kmR).replace(" /km", "") : "–", "allure (4 sem.)"]].map(([v, n]) => (
+            <div key={n}><div className="num text-[22px] leading-tight font-bold">{v}</div><div className="text-[11px] text-muted-foreground">{n}</div></div>
+          ))}
+        </div>
+        <div className="mt-3"><Barres valeurs={semaines.map((l, i) => ({ x: new Date(l + "T12:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" }).replace(".", ""), y: Math.round(parSem[i] * 10) / 10 }))} unite="km" couleur="var(--plate)" /></div>
+        {c && est && (
+          <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-plate-soft px-3.5 py-2.5">
+            <span className="text-[13px] leading-snug">
+              Chrono estimé au {DISTANCES[c.obj].nom.toLowerCase()}
+              <span className="block text-[11.5px] text-muted-foreground">{est.depuis ? `d'après ta sortie du ${new Date(est.depuis.d + "T12:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}` : "d'après ton chrono de référence"}</span>
+            </span>
+            <b className="num shrink-0 text-[22px]">{chronoTxt(est.sec)}</b>
+          </div>
+        )}
+      </div>
+      <SaisieSortie key={libre ? "o" : "f"} ouvert={libre} onClose={() => setLibre(false)} />
+    </section>
   );
 }

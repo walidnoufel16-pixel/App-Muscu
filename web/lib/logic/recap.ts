@@ -29,7 +29,7 @@ export function moisPrecedent(j: string) {
 }
 
 export type Recap = {
-  p: Periode; seances: number; muscu: number; cardio: number; tonnes: number; series: number; minutesCardio: number;
+  p: Periode; km: number; seances: number; muscu: number; cardio: number; tonnes: number; series: number; minutesCardio: number;
   jours: number; jourFavori: string | null; exFavori: { n: string; fois: number } | null; formatFavori: string | null;
   record: { n: string; avant: number; apres: number; unite: string } | null; nbRecords: number; serie: number; badges: string[];
   comparaison: string;
@@ -79,7 +79,7 @@ export function recap(E: Etat, id: string): Recap | null {
   const badges = BADGES.filter((b) => notes[b.id] && dans(notes[b.id])).map((b) => b.nom);
   const t = vol / 1000;
   return {
-    p, seances: H.length + cardioSeul.length, muscu: H.length, cardio: cardioSeul.length, tonnes: t,
+    p, km: Math.round((E.SORTIES || []).filter((s) => dans(s.d)).reduce((n, s) => n + s.km, 0)), seances: H.length + cardioSeul.length, muscu: H.length, cardio: cardioSeul.length, tonnes: t,
     series: H.reduce((n, l) => n + l.ser, 0), minutesCardio: Math.round(C.reduce((n, c) => n + c.min, 0)),
     jours: jours.size, jourFavori: jours.size >= 3 ? JOURS[jf] : null,
     exFavori: ef ? { n: EX[ef[0]]?.n || ef[0], fois: ef[1] } : null,

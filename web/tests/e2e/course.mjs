@@ -81,6 +81,43 @@ await pg.getByRole("button", { name: /Ouvrir la séance de renfo/ }).click();
 await pg.waitForURL(/seance\/\?l=0/);
 ok(await pg.getByText("Mollets sur une jambe").first().isVisible(), "renfo : séance de musculation ouverte");
 
+// Progrès : section course à pied
+await pg.goto(U + "/progres/");
+await pg.getByRole("heading", { name: "Course à pied" }).waitFor();
+ok(await pg.getByText("km cette semaine").isVisible() && await pg.getByText(/Chrono estimé au semi/).isVisible(), "Progrès : km, chrono estimé");
+await cap("course-progres");
+
+// jour J : la course tombe cette semaine, on la note → bilan, badge
+await pg.evaluate(() => {
+  const s = JSON.parse(localStorage.getItem("palier.state.v1"));
+  const j = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const t = new Date(); const lundi = new Date(t); lundi.setDate(t.getDate() - ((t.getDay() + 6) % 7));
+  const course = new Date(lundi); course.setDate(lundi.getDate() + 6);
+  const debut = new Date(lundi); debut.setDate(lundi.getDate() - 7 * 13);
+  s.COURSE.date = j(course); s.COURSE.debut = j(debut);
+  localStorage.setItem("palier.state.v1", JSON.stringify(s));
+});
+await pg.goto(U + "/entrainement/course/");
+await pg.locator("main button", { hasText: "Jour J" }).first().click();
+await pg.getByRole("button", { name: "Noter" }).click();
+await pg.getByLabel("Distance en km").fill("21,1");
+await pg.getByLabel("Durée, minutes").fill("108");
+await pg.getByRole("radio", { name: "Trop dur" }).click();
+await pg.getByRole("button", { name: "Enregistrer la sortie" }).click();
+await pg.getByText(/bouclé !/).waitFor({ timeout: 5000 });
+ok(await pg.getByText("km de préparation").isVisible(), "jour J : bilan de la préparation");
+await pg.waitForTimeout(1500);
+await cap("course-jourj");
+await pg.getByRole("button", { name: "Terminer" }).click();
+await pg.getByText("Nouveau badge").waitFor({ timeout: 4000 }).catch(() => {});
+const fetes = [];
+while (await pg.getByText("Nouveau badge").isVisible().catch(() => false)) {
+  fetes.push(await pg.getByRole("dialog").locator("h2").textContent());
+  await pg.getByRole("button", { name: "Super" }).click();
+  await pg.waitForTimeout(700);
+}
+ok(fetes.includes("Jour J"), `badges : ${fetes.join(", ")}`);
+
 // carte sur Entraînement
 await pg.goto(U + "/entrainement/");
 await pg.getByText(/Semi-marathon · J-/).waitFor();

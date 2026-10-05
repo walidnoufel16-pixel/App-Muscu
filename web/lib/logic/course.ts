@@ -305,3 +305,17 @@ export const avecSorties = (C: HistoCardio[] = [], S: Sortie[] = []): HistoCardi
   ...C,
   ...S.map((s) => ({ nom: "Course à pied", f: "endurance" as const, m: "tapis" as const, min: Math.round(s.sec / 60), effort: s.sec, ts: new Date(s.d + "T12:00").getTime(), run: true })),
 ];
+
+/** Chrono estimé sur la distance visée : le plan (chrono de référence), amélioré par les sorties
+    soutenues récentes (au moins 5 km, ressenti « juste » ou plus) via la formule de Riegel. */
+export function estimation(p: PlanCourse, S: Sortie[], auj: string): { sec: number; depuis?: Sortie } {
+  const km = DISTANCES[p.obj].km;
+  let best = { sec: tempsPrevu(vdotDe(p), km) } as { sec: number; depuis?: Sortie };
+  const depuis = decaler(auj, -56);
+  for (const s of S) {
+    if (s.d < depuis || s.km < 5 || s.rpe < 7 || s.sec <= 0) continue;
+    const t = riegel(s.km, s.sec, km);
+    if (t < best.sec) best = { sec: t, depuis: s };
+  }
+  return best;
+}
