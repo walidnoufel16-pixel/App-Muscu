@@ -14,6 +14,7 @@ import { Barres, Calendrier, Courbe } from "@/components/repere/graphes";
 import { SchemaCorps } from "@/components/repere/schema-corps";
 import { CarteRegularite, GrilleBadges } from "@/components/repere/motivation";
 import { SectionDefis } from "@/components/repere/defis";
+import { SectionCourse } from "@/components/repere/course";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { EX } from "@/lib/data/exercices";
@@ -76,6 +77,7 @@ function Progres() {
         <Section titre="Muscles travaillés · 7 derniers jours">
           <Muscles H={H} auj={auj} />
         </Section>
+        <SectionCourse />
         <SectionDefis ouvrirCode={codeDefi} />
         <Records H={H} />
         <GrilleBadges />

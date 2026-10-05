@@ -23,6 +23,7 @@ function ecrans(r: Recap): Ecran[] {
     sous: `${r.jours} jour${r.jours > 1 ? "s" : ""} d'entraînement${r.jourFavori ? `, surtout le ${r.jourFavori}` : ""}.`,
   }];
   if (r.tonnes > 0) l.push({ sur: "Tu as soulevé", grand: r.tonnes >= 1 ? `${fr(r.tonnes, 1)} t` : `${fr(r.tonnes * 1000)} kg`, sous: r.comparaison ? `Soit ${r.comparaison}.` : undefined, detail: [`${fr(r.series)} séries validées`] });
+  if (r.km > 0) l.push({ sur: "Tu as couru", grand: `${r.km} km`, sous: r.km >= 42 ? `Soit ${Math.floor(r.km / 42.195) > 1 ? Math.floor(r.km / 42.195) + " marathons" : "un marathon"} et quelques.` : undefined });
   if (r.record) l.push({ sur: "Ton plus beau record", grand: r.record.n, sous: `${fr(r.record.avant)} → ${fr(r.record.apres)} ${r.record.unite}`, detail: r.nbRecords > 1 ? [`et ${r.nbRecords - 1} autre${r.nbRecords > 2 ? "s" : ""} record${r.nbRecords > 2 ? "s" : ""}`] : undefined });
   const fav: string[] = [];
   if (r.exFavori) fav.push(`Exercice préféré : ${r.exFavori.n} (${r.exFavori.fois} fois)`);
@@ -60,6 +61,7 @@ async function image(r: Recap): Promise<Blob | null> {
   const lignes: [string, string][] = [
     [String(r.seances), r.seances > 1 ? "séances" : "séance"],
     ...(r.tonnes > 0 ? [[r.tonnes >= 1 ? `${fr(r.tonnes, 1)} t` : `${fr(r.tonnes * 1000)} kg`, "soulevés"] as [string, string]] : []),
+    ...(r.km ? [[`${r.km} km`, "courus"] as [string, string]] : []),
     ...(r.minutesCardio ? [[fr(r.minutesCardio), "min de cardio"] as [string, string]] : []),
     ...(r.nbRecords ? [[String(r.nbRecords), r.nbRecords > 1 ? "records battus" : "record battu"] as [string, string]] : []),
     ...(r.serie > 1 ? [[String(r.serie), "semaines d'affilée"] as [string, string]] : []),
