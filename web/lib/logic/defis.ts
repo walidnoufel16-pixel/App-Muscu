@@ -2,6 +2,7 @@
    Le serveur ne reçoit que le score (lib/defis.ts). */
 import { dateDe, decaler, jourDe } from "./historique";
 import type { Etat } from "./types";
+import { avecSorties } from "./course";
 
 export type TypeDefi = "seances" | "tonnage" | "cardio";
 export type Participant = { pseudo: string; score: number; moi: boolean };
@@ -16,7 +17,7 @@ export const TYPES_DEFI: Record<TypeDefi, { nom: string; unite: string; aide: st
 /** Mon score sur la période du défi : séances (muscu + cardio seul), kg soulevés ou minutes de cardio. */
 export function scoreDe(E: Etat, d: Pick<Defi, "type" | "debut" | "fin">): number {
   const dans = (j: string) => j >= d.debut && j <= d.fin;
-  const H = (E.HIST || []).filter((l) => dans(l.d)), C = (E.CARDIO || []).filter((c) => dans(jourDe(c.ts)));
+  const H = (E.HIST || []).filter((l) => dans(l.d)), C = avecSorties(E.CARDIO, E.SORTIES).filter((c) => dans(jourDe(c.ts)));
   if (d.type === "tonnage") return Math.round(H.reduce((n, l) => n + l.vol, 0));
   if (d.type === "cardio") return Math.round(C.reduce((n, c) => n + c.min, 0));
   return H.length + C.filter((c) => !c.ref).length;

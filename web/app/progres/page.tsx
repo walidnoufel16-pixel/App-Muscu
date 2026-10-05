@@ -7,6 +7,7 @@ import { ArrowDownIcon, ArrowUpIcon, CaretDownIcon, CaretRightIcon, ChartLineUpI
 import { useRouter, useSearchParams } from "next/navigation";
 import { LogoDisque } from "@/components/repere/logo";
 import { moisPrecedent, recap } from "@/lib/logic/recap";
+import { avecSorties } from "@/lib/logic/course";
 import { AVANT } from "@/lib/nav";
 import { EnTete } from "@/components/repere/en-tete";
 import { Barres, Calendrier, Courbe } from "@/components/repere/graphes";
@@ -39,7 +40,7 @@ function Progres() {
   const codeDefi = useSearchParams().get("d");
   const premiere = usePremiereVisite();
   const H = useMemo(() => etat.HIST || [], [etat.HIST]);
-  const C = useMemo(() => etat.CARDIO || [], [etat.CARDIO]);
+  const C = useMemo(() => avecSorties(etat.CARDIO, etat.SORTIES), [etat.CARDIO, etat.SORTIES]);
   const [auj] = useState(() => jourDe(Date.now()));
   const [jour, setJour] = useState<string | null>(null);
 
@@ -325,7 +326,7 @@ function Poids() {
 function Cardio({ H, C, auj }: { H: LigneHist[]; C: Parameters<typeof semaines>[1]; auj: string }) {
   const S = semaines(H, C, 12, auj);
   const par = new Map<string, number>();
-  for (const c of C) par.set(c.f, (par.get(c.f) || 0) + 1);
+  for (const c of C) if (!c.run) par.set(c.f, (par.get(c.f) || 0) + 1);
   const top = [...par].sort((a, b) => b[1] - a[1]).slice(0, 3);
   return (
     <Carte>

@@ -4,6 +4,7 @@
 import { EX } from "@/lib/data/exercices";
 import { decaler, jourDe, lundiDe, records, type LigneHist } from "./historique";
 import type { Etat, HistoCardio, Reponses } from "./types";
+import { avecSorties } from "./course";
 
 /** Objectif de séances par semaine : réglé à la main, sinon celui du questionnaire (2, 3 ou 4). */
 export const objectifHebdo = (A: Reponses) =>
@@ -44,7 +45,7 @@ export type Stats = {
   tabata: number; norvegien: number; serie: number; max: Record<string, number>; poidsCorps: boolean; defis: number;
 };
 export function stats(E: Etat, auj = jourDe(Date.now())): Stats {
-  const H = E.HIST || [], C = E.CARDIO || [];
+  const H = E.HIST || [], C = avecSorties(E.CARDIO, E.SORTIES);
   const max: Record<string, number> = {};
   let vol = 0;
   for (const l of H) { vol += l.vol; for (const id in l.ex) if (EX[id]?.ch === "kg") max[id] = Math.max(max[id] || 0, l.ex[id][2]); }

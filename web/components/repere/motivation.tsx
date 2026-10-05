@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { BADGES, nouveaux, objectifHebdo, serie, stats, type Badge } from "@/lib/logic/motivation";
 import { jourDe } from "@/lib/logic/historique";
+import { avecSorties } from "@/lib/logic/course";
 import { gerbe, useCelebrer } from "@/lib/celebrer";
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
@@ -35,7 +36,7 @@ export function CarteRegularite({ lien = false, reglable = false }: { lien?: boo
   const etat = useRepere((s) => s.etat);
   const muter = useRepere((s) => s.muter);
   const [auj] = useState(() => jourDe(Date.now()));
-  const S = useMemo(() => serie(etat.HIST || [], etat.CARDIO || [], objectifHebdo(etat.A), auj), [etat.HIST, etat.CARDIO, etat.A, auj]);
+  const S = useMemo(() => serie(etat.HIST || [], avecSorties(etat.CARDIO, etat.SORTIES), objectifHebdo(etat.A), auj), [etat.HIST, etat.CARDIO, etat.SORTIES, etat.A, auj]);
   const fait = S.cetteSemaine >= S.objectif;
   const contenu = (
     <>
@@ -182,7 +183,7 @@ export function SurveillantBadges() {
 export function Reprise() {
   const etat = useRepere((s) => s.etat);
   const [auj] = useState(() => Date.now());
-  const derniers = [...(etat.HIST || []).map((l) => new Date(l.d + "T12:00").getTime()), ...(etat.CARDIO || []).map((c) => c.ts)];
+  const derniers = [...(etat.HIST || []).map((l) => new Date(l.d + "T12:00").getTime()), ...avecSorties(etat.CARDIO, etat.SORTIES).map((c) => c.ts)];
   if (!derniers.length) return null;
   const jours = Math.floor((auj - Math.max(...derniers)) / 864e5);
   if (jours < 10) return null;

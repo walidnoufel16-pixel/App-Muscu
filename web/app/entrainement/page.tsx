@@ -9,6 +9,7 @@ import { EnTete } from "@/components/repere/en-tete";
 import { MesSeances } from "@/components/repere/mes-seances";
 import { CarteRegularite, Reprise } from "@/components/repere/motivation";
 import { CarteProteines } from "@/components/repere/proteines";
+import { CarteCourse } from "@/components/repere/course";
 import { LogoDisque } from "@/components/repere/logo";
 import { baseRPE, curId, musclesDe, titreSeance, week, wkDone } from "@/lib/logic/core";
 import type { SeanceSemaine } from "@/lib/logic/types";
@@ -73,8 +74,9 @@ export default function PageEntrainement() {
         )}
 
         <Reprise />
-        {(plan || !!etat.HIST?.length || !!etat.CARDIO?.length) && (
+        {(plan || !!etat.HIST?.length || !!etat.CARDIO?.length || !!etat.COURSE) && (
           <div className="flex flex-col gap-2">
+            <CarteCourse />
             <CarteRegularite lien />
             <CarteProteines accueil />
           </div>

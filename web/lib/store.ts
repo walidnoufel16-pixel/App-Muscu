@@ -75,6 +75,8 @@ function versEtat(s: Stocke | null): Etat {
   e.CARDIO = Array.isArray(s.CARDIO) ? nettoieArbre(s.CARDIO).slice(-300) : [];
   /* Historique : absent d'un état plus ancien, on le reconstruit depuis le journal. */
   e.HIST = Array.isArray(s.HIST) ? nettoieArbre(s.HIST).slice(-MAX_HIST) : reconstruire(e);
+  e.COURSE = s.COURSE && typeof s.COURSE === "object" ? nettoieArbre(s.COURSE) : null;
+  e.SORTIES = Array.isArray(s.SORTIES) ? nettoieArbre(s.SORTIES).slice(-500) : [];
   return e;
 }
 const instantane = (e: Etat) => ({ ...e, ts: Date.now() });

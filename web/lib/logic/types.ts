@@ -85,12 +85,16 @@ export type Etat = {
   CARDIO?: HistoCardio[];
   /* Historique durable des séances de musculation (lib/logic/historique.ts). */
   HIST?: LigneHist[];
+  /* Préparation course à pied (lib/logic/course.ts) : le plan en cours et les sorties notées. */
+  COURSE?: PlanCourse | null;
+  SORTIES?: Sortie[];
 };
 
-export type HistoCardio = { nom: string; f: FormatCardio; m: Machine; min: number; effort: number; ts: number; ref?: string };
+export type HistoCardio = { nom: string; f: FormatCardio; m: Machine; min: number; effort: number; ts: number; ref?: string; run?: boolean };
 
 import type { FormatCardio, Machine, Niveau, Reglages, SeanceCardio } from "./cardio";
 import type { LigneHist } from "./historique";
+import type { PlanCourse, Sortie } from "./course";
 
 /* Séance de la semaine telle qu'affichée (plan IA converti, ou socle par défaut). */
 export type SeanceSemaine = {
