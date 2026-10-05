@@ -5,6 +5,7 @@ import { ArrowDownIcon, ArrowUpIcon, FlameIcon, TrophyIcon } from "@phosphor-ico
 import { useRepere } from "@/lib/store";
 import { jourDe } from "@/lib/logic/historique";
 import { objectifHebdo, serie } from "@/lib/logic/motivation";
+import { avecSorties } from "@/lib/logic/course";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { mouvementReduit, useCelebrer } from "@/lib/celebrer";
@@ -76,7 +77,7 @@ function Suite({ s }: { s?: string }) {
   const H = etat.HIST || [];
   const ici = s ? H.find((l) => l.d === auj && l.s === s) : undefined;
   const avant = s ? H.filter((l) => l.s === s && l.d < auj && l.vol > 0).at(-1) : undefined;
-  const S = serie(H, etat.CARDIO || [], objectifHebdo(etat.A), auj);
+  const S = serie(H, avecSorties(etat.CARDIO, etat.SORTIES), objectifHebdo(etat.A), auj);
   const p = ici && avant && ici.vol > 0 ? Math.round(((ici.vol - avant.vol) / avant.vol) * 100) : null;
   const date = avant && new Date(avant.d + "T12:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
   return (

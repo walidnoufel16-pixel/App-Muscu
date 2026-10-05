@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { ReglagesCardio, type ChoixCardio } from "@/components/repere/reglages-cardio";
+import { QuestionnaireCourse } from "@/components/repere/course";
 import { construireSeance as construireCardio, dureeTotale as dureeTotaleCardio, niveauDe, nomSeanceCardio, reglagesDe } from "@/lib/logic/cardio";
 import { nouveauBloc } from "@/lib/logic/combinee";
 import { preparer } from "@/lib/sons";
@@ -41,7 +42,7 @@ function Assistant() {
   const muter = useRepere((s) => s.muter);
   /* Deux catégories à part : musculation (muscles, puis composeur) ou cardio (format, machine, durées). */
   const typeUrl = useSearchParams().get("type");
-  const [type, setType] = useState<"muscu" | "cardio" | "mixte">(typeUrl === "cardio" || typeUrl === "mixte" ? typeUrl : "muscu");
+  const [type, setType] = useState<"muscu" | "cardio" | "mixte" | "course">(typeUrl === "cardio" || typeUrl === "mixte" || typeUrl === "course" ? typeUrl : "muscu");
   const [choix, setChoix] = useState<ChoixCardio>(() => { const n = niveauDe(A.regularite); return { f: "fractionne", m: "tapis", n, r: reglagesDe("fractionne", n) }; });
   const [nomCardio, setNomCardio] = useState("");
   /* Enregistrer la séance cardio ; avec `demarrer`, son minuteur s'ouvre aussitôt (à la place de l'assistant). */
@@ -88,12 +89,16 @@ function Assistant() {
             ? "Choisis ce que tu veux travailler : Repère te propose une séance, que tu modifies ensuite comme tu veux."
             : type === "mixte"
               ? "De la musculation et un bloc cardio dans la même séance. Le bloc se place où tu veux : avant, entre deux exercices ou à la fin."
-              : "Une séance guidée : Repère annonce chaque effort et chaque récupération, avec un signal sonore."}
+              : type === "course"
+                ? "Un plan de préparation pour ta course : allures calculées sur ton niveau, montée progressive, affûtage avant le jour J, et renfo du coureur."
+                : "Une séance guidée : Repère annonce chaque effort et chaque récupération, avec un signal sonore."}
         </p>
-        <Segmente label="Catégorie" className="mt-4" valeur={type} onChange={setType} options={[{ v: "muscu", n: "Musculation" }, { v: "cardio", n: "Cardio" }, { v: "mixte", n: "Combinée" }]} />
+        <Segmente label="Catégorie" className="mt-4" valeur={type} onChange={setType} options={[{ v: "muscu", n: "Muscu" }, { v: "cardio", n: "Cardio" }, { v: "mixte", n: "Combinée" }, { v: "course", n: "Course" }]} />
       </EnTete>
 
-      {type === "cardio" ? (
+      {type === "course" ? (
+        <QuestionnaireCourse />
+      ) : type === "cardio" ? (
         <>
           <div className="flex flex-col gap-6 px-4 pb-28">
             <ReglagesCardio choix={choix} onChange={setChoix} />

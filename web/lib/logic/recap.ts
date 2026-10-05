@@ -5,6 +5,7 @@ import { dateDe, jourDe, records } from "./historique";
 import { serie, objectifHebdo } from "./motivation";
 import { BADGES } from "./motivation";
 import type { Etat } from "./types";
+import { avecSorties } from "./course";
 
 export type Periode = { id: string; debut: string; fin: string; nom: string; annee: boolean };
 const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
@@ -49,7 +50,7 @@ export function recap(E: Etat, id: string): Recap | null {
   if (!p) return null;
   const dans = (d: string) => d >= p.debut && d <= p.fin;
   const H = (E.HIST || []).filter((l) => dans(l.d));
-  const C = (E.CARDIO || []).filter((c) => dans(jourDe(c.ts)));
+  const C = avecSorties(E.CARDIO, E.SORTIES).filter((c) => dans(jourDe(c.ts)));
   const cardioSeul = C.filter((c) => !c.ref);
   const vol = H.reduce((n, l) => n + l.vol, 0);
   const jours = new Set([...H.map((l) => l.d), ...C.map((c) => jourDe(c.ts))]);
@@ -60,7 +61,7 @@ export function recap(E: Etat, id: string): Recap | null {
   for (const l of H) for (const ex in l.ex) fois.set(ex, (fois.get(ex) || 0) + 1);
   const ef = [...fois].sort((a, b) => b[1] - a[1])[0];
   const fmt = new Map<string, number>();
-  for (const c of C) fmt.set(c.f, (fmt.get(c.f) || 0) + 1);
+  for (const c of C) if (!c.run) fmt.set(c.f, (fmt.get(c.f) || 0) + 1);
   const ff = [...fmt].sort((a, b) => b[1] - a[1])[0];
   /* le record le plus marquant : le plus gros gain relatif sur la période */
   const R = records(E.HIST || []).filter((r) => dans(r.d) && EX[r.id]);

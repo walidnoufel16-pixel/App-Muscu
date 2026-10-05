@@ -52,7 +52,7 @@ await pg.waitForURL(/\/progres\/$/);
 await pg.getByRole("heading", { name: "Progrès" }).first().waitFor();
 await pg.waitForTimeout(1200);
 ok(await pg.locator('nav a[aria-current="page"]').textContent() === "Progrès", "onglet Progrès actif");
-ok(await pg.getByText("Cette semaine").isVisible(), "bloc Cette semaine");
+ok(await pg.getByText("Cette semaine", { exact: true }).isVisible(), "bloc Cette semaine");
 ok(await pg.getByText(/jours d'entraînement/).isVisible(), "calendrier d'activité");
 ok(await pg.getByText("Pectoraux", { exact: true }).isVisible(), "volume par muscle");
 ok(await pg.getByText(/^Records · \d+/).isVisible(), "records listés");
@@ -116,7 +116,7 @@ await pg.evaluate(() => {
 });
 await pg.reload();
 await pg.waitForTimeout(800);
-ok(await pg.getByText(/^Records/).count() === 0 && await pg.getByText("Cette semaine").isVisible(), "historique reconstruit depuis le journal");
+ok(await pg.getByText(/^Records/).count() === 0 && await pg.getByText("Cette semaine", { exact: true }).isVisible(), "historique reconstruit depuis le journal");
 ok((await pg.evaluate(() => JSON.stringify(localStorage.getItem("palier.state.v1")).length)) < 256 * 1024, "état sous la limite serveur");
 
 console.log("erreurs:", JSON.stringify(errs));
