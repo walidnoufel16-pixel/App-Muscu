@@ -122,7 +122,8 @@ async function contexte(admin) {
   comptes.push(
     { ...base, id: "u3", pseudo: "Vide", etat: { A: {}, LOG: {}, SWAP: {}, SWAPP: {}, PLAN: null, SEANCES: [], wk: 0, day: 0, FINI: false } },
     { ...base, id: "u4", pseudo: "Ancien", etat: { A: { axe: 0, prio: [3], sexe: 1, prefs: {}, socle: 2, sport: 3, sportFreq: 1, profil: { Poids: 76 }, blessure: [0], materiel: 3, objectif: 0, regularite: 1 },
-      LOG: {}, SWAP: {}, SWAPP: {}, wk: 0, day: 1, FINI: true, SEANCES: [{ ex: [{ p: "90 s", r: 10, s: 3, id: "arn" }], nom: "Epaules" }],
+      LOG: {}, SWAP: {}, SWAPP: {}, wk: 0, day: 1, FINI: true, SEANCES: [{ ex: [{ p: "90 s", r: 10, s: 3, id: "arn" }], nom: "Epaules", code: "XSCP7" },
+        { ex: [{ p: "2 min", r: 12, s: 4, id: "pomp" }], nom: "Pecs et cardio", blocs: [{ id: "b1", apres: 1, f: "tabata", m: "velo", n: 1, r: {} }] }],
       PLAN: { plan: { titre: "Cycle" }, seances: [{ titre: "Haut A", exercices: [{ id: "tr", reps: 8, role: 1, repos: "3 min", series: 4 }, { id: "ra", reps: 10, role: 0, repos: "90 s", series: 3 }] }, { titre: "Bas A", exercices: [{ id: "gai", reps: 45, role: 1, repos: "90 s", series: 3 }, { id: "plat", reps: 45, role: 0, repos: "75 s", series: 2 }] }] } } },
     { ...base, id: "u5", pseudo: "Journal", etat: { A: {}, SWAP: {}, SWAPP: {}, PLAN: null, wk: 0, day: 0, FINI: false, SEANCES: [{ ex: [{ p: "2 min", r: 10, s: 3, id: "pompe" }], nom: "Pecs" }],
       LOG: { "L|0|0": { v: 0, ex: "pompe", nb: 3, ts: Date.now() - 864e5, done: true, feel: null, reps: 10, series: [{ v: 0, ok: true, reps: 10 }] } } } },
@@ -143,6 +144,16 @@ async function contexte(admin) {
     ok(!/Impossible d'afficher|Invalid|NaN/.test(f) && f.includes("4 oct 2026"), `fiche ${nom} : affichée, dates valides`);
     if (id === "u3") ok(f.includes("n'a encore enregistré aucune séance"), "fiche vide : bandeau explicatif");
     if (id === "u5") await cap("admin-fiche-journal-long");
+    if (id === "u4") {
+      await pg.locator("summary", { hasText: "Epaules" }).click();
+      const d = await pg.locator("details", { hasText: "Epaules" }).textContent();
+      ok(d.includes("Développé Arnold") && d.includes("3 × 10") && d.includes("XSCP7"), "séance composée : exercices, séries × répétitions, code de partage");
+      await pg.locator("summary", { hasText: "Pecs et cardio" }).click();
+      ok((await pg.locator("details", { hasText: "Pecs et cardio" }).textContent()).includes("Cardio : Tabata · Vélo"), "séance combinée : bloc cardio");
+      await pg.locator("summary", { hasText: "Haut A" }).click();
+      ok(/Tractions/.test(await pg.locator("details", { hasText: "Haut A" }).textContent()), "programme : exercices de la semaine en cours");
+      await cap("admin-fiche-seances-long");
+    }
   }
   await pg.goto(U + "/admin/fiche/?u=" + MOI);
   await pg.getByRole("heading", { name: "Réponses au questionnaire" }).waitFor({ timeout: 8000 });
