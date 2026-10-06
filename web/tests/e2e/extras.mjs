@@ -59,7 +59,7 @@ await pg.waitForURL(/\/progres\/$/);
 
 // cycle : réglage local, phase dans le check-in, rien dans l'état synchronisé
 await pg.goto(U + "/profil/");
-await pg.getByText("Cycle menstruel").waitFor();
+await pg.getByRole("heading", { name: "Cycle menstruel" }).waitFor();
 await pg.getByLabel("Adapter à mon cycle").check();
 const d = new Date(); d.setDate(d.getDate() - 1);
 await pg.locator('input[type="date"]').fill(`${d.getFullYear()}-${deux(d.getMonth() + 1)}-${deux(d.getDate())}`);

@@ -5,7 +5,7 @@ import { ReglageZones } from "@/components/repere/forme";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { ArrowsLeftRightIcon, CaretRightIcon, CheckCircleIcon, CloudSlashIcon, EnvelopeIcon, ShieldWarningIcon } from "@phosphor-icons/react";
+import { ArrowsLeftRightIcon, CaretRightIcon, ChartBarIcon, CheckCircleIcon, CloudSlashIcon, EnvelopeIcon, ShieldWarningIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SaisieCodeMail } from "@/components/repere/code-mail";
@@ -14,6 +14,7 @@ import { Segmente } from "@/components/repere/segmente";
 import { confirmer } from "@/components/repere/confirmer";
 import { messageErreur, sb, valideMail } from "@/lib/supabase";
 import { useRepere } from "@/lib/store";
+import { useEstAdmin } from "@/lib/admin";
 import { CREDITS } from "@/lib/medias";
 import { ARRIERE, AVANT } from "@/lib/nav";
 import { recap } from "@/lib/logic/questionnaire";
@@ -24,6 +25,7 @@ export default function PageProfil() {
   const { user, pseudo, sync, etat, setUser, pousser, toutEffacer, changerDeCompte } = useRepere();
   const { theme, setTheme } = useTheme();
   const cycleActif = !!useCycleCharge()?.actif;
+  const admin = useEstAdmin();
   const [mail, setMail] = useState("");
   const [msg, setMsg] = useState<{ t: string; ok?: boolean } | null>(null);
   const [occupe, setOccupe] = useState(false);
@@ -154,6 +156,7 @@ export default function PageProfil() {
           </div>
           <div className="mt-2 overflow-hidden rounded-[22px] bg-card">
             <Ligne onClick={changer} icone={<ArrowsLeftRightIcon className="size-5" />}>Changer de compte</Ligne>
+            {admin && <div className="border-t border-border/60"><Ligne onClick={() => router.push("/admin", AVANT)} icone={<ChartBarIcon className="size-5" />}>Admin</Ligne></div>}
           </div>
         </section>
 
@@ -175,6 +178,21 @@ export default function PageProfil() {
             options={[{ v: "system", n: "Automatique" }, { v: "light", n: "Clair" }, { v: "dark", n: "Sombre" }]}
           />
           <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">Automatique suit le réglage clair ou sombre de ton téléphone.</p>
+        </section>
+
+        {/* confidentialité */}
+        <section>
+          <h2 className="eyebrow mb-2 px-1">Confidentialité</h2>
+          <div className="rounded-[22px] bg-card p-4 text-[13.5px] leading-relaxed text-muted-foreground">
+            <p>
+              Sur le serveur sont gardés ton surnom, ton adresse si tu l&apos;as rattachée, tes réponses au questionnaire, ton programme,
+              tes séances et charges, tes sorties de course, et, si tu les notes, ta forme du jour, ton poids et tes protéines.
+            </p>
+            <p className="mt-2">
+              L&apos;éditeur de Repère peut les consulter pour suivre l&apos;usage de l&apos;app et l&apos;améliorer. Elles ne sont ni vendues ni partagées.
+              Le suivi du cycle menstruel ne quitte jamais ce téléphone. « Tout effacer », plus bas, supprime tout, ici comme sur le serveur.
+            </p>
+          </div>
         </section>
 
         {/* crédits */}

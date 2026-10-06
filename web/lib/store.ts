@@ -59,7 +59,7 @@ type Stocke = Partial<Etat> & { ts?: number };
 function lireLocal(): Stocke | null {
   try { return JSON.parse(localStorage.getItem(SKEY) || "null"); } catch { return null; }
 }
-function versEtat(s: Stocke | null): Etat {
+export function versEtat(s: Stocke | null): Etat {
   const e = vide();
   if (!s) return e;
   e.A = normaliser({ ...(s.A || {}) });
