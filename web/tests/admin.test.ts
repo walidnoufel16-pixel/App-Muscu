@@ -1,6 +1,7 @@
 /* Agrégats de l'accès admin (lib/logic/admin.ts) sur des comptes fictifs. */
 import { describe, expect, it } from "vitest";
-import { derniereActivite, filtrer, ilya, resume, tableau, type CompteAdmin } from "@/lib/logic/admin";
+import { derniereActivite, filtrer, ilya, instant, jourIso, resume, tableau, type CompteAdmin } from "@/lib/logic/admin";
+import { versEtat } from "@/lib/store";
 import type { LigneHist } from "@/lib/logic/historique";
 
 const AUJ = "2026-10-07"; // un mercredi
@@ -63,5 +64,23 @@ describe("admin", () => {
     expect(ilya("2026-10-06", AUJ)).toBe("hier");
     expect(ilya("2026-10-01", AUJ)).toBe("il y a 6 j");
     expect(ilya(null, AUJ)).toBe("jamais");
+  });
+  it("dates du serveur : microsecondes, espace, fuseau court", () => {
+    const ref = Date.UTC(2026, 9, 4, 9, 54, 24, 478);
+    expect(instant("2026-10-04T09:54:24.478679+00:00")).toBe(ref);
+    expect(instant("2026-10-04 09:54:24.478679+00")).toBe(ref);
+    expect(instant("2026-10-04T11:54:24.478+02:00")).toBe(ref);
+    expect(instant("2026-10-04T09:54:24Z")).toBe(ref - 478);
+    expect(instant(null)).toBeNull();
+    expect(instant("n'importe quoi")).toBeNull();
+    expect(jourIso("2026-10-04 09:54:24.478679+00")).toBe("2026-10-04");
+  });
+  it("compte ancien : séances reconstruites depuis le journal", () => {
+    const etat = versEtat({ A: {}, LOG: { "L|0|0": { v: 0, ex: "pompe", nb: 3, ts: Date.parse("2026-10-06T10:00:00"), done: true, feel: null, reps: 10, series: [{ v: 0, ok: true, reps: 10 }] } },
+      SWAP: {}, SWAPP: {}, PLAN: null, wk: 0, day: 0, FINI: false, SEANCES: [{ nom: "Pecs", ex: [{ id: "pompe", s: 3, r: 10, p: "2 min" }] }] });
+    const c = compte("vieux", { etat });
+    expect(resume(c).seances).toBe(1);
+    expect(derniereActivite(c)).toBe("2026-10-06");
+    expect(tableau([c], AUJ).topEx[0].id).toBe("pompe");
   });
 });

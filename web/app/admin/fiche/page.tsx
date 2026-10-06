@@ -2,14 +2,16 @@
 
 /* Admin : fiche détaillée d'un compte (lecture seule). Les calculs réutilisent la
    logique de l'app : historique, records, badges, course, forme, nutrition. */
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Component, Suspense, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { TrashIcon } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { EnTete } from "@/components/repere/en-tete";
 import { Retour } from "@/components/repere/retour";
 import { Barres } from "@/components/repere/graphes";
 import { EX } from "@/lib/data/exercices";
 import { BLESN } from "@/lib/data/referentiels";
-import { court, ilya, PLAFOND_IA, type FicheAdmin } from "@/lib/logic/admin";
+import { court, ilya, instant, PLAFOND_IA, type FicheAdmin } from "@/lib/logic/admin";
 import { FORMATS } from "@/lib/logic/cardio";
 import { allureDe, allureTxt, chronoTxt, DISTANCES } from "@/lib/logic/course";
 import { TYPES_DEFI, type TypeDefi } from "@/lib/logic/defis";
@@ -18,15 +20,17 @@ import { jourDe, records, semaines } from "@/lib/logic/historique";
 import { BADGES, stats } from "@/lib/logic/motivation";
 import { objectifProteines, poidsDe, protDuJour } from "@/lib/logic/nutrition";
 import { recap } from "@/lib/logic/questionnaire";
-import { fiche, useEstAdmin } from "@/lib/admin";
-import { versEtat } from "@/lib/store";
+import { fiche, supprimer, useEstAdmin } from "@/lib/admin";
+import { Button } from "@/components/ui/button";
+import { confirmer } from "@/components/repere/confirmer";
+import { useRepere, versEtat } from "@/lib/store";
 import { ARRIERE } from "@/lib/nav";
 
 export default function PageFiche() {
   return <Suspense><Fiche /></Suspense>;
 }
 
-const date = (t: string | null) => (t ? court(jourDe(Date.parse(t))) + " " + new Date(t).getFullYear() : "—");
+const date = (t: string | null) => { const v = instant(t); return v == null ? "—" : court(jourDe(v)) + " " + new Date(v).getFullYear(); };
 const kg = (v: number) => (v >= 10000 ? (Math.round(v / 100) / 10).toLocaleString("fr-FR") + " t" : Math.round(v).toLocaleString("fr-FR") + " kg");
 
 function Fiche() {
@@ -55,14 +59,65 @@ function Fiche() {
       <p className="py-10 text-center text-[14px] text-muted-foreground">Chargement…</p>
     </>
   );
-  return <Contenu F={F} E={E} />;
+  return (
+    <>
+      <EnTete surtitre={F.email || "Sans adresse"} titre={F.pseudo || "Sans surnom"} gauche={<Retour repli="/admin" />} />
+      <div className="flex flex-col gap-5 px-4 pb-10">
+        <Garde><Contenu F={F} E={E} /></Garde>
+        <Suppression F={F} seances={(E.HIST || []).length + (E.CARDIO || []).length + (E.SORTIES || []).length} />
+      </div>
+    </>
+  );
+}
+
+/* Une partie qui ne s'affiche pas ne doit pas emporter toute la fiche. */
+class Garde extends Component<{ children: React.ReactNode }, { e: Error | null }> {
+  state = { e: null as Error | null };
+  static getDerivedStateFromError(e: Error) { return { e }; }
+  render() {
+    return this.state.e
+      ? <p className="text-[13px] text-destructive">Impossible d&apos;afficher cette partie : {this.state.e.message}</p>
+      : this.props.children;
+  }
+}
+
+function Suppression({ F, seances }: { F: FicheAdmin; seances: number }) {
+  const router = useRouter();
+  const moi = useRepere((s) => s.user?.id);
+  const [occupe, setOccupe] = useState(false);
+  if (!moi || moi === F.id) return null;
+  const go = async () => {
+    const ok = await confirmer({
+      titre: "Supprimer ce compte ?",
+      texte: `${F.pseudo || "Sans surnom"} · ${F.email || "sans adresse"} · ${seances} séance${seances > 1 ? "s" : ""}\n\n`
+        + "Son programme, son historique, ses défis créés et ses participations disparaissent. C'est définitif, et noté au journal admin.",
+      ok: "Supprimer", danger: true,
+    });
+    if (!ok) return;
+    setOccupe(true);
+    try {
+      await supprimer(F.id);
+      toast.success("Compte supprimé", { description: F.pseudo || F.email || undefined });
+      router.replace("/admin?v=u", ARRIERE);
+    } catch (e) {
+      toast.error("Suppression impossible", { description: (e as Error).message });
+      setOccupe(false);
+    }
+  };
+  return (
+    <section className="rounded-[22px] border border-destructive/30 bg-card p-4">
+      <div className="flex items-center gap-2 text-[15px] font-semibold"><TrashIcon className="size-4 text-destructive" />Supprimer ce compte</div>
+      <p className="mt-1 text-[13.5px] leading-relaxed text-muted-foreground">Le compte et toutes ses données sont effacés du serveur. Ses séances partagées restent, sans auteur.</p>
+      <Button variant="destructive" className="mt-3 w-full rounded-xl" disabled={occupe} onClick={go}>{occupe ? "Suppression…" : "Supprimer ce compte"}</Button>
+    </section>
+  );
 }
 
 function Bloc({ titre, children }: { titre: string; children: React.ReactNode }) {
   return (
     <section>
       <h2 className="eyebrow mb-2 px-1">{titre}</h2>
-      <div className="rounded-[22px] bg-card p-4 text-[14px]">{children}</div>
+      <div className="rounded-[22px] bg-card p-4 text-[14px]"><Garde>{children}</Garde></div>
     </section>
   );
 }
@@ -88,10 +143,14 @@ function Contenu({ F, E }: { F: FicheAdmin; E: ReturnType<typeof versEtat> }) {
   const prot = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - 6 + i); return jourDe(d.getTime()); });
   const der = [...H.map((l) => l.d), ...(E.CARDIO || []).map((c) => jourDe(c.ts))].sort().at(-1) || null;
   const gen = F.generations.reduce((n, g) => n + g.n, 0);
+  const vide = !H.length && !(E.CARDIO || []).length && !(E.SORTIES || []).length;
   return (
     <>
-      <EnTete surtitre={F.email || "Sans adresse"} titre={F.pseudo || "Sans surnom"} gauche={<Retour repli="/admin" />} />
-      <div className="flex flex-col gap-5 px-4 pb-10">
+      {vide && (
+        <p className="rounded-[22px] bg-muted px-4 py-3 text-[13.5px] leading-relaxed text-muted-foreground">
+          Ce compte n&apos;a encore enregistré aucune séance. Ses réponses au questionnaire et son programme sont plus bas.
+        </p>
+      )}
         <Bloc titre="Compte">
           <Ligne k="Adresse" v={F.email || "aucune (compte anonyme)"} />
           <Ligne k="Inscription" v={date(F.cree)} />
@@ -184,7 +243,6 @@ function Contenu({ F, E }: { F: FicheAdmin; E: ReturnType<typeof versEtat> }) {
           {F.generations.length ? F.generations.slice(0, 10).map((g) => <Ligne key={g.jour} k={court(g.jour)} v={`${g.n}`} />) : <Vide t="Aucune." />}
           <p className="mt-2 text-[12px] text-muted-foreground">Plafond : 5 par jour et par compte, {PLAFOND_IA} au total.</p>
         </Bloc>
-      </div>
     </>
   );
 }
