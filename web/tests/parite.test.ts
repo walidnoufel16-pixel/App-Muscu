@@ -3,7 +3,7 @@
 import { describe, expect, it } from "vitest";
 import fx from "./fixtures/parite.json";
 import {
-  curId, espacementDe, key, musclesDe, resumeDe, rpeOf, secondesDe, suggere, titreSeance, week, wkDone, wkFull, ctxPlan,
+  curId, dispoDeclare, espacementDe, key, musclesDe, resumeDe, rpeOf, secondesDe, suggere, titreSeance, week, wkDone, wkFull, ctxPlan,
 } from "@/lib/logic/core";
 import { construireSeance, dureeEstimee, objCollation } from "@/lib/logic/assistant";
 import { EX } from "@/lib/data/exercices";
@@ -25,8 +25,17 @@ describe.each(PROFILS)("profil %i", (_i, p) => {
       expect(wkFull(E, w, W)).toBe(P.full[w]);
       W.forEach((s, si) => {
         expect(wkDone(E, w, si, W)).toBe(P.done[w + "|" + si]);
+        let corrige = false;
         (s.x || []).forEach((e, i) => {
           const k = key(w, si, i), id = curId(E, w, si, i, e[0], W);
+          /* Correction volontaire : l'ancien code affichait un exercice impossible
+             avec le matériel déclaré (développé couché au poids du corps). Le
+             remplaçant peut décaler les exercices suivants de la séance. */
+          if (!dispoDeclare(E.A, P.cur[k]) || (corrige && id !== P.cur[k])) {
+            corrige ||= !E.LOG[k]?.ex;
+            expect(E.LOG[k]?.ex ? id === E.LOG[k].ex : dispoDeclare(E.A, id), k).toBe(true);
+            return;
+          }
           expect(id, k).toBe(P.cur[k]);
           expect(rpeOf(E.A, w, id, e[4]), k).toBe(P.rpe[k]);
           expect(suggere(E, w, si, i, id, W), k).toEqual(P.sug[k]);
@@ -39,6 +48,7 @@ describe.each(PROFILS)("profil %i", (_i, p) => {
     for (const k of Object.keys(P.ctx)) {
       const [w, i] = k.split("|").map(Number);
       const c = ctxPlan({ ...E, wk: w, day: 0 }, i, W)!;
+      if (!dispoDeclare(E.A, P.ctx[k].id)) { expect(E.LOG[w + "|0|" + i]?.ex ? c.id === E.LOG[w + "|0|" + i].ex : dispoDeclare(E.A, c.id), k).toBe(true); continue; }
       expect(JSON.parse(JSON.stringify(c)), k).toEqual(P.ctx[k]);
     }
   });
