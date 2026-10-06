@@ -44,6 +44,8 @@ const TITRES: [RegExp, string][] = [
   [/^\/progres\/bilan/, "Bilan"],
   [/^\/progres/, "Progrès"],
   [/^\/profil/, "Profil"],
+  [/^\/admin\/fiche/, "Fiche"],
+  [/^\/admin/, "Admin"],
 ];
 export const titreDe = (chemin: string) => TITRES.find(([r]) => r.test(chemin))?.[1] ?? "Retour";
 
