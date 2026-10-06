@@ -57,6 +57,12 @@ async function contexte(admin) {
         return json(c ? { ...c, defis: [{ code: "AMIS2", nom: "Octobre entre potes", type: "seances", cible: 8, debut: hier, fin: auj, score: 5 }], generations: [{ jour: auj, n: 2 }] } : null);
       }
     }
+    if (u.pathname.includes("/functions/v1/supprimer")) {
+      appels.push("supprimer:" + corps.user);
+      const i = comptes.findIndex((x) => x.id === corps.user);
+      if (i >= 0) comptes.splice(i, 1);
+      return json({ ok: true, journal: true });
+    }
     if (u.pathname.includes("/rest/v1/etats")) return json(r.request().method() === "GET" ? null : [], r.request().method() === "GET" ? 200 : 201);
     if (u.pathname.includes("/auth/v1/user")) return json(session.user);
     return json({});
@@ -100,13 +106,55 @@ async function contexte(admin) {
   await cap("admin-utilisateurs");
   await pg.getByRole("button", { name: /Léa/ }).click();
   await pg.waitForURL(/\/admin\/fiche\/?\?u=u1/);
-  await pg.getByText("Réponses au questionnaire").waitFor({ timeout: 8000 });
+  await pg.getByRole("heading", { name: "Réponses au questionnaire" }).waitFor({ timeout: 8000 });
   const f = await pg.locator("main").textContent();
   ok(f.includes("lea@ex.fr") && f.includes("Haut du corps A") && f.includes("Semaine en cours") && f.includes("8 km"), "fiche : identité, séances, programme, course");
   ok(f.includes("Octobre entre potes") && f.includes("5/8"), "fiche : défis et score");
   ok(f.includes("épaules") || f.includes("Épaules"), "fiche : douleur signalée");
   await cap("admin-fiche-long");
   ok(!(await pg.evaluate(() => Object.keys(localStorage).some((k) => /admin/i.test(k)))), "rien d'admin gardé dans le téléphone");
+  await ctx.close();
+}
+
+// formes réelles de la production, chargement direct, suppression
+{
+  const T = "2026-10-04 09:54:24.478679+00", base = { email: null, anonyme: true, cree: T, connexion: null, maj: T };
+  comptes.push(
+    { ...base, id: "u3", pseudo: "Vide", etat: { A: {}, LOG: {}, SWAP: {}, SWAPP: {}, PLAN: null, SEANCES: [], wk: 0, day: 0, FINI: false } },
+    { ...base, id: "u4", pseudo: "Ancien", etat: { A: { axe: 0, prio: [3], sexe: 1, prefs: {}, socle: 2, sport: 3, sportFreq: 1, profil: { Poids: 76 }, blessure: [0], materiel: 3, objectif: 0, regularite: 1 },
+      LOG: {}, SWAP: {}, SWAPP: {}, wk: 0, day: 1, FINI: true, SEANCES: [{ ex: [{ p: "90 s", r: 10, s: 3, id: "arn" }], nom: "Epaules" }],
+      PLAN: { plan: { titre: "Cycle" }, seances: [{ titre: "Haut A", exercices: [{ id: "tr", reps: 8, role: 1, repos: "3 min", series: 4 }, { id: "ra", reps: 10, role: 0, repos: "90 s", series: 3 }] }, { titre: "Bas A", exercices: [{ id: "gai", reps: 45, role: 1, repos: "90 s", series: 3 }, { id: "plat", reps: 45, role: 0, repos: "75 s", series: 2 }] }] } } },
+    { ...base, id: "u5", pseudo: "Journal", etat: { A: {}, SWAP: {}, SWAPP: {}, PLAN: null, wk: 0, day: 0, FINI: false, SEANCES: [{ ex: [{ p: "2 min", r: 10, s: 3, id: "pompe" }], nom: "Pecs" }],
+      LOG: { "L|0|0": { v: 0, ex: "pompe", nb: 3, ts: Date.now() - 864e5, done: true, feel: null, reps: 10, series: [{ v: 0, ok: true, reps: 10 }] } } } },
+    { ...base, id: MOI, email: "moi@ex.fr", anonyme: false, pseudo: "Walid", etat },
+  );
+  const { ctx, pg, appels } = await contexte(true);
+  const cap = async (n) => { if (!process.env.CAPTURES) return; await pg.waitForTimeout(1200); await pg.screenshot({ path: `${process.env.CAPTURES}/${n}.png`, fullPage: n.endsWith("-long") }); };
+  await pg.goto(U + "/admin/?v=u");
+  await pg.getByText("6 comptes").waitFor({ timeout: 8000 });
+  ok(/\/admin\/?\?v=u/.test(pg.url()), "chargement direct de /admin : pas de renvoi vers Profil");
+  ok((await pg.locator("main button", { hasText: "Journal" }).textContent()).includes("1 séance"), "compte ancien : séance retrouvée dans son journal");
+  const liste = await pg.locator("main").textContent();
+  ok(!/Invalid|NaN/.test(liste), "liste : dates valides (microsecondes du serveur)");
+  for (const [id, nom] of [["u3", "vide"], ["u4", "ancien format"], ["u5", "journal seul"]]) {
+    await pg.goto(U + "/admin/fiche/?u=" + id);
+    await pg.getByRole("heading", { name: "Réponses au questionnaire" }).waitFor({ timeout: 8000 });
+    const f = await pg.locator("main").textContent();
+    ok(!/Impossible d'afficher|Invalid|NaN/.test(f) && f.includes("4 oct 2026"), `fiche ${nom} : affichée, dates valides`);
+    if (id === "u3") ok(f.includes("n'a encore enregistré aucune séance"), "fiche vide : bandeau explicatif");
+    if (id === "u5") await cap("admin-fiche-journal-long");
+  }
+  await pg.goto(U + "/admin/fiche/?u=" + MOI);
+  await pg.getByRole("heading", { name: "Réponses au questionnaire" }).waitFor({ timeout: 8000 });
+  ok(!(await pg.getByRole("button", { name: "Supprimer ce compte" }).isVisible()), "ma propre fiche : pas de suppression");
+  await pg.goto(U + "/admin/fiche/?u=u5");
+  await pg.getByRole("button", { name: "Supprimer ce compte" }).click({ timeout: 8000 });
+  await pg.getByRole("dialog").getByText(/définitif/).waitFor();
+  await cap("admin-suppression");
+  await pg.getByRole("dialog").getByRole("button", { name: "Supprimer" }).click();
+  await pg.waitForURL(/\/admin\/?\?v=u/, { timeout: 8000 });
+  await pg.getByText("5 comptes").waitFor({ timeout: 8000 });
+  ok(appels.includes("supprimer:u5") && !(await pg.locator("main button", { hasText: "Journal" }).count()), "suppression : appel serveur, retour à la liste, compte disparu");
   await ctx.close();
 }
 

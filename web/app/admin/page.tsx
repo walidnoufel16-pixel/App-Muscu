@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { EX } from "@/lib/data/exercices";
 import { TYPES_DEFI, type TypeDefi } from "@/lib/logic/defis";
 import { jourDe } from "@/lib/logic/historique";
-import { court, filtrer, ilya, pl, PLAFOND_IA, resume, tableau, type CompteAdmin, type StatsAdmin, type Tri } from "@/lib/logic/admin";
+import { court, filtrer, ilya, jourIso, pl, PLAFOND_IA, resume, tableau, type CompteAdmin, type StatsAdmin, type Tri } from "@/lib/logic/admin";
 import { statsAdmin, useEstAdmin, utilisateurs } from "@/lib/admin";
 import { ARRIERE, AVANT } from "@/lib/nav";
 import { cn } from "@/lib/utils";
@@ -138,7 +138,7 @@ function Tableau({ L, S }: { L: CompteAdmin[]; S: StatsAdmin }) {
       <Carte titre={`Séances partagées · ${S.partages}`}>
         {S.partages_recents.length ? S.partages_recents.map((p, i) => (
           <div key={i} className="flex justify-between gap-3 border-t border-border/60 py-1.5 text-[14px] first:border-t-0">
-            <span className="truncate">{p.nom}</span><span className="shrink-0 text-muted-foreground">{court(jourDe(Date.parse(p.cree)))}</span>
+            <span className="truncate">{p.nom}</span><span className="shrink-0 text-muted-foreground">{jourIso(p.cree) ? court(jourIso(p.cree)!) : "—"}</span>
           </div>
         )) : <p className="text-[14px] text-muted-foreground">Aucune séance partagée.</p>}
       </Carte>

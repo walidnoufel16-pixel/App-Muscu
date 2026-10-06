@@ -26,7 +26,19 @@ export const PLAFOND_IA = 150;
 
 const H = (c: CompteAdmin) => c.etat.HIST || [];
 const C = (c: CompteAdmin) => avecSorties(c.etat.CARDIO, c.etat.SORTIES);
-const jourIso = (t: string | null) => (t ? jourDe(Date.parse(t)) : null);
+/** Instant (ms) d'une date du serveur. Postgres envoie des microsecondes
+    (« 2026-10-04 09:54:24.478679+00 ») que Safari lit mal : on les ramène au format ISO strict. */
+export function instant(t: string | null | undefined): number | null {
+  if (!t) return null;
+  const m = String(t).trim().match(/^(\d{4}-\d{2}-\d{2})(?:[T ](\d{2}:\d{2}(?::\d{2})?)(?:\.(\d+))?)?\s*(Z|[+-]\d{2}(?::?\d{2})?)?$/i);
+  if (!m) { const v = Date.parse(t); return Number.isFinite(v) ? v : null; }
+  const [, d, h = "00:00:00", f = "", z] = m;
+  const hh = h.length === 5 ? h + ":00" : h;
+  const tz = !z ? "Z" : z.toUpperCase() === "Z" ? "Z" : z.length === 3 ? z + ":00" : z.includes(":") ? z : z.slice(0, 3) + ":" + z.slice(3);
+  const v = Date.parse(`${d}T${hh}.${(f + "000").slice(0, 3)}${tz}`);
+  return Number.isFinite(v) ? v : null;
+}
+export const jourIso = (t: string | null) => { const v = instant(t); return v == null ? null : jourDe(v); };
 
 /** Dernier jour d'entraînement (séance, cardio ou sortie), à défaut la dernière synchronisation. */
 export function derniereActivite(c: CompteAdmin): string | null {
