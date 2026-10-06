@@ -9,9 +9,10 @@ import { messageErreur, sb, valideMail } from "@/lib/supabase";
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
 import { cn } from "@/lib/utils";
+import { SaisieCodeMail } from "@/components/repere/code-mail";
 import { LogoTuile } from "@/components/repere/logo";
 
-type Etape = "accueil" | "compte" | "choix" | "recup" | "code";
+type Etape = "accueil" | "compte" | "confirmer" | "choix" | "recup" | "code";
 
 function Bienvenue() {
   const router = useRouter();
@@ -32,7 +33,9 @@ function Bienvenue() {
     try {
       const r = await creerCompte(p, m || undefined);
       if (!r.ok) setErr(messageErreur({ message: r.message }, "connexion") + " Tes données resteront sur ce téléphone.");
-      else { if (r.message) setErr(r.message); setEtape("choix"); }
+      else if (r.message) { setErr(r.message); setEtape("choix"); }
+      /* Le code part tout de suite : on le fait saisir ici, pas dans Profil. */
+      else setEtape(m && useRepere.getState().user?.new_email ? "confirmer" : "choix");
     } catch (e) { setErr(messageErreur(e, "connexion")); }
     setOccupe(false);
   };
@@ -64,7 +67,7 @@ function Bienvenue() {
 
   return (
     <div className="flex min-h-dvh flex-col px-6 pt-[max(env(safe-area-inset-top),24px)] pb-[max(env(safe-area-inset-bottom),20px)]">
-      {etape !== "accueil" && etape !== "choix" && (
+      {etape !== "accueil" && etape !== "choix" && etape !== "confirmer" && (
         <button onClick={() => { setErr(""); setEtape(etape === "code" ? "recup" : "accueil"); }} className="-ml-1 flex items-center gap-0.5 self-start py-2 text-[15px] font-medium text-muted-foreground">
           <CaretLeftIcon className="size-5" />Retour
         </button>
@@ -129,6 +132,20 @@ function Bienvenue() {
           <Input autoFocus value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))} onKeyDown={(e) => e.key === "Enter" && validerCode()} inputMode="numeric" autoComplete="one-time-code" placeholder="000000" aria-label="Code à six chiffres" className="num h-16 rounded-2xl bg-card text-center text-[34px] font-bold tracking-[0.4em]" />
           <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">En validant, les données de ton compte remplaceront celles de cet appareil. Si le compte est vide, rien ne sera perdu.</p>
         </Form>
+      )}
+
+      {etape === "confirmer" && (
+        <div className="mt-4 flex flex-1 flex-col">
+          <h1 className="text-[34px] leading-[1.05] font-bold tracking-[-0.025em]">Confirme ton adresse</h1>
+          <p className="mt-2 mb-6 text-[15px] leading-relaxed text-muted-foreground">
+            Six chiffres viennent d&apos;être envoyés à <b className="font-semibold text-foreground">{user?.new_email}</b>. Pense à regarder tes indésirables.
+          </p>
+          <SaisieCodeMail grand onConfirme={(u) => { if (!u?.new_email) setEtape("choix"); }} />
+          <div className="mt-auto pt-6">
+            <Button variant="ghost" className="w-full" onClick={() => setEtape("choix")}>Plus tard</Button>
+            <p className="mt-1 text-center text-[12.5px] text-muted-foreground">Le code restera à saisir dans Profil.</p>
+          </div>
+        </div>
       )}
 
       {etape === "choix" && (
