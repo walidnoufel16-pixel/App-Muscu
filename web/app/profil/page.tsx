@@ -6,9 +6,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { ArrowsLeftRightIcon, CaretRightIcon, CheckCircleIcon, CloudSlashIcon, EnvelopeIcon, ShieldWarningIcon } from "@phosphor-icons/react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SaisieCodeMail } from "@/components/repere/code-mail";
 import { EnTete } from "@/components/repere/en-tete";
 import { Segmente } from "@/components/repere/segmente";
 import { confirmer } from "@/components/repere/confirmer";
@@ -25,7 +25,6 @@ export default function PageProfil() {
   const { theme, setTheme } = useTheme();
   const cycleActif = !!useCycleCharge()?.actif;
   const [mail, setMail] = useState("");
-  const [code, setCode] = useState("");
   const [msg, setMsg] = useState<{ t: string; ok?: boolean } | null>(null);
   const [occupe, setOccupe] = useState(false);
   const adresse = user?.email, attente = user?.new_email;
@@ -47,35 +46,6 @@ export default function PageProfil() {
       setMsg({ t: "Code envoyé à " + m + ".", ok: true });
     } catch (e) { setMsg({ t: messageErreur(e, "lier") }); }
     setOccupe(false);
-  };
-
-  const confirmerCode = async () => {
-    const c = await sb(), k = code.replace(/\D/g, "");
-    if (!c || !user?.new_email) return;
-    if (k.length !== 6) { setMsg({ t: "Le code fait six chiffres." }); return; }
-    setOccupe(true);
-    try {
-      const essai = (email: string) => c.auth.verifyOtp({ email, token: k, type: "email_change" });
-      let { data, error } = await essai(user.new_email);
-      /* Changement d'une adresse existante : l'ancienne reçoit aussi son code. */
-      if (error && user.email) ({ data, error } = await essai(user.email));
-      if (error) throw error;
-      const u = data.user || (await c.auth.getUser()).data.user;
-      if (u) setUser(u);
-      setCode("");
-      toast.success(u?.new_email ? "Code accepté" : "Adresse confirmée", {
-        description: u?.new_email ? "Un second code a été envoyé à ton ancienne adresse : saisis-le aussi." : "Ton compte est maintenant récupérable sur un autre appareil.",
-      });
-      setMsg(null);
-    } catch (e) { setMsg({ t: messageErreur(e, "code") }); }
-    setOccupe(false);
-  };
-
-  const renvoyer = async () => {
-    const c = await sb(), m = user?.new_email;
-    if (!c || !m) return;
-    const { error } = await c.auth.updateUser({ email: m });
-    setMsg(error ? { t: messageErreur(error) } : { t: "Nouveau code envoyé à " + m + ".", ok: true });
   };
 
   const effacer = async () => {
@@ -161,20 +131,7 @@ export default function PageProfil() {
                 <p className="text-[14px] leading-relaxed">
                   Un code à six chiffres a été envoyé à <b className="font-semibold">{attente}</b>. Pense à regarder tes indésirables.
                 </p>
-                <Input
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  onKeyDown={(e) => e.key === "Enter" && confirmerCode()}
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  placeholder="000000"
-                  aria-label="Code à six chiffres"
-                  className="num mt-3 h-14 rounded-2xl text-center text-[30px] font-bold tracking-[0.4em]"
-                />
-                <div className="mt-2 flex gap-2">
-                  <Button variant="plate" size="lg" className="flex-1 rounded-xl" disabled={occupe} onClick={confirmerCode}>Confirmer l&apos;adresse</Button>
-                  <Button variant="soft" size="lg" className="rounded-xl" onClick={renvoyer}>Renvoyer</Button>
-                </div>
+                <SaisieCodeMail />
               </div>
             )}
             <p className="text-[14px] leading-relaxed text-muted-foreground">
