@@ -110,20 +110,57 @@ export const noRPE = (id: string) => ["temps", "dist"].includes(EX[id].ch) || EX
    Principaux : l'exercice du plan les semaines 1, 3, 5, 7 ; sa variante les
    semaines 2, 4, 6, 8. Accessoires : ils tournent chaque semaine dans le même
    schéma moteur. Jamais deux fois le même exercice dans une séance. */
+/* Préférences de matériel par groupe (questionnaire) : catégories 0 machines,
+   1 barre, 2 haltères, 3 poids du corps, 4 kettlebell, 5 élastiques. */
+const CAT_ACC: Record<string, number> = { kb: 4, el: 5 };
+export function prefOk(A: Reponses, id: string) {
+  const e = EX[id];
+  const p = e && (A.prefs || {})[PAT2GRP[e.pat]];
+  if (!e || !p || !p.length) return true;
+  const c = e.acc ? [CAT_ACC[e.acc]] : [e.eq].concat(e.ou ? [CAT_ACC[e.ou]] : []);
+  return c.some((x) => p.includes(x));
+}
+/* Faisable avec le matériel déclaré et conforme aux préférences du groupe. */
+export const convient = (A: Reponses, id: string) => dispoDeclare(A, id) && prefOk(A, id);
+
+/* Remplaçant d'un exercice qui ne convient pas : d'abord le même schéma moteur,
+   puis un exercice qui le travaille en second (curl → tractions supination), puis
+   le même groupe. À rang égal : même type de charge, matériel proche, sans lest
+   (développé couché → pompes). En dernier recours, le matériel seul compte. */
+export function remplacant(A: Reponses, id: string, pris: Set<string>) {
+  const e = EX[id];
+  if (!e) return id;
+  const v = VARIANTES[id] || [], g = PAT2GRP[e.pat];
+  const rang = (o: string) => (EX[o].ch === e.ch ? 0 : EX[o].ch === "lest" ? 101 : 100) + Math.abs(EX[o].eq - e.eq) * 10 + (v.includes(o) ? 0 : 5);
+  const autres = Object.keys(EX).filter((o) => o !== id && !pris.has(o)).sort((a, b) => rang(a) - rang(b) || a.localeCompare(b));
+  const paliers = [
+    autres.filter((o) => EX[o].pat === e.pat),
+    autres.filter((o) => EX[o].pat2 === e.pat),
+    g ? autres.filter((o) => PAT2GRP[EX[o].pat] === g || PAT2GRP[EX[o].pat2 || ""] === g) : [],
+  ];
+  for (const ok of [convient, dispoDeclare]) for (const l of paliers) {
+    const o = l.find((x) => ok(A, x));
+    if (o) return o;
+  }
+  return id;
+}
+
 export function variante(A: Reponses, id: string, pris: Set<string>) {
   const e = EX[id];
   if (!e) return id;
   const auto = Object.keys(EX)
     .filter((o) => o !== id && EX[o].pat === e.pat && EX[o].ch === e.ch)
     .sort((a, b) => Math.abs(EX[a].eq - e.eq) - Math.abs(EX[b].eq - e.eq) || a.localeCompare(b));
-  const l = (VARIANTES[id] || []).concat(auto).filter((o) => o !== id && EX[o] && dispoDeclare(A, o) && !pris.has(o));
-  return l[0] || id;
+  const l = (VARIANTES[id] || []).concat(auto).filter((o) => o !== id && EX[o] && convient(A, o) && !pris.has(o));
+  if (l[0]) return l[0];
+  /* Aucune variante du même type : on garde l'exercice s'il convient, sinon on le remplace. */
+  return convient(A, id) ? id : remplacant(A, id, pris);
 }
 export function rotation(A: Reponses, w: number, id: string, pris?: Set<string>) {
   const e = EX[id];
   if (!e) return id;
-  const l = Object.keys(EX).filter((o) => EX[o].pat === e.pat && dispoDeclare(A, o)).sort();
-  if (!l.length) return id;
+  const l = Object.keys(EX).filter((o) => EX[o].pat === e.pat && convient(A, o)).sort();
+  if (!l.length) return remplacant(A, id, pris || new Set());
   const k = Math.max(0, l.indexOf(id));
   if (l.length < 2 && l[0] === id) return id;
   for (let j = 0; j < l.length; j++) {
@@ -143,7 +180,7 @@ export function curId(E: Etat, w: number, s: number, i: number, id: string, W = 
   const pris = new Set(S.x.map((x, j) => (j === i ? null : x[0])).filter(Boolean) as string[]);
   for (let j = 0; j < i; j++) pris.add(curId(E, w, s, j, S.x[j][0], W));
   if (e[4]) {
-    const base = dispoDeclare(E.A, id) ? id : variante(E.A, id, pris);
+    const base = convient(E.A, id) ? id : variante(E.A, id, pris);
     return w % 2 === 1 ? variante(E.A, base, new Set([...pris, id])) : base;
   }
   return rotation(E.A, w, id, pris);

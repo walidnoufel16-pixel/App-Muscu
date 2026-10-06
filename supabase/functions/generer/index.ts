@@ -289,6 +289,16 @@ const patsExclus = (A: any): Set<string> => {
   return s;
 };
 
+/* Préférences de matériel par groupe : 0 machines, 1 barre, 2 haltères, 3 poids du corps, 4 kettlebell, 5 élastiques. */
+const CAT_ACC: Record<string, number> = { kb: 4, el: 5 };
+const groupeDe = (pat: string) => Object.keys(GRP2PAT).find((g) => GRP2PAT[g].includes(pat));
+const prefOk = (x: Exo, A: any) => {
+  const g = groupeDe(x.pat), p = g ? A?.prefs?.[g] : null;
+  if (!Array.isArray(p) || !p.length) return true;
+  const c = x.acc ? [CAT_ACC[x.acc]] : [x.eq].concat(x.ou ? [CAT_ACC[x.ou]] : []);
+  return c.some((v) => p.includes(v));
+};
+
 const CIBLE: Record<number, [number, number][]> = {
   /* [reprise, régulier] selon le nombre de séances socle : 2, 3 ou 4 */
   2: [[5, 8], [8, 11]], 3: [[6, 10], [11, 14]], 4: [[7, 11], [12, 16]],
@@ -315,7 +325,7 @@ RESPECT DU PROFIL :
 - Blessure bas du dos : évite rw, rm, sdt, gm ; privilégie rh, ht, pr, tps.
 - Blessure genoux : réduis la dominante quadriceps, privilégie la dominante hanche et l'unilatéral léger.
 - Blessure coudes ou poignets : évite les dips et les poussées barre lourdes.
-- Respecte les préférences de matériel par groupe. Si l'une bride nettement l'objectif, tu peux passer outre en l'expliquant dans un choix.
+- Préférences de matériel par groupe : OBLIGATOIRES. Un groupe avec des préférences ne reçoit QUE des exercices de ces catégories (exemple : pectoraux au poids du corps = pompes ou dips, jamais de développé couché). Les groupes sans préférence restent libres.
 - Priorités déclarées : ajoute 2 à 4 séries hebdomadaires dessus, retire ailleurs.
 - GROUPES EXCLUS : aucun exercice du schéma correspondant. Leur volume va aux groupes prioritaires, ou à parts égales sinon. Maximum 20 séries par groupe. Explique-le dans un choix.
 - Sport extérieur : réduis le volume des jambes s'il les sollicite, du dos s'il s'agit d'escalade.
@@ -376,7 +386,7 @@ async function empreinte(texte: string) {
   return [...new Uint8Array(h)].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 40);
 }
 
-const VERSION_BIBLIOTHEQUE = 4;   // 2 : bibliothèque complète (100 exercices) · 3 : 133 exercices · 4 : 231 exercices
+const VERSION_BIBLIOTHEQUE = 5;   // 2 : bibliothèque complète (100 exercices) · 3 : 133 exercices · 4 : 231 exercices · 5 : préférences de matériel imposées
 
 /* Seules les réponses qui changent réellement le programme entrent dans la signature. */
 async function signature(A: any) {
@@ -466,6 +476,21 @@ function valider(plan: any, A: any): any {
   const nb = 2 + (A.socle ?? 2);
   const refus: string[] = [];
   const exclus = patsExclus(A);
+  const remplaces: string[] = [];
+  const bornes = (ch: string, reps: number) => {
+    const max = ch === "temps" ? 90 : ch === "dist" ? 800 : 30;
+    const min = ch === "temps" ? 15 : ch === "dist" ? 100 : 3;
+    return Math.min(max, Math.max(min, Math.round(+reps || (ch === "temps" ? 45 : ch === "dist" ? 250 : 10))));
+  };
+  /* Exercice hors préférences : remplacé par le plus proche qui les respecte, même
+     schéma moteur d'abord, puis même groupe ; même type de charge, matériel proche. */
+  const conforme = (o: Exo) => dispo(o, mat, accDe(A)) && !exclus.has(o.pat) && prefOk(o, A);
+  const remplace = (x: Exo, pris: Set<string>) => {
+    const g = groupeDe(x.pat), pats = g ? GRP2PAT[g] : [x.pat];
+    const rang = (o: Exo) => (o.pat === x.pat ? 0 : 1000) + (o.ch === x.ch ? 0 : o.ch === "lest" ? 101 : 100) + Math.abs(o.eq - x.eq) * 10;
+    return LIB.filter((o) => o.id !== x.id && !pris.has(o.id) && pats.includes(o.pat) && conforme(o))
+      .sort((a, b) => rang(a) - rang(b) || a.id.localeCompare(b.id))[0];
+  };
   const nettoieEx = (e: any) => {
     if (!e || !IDS.has(e.id)) { refus.push(sansBalise(e?.id).slice(0, 20) + " : inconnu"); return null; }
     e = { ...e, series: e.s ?? e.series, reps: e.r ?? e.reps, repos: e.p ?? e.repos, role: e.o ?? e.role };
@@ -484,6 +509,17 @@ function valider(plan: any, A: any): any {
   };
   const nettoieSeance = (s: any) => {
     const x = (s?.ex || s?.exercices || []).map(nettoieEx).filter(Boolean).slice(0, 8);
+    const pris = new Set<string>(x.map((e: any) => e.id));
+    x.forEach((e: any) => {
+      const ex = PARID[e.id];
+      if (prefOk(ex, A)) return;
+      const r = remplace(ex, pris);
+      if (!r) return;
+      remplaces.push(`${e.id} → ${r.id}`);
+      pris.add(r.id);
+      e.id = r.id;
+      e.reps = bornes(r.ch, r.ch === ex.ch ? e.reps : 0);
+    });
     if (x.length < 2) return null;      // une séance d'un seul exercice n'a pas de sens
     return { titre: coupe(s.t || s.titre || "Séance", 40),
              focus: coupe(s.f || s.focus, 120), exercices: x };
@@ -528,7 +564,7 @@ function valider(plan: any, A: any): any {
       choix: c,
     },
     seances, bonus: bonus ?? undefined,
-    notes: { demandees: nb, retenues: seances.length, bonus: !!bonus, refus: refus.slice(0, 12),
+    notes: { demandees: nb, retenues: seances.length, bonus: !!bonus, refus: refus.slice(0, 12), remplaces: remplaces.slice(0, 12),
              exercices: seances.reduce((n: number, s: any) => n + s.exercices.length, 0),
              volume: vol, cible, faibles },
   };
