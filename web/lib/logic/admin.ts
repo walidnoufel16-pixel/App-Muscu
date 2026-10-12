@@ -58,7 +58,7 @@ export function resume(c: CompteAdmin): Resume {
     seances: H(c).length + C(c).filter((x) => !x.ref).length, muscu: H(c).length, cardio,
     sorties: (E.SORTIES || []).length, km: Math.round((E.SORTIES || []).reduce((n, s) => n + s.km, 0)),
     derniere: derniereActivite(c), plan, course: !!E.COURSE,
-    objectif: OBJN[A.objectif ?? -1] || "—", materiel: MATN[A.materiel ?? -1] || "—",
+    objectif: tr(OBJN[A.objectif ?? -1] || "—"), materiel: tr(MATN[A.materiel ?? -1] || "—"),
   };
 }
 
@@ -112,8 +112,8 @@ export function tableau(L: CompteAdmin[], auj = jourDe(Date.now())): Tableau {
     usage: usage.map(([k, n, f]) => ({ k, n, comptes: L.filter(f).length })),
     topEx: [...ex].map(([id, e]) => ({ id, seances: e.seances, comptes: e.comptes.size }))
       .sort((a, b) => b.seances - a.seances || a.id.localeCompare(b.id)).slice(0, 10),
-    objectifs: compte(avecReponses.map((c) => OBJN[c.etat.A!.objectif!] || "—")),
-    materiel: compte(avecReponses.map((c) => MATN[c.etat.A!.materiel ?? -1] || "—")),
+    objectifs: compte(avecReponses.map((c) => tr(OBJN[c.etat.A!.objectif!] || "—"))),
+    materiel: compte(avecReponses.map((c) => tr(MATN[c.etat.A!.materiel ?? -1] || "—"))),
   };
 }
 

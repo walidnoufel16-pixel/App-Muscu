@@ -1,8 +1,8 @@
 /* Langue : passage en anglais depuis Profil, parcours des écrans principaux sans
    texte d'interface resté en français, choix gardé après fermeture, retour au
    français. Téléphone en anglais sans choix : l'app démarre en anglais.
-   CAPTURES=dossier pour garder des captures. Les noms d'exercices et de muscles
-   (bibliothèque) restent en français dans ce lot et ne sont pas contrôlés ici. */
+   Exercices, muscles, fiches et référentiels compris.
+   CAPTURES=dossier pour garder des captures. */
 import { chromium } from "@playwright/test";
 import { servir } from "./serveur.mjs";
 const srv = servir(new URL("../../out/", import.meta.url).pathname, 8816);
@@ -26,9 +26,9 @@ const errs = [];
 /* Mots d'interface français qu'aucun texte anglais ne contient. */
 const FR = /\b(séances?|semaines?|aujourd'hui|ton|ta|tes|pour|avec|sans|cette|Entraînement|Réglages|Langue|Apparence|Confidentialité|Progrès|Exercices|Commencer|Terminer|Valider|Enregistrer|Retour|Annuler|charge|répétitions|séries|repos|faite|prochaine)\b/i;
 async function restes(pg) {
-  /* Les noms d'exercices et de muscles viennent de la bibliothèque, traduite au lot suivant. */
+  /* Un accent français suffit à trahir un texte non traduit (hors nom de l'app). */
   const t = await pg.evaluate(() => document.body.innerText);
-  return t.split("\n").map((l) => l.trim()).filter((l) => FR.test(l));
+  return t.split("\n").map((l) => l.trim()).filter((l) => l !== "Français" && (FR.test(l) || /[éèàçêûôîœ]/i.test(l.replace(/Repère|REPÈRE/g, ""))));
 }
 async function ecran(pg, chemin, nom, attendu) {
   await pg.goto(U + chemin);
@@ -63,10 +63,22 @@ async function ecran(pg, chemin, nom, attendu) {
   await ecran(pg, "/entrainement/cardio/", "cardio");
   await ecran(pg, "/questionnaire/", "questionnaire");
 
+  /* Bibliothèque : recherche en anglais et fiche détaillée. */
+  await pg.goto(U + "/exercices/");
+  await pg.getByRole("tab", { name: "List" }).click();
+  await pg.getByPlaceholder("Search for an exercise…").fill("bench");
+  await pg.getByText("Barbell bench press").first().click();
+  await pg.getByText("Lie on the bench", { exact: false }).first().waitFor({ timeout: 8000 });
+  await pg.waitForTimeout(800);
+  const rf = await restes(pg);
+  ok(!rf.length, `fiche : nom, muscles et conseils en anglais${rf.length ? " → " + rf.slice(0, 6).join(" | ") : ""}`);
+  if (CAP) await pg.screenshot({ path: `${CAP}/en-fiche.png` });
+
   /* La séance du jour : ouverte depuis l'accueil. */
   await pg.goto(U + "/entrainement/");
   await pg.waitForTimeout(1200);
-  const seance = pg.getByRole("link", { name: /Session 1|Workout 1/ }).first();
+  const seance = pg.getByRole("link", { name: /Get started/ }).or(pg.getByRole("button", { name: /Get started/ })).first();
+  ok(await seance.count() > 0, "séance du jour : bouton « Get started »");
   if (await seance.count()) {
     await seance.click();
     await pg.waitForTimeout(1500);

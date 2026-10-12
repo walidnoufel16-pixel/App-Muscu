@@ -80,7 +80,7 @@ export function ListeRecherche({ sel, q, setQ, pris, onAjouter, onFiche }: { sel
       </div>
       {Object.keys(groupes).length ? Object.entries(groupes).map(([g, l]) => (
         <div key={g}>
-          <div className="eyebrow mb-1.5 px-1">{g}</div>
+          <div className="eyebrow mb-1.5 px-1">{tr(g)}</div>
           <div className="flex flex-col gap-1.5">
             {l.map((o) => <LigneExercice key={o} id={o} pris={pris?.(o)} onOuvrir={() => onFiche(o)} onAjouter={onAjouter ? () => onAjouter(o) : undefined} />)}
           </div>

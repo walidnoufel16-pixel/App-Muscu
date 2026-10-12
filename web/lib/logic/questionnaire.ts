@@ -44,7 +44,7 @@ export function buildQ(A: Reponses): Question[] {
     { k: "sexe", q: tr("Tu es…"), h: tr("Le sexe change la répartition de force entre haut et bas du corps, la tolérance au volume et la récupération. Il sert aussi à ordonner les questions qui suivent."), o: [
       [tr("Un homme"), null], [tr("Une femme"), null], [tr("Je préfère ne pas répondre"), tr("Le programme utilisera des repères moyens")]] },
     { k: "prio", t: "multi", max: 2, q: tr("Des groupes à prioriser ?"), h: tr("Deux au maximum, sinon plus rien n'est prioritaire. C'est aussi vers eux que sera redirigé le volume si tu écartes un groupe à l'étape suivante."),
-      o: groupes(A).map((g) => [g, null] as [string, null]).concat([[tr("Aucun en particulier"), null]]) },
+      o: groupes(A).map((g) => [tr(g), null] as [string, null]).concat([[tr("Aucun en particulier"), null]]) },
     { k: "prefs", t: "prefs", q: tr("Tes préférences d'exercices"), h: tr("Pour chaque groupe, coche le matériel que tu aimes utiliser. Tu peux aussi écarter complètement un groupe du programme."), rows: groupes(A) },
   );
   if (!deb)
@@ -106,8 +106,8 @@ export function recap(E: Etat): [string, string][] {
   const b = (A.blessure || []).map((i) => BLESN[i]).filter(Boolean).map((x) => tr(x));
   if (b.length) r.push([tr("À ménager"), b.join(", ")]);
   const p = prioNoms(A);
-  if (p.length) r.push([tr("Priorités"), p.join(", ")]);
-  if ((A.exclus || []).length) r.push([tr("Écartés du programme"), A.exclus!.join(", ")]);
+  if (p.length) r.push([tr("Priorités"), p.map((x) => tr(x)).join(", ")]);
+  if ((A.exclus || []).length) r.push([tr("Écartés du programme"), A.exclus!.map((x) => tr(x)).join(", ")]);
   const np = Object.values(A.prefs || {}).filter((v) => v.length).length;
   if (np) r.push([tr("Préférences"), tp(np, "{n} groupe avec un matériel choisi", "{n} groupes avec un matériel choisi")]);
   return r;

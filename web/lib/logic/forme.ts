@@ -4,7 +4,7 @@
    - Zones sensibles : les gênes déclarées au questionnaire (A.blessure) et la douleur
      signalée aujourd'hui marquent les exercices à ménager. */
 import { pluriel, tr } from "@/lib/i18n";
-import { EX } from "@/lib/data/exercices";
+import { EX_FR } from "@/lib/data/exercices";
 import { BLESN } from "@/lib/data/referentiels";
 import type { Exercice } from "@/lib/data/types";
 import type { Reponses } from "./types";
@@ -51,7 +51,7 @@ export function zonesActives(A: Reponses, t = Date.now()): number[] {
   return [...z].sort();
 }
 /** Zones sensibles qu'un exercice sollicite. */
-export const zonesDe = (id: string, zones: number[]) => (EX[id] ? zones.filter((z) => RISQUES[z].test(EX[id].n)) : []);
+export const zonesDe = (id: string, zones: number[]) => (EX_FR[id] ? zones.filter((z) => RISQUES[z].test(EX_FR[id].n)) : []);
 
 /* ---------------- ajustement de la charge ---------------- */
 export type Base = { v: number; reps: number };

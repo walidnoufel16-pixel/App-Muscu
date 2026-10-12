@@ -1,5 +1,7 @@
 /* Généré depuis l'ancienne app (public/index.html) — ne pas éditer à la main sans relancer les tests de parité. */
 import type { Exercice } from "./types";
+import { langue } from "@/lib/i18n";
+import EX_EN from "@/lib/i18n/exercices.en.json";
 
 /* 231 exercices — photos free-exercise-db (domaine public) dans public/img/.
    Les textes des fiches (exécution, erreurs, progression) sont à part, dans
@@ -2259,3 +2261,9 @@ export const EX: Record<string, Exercice> = {
   "d": 15
  }
 };
+
+/* Noms et muscles d'origine, en français : la logique qui lit ces textes (zones
+   sensibles, groupes musculaires) s'appuie toujours sur eux, quelle que soit la langue. */
+export const EX_FR: Record<string, { n: string; m: string }> = Object.fromEntries(Object.entries(EX).map(([k, v]) => [k, { n: v.n, m: v.m }]));
+/* En anglais, noms et muscles affichés sont remplacés au chargement (la langue ne change qu'en rechargeant l'app). */
+if (langue() === "en") for (const [k, [n, m]] of Object.entries(EX_EN as Record<string, string[]>)) if (EX[k]) Object.assign(EX[k], { n, m });

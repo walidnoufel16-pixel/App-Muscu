@@ -7,6 +7,10 @@ import ts from "typescript";
 import EN from "@/lib/i18n/en.json";
 import { _fixerLangue, rang, tp, tr } from "@/lib/i18n";
 import { nb } from "@/lib/logic/core";
+import EX_EN from "@/lib/i18n/exercices.en.json";
+import { EX } from "@/lib/data/exercices";
+import { CORPS } from "@/lib/data/corps";
+import * as R from "@/lib/data/referentiels";
 
 const RACINE = path.resolve(__dirname, "..");
 const DICO = EN as Record<string, string>;
@@ -61,6 +65,26 @@ describe("traduction anglaise", () => {
     const mauvais = Object.entries(DICO).filter(([, en]) => !en.trim() || /[àâçéèêëîïôûùœ]/i.test(en.replace(/Repère|REPÈRE/g, "")));
     if (process.env.DUMP) fs.writeFileSync(process.env.DUMP + ".2", JSON.stringify(mauvais, null, 1));
     expect(mauvais.map(([fr]) => fr)).toEqual([]);
+  });
+  it("chaque exercice et chaque fiche existent en anglais", () => {
+    const en = EX_EN as Record<string, string[]>;
+    expect(Object.keys(EX).filter((k) => !en[k] || en[k].length !== 2 || !en[k][0] || !en[k][1])).toEqual([]);
+    const fr = JSON.parse(fs.readFileSync(path.join(RACINE, "public/data/fiches.json"), "utf8"));
+    const fen = JSON.parse(fs.readFileSync(path.join(RACINE, "public/data/fiches.en.json"), "utf8"));
+    expect(Object.keys(fr).filter((k) => !fen[k] || fen[k].err.length !== fr[k].err.length || !fen[k].e || !fen[k].p)).toEqual([]);
+  });
+  it("chaque texte des référentiels a sa traduction", () => {
+    const l: (string | undefined)[] = [];
+    R.SPORTS.forEach((s) => l.push(s.n, s.d));
+    [R.PAT, R.PATN, R.PAT2GRP, R.ZONES].forEach((o) => l.push(...Object.values(o)));
+    l.push(...Object.values(R.GROUPES).flat(), ...R.AXES, ...R.OBJS, ...R.OBJN, ...R.REGN, ...R.MATN, ...R.BLESN);
+    [R.MATCATS, R.TYPES, R.MUSCLES, R.ACC].forEach((x) => x.forEach((y) => l.push(y[1] as string)));
+    R.MUSC.forEach((m) => l.push(m.n));
+    [...R.SOCLE, ...R.BONUS].forEach((s) => l.push(s.t, s.f, s.dur, s.sp?.[1]));
+    Object.values(R.ECHAUF).forEach((e) => { l.push(e.d); e.l.forEach((x) => l.push(x[0], x[1], x[3])); });
+    Object.values(R.COLLATION).forEach((c) => { l.push(c.t, c.i, c.n); c.l.forEach((x) => l.push(...x)); });
+    Object.values(CORPS).forEach((c) => c.forEach((r) => l.push(r.n)));
+    expect([...new Set(l.filter((x): x is string => !!x && /[a-z]/i.test(x) && !(x in DICO)))]).toEqual([]);
   });
   it("tr, tp, nb et rang selon la langue", () => {
     expect(tr("Semaine {n}", { n: 3 })).toBe("Semaine 3");

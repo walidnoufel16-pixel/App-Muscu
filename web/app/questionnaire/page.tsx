@@ -198,7 +198,7 @@ function Preferences({ A, majA, rows, onToutConvient }: { A: Reponses; majA: Maj
   const pref = async (g: string, v: number) => {
     if (v === -2) {
       const exclu = (A.exclus || []).includes(g);
-      if (!exclu && prioNoms(A).includes(g)) { await dire(tr("Groupe prioritaire"), tr("Tu as déclaré « {g} » comme groupe prioritaire. Reviens en arrière pour le retirer de tes priorités avant de l'écarter du programme.", { g })); return; }
+      if (!exclu && prioNoms(A).includes(g)) { await dire(tr("Groupe prioritaire"), tr("Tu as déclaré « {g} » comme groupe prioritaire. Reviens en arrière pour le retirer de tes priorités avant de l'écarter du programme.", { g: tr(g) })); return; }
       majA((a) => { a.prefs = a.prefs || {}; a.exclus = a.exclus || []; if (exclu) a.exclus.splice(a.exclus.indexOf(g), 1); else { a.exclus.push(g); a.prefs[g] = []; } });
       return;
     }
@@ -220,8 +220,8 @@ function Preferences({ A, majA, rows, onToutConvient }: { A: Reponses; majA: Maj
         return (
           <div key={g} className={cn("rounded-[18px] bg-card p-3.5", off && "opacity-70")}>
             <div className="mb-2 flex items-baseline justify-between">
-              <span className="text-[15px] font-semibold">{g}</span>
-              <span className="text-[12px] text-muted-foreground">{off ? tr("écarté") : arr.length ? arr.length + " choix" : tr("peu importe")}</span>
+              <span className="text-[15px] font-semibold">{tr(g)}</span>
+              <span className="text-[12px] text-muted-foreground">{off ? tr("écarté") : arr.length ? tr("{n} choix", { n: arr.length }) : tr("peu importe")}</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
               <Chip on={!off && !arr.length} onClick={() => pref(g, -1)}>{tr("Peu importe")}</Chip>
@@ -232,7 +232,7 @@ function Preferences({ A, majA, rows, onToutConvient }: { A: Reponses; majA: Maj
         );
       })}
       {(A.exclus || []).length > 0 && (
-        <p className="rounded-2xl bg-plate-soft p-3.5 text-[13.5px] leading-relaxed">{tr("Le volume de {a} sera reporté sur {a1} Aucun groupe ne dépassera vingt séries par semaine.", { a: A.exclus!.join(" et "), a1: prioNoms(A).length ? tr("tes groupes prioritaires : ") + prioNoms(A).join(", ") + "." : tr("les autres groupes, à parts égales.") })}</p>
+        <p className="rounded-2xl bg-plate-soft p-3.5 text-[13.5px] leading-relaxed">{tr("Le volume de {a} sera reporté sur {a1} Aucun groupe ne dépassera vingt séries par semaine.", { a: A.exclus!.map((x) => tr(x)).join(tr(" et ")), a1: prioNoms(A).length ? tr("tes groupes prioritaires : ") + prioNoms(A).map((x) => tr(x)).join(", ") + "." : tr("les autres groupes, à parts égales.") })}</p>
       )}
       <p className="px-1 text-[13px] leading-relaxed text-muted-foreground">{tr("Ces choix pilotent aussi les alternatives proposées en salle quand un appareil est occupé.")}</p>
       <Button variant="ghost" onClick={onToutConvient}>{tr("Tout me convient, passe cette étape")}</Button>
