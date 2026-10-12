@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowsClockwiseIcon, WarningIcon } from "@phosphor-icons/react";
@@ -14,14 +15,14 @@ import { AVANT } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
 /* Ce que Repère a retenu des réponses et comment le cycle est construit. */
-export const titreProgramme = (P: ReturnType<typeof useRepere.getState>["etat"]["PLAN"]) => (P?.plan?.titre) || "Ton programme";
+export const titreProgramme = (P: ReturnType<typeof useRepere.getState>["etat"]["PLAN"]) => (P?.plan?.titre) || tr("Ton programme");
 
 export function Synthese() {
   const router = useRouter();
   const { etat, muter } = useRepere();
   const [enCours, setEnCours] = useState(false);
   const P = etat.PLAN, gen = !!P?.plan;
-  const intro = (gen && P!.plan!.intro) || "Voici ce que j'ai retenu de tes réponses et la façon dont le cycle est construit. Rien ici ne prétend connaître ton passé : tout vient de ce que tu viens de déclarer.";
+  const intro = (gen && P!.plan!.intro) || tr("Voici ce que j'ai retenu de tes réponses et la façon dont le cycle est construit. Rien ici ne prétend connaître ton passé : tout vient de ce que tu viens de déclarer.");
   const choix: [string, string][] = gen && P!.plan!.choix?.length ? P!.plan!.choix!.map((c) => [c.titre, c.texte]) : choixDef(etat);
   const vol = volReel(etat), max = Math.max(1, ...Object.values(vol));
 
@@ -33,13 +34,13 @@ export function Synthese() {
     });
 
   const regen = async () => {
-    if (!(await confirmer({ titre: "Régénérer ton cycle ?", texte: "Tes séances déjà validées seront conservées.", ok: "Régénérer" }))) return;
+    if (!(await confirmer({ titre: tr("Régénérer ton cycle ?"), texte: tr("Tes séances déjà validées seront conservées."), ok: tr("Régénérer") }))) return;
     setEnCours(true);
     const r = await genererCycle(etat.A, true, () => {});
     setEnCours(false);
-    if (r.erreur) { dire("Génération impossible", r.erreur); return; }
+    if (r.erreur) { dire(tr("Génération impossible"), r.erreur); return; }
     muter((E) => { E.PLAN = r.plan; E.FINI = true; });
-    if (r.avertissement) dire("Cycle incomplet", r.avertissement);
+    if (r.avertissement) dire(tr("Cycle incomplet"), r.avertissement);
   };
 
   return (
@@ -47,7 +48,7 @@ export function Synthese() {
       <div className="flex flex-col gap-6">
         <p className="px-1 text-[15px] leading-relaxed text-muted-foreground">{intro}</p>
         <section className="overflow-hidden rounded-[22px] bg-card">
-          <h2 className="eyebrow px-4 pt-4 pb-2">Ce que j&apos;ai retenu</h2>
+          <h2 className="eyebrow px-4 pt-4 pb-2">{tr("Ce que j'ai retenu")}</h2>
           {recap(etat).map(([k, v]) => (
             <div key={k} className="flex items-baseline justify-between gap-4 border-t border-border/60 px-4 py-2.5 text-[14px]">
               <span className="text-muted-foreground">{k}</span>
@@ -57,7 +58,7 @@ export function Synthese() {
         </section>
 
         <section>
-          <h2 className="eyebrow mb-2 px-1">Matériel en plus</h2>
+          <h2 className="eyebrow mb-2 px-1">{tr("Matériel en plus")}</h2>
           <div className="flex gap-1.5">
             {ACC.map(([, n], i) => {
               const on = (etat.A.acc || []).includes(i);
@@ -68,7 +69,7 @@ export function Synthese() {
               );
             })}
           </div>
-          <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">Pris en compte tout de suite par les alternatives et l&apos;exploration, et par l&apos;IA à la prochaine régénération.</p>
+          <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{tr("Pris en compte tout de suite par les alternatives et l'exploration, et par l'IA à la prochaine régénération.")}</p>
         </section>
 
         {gen && P?.notes?.refus?.length ? (
@@ -80,8 +81,8 @@ export function Synthese() {
 
         <section className="rounded-[22px] bg-card p-4">
           <div className="mb-3 flex items-baseline justify-between">
-            <h2 className="eyebrow">Séries par semaine</h2>
-            <span className="text-[11.5px] text-muted-foreground">hors séance bonus</span>
+            <h2 className="eyebrow">{tr("Séries par semaine")}</h2>
+            <span className="text-[11.5px] text-muted-foreground">{tr("hors séance bonus")}</span>
           </div>
           <div className="flex flex-col gap-2.5">
             {groupes(etat.A).map((g) => {
@@ -90,7 +91,7 @@ export function Synthese() {
                 <div key={g}>
                   <div className="mb-1 flex items-baseline justify-between text-[13.5px]">
                     <span className={cn("font-medium", off && "text-muted-foreground")}>{g}</span>
-                    <span className="num text-[16px] font-bold">{off ? <span className="font-sans text-[12.5px] font-medium text-muted-foreground">écarté</span> : v}</span>
+                    <span className="num text-[16px] font-bold">{off ? <span className="font-sans text-[12.5px] font-medium text-muted-foreground">{tr("écarté")}</span> : v}</span>
                   </div>
                   <div className="flex gap-[3px]">
                     {Array.from({ length: max }, (_, i) => (
@@ -101,11 +102,11 @@ export function Synthese() {
               );
             })}
           </div>
-          <p className="mt-3 text-[11.5px] text-muted-foreground">Calculé sur les séances de ton cycle, pas estimé.</p>
+          <p className="mt-3 text-[11.5px] text-muted-foreground">{tr("Calculé sur les séances de ton cycle, pas estimé.")}</p>
         </section>
 
         <section>
-          <h2 className="eyebrow mb-2 px-1">Trois choix que j&apos;ai faits</h2>
+          <h2 className="eyebrow mb-2 px-1">{tr("Trois choix que j'ai faits")}</h2>
           <div className="flex flex-col gap-2">
             {choix.map(([t, x], i) => (
               <div key={i} className="flex gap-3.5 rounded-[20px] bg-card p-4">
@@ -121,9 +122,9 @@ export function Synthese() {
 
         <div className="flex flex-col gap-2">
           <Button variant="soft" size="lg" className="rounded-xl" disabled={enCours} onClick={regen}>
-            <ArrowsClockwiseIcon className={cn(enCours && "animate-spin")} />{enCours ? "Génération en cours…" : "Régénérer mon cycle avec les mêmes réponses"}
+            <ArrowsClockwiseIcon className={cn(enCours && "animate-spin")} />{enCours ? tr("Génération en cours…") : tr("Régénérer mon cycle avec les mêmes réponses")}
           </Button>
-          <Button variant="ghost" onClick={() => router.push("/questionnaire", AVANT)}>Modifier mes réponses</Button>
+          <Button variant="ghost" onClick={() => router.push("/questionnaire", AVANT)}>{tr("Modifier mes réponses")}</Button>
         </div>
       </div>
     </>

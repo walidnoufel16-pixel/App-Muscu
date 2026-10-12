@@ -3,6 +3,7 @@
 /* Minuteur guidé plein écran (cardio, course à pied) : phases, bips, vibrations,
    écran maintenu allumé. Le temps est calculé à partir de l'heure de départ et des
    pauses : il reste juste après un passage en arrière-plan. */
+import { tr } from "@/lib/i18n";
 import { useEffect, useRef, useState } from "react";
 import { PauseIcon, PlayIcon, SkipForwardIcon, XIcon } from "@phosphor-icons/react";
 import { confirmer } from "@/components/repere/confirmer";
@@ -12,7 +13,7 @@ import { useRepos } from "@/lib/repos";
 import { couper, decompte, fin as sonFin, preparer, programmer, type Bip } from "@/lib/sons";
 import { cn } from "@/lib/utils";
 
-export const NOM_PHASE: Record<TypePhase, string> = { echauf: "Échauffement", effort: "Effort", recup: "Récupération", pause: "Pause", continu: "Endurance", calme: "Retour au calme" };
+export const NOM_PHASE: Record<TypePhase, string> = { echauf: tr("Échauffement"), effort: tr("Effort"), recup: tr("Récupération"), pause: tr("Pause"), continu: tr("Endurance"), calme: tr("Retour au calme") };
 export const departCourse = (): Course => ({ debut: Date.now(), pause: null, cumulPause: 0, saut: 0 });
 export { preparer };
 
@@ -108,7 +109,7 @@ export function Minuteur({ phases, titre, course, setCourse, onFin }: { phases: 
   const arreter = async () => {
     const t = Date.now(), avant = course;
     if (!avant.pause) setCourse({ ...avant, pause: t });
-    const ok = await confirmer({ titre: "Arrêter la séance ?", texte: ecoule >= 60 ? "Ce que tu as fait jusqu'ici est enregistré." : "Moins d'une minute : rien ne sera enregistré.", ok: "Arrêter" });
+    const ok = await confirmer({ titre: tr("Arrêter la séance ?"), texte: ecoule >= 60 ? tr("Ce que tu as fait jusqu'ici est enregistré.") : tr("Moins d'une minute : rien ne sera enregistré."), ok: tr("Arrêter") });
     if (ok) finir(avant.pause ?? t);
     else setCourse(avant.pause ? avant : { ...avant, cumulPause: avant.cumulPause + (Date.now() - t) });
   };
@@ -124,7 +125,7 @@ export function Minuteur({ phases, titre, course, setCourse, onFin }: { phases: 
     >
       <div className="flex h-11 items-center justify-between">
         <button onClick={arreter} className={cn("flex items-center gap-1 rounded-full px-3 py-1.5 text-[14px] font-semibold", effort ? "bg-white/15" : "bg-muted")}>
-          <XIcon className="size-4" weight="bold" />Arrêter
+          <XIcon className="size-4" weight="bold" />{tr("Arrêter")}
         </button>
         <span className={cn("truncate px-2 text-[13px] font-medium", effort ? "opacity-80" : "text-muted-foreground")}>{titre}</span>
         <span className="num min-w-[56px] text-right text-[17px] font-bold">
@@ -133,7 +134,7 @@ export function Minuteur({ phases, titre, course, setCourse, onFin }: { phases: 
       </div>
 
       <div className="flex flex-1 flex-col items-center justify-center gap-5">
-        {p?.blocs && p.blocs > 1 && <span className={cn("eyebrow", effort && "text-white/80")}>Bloc {p.bloc} sur {p.blocs}</span>}
+        {p?.blocs && p.blocs > 1 && <span className={cn("eyebrow", effort && "text-white/80")}>{tr("Bloc {bloc} sur {blocs}", { bloc: p.bloc, blocs: p.blocs })}</span>}
         <div className="relative grid place-items-center">
           <svg viewBox="0 0 260 260" className="size-[min(78vw,300px)] -rotate-90" aria-hidden>
             <circle cx="130" cy="130" r={R} fill="none" strokeWidth="14" className={effort ? "stroke-white/20" : "stroke-muted"} />
@@ -144,7 +145,7 @@ export function Minuteur({ phases, titre, course, setCourse, onFin }: { phases: 
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-            <span key={o.i} className="animate-[pop_.45s_cubic-bezier(.3,1.6,.5,1)] text-[22px] font-bold tracking-[-0.01em]">{p ? p.titre ?? NOM_PHASE[p.type] : "Terminé"}</span>
+            <span key={o.i} className="animate-[pop_.45s_cubic-bezier(.3,1.6,.5,1)] text-[22px] font-bold tracking-[-0.01em]">{p ? p.titre ?? NOM_PHASE[p.type] : tr("Terminé")}</span>
             <span className={cn("num text-[78px] leading-none font-bold", !effort && o.reste <= 3 && "text-plate")}>{mmss(Math.ceil(o.reste))}</span>
             {p && <span className={cn("mt-1 rounded-full px-2.5 py-0.5 text-[12.5px] font-semibold", effort ? "bg-white/15" : "bg-muted text-muted-foreground")}>{p.rpe}</span>}
           </div>
@@ -152,7 +153,7 @@ export function Minuteur({ phases, titre, course, setCourse, onFin }: { phases: 
         {p?.consigne && <p className={cn("max-w-[30ch] text-center text-[17px] leading-snug font-medium", !effort && "text-foreground/85")}>{p.consigne}</p>}
         {o.suivante && (
           <p className={cn("text-[14px]", effort ? "opacity-80" : "text-muted-foreground")}>
-            Ensuite : <b className="font-semibold">{o.suivante.titre ?? NOM_PHASE[o.suivante.type]}</b> · {mmss(o.suivante.duree)}
+            {tr("Ensuite :")}{" "}<b className="font-semibold">{o.suivante.titre ?? NOM_PHASE[o.suivante.type]}</b> · {mmss(o.suivante.duree)}
           </p>
         )}
       </div>
@@ -169,17 +170,17 @@ export function Minuteur({ phases, titre, course, setCourse, onFin }: { phases: 
           <span className="size-14" />
           <button
             onClick={pause}
-            aria-label={course.pause ? "Reprendre" : "Pause"}
+            aria-label={course.pause ? tr("Reprendre") : tr("Pause")}
             className={cn("grid size-20 place-items-center rounded-full shadow-lg active:scale-95", effort ? "bg-white text-[#2346c4]" : "bg-plate text-plate-foreground")}
           >
             {course.pause ? <PlayIcon className="size-8" weight="fill" /> : <PauseIcon className="size-8" weight="fill" />}
           </button>
-          <button onClick={passer} aria-label="Passer la phase" className={cn("grid size-14 place-items-center rounded-full active:scale-95", effort ? "bg-white/15" : "bg-muted")}>
+          <button onClick={passer} aria-label={tr("Passer la phase")} className={cn("grid size-14 place-items-center rounded-full active:scale-95", effort ? "bg-white/15" : "bg-muted")}>
             <SkipForwardIcon className="size-6" weight="fill" />
           </button>
         </div>
       </div>
-      {course.pause && <p className="absolute inset-x-0 top-[calc(max(env(safe-area-inset-top),14px)+52px)] text-center text-[13px] font-semibold tracking-[0.12em] uppercase opacity-70">En pause</p>}
+      {course.pause && <p className="absolute inset-x-0 top-[calc(max(env(safe-area-inset-top),14px)+52px)] text-center text-[13px] font-semibold tracking-[0.12em] uppercase opacity-70">{tr("En pause")}</p>}
     </div>
   );
 }

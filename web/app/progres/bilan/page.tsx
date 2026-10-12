@@ -2,6 +2,7 @@
 
 /* Bilan d'un mois ou d'une année, façon « stories » : on touche à droite pour avancer,
    à gauche pour revenir. Le dernier écran fabrique une image à partager. */
+import { loc, pluriel, tr } from "@/lib/i18n";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { DownloadSimpleIcon, PaperPlaneTiltIcon, XIcon } from "@phosphor-icons/react";
@@ -13,25 +14,25 @@ import { useRepere } from "@/lib/store";
 import { mouvementReduit } from "@/lib/celebrer";
 import { cn } from "@/lib/utils";
 
-const fr = (v: number, d = 0) => v.toLocaleString("fr-FR", { maximumFractionDigits: d });
+const fr = (v: number, d = 0) => v.toLocaleString(loc(), { maximumFractionDigits: d });
 
 type Ecran = { sur: string; grand: string; sous?: string; detail?: string[] };
 function ecrans(r: Recap): Ecran[] {
   const l: Ecran[] = [{
-    sur: r.p.annee ? `Ton année ${r.p.nom}` : `Ton mois de ${r.p.nom.split(" ")[0]}`,
-    grand: `${r.seances} séance${r.seances > 1 ? "s" : ""}`,
-    sous: `${r.jours} jour${r.jours > 1 ? "s" : ""} d'entraînement${r.jourFavori ? `, surtout le ${r.jourFavori}` : ""}.`,
+    sur: r.p.annee ? tr("Ton année {nom}", { nom: r.p.nom }) : tr("Ton mois de {a}", { a: r.p.nom.split(" ")[0] }),
+    grand: tr("{seances} séance{a}", { seances: r.seances, a: pluriel(r.seances) ? "s" : "" }),
+    sous: tr("{jours} jour{a} d'entraînement{a1}.", { jours: r.jours, a: pluriel(r.jours) ? "s" : "", a1: r.jourFavori ? tr(", surtout le {jourFavori}", { jourFavori: r.jourFavori }) : "" }),
   }];
-  if (r.tonnes > 0) l.push({ sur: "Tu as soulevé", grand: r.tonnes >= 1 ? `${fr(r.tonnes, 1)} t` : `${fr(r.tonnes * 1000)} kg`, sous: r.comparaison ? `Soit ${r.comparaison}.` : undefined, detail: [`${fr(r.series)} séries validées`] });
-  if (r.km > 0) l.push({ sur: "Tu as couru", grand: `${r.km} km`, sous: r.km >= 42 ? `Soit ${Math.floor(r.km / 42.195) > 1 ? Math.floor(r.km / 42.195) + " marathons" : "un marathon"} et quelques.` : undefined });
-  if (r.record) l.push({ sur: "Ton plus beau record", grand: r.record.n, sous: `${fr(r.record.avant)} → ${fr(r.record.apres)} ${r.record.unite}`, detail: r.nbRecords > 1 ? [`et ${r.nbRecords - 1} autre${r.nbRecords > 2 ? "s" : ""} record${r.nbRecords > 2 ? "s" : ""}`] : undefined });
+  if (r.tonnes > 0) l.push({ sur: tr("Tu as soulevé"), grand: r.tonnes >= 1 ? `${fr(r.tonnes, 1)} t` : `${fr(r.tonnes * 1000)} kg`, sous: r.comparaison ? tr("Soit {comparaison}.", { comparaison: r.comparaison }) : undefined, detail: [tr("{a} séries validées", { a: fr(r.series) })] });
+  if (r.km > 0) l.push({ sur: tr("Tu as couru"), grand: `${r.km} km`, sous: r.km >= 42 ? tr("Soit {a} et quelques.", { a: Math.floor(r.km / 42.195) > 1 ? Math.floor(r.km / 42.195) + " marathons" : tr("un marathon") }) : undefined });
+  if (r.record) l.push({ sur: tr("Ton plus beau record"), grand: r.record.n, sous: `${fr(r.record.avant)} → ${fr(r.record.apres)} ${r.record.unite}`, detail: r.nbRecords > 1 ? [tr("et {a} autre{a1} record{a2}", { a: r.nbRecords - 1, a1: r.nbRecords > 2 ? "s" : "", a2: r.nbRecords > 2 ? "s" : "" })] : undefined });
   const fav: string[] = [];
-  if (r.exFavori) fav.push(`Exercice préféré : ${r.exFavori.n} (${r.exFavori.fois} fois)`);
-  if (r.minutesCardio) fav.push(`${fr(r.minutesCardio)} min de cardio${r.formatFavori ? `, surtout en ${r.formatFavori}` : ""}`);
-  if (fav.length) l.push({ sur: "Tes habitudes", grand: r.exFavori?.n || `${fr(r.minutesCardio)} min de cardio`, detail: fav });
+  if (r.exFavori) fav.push(tr("Exercice préféré : {n} ({fois} fois)", { n: r.exFavori.n, fois: r.exFavori.fois }));
+  if (r.minutesCardio) fav.push(tr("{a} min de cardio{a1}", { a: fr(r.minutesCardio), a1: r.formatFavori ? tr(", surtout en {formatFavori}", { formatFavori: r.formatFavori }) : "" }));
+  if (fav.length) l.push({ sur: tr("Tes habitudes"), grand: r.exFavori?.n || tr("{a} min de cardio", { a: fr(r.minutesCardio) }), detail: fav });
   if (r.serie > 1 || r.badges.length) l.push({
-    sur: "Ta régularité", grand: r.serie > 1 ? `${r.serie} semaines d'affilée` : `${r.badges.length} badge${r.badges.length > 1 ? "s" : ""}`,
-    sous: r.serie > 1 ? "ta meilleure série d'objectifs tenus" : undefined, detail: r.badges.length ? [`Badges : ${r.badges.slice(0, 4).join(", ")}${r.badges.length > 4 ? "…" : ""}`] : undefined,
+    sur: tr("Ta régularité"), grand: r.serie > 1 ? tr("{serie} semaines d'affilée", { serie: r.serie }) : `${r.badges.length} badge${pluriel(r.badges.length) ? "s" : ""}`,
+    sous: r.serie > 1 ? tr("ta meilleure série d'objectifs tenus") : undefined, detail: r.badges.length ? [tr("Badges : {a}{a1}", { a: r.badges.slice(0, 4).join(", "), a1: r.badges.length > 4 ? "…" : "" })] : undefined,
   });
   return l;
 }
@@ -56,15 +57,15 @@ async function image(r: Recap): Promise<Blob | null> {
   const texte = (t: string, x: number, y: number, taille: number, poids = 700, alpha = 1) => {
     g.globalAlpha = alpha; g.font = `${poids} ${taille}px ${police}`; g.fillText(t, x, y); g.globalAlpha = 1;
   };
-  texte("REPÈRE", 90, 150, 40, 700, 0.85);
-  texte(r.p.annee ? `Mon année ${r.p.nom}` : `Mon mois de ${r.p.nom.split(" ")[0]}`, 90, 330, 76, 800);
+  texte(tr("REPÈRE"), 90, 150, 40, 700, 0.85);
+  texte(r.p.annee ? tr("Mon année {nom}", { nom: r.p.nom }) : tr("Mon mois de {a}", { a: r.p.nom.split(" ")[0] }), 90, 330, 76, 800);
   const lignes: [string, string][] = [
-    [String(r.seances), r.seances > 1 ? "séances" : "séance"],
-    ...(r.tonnes > 0 ? [[r.tonnes >= 1 ? `${fr(r.tonnes, 1)} t` : `${fr(r.tonnes * 1000)} kg`, "soulevés"] as [string, string]] : []),
+    [String(r.seances), tr(pluriel(r.seances) ? "séances" : "séance")],
+    ...(r.tonnes > 0 ? [[r.tonnes >= 1 ? `${fr(r.tonnes, 1)} t` : `${fr(r.tonnes * 1000)} kg`, tr("soulevés")] as [string, string]] : []),
     ...(r.km ? [[`${r.km} km`, "courus"] as [string, string]] : []),
-    ...(r.minutesCardio ? [[fr(r.minutesCardio), "min de cardio"] as [string, string]] : []),
-    ...(r.nbRecords ? [[String(r.nbRecords), r.nbRecords > 1 ? "records battus" : "record battu"] as [string, string]] : []),
-    ...(r.serie > 1 ? [[String(r.serie), "semaines d'affilée"] as [string, string]] : []),
+    ...(r.minutesCardio ? [[fr(r.minutesCardio), tr("min de cardio")] as [string, string]] : []),
+    ...(r.nbRecords ? [[String(r.nbRecords), tr(pluriel(r.nbRecords) ? "records battus" : "record battu")] as [string, string]] : []),
+    ...(r.serie > 1 ? [[String(r.serie), tr("semaines d'affilée")] as [string, string]] : []),
   ];
   let y = 520;
   for (const [v, n] of lignes.slice(0, 5)) {
@@ -72,7 +73,7 @@ async function image(r: Recap): Promise<Blob | null> {
     texte(n, 90, y + 62, 46, 500, 0.8);
     y += 232;
   }
-  if (r.record) { texte("Plus beau record", 90, H - 230, 38, 500, 0.75); texte(`${r.record.n} · ${fr(r.record.apres)} ${r.record.unite.split(" ")[0]}`, 90, H - 170, 50, 700); }
+  if (r.record) { texte(tr("Plus beau record"), 90, H - 230, 38, 500, 0.75); texte(`${r.record.n} · ${fr(r.record.apres)} ${r.record.unite.split(" ")[0]}`, 90, H - 170, 50, 700); }
   return new Promise((ok) => c.toBlob((b) => ok(b), "image/png"));
 }
 
@@ -106,8 +107,8 @@ function BilanPeriode() {
     return (
       <div className="grid min-h-dvh place-items-center bg-plate p-8 text-center text-plate-foreground">
         <div>
-          <p className="text-[18px] font-semibold">Pas encore d&apos;entraînement sur cette période.</p>
-          <Button variant="secondary" className="mt-4" onClick={retour}>Revenir</Button>
+          <p className="text-[18px] font-semibold">{tr("Pas encore d'entraînement sur cette période.")}</p>
+          <Button variant="secondary" className="mt-4" onClick={retour}>{tr("Revenir")}</Button>
         </div>
       </div>
     );
@@ -116,7 +117,7 @@ function BilanPeriode() {
     if (!img) return;
     const f = new File([img.blob], `repere-${r.p.id}.png`, { type: "image/png" });
     try {
-      if (navigator.canShare?.({ files: [f] })) await navigator.share({ files: [f], title: "Mon bilan Repère" });
+      if (navigator.canShare?.({ files: [f] })) await navigator.share({ files: [f], title: tr("Mon bilan Repère") });
       else { const a = document.createElement("a"); a.href = img.url; a.download = f.name; a.click(); }
     } catch {}
   };
@@ -131,7 +132,7 @@ function BilanPeriode() {
           </span>
         ))}
       </div>
-      <button onClick={retour} aria-label="Fermer" className="absolute top-[max(env(safe-area-inset-top),14px)] right-3 mt-3 grid size-10 place-items-center rounded-full bg-white/15"><XIcon className="size-5" weight="bold" /></button>
+      <button onClick={retour} aria-label={tr("Fermer")} className="absolute top-[max(env(safe-area-inset-top),14px)] right-3 mt-3 grid size-10 place-items-center rounded-full bg-white/15"><XIcon className="size-5" weight="bold" /></button>
 
       {!fin ? (
         <>
@@ -141,21 +142,21 @@ function BilanPeriode() {
             {e.sous && <p className="mt-4 animate-[monter_.6s_.3s_ease-out_both] text-[19px] leading-snug opacity-90">{e.sous}</p>}
             {e.detail?.map((d, k) => <p key={d} className="mt-2 animate-[monter_.6s_ease-out_both] text-[15px] opacity-75" style={{ animationDelay: 450 + k * 100 + "ms" }}>{d}</p>)}
           </div>
-          <button aria-label="Précédent" className="absolute inset-y-0 left-0 w-1/3" onClick={() => setI((x) => Math.max(0, x - 1))} />
-          <button aria-label="Suivant" className="absolute inset-y-0 right-0 w-2/3" onClick={() => setI((x) => x + 1)} />
+          <button aria-label={tr("Précédent")} className="absolute inset-y-0 left-0 w-1/3" onClick={() => setI((x) => Math.max(0, x - 1))} />
+          <button aria-label={tr("Suivant")} className="absolute inset-y-0 right-0 w-2/3" onClick={() => setI((x) => x + 1)} />
         </>
       ) : (
         <div className="flex min-h-[90dvh] flex-col items-center justify-center gap-5 px-6">
-          <p className="text-[15px] font-semibold tracking-[0.14em] uppercase opacity-80">À partager</p>
+          <p className="text-[15px] font-semibold tracking-[0.14em] uppercase opacity-80">{tr("À partager")}</p>
           <div className="aspect-[9/16] w-[58vw] max-w-[260px] overflow-hidden rounded-2xl bg-white/10 shadow-2xl">
             {/* eslint-disable-next-line @next/next/no-img-element -- image fabriquée dans le téléphone (blob) */}
-            {img && <img src={img.url} alt="Ton bilan en image" className="size-full animate-[monter_.5s_ease-out_both] object-cover" />}
+            {img && <img src={img.url} alt={tr("Ton bilan en image")} className="size-full animate-[monter_.5s_ease-out_both] object-cover" />}
           </div>
           <div className="flex w-full max-w-[340px] flex-col gap-2">
             <Button size="xl" className="w-full bg-white text-[#2346c4] hover:bg-white/90" onClick={partager} disabled={!img}>
-              {typeof navigator !== "undefined" && "canShare" in navigator ? <PaperPlaneTiltIcon weight="fill" /> : <DownloadSimpleIcon weight="bold" />}Partager l&apos;image
+              {typeof navigator !== "undefined" && "canShare" in navigator ? <PaperPlaneTiltIcon weight="fill" /> : <DownloadSimpleIcon weight="bold" />}{tr("Partager l'image")}
             </Button>
-            <Button variant="ghost" className="w-full text-white hover:bg-white/10" onClick={() => setI(0)}>Revoir</Button>
+            <Button variant="ghost" className="w-full text-white hover:bg-white/10" onClick={() => setI(0)}>{tr("Revoir")}</Button>
           </div>
         </div>
       )}

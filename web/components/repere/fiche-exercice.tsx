@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useRef, useState } from "react";
 import { ArrowsLeftRightIcon, CaretLeftIcon, CaretRightIcon, ChartLineUpIcon } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
@@ -37,10 +38,10 @@ function Duo({ id }: { id: string }) {
             className={cn("relative m-0", anime && "absolute inset-0", anime && n === 1 && "animate-[duo_2.4s_ease-in-out_infinite]")}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imgEx(id, n as 0 | 1)} alt={`${EX[id].n}, ${n ? "fin" : "départ"}`} className="size-full object-cover" />
+            <img src={imgEx(id, n as 0 | 1)} alt={`${EX[id].n}, ${n ? "fin" : tr("départ")}`} className="size-full object-cover" />
             {!anime && (
               <figcaption className="absolute bottom-2 left-2 rounded-md bg-background/85 px-1.5 py-0.5 text-[10.5px] font-medium tracking-wide uppercase backdrop-blur">
-                {n ? "Fin" : "Départ"}
+                {n ? tr("Fin") : tr("Départ")}
               </figcaption>
             )}
           </figure>
@@ -50,7 +51,7 @@ function Duo({ id }: { id: string }) {
         onClick={() => setAnime((a) => !a)}
         className="absolute right-2.5 bottom-2.5 rounded-full bg-background/85 px-3 py-1.5 text-[12px] font-semibold backdrop-blur active:scale-95"
       >
-        {anime ? "Côte à côte" : "Animer"}
+        {anime ? tr("Côte à côte") : tr("Animer")}
       </button>
     </div>
   );
@@ -88,7 +89,7 @@ function Contenu({ fiche }: { fiche: FicheOuverte }) {
     <div ref={defile} className="overflow-y-auto overscroll-contain px-5 pb-[max(env(safe-area-inset-bottom),20px)]">
       {!origine && (
         <button onClick={() => aller(pile.slice(0, -1))} className="mt-1 -ml-1 flex items-center gap-0.5 text-[14.5px] font-medium text-plate-ink">
-          <CaretLeftIcon className="size-4" weight="bold" />Retour à {EX[prec].n.toLowerCase()}
+          <CaretLeftIcon className="size-4" weight="bold" />{tr("Retour à")}{" "}{EX[prec].n.toLowerCase()}
         </button>
       )}
       <div className="pt-2">
@@ -97,27 +98,27 @@ function Contenu({ fiche }: { fiche: FicheOuverte }) {
       </div>
       <div className="eyebrow mt-4">{e.m} · {nomPat(e.pat)}</div>
       <DrawerTitle className="mt-1 text-[26px] leading-tight font-bold tracking-[-0.02em]">{e.n}</DrawerTitle>
-      <DrawerDescription className="sr-only">Fiche de l&apos;exercice</DrawerDescription>
+      <DrawerDescription className="sr-only">{tr("Fiche de l'exercice")}</DrawerDescription>
 
       {origine && (
         <>
           <div className="mt-3 flex flex-wrap gap-1.5">
-            <span className="num rounded-full bg-foreground px-3 py-1 text-[15px] font-bold text-background">{fiche.pres[0]} × {fiche.pres[1]}</span>
-            <span className="rounded-full bg-muted px-3 py-1 text-[13px] font-medium">repos {fiche.pres[2]}</span>
+            <span className="num rounded-full bg-foreground px-3 py-1 text-[15px] font-bold text-background">{tr("{a} × {a1}", { a: fiche.pres[0], a1: fiche.pres[1] })}</span>
+            <span className="rounded-full bg-muted px-3 py-1 text-[13px] font-medium">{tr("repos")}{" "}{fiche.pres[2]}</span>
             <span className="rounded-full bg-muted px-3 py-1 text-[13px] font-medium">{fiche.libelle}</span>
           </div>
           {fiche.rpe && !noRPE(id) ? (
             <div className="mt-3 flex items-center gap-3 rounded-2xl border bg-card p-3">
-              <span className="num text-[28px] leading-none font-bold text-plate-ink">RPE {fiche.rpe}</span>
-              <span className="text-[13.5px] leading-snug text-muted-foreground">{rirTxt(fiche.rpe)} à la fin de la série</span>
+              <span className="num text-[28px] leading-none font-bold text-plate-ink">{tr("RPE")}{" "}{fiche.rpe}</span>
+              <span className="text-[13.5px] leading-snug text-muted-foreground">{tr("{a} à la fin de la série", { a: rirTxt(fiche.rpe) })}</span>
             </div>
           ) : null}
           {fiche.onRemplacer && (
             <button onClick={fiche.onRemplacer} className="mt-2 flex w-full items-center gap-3 rounded-2xl border bg-card p-3 text-left active:scale-[.99]">
               <ArrowsLeftRightIcon className="size-5 text-muted-foreground" />
               <span className="flex-1">
-                <span className="block text-[15px] font-semibold">Exercice alternatif</span>
-                <span className="block text-[12.5px] text-muted-foreground">Même muscle, compatible avec ton matériel</span>
+                <span className="block text-[15px] font-semibold">{tr("Exercice alternatif")}</span>
+                <span className="block text-[12.5px] text-muted-foreground">{tr("Même muscle, compatible avec ton matériel")}</span>
               </span>
               <CaretRightIcon className="size-4 text-muted-foreground" />
             </button>
@@ -125,7 +126,7 @@ function Contenu({ fiche }: { fiche: FicheOuverte }) {
         </>
       )}
 
-      <Bloc titre="Ton historique">
+      <Bloc titre={tr("Ton historique")}>
         {lignes.length ? (
           <div className="flex flex-col gap-1.5">
             {lignes.map((l, i) => (
@@ -141,20 +142,20 @@ function Contenu({ fiche }: { fiche: FicheOuverte }) {
             ))}
           </div>
         ) : (
-          <p className="text-[14px] text-muted-foreground">Rien d&apos;enregistré pour l&apos;instant sur cet exercice.</p>
+          <p className="text-[14px] text-muted-foreground">{tr("Rien d'enregistré pour l'instant sur cet exercice.")}</p>
         )}
         {suivi > 1 && (
           <button onClick={() => router.push(`/progres?ex=${id}` as "/progres", AVANT)} className="mt-3 flex w-full items-center gap-3 rounded-2xl border bg-card p-3 text-left active:scale-[.99]">
             <ChartLineUpIcon className="size-5 text-plate-ink" weight="bold" />
-            <span className="flex-1 text-[15px] font-semibold">Ma progression sur {suivi} séances</span>
+            <span className="flex-1 text-[15px] font-semibold">{tr("Ma progression sur {suivi} séances", { suivi })}</span>
             <CaretRightIcon className="size-4 text-muted-foreground" />
           </button>
         )}
       </Bloc>
       {t ? (
         <>
-          <Bloc titre="Exécution"><p className="text-[15px] leading-relaxed">{t.e}</p></Bloc>
-          <Bloc titre="Erreurs fréquentes">
+          <Bloc titre={tr("Exécution")}><p className="text-[15px] leading-relaxed">{t.e}</p></Bloc>
+          <Bloc titre={tr("Erreurs fréquentes")}>
             <ul className="flex flex-col gap-2">
               {t.err.map((x, i) => (
                 <li key={i} className="flex gap-2.5 text-[15px] leading-relaxed">
@@ -164,7 +165,7 @@ function Contenu({ fiche }: { fiche: FicheOuverte }) {
               ))}
             </ul>
           </Bloc>
-          <Bloc titre="Comment progresser">
+          <Bloc titre={tr("Comment progresser")}>
             <p className="rounded-2xl bg-plate-soft p-3.5 text-[15px] leading-relaxed">{t.p}</p>
           </Bloc>
         </>
@@ -178,7 +179,7 @@ function Contenu({ fiche }: { fiche: FicheOuverte }) {
       )}
 
       {variantes.length > 0 && (
-        <Bloc titre="Variantes">
+        <Bloc titre={tr("Variantes")}>
           <div className="overflow-hidden rounded-2xl border bg-card">
             {variantes.map((v) => (
               <button key={v.id} onClick={() => aller([...pile, v.id])} className="flex w-full items-center gap-3 border-t border-border/70 p-2.5 text-left first:border-t-0 active:bg-muted">
@@ -188,7 +189,7 @@ function Contenu({ fiche }: { fiche: FicheOuverte }) {
                   <span className="block truncate text-[12.5px] text-muted-foreground">
                     {v.materiel}{musclesDe([v.id]).length ? " · " + musclesDe([v.id]).join(", ") : ""}
                   </span>
-                  {!v.dispo && <span className="block text-[11.5px] font-medium text-muted-foreground/80">autre matériel</span>}
+                  {!v.dispo && <span className="block text-[11.5px] font-medium text-muted-foreground/80">{tr("autre matériel")}</span>}
                 </span>
                 <CaretRightIcon className="size-4 text-muted-foreground" />
               </button>

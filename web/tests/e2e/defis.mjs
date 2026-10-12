@@ -34,7 +34,7 @@ const lire = (code) => {
 };
 const appels = [];
 const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
-const ctx = await b.newContext({ viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
+const ctx = await b.newContext({ locale: "fr-FR", viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
 await ctx.addInitScript(([s, sess]) => {
   if (!sessionStorage.vu) {
     localStorage.setItem("palier.state.v1", JSON.stringify(s));

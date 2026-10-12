@@ -1,5 +1,6 @@
 /* Accès admin : agrégats sur tous les comptes (fonctions serveur admin_*,
    migration 20261006090000_admin.sql). Logique pure, rien n'est stocké. */
+import { loc, pluriel, tr } from "@/lib/i18n";
 import { MATN, OBJN } from "@/lib/data/referentiels";
 import { avecSorties } from "./course";
 import { dateDe, decaler, jourDe, semaines } from "./historique";
@@ -52,7 +53,7 @@ export type Resume = {
 };
 export function resume(c: CompteAdmin): Resume {
   const E = c.etat, A = E.A || {}, cardio = C(c).filter((x) => !x.ref && !x.run).length;
-  const plan = E.FINI || E.PLAN ? `Semaine ${(E.wk ?? 0) + 1}/8` : null;
+  const plan = E.FINI || E.PLAN ? tr("Semaine {a}/8", { a: (E.wk ?? 0) + 1 }) : null;
   return {
     seances: H(c).length + C(c).filter((x) => !x.ref).length, muscu: H(c).length, cardio,
     sorties: (E.SORTIES || []).length, km: Math.round((E.SORTIES || []).reduce((n, s) => n + s.km, 0)),
@@ -85,14 +86,14 @@ export function tableau(L: CompteAdmin[], auj = jourDe(Date.now())): Tableau {
     e.seances++; e.comptes.add(c.id); ex.set(id, e);
   }
   const usage: [string, string, (c: CompteAdmin) => boolean][] = [
-    ["plan", "Plan de 8 semaines", (c) => !!(c.etat.FINI || c.etat.PLAN)],
-    ["carte", "Séances à la carte", (c) => H(c).some((l) => l.s.startsWith("L")) || (c.etat.SEANCES || []).length > 0],
-    ["cardio", "Cardio", (c) => (c.etat.CARDIO || []).some((x) => !x.ref)],
-    ["combinee", "Séances combinées", (c) => (c.etat.CARDIO || []).some((x) => !!x.ref)],
-    ["course", "Préparation course", (c) => !!c.etat.COURSE || (c.etat.SORTIES || []).length > 0],
-    ["defis", "Défis entre amis", (c) => ((c.etat.A?.defis as string[] | undefined) || []).length > 0],
-    ["forme", "Forme du jour", (c) => !!c.etat.A?.forme || !!c.etat.A?.formePassee],
-    ["prot", "Suivi des protéines", (c) => Object.keys((c.etat.A?.prot as object | undefined) || {}).length > 0],
+    ["plan", tr("Plan de 8 semaines"), (c) => !!(c.etat.FINI || c.etat.PLAN)],
+    ["carte", tr("Séances à la carte"), (c) => H(c).some((l) => l.s.startsWith("L")) || (c.etat.SEANCES || []).length > 0],
+    ["cardio", tr("Cardio"), (c) => (c.etat.CARDIO || []).some((x) => !x.ref)],
+    ["combinee", tr("Séances combinées"), (c) => (c.etat.CARDIO || []).some((x) => !!x.ref)],
+    ["course", tr("Préparation course"), (c) => !!c.etat.COURSE || (c.etat.SORTIES || []).length > 0],
+    ["defis", tr("Défis entre amis"), (c) => ((c.etat.A?.defis as string[] | undefined) || []).length > 0],
+    ["forme", tr("Forme du jour"), (c) => !!c.etat.A?.forme || !!c.etat.A?.formePassee],
+    ["prot", tr("Suivi des protéines"), (c) => Object.keys((c.etat.A?.prot as object | undefined) || {}).length > 0],
   ];
   const avecReponses = L.filter((c) => c.etat.A && c.etat.A.objectif != null);
   return {
@@ -126,12 +127,12 @@ export function filtrer(L: CompteAdmin[], q: string, tri: Tri): CompteAdmin[] {
   return l.sort((a, b) => cle(b).localeCompare(cle(a)));
 }
 
-export const court = (j: string) => dateDe(j).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }).replace(".", "");
+export const court = (j: string) => dateDe(j).toLocaleDateString(loc(), { day: "numeric", month: "short" }).replace(".", "");
 /** « aujourd'hui », « hier », « il y a 5 j », puis la date. */
 export const ilya = (j: string | null, auj = jourDe(Date.now())) => {
-  if (!j) return "jamais";
+  if (!j) return tr("jamais");
   const n = Math.round((dateDe(auj).getTime() - dateDe(j).getTime()) / 864e5);
-  return n <= 0 ? "aujourd'hui" : n === 1 ? "hier" : n < 31 ? `il y a ${n} j` : court(j);
+  return n <= 0 ? tr("aujourd'hui") : n === 1 ? tr("hier") : n < 31 ? tr("il y a {n} j", { n }) : court(j);
 };
 /** « 1 séance », « 3 séances ». */
-export const pl = (n: number, mot: string) => `${n} ${mot}${n > 1 ? "s" : ""}`;
+export const pl = (n: number, mot: string) => `${n} ${mot}${pluriel(n) ? "s" : ""}`;

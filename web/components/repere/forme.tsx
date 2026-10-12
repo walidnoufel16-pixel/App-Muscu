@@ -2,6 +2,7 @@
 
 /* Forme du jour : trois touches avant la séance, la charge proposée suit.
    Facultatif : « Passer » la masque pour la journée. */
+import { tr } from "@/lib/i18n";
 import { useState } from "react";
 import { BatteryMediumIcon, WarningIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ import { useRepere } from "@/lib/store";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 
-const ZONES = BLESN.slice(0, 4);
+const ZONES = BLESN.slice(0, 4).map((z) => tr(z));
 
 export function FormeDuJour({ cles }: { cles: string[] }) {
   const etat = useRepere((s) => s.etat);
@@ -31,11 +32,11 @@ export function FormeDuJour({ cles }: { cles: string[] }) {
       <button onClick={() => { setRep(f); setOuvert(true); }} className="flex items-center gap-2.5 rounded-2xl border border-border/80 bg-card px-3.5 py-2.5 text-left active:bg-muted">
         <BatteryMediumIcon className={cn("size-5 shrink-0", n < 0 ? "text-amber-500" : "text-success")} weight="fill" />
         <span className="min-w-0 flex-1 text-[13.5px]">
-          Forme du jour <b>{NOMS_NIVEAU[n]}</b>
-          {n !== 0 && <span className="text-muted-foreground"> · charges ajustées</span>}
-          {!!f.douleur?.length && <span className="text-muted-foreground"> · {f.douleur.map(nomZone).join(", ").toLowerCase()} à ménager</span>}
+          {tr("Forme du jour")}{" "}<b>{NOMS_NIVEAU[n]}</b>
+          {n !== 0 && <span className="text-muted-foreground">{" "}{tr("· charges ajustées")}</span>}
+          {!!f.douleur?.length && <span className="text-muted-foreground">{" "}{tr("· {a} à ménager", { a: f.douleur.map(nomZone).join(", ").toLowerCase() })}</span>}
         </span>
-        <span className="text-[12.5px] font-semibold text-plate-ink">Modifier</span>
+        <span className="text-[12.5px] font-semibold text-plate-ink">{tr("Modifier")}</span>
       </button>
     );
   }
@@ -50,11 +51,11 @@ export function FormeDuJour({ cles }: { cles: string[] }) {
   return (
     <div className="animate-[monter_.4s_ease-out_both] rounded-[20px] border border-border/80 bg-card p-4">
       <div className="flex items-baseline justify-between">
-        <h3 className="text-[16px] font-semibold">Comment tu te sens ?</h3>
-        <button onClick={() => { muter((E) => { E.A.formePassee = auj; }); setOuvert(false); }} className="text-[13px] font-medium text-muted-foreground">Passer</button>
+        <h3 className="text-[16px] font-semibold">{tr("Comment tu te sens ?")}</h3>
+        <button onClick={() => { muter((E) => { E.A.formePassee = auj; }); setOuvert(false); }} className="text-[13px] font-medium text-muted-foreground">{tr("Passer")}</button>
       </div>
       <PhaseDuJour className="mt-2" />
-      <p className="mt-2 text-[12.5px] leading-snug text-muted-foreground">Les charges proposées s&apos;adaptent à ta forme du jour{entamee ? " (pour les exercices pas encore commencés)" : ""}.</p>
+      <p className="mt-2 text-[12.5px] leading-snug text-muted-foreground">{tr("Les charges proposées s'adaptent à ta forme du jour{a}.", { a: entamee ? tr(" (pour les exercices pas encore commencés)") : "" })}</p>
       <div className="mt-3 flex flex-col gap-2.5">
         {QUESTIONS_FORME.map((q) => (
           <div key={q.k}>
@@ -70,7 +71,7 @@ export function FormeDuJour({ cles }: { cles: string[] }) {
           </div>
         ))}
         <div>
-          <div className="mb-1 text-[12.5px] font-medium text-muted-foreground">Une douleur aujourd&apos;hui ?</div>
+          <div className="mb-1 text-[12.5px] font-medium text-muted-foreground">{tr("Une douleur aujourd'hui ?")}</div>
           <div className="flex flex-wrap gap-1.5">
             {ZONES.map((z, i) => {
               const on = rep.douleur?.includes(i);
@@ -84,7 +85,7 @@ export function FormeDuJour({ cles }: { cles: string[] }) {
           </div>
         </div>
       </div>
-      <Button variant="plate" size="lg" className="mt-4 w-full rounded-xl" disabled={!complet} onClick={valider}>C&apos;est parti</Button>
+      <Button variant="plate" size="lg" className="mt-4 w-full rounded-xl" disabled={!complet} onClick={valider}>{tr("C'est parti")}</Button>
     </div>
   );
 }
@@ -99,8 +100,8 @@ export function EtiquetteZone({ id }: { id: string }) {
   const z = useZones(id);
   if (!z.length) return null;
   return (
-    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-500/14 px-2 py-0.5 text-[10.5px] font-semibold text-amber-700 dark:text-amber-300" title={"À ménager : " + z.map(nomZone).join(", ")}>
-      <WarningIcon className="size-3" weight="fill" />À ménager
+    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-500/14 px-2 py-0.5 text-[10.5px] font-semibold text-amber-700 dark:text-amber-300" title={tr("À ménager : ") + z.map(nomZone).join(", ")}>
+      <WarningIcon className="size-3" weight="fill" />{tr("À ménager")}
     </span>
   );
 }
@@ -110,7 +111,7 @@ export function ConseilZone({ id }: { id: string }) {
   return (
     <p className="mx-1 mb-2 flex gap-1.5 rounded-xl bg-amber-500/10 px-2.5 py-2 text-[12.5px] leading-snug">
       <WarningIcon className="mt-0.5 size-3.5 shrink-0 text-amber-600" weight="fill" />
-      <span><b>{z.map(nomZone).join(", ")}</b> : charge modérée, amplitude sans douleur. Si ça tire, arrête ou remplace l&apos;exercice.</span>
+      <span><b>{z.map(nomZone).join(", ")}</b>{" "}{tr(": charge modérée, amplitude sans douleur. Si ça tire, arrête ou remplace l'exercice.")}</span>
     </p>
   );
 }

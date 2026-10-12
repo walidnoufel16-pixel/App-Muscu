@@ -1,5 +1,6 @@
 "use client";
 
+import { pluriel, tr } from "@/lib/i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CaretLeftIcon, CheckIcon, MinusIcon, PlusIcon } from "@phosphor-icons/react";
@@ -36,7 +37,7 @@ export default function PageQuestionnaire() {
     if (bascule.current) clearTimeout(bascule.current);
     const i = Q.findIndex((x) => x.k === q.k);
     if (i > 0) { setQi(i - 1); majA((a) => { a.reprise = i - 1; }); return; }
-    if (await confirmer({ titre: "Quitter le questionnaire ?", texte: "Tes réponses sont gardées : tu pourras reprendre où tu en étais.", ok: "Quitter" }))
+    if (await confirmer({ titre: tr("Quitter le questionnaire ?"), texte: tr("Tes réponses sont gardées : tu pourras reprendre où tu en étais."), ok: tr("Quitter") }))
       router.replace(etat.FINI ? "/profil" : "/bienvenue", ARRIERE);
   };
 
@@ -49,7 +50,7 @@ export default function PageQuestionnaire() {
     setGen({ pct: 100, texte: "" });
     muter((E) => { E.PLAN = r.plan; E.FINI = true; });
     await new Promise((z) => setTimeout(z, 380));
-    if (r.erreur) await dire("Génération par IA indisponible", r.erreur + "\n\nLe programme affiché vient des règles intégrées.");
+    if (r.erreur) await dire(tr("Génération par IA indisponible"), r.erreur + tr("\n\nLe programme affiché vient des règles intégrées."));
     router.replace("/entrainement/programme", AVANT);
   };
 
@@ -76,8 +77,8 @@ export default function PageQuestionnaire() {
   if (gen)
     return (
       <div className="flex min-h-dvh flex-col justify-center px-8">
-        <div className="eyebrow">Génération</div>
-        <h1 className="mt-2 text-[34px] leading-[1.05] font-bold tracking-[-0.025em]">On construit ton cycle</h1>
+        <div className="eyebrow">{tr("Génération")}</div>
+        <h1 className="mt-2 text-[34px] leading-[1.05] font-bold tracking-[-0.025em]">{tr("On construit ton cycle")}</h1>
         <div className="mt-8 h-3 overflow-hidden rounded-full bg-muted">
           <div className="h-full rounded-full bg-plate transition-[width] duration-200" style={{ width: gen.pct + "%" }} />
         </div>
@@ -94,9 +95,9 @@ export default function PageQuestionnaire() {
     <div className="flex min-h-dvh flex-col">
       <div className="safe-top sticky top-0 z-20 bg-background/90 backdrop-blur-xl">
         <div className="flex h-12 items-center gap-2 px-3">
-          <Button variant="ghost" size="icon" aria-label="Question précédente" onClick={precedent}><CaretLeftIcon className="size-6" /></Button>
+          <Button variant="ghost" size="icon" aria-label={tr("Question précédente")} onClick={precedent}><CaretLeftIcon className="size-6" /></Button>
           {/* progression : des disques qui se chargent */}
-          <div className="flex flex-1 items-center gap-1" aria-label={`Question ${idx + 1} sur ${total}`}>
+          <div className="flex flex-1 items-center gap-1" aria-label={tr("Question {a} sur {total}", { a: idx + 1, total })}>
             {Q.map((x, n) => (
               <span key={x.k} className={cn("h-1.5 flex-1 rounded-full transition-colors duration-300", n < idx ? "bg-foreground" : n === idx ? "bg-plate" : "bg-muted")} />
             ))}
@@ -106,14 +107,14 @@ export default function PageQuestionnaire() {
       </div>
 
       <div className="flex-1 px-5 pt-4 pb-32">
-        <div className="eyebrow">Question {idx + 1}</div>
+        <div className="eyebrow">{tr("Question {a}", { a: idx + 1 })}</div>
         <h1 className="mt-2 text-[28px] leading-[1.1] font-bold tracking-[-0.02em] text-balance">{q.q}</h1>
         {q.h && <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{q.h}</p>}
         {warn.length > 0 && (
           <div className="mt-4 rounded-2xl bg-plate-soft p-4 text-[14px] leading-relaxed">
             {warn.map(([g, t], i) => <p key={i} className={i ? "mt-2" : ""}><b className="font-semibold">{g}</b> {t}</p>)}
             {warn.some(([g]) => g.includes("axe")) && (
-              <button onClick={() => setQi(Q.findIndex((x) => x.k === "axe"))} className="mt-2 text-[13.5px] font-semibold underline underline-offset-4">Revenir changer l&apos;axe de ma séance bonus</button>
+              <button onClick={() => setQi(Q.findIndex((x) => x.k === "axe"))} className="mt-2 text-[13.5px] font-semibold underline underline-offset-4">{tr("Revenir changer l'axe de ma séance bonus")}</button>
             )}
           </div>
         )}
@@ -159,7 +160,7 @@ export default function PageQuestionnaire() {
       {!auto && (
         <div className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[480px] bg-gradient-to-t from-background via-background to-transparent px-5 pt-6 pb-[max(env(safe-area-inset-bottom),16px)]">
           <Button variant={idx === total - 1 ? "plate" : "default"} size="xl" className="w-full" disabled={!fait} onClick={suivant}>
-            {idx === total - 1 ? "Générer mon programme" : "Continuer"}
+            {idx === total - 1 ? tr("Générer mon programme") : tr("Continuer")}
           </Button>
         </div>
       )}
@@ -170,7 +171,7 @@ export default function PageQuestionnaire() {
 type Maj = (fn: (a: Reponses) => void) => void;
 
 function Frequences({ A, majA }: { A: Reponses; majA: Maj }) {
-  const F = ["1 fois", "2 fois", "3 fois ou plus"];
+  const F = [tr("1 fois"), tr("2 fois"), tr("3 fois ou plus")];
   return (
     <div className="flex flex-col gap-3">
       {sportsChoisis(A).map((i) => (
@@ -187,7 +188,7 @@ function Frequences({ A, majA }: { A: Reponses; majA: Maj }) {
           </div>
         </div>
       ))}
-      <p className="px-1 text-[13.5px] text-muted-foreground">Soit {sportsTotal(A)} séance{sportsTotal(A) > 1 ? "s" : ""} par semaine en dehors de la musculation.</p>
+      <p className="px-1 text-[13.5px] text-muted-foreground">{tr("Soit {a} séance{a1} par semaine en dehors de la musculation.", { a: sportsTotal(A), a1: pluriel(sportsTotal(A)) ? "s" : "" })}</p>
     </div>
   );
 }
@@ -197,7 +198,7 @@ function Preferences({ A, majA, rows, onToutConvient }: { A: Reponses; majA: Maj
   const pref = async (g: string, v: number) => {
     if (v === -2) {
       const exclu = (A.exclus || []).includes(g);
-      if (!exclu && prioNoms(A).includes(g)) { await dire("Groupe prioritaire", `Tu as déclaré « ${g} » comme groupe prioritaire. Reviens en arrière pour le retirer de tes priorités avant de l'écarter du programme.`); return; }
+      if (!exclu && prioNoms(A).includes(g)) { await dire(tr("Groupe prioritaire"), tr("Tu as déclaré « {g} » comme groupe prioritaire. Reviens en arrière pour le retirer de tes priorités avant de l'écarter du programme.", { g })); return; }
       majA((a) => { a.prefs = a.prefs || {}; a.exclus = a.exclus || []; if (exclu) a.exclus.splice(a.exclus.indexOf(g), 1); else { a.exclus.push(g); a.prefs[g] = []; } });
       return;
     }
@@ -220,23 +221,21 @@ function Preferences({ A, majA, rows, onToutConvient }: { A: Reponses; majA: Maj
           <div key={g} className={cn("rounded-[18px] bg-card p-3.5", off && "opacity-70")}>
             <div className="mb-2 flex items-baseline justify-between">
               <span className="text-[15px] font-semibold">{g}</span>
-              <span className="text-[12px] text-muted-foreground">{off ? "écarté" : arr.length ? arr.length + " choix" : "peu importe"}</span>
+              <span className="text-[12px] text-muted-foreground">{off ? tr("écarté") : arr.length ? arr.length + " choix" : tr("peu importe")}</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              <Chip on={!off && !arr.length} onClick={() => pref(g, -1)}>Peu importe</Chip>
+              <Chip on={!off && !arr.length} onClick={() => pref(g, -1)}>{tr("Peu importe")}</Chip>
               {C.map(([c, n]) => <Chip key={c} on={!off && arr.includes(c)} onClick={() => pref(g, c)}>{n}</Chip>)}
-              <Chip danger on={off} onClick={() => pref(g, -2)}>Ne pas travailler</Chip>
+              <Chip danger on={off} onClick={() => pref(g, -2)}>{tr("Ne pas travailler")}</Chip>
             </div>
           </div>
         );
       })}
       {(A.exclus || []).length > 0 && (
-        <p className="rounded-2xl bg-plate-soft p-3.5 text-[13.5px] leading-relaxed">
-          Le volume de {A.exclus!.join(" et ")} sera reporté sur {prioNoms(A).length ? "tes groupes prioritaires : " + prioNoms(A).join(", ") + "." : "les autres groupes, à parts égales."} Aucun groupe ne dépassera vingt séries par semaine.
-        </p>
+        <p className="rounded-2xl bg-plate-soft p-3.5 text-[13.5px] leading-relaxed">{tr("Le volume de {a} sera reporté sur {a1} Aucun groupe ne dépassera vingt séries par semaine.", { a: A.exclus!.join(" et "), a1: prioNoms(A).length ? tr("tes groupes prioritaires : ") + prioNoms(A).join(", ") + "." : tr("les autres groupes, à parts égales.") })}</p>
       )}
-      <p className="px-1 text-[13px] leading-relaxed text-muted-foreground">Ces choix pilotent aussi les alternatives proposées en salle quand un appareil est occupé.</p>
-      <Button variant="ghost" onClick={onToutConvient}>Tout me convient, passe cette étape</Button>
+      <p className="px-1 text-[13px] leading-relaxed text-muted-foreground">{tr("Ces choix pilotent aussi les alternatives proposées en salle quand un appareil est occupé.")}</p>
+      <Button variant="ghost" onClick={onToutConvient}>{tr("Tout me convient, passe cette étape")}</Button>
     </div>
   );
 }
@@ -251,33 +250,33 @@ function Profil({ A, majA, loads }: { A: Reponses; majA: Maj; loads: [string, nu
     <div className="flex flex-col gap-2">
       {loads.map(([l, d, pas, u]) => (
         <div key={l} className="flex items-center justify-between rounded-[18px] bg-card p-3 pl-4">
-          <span className="text-[15.5px] font-semibold">{l}</span>
+          <span className="text-[15.5px] font-semibold">{tr(l)}</span>
           <div className="flex items-center gap-2">
-            <button onClick={() => majA((a) => { a.profil = { ...(a.profil || {}), [l]: Math.max(0, val(l, d) - pas) }; })} aria-label={`${l} moins`} className="grid size-10 place-items-center rounded-full bg-muted active:scale-90"><MinusIcon className="size-4" /></button>
+            <button onClick={() => majA((a) => { a.profil = { ...(a.profil || {}), [l]: Math.max(0, val(l, d) - pas) }; })} aria-label={tr("{l} moins", { l: tr(l) })} className="grid size-10 place-items-center rounded-full bg-muted active:scale-90"><MinusIcon className="size-4" /></button>
             <span className="flex w-24 items-baseline justify-center gap-1">
               <input
                 value={val(l, d)}
                 inputMode="decimal"
-                aria-label={l}
+                aria-label={tr(l)}
                 onChange={(e) => { const v = parseFloat(e.target.value.replace(",", ".")); if (!isNaN(v)) majA((a) => { a.profil = { ...(a.profil || {}), [l]: Math.max(0, v) }; }); }}
                 className="num w-14 bg-transparent text-center text-[28px] font-bold outline-none"
               />
-              <span className="text-[13px] text-muted-foreground">{u}</span>
+              <span className="text-[13px] text-muted-foreground">{tr(u)}</span>
             </span>
-            <button onClick={() => majA((a) => { a.profil = { ...(a.profil || {}), [l]: val(l, d) + pas }; })} aria-label={`${l} plus`} className="grid size-10 place-items-center rounded-full bg-muted active:scale-90"><PlusIcon className="size-4" /></button>
+            <button onClick={() => majA((a) => { a.profil = { ...(a.profil || {}), [l]: val(l, d) + pas }; })} aria-label={tr("{l} plus", { l: tr(l) })} className="grid size-10 place-items-center rounded-full bg-muted active:scale-90"><PlusIcon className="size-4" /></button>
           </div>
         </div>
       ))}
       <div className="mt-2 rounded-[18px] bg-card p-4">
         <div className="flex items-baseline justify-between">
-          <span className="text-[14px] font-medium">Indice de masse corporelle</span>
+          <span className="text-[14px] font-medium">{tr("Indice de masse corporelle")}</span>
           <b className="num text-[26px] font-bold">{imc.toFixed(1).replace(".", ",")}</b>
         </div>
         <div className="relative mt-3 h-2 rounded-full bg-gradient-to-r from-rpe8 via-rpe7 to-rpe9">
           <i className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-card bg-foreground" style={{ left: pos + "%" }} />
         </div>
         <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
-          Repère de population, calculé à partir de ta taille et de ton poids. Il ne fait pas la différence entre le muscle et la graisse : chez quelqu&apos;un qui s&apos;entraîne depuis plusieurs années, il surestime presque toujours. Le programme ne s&apos;en sert ni pour tes charges ni pour ton volume.
+          {tr("Repère de population, calculé à partir de ta taille et de ton poids. Il ne fait pas la différence entre le muscle et la graisse : chez quelqu'un qui s'entraîne depuis plusieurs années, il surestime presque toujours. Le programme ne s'en sert ni pour tes charges ni pour ton volume.")}
         </p>
       </div>
     </div>

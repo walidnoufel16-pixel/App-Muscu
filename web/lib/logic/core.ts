@@ -3,6 +3,7 @@
    stockage. Les tests de parité (tests/parite.test.ts) les comparent à
    l'ancien code sur les mêmes entrées. */
 
+import { langue, loc, tr } from "@/lib/i18n";
 import { EX } from "@/lib/data/exercices";
 import {
   ACC, BAS, BONUS, HAUT, MUSCLES, PAT, PAT2GRP, PATN, SOCLE, SPORTS, VARIANTES, GROUPES,
@@ -12,7 +13,7 @@ import { ajuster, formeDuJour, zonesDe } from "./forme";
 import type { Etat, Journal, Reponses, SeanceIA, SeanceSemaine, Serie } from "./types";
 
 /* ---------------- petits utilitaires ---------------- */
-export const nb = (v: number | string) => String(v).replace(".", ",");
+export const nb = (v: number | string) => (langue() === "en" ? String(v) : String(v).replace(".", ","));
 export const key = (w: number, s: number, i: number) => `${w}|${s}|${i}`;
 export const nomPat = (p: string) => PATN[p] || PAT[p] || p;
 export const UNITE: Record<string, string> = { kg: "kg", lest: "kg", aucune: "reps", temps: "s", dist: "m" };
@@ -102,7 +103,7 @@ export function rpeOf(A: Reponses, w: number, id: string, role: number) {
 }
 export const rirTxt = (r: number) => {
   const n = 10 - r;
-  return n === 0 ? "aucune répétition en réserve" : n === 1 ? "il te reste 1 répétition" : `il te reste ${n} répétitions`;
+  return n === 0 ? tr("aucune répétition en réserve") : n === 1 ? tr("il te reste 1 répétition") : tr("il te reste {n} répétitions", { n });
 };
 export const noRPE = (id: string) => ["temps", "dist"].includes(EX[id].ch) || EX[id].pat === "mo";
 
@@ -198,11 +199,11 @@ export function wkFull(E: Etat, w: number, W = week(E)) {
 export function espacementDe(W: SeanceSemaine[], i: number): [number, string] {
   const s = W[i];
   if (!s || s.sportOnly) return [1, ""];
-  if (s.b) return [1, "Aucune contrainte. Elle peut se coller à n'importe quelle séance, ou disparaître de la semaine."];
-  if (i === 0) return [1, "Première séance du cycle. Place-la où tu veux dans ta semaine."];
+  if (s.b) return [1, tr("Aucune contrainte. Elle peut se coller à n'importe quelle séance, ou disparaître de la semaine.")];
+  if (i === 0) return [1, tr("Première séance du cycle. Place-la où tu veux dans ta semaine.")];
   const t = typeSeance(s), tp = typeSeance(W[i - 1]);
-  if (t !== tp) return [1, `Tu peux l'enchaîner dès le lendemain de la séance ${i} : elle ne touche pas les mêmes muscles. Espacer n'apporte rien ici.`];
-  return [0, `Laisse au moins un jour plein après la séance ${i}, qui travaillait déjà les mêmes muscles.`];
+  if (t !== tp) return [1, tr("Tu peux l'enchaîner dès le lendemain de la séance {i} : elle ne touche pas les mêmes muscles. Espacer n'apporte rien ici.", { i })];
+  return [0, tr("Laisse au moins un jour plein après la séance {i}, qui travaillait déjà les mêmes muscles.", { i })];
 }
 
 /* ---------------- libellés ---------------- */
@@ -246,9 +247,9 @@ export const lestMax = (L?: Journal | null) => (L && L.series ? Math.max(0, ...L
 
 export function resumeDe(L: Journal, x: Exercice, unit: string) {
   const S = L.series && L.series.length ? L.series : [{ v: L.v ?? 0, reps: L.reps ?? 0 }];
-  const feels = ["facile", "juste", "trop dur"];
+  const feels = ["facile", "juste", tr("trop dur")];
   const par = (s: Serie) =>
-    `${nb(s.v)}${unit ? " " + unit : ""}${["kg", "lest"].includes(x.ch) ? " × " + s.reps : ""}${L.lest && +(s.lest ?? 0) > 0 ? " +" + nb(s.lest!) + " kg" : ""}`;
+    `${nb(s.v)}${unit ? " " + unit : ""}${["kg", "lest"].includes(x.ch) ? tr(" × ") + s.reps : ""}${L.lest && +(s.lest ?? 0) > 0 ? " +" + nb(s.lest!) + " kg" : ""}`;
   const tous = S.every((s) => s.v === S[0].v && s.reps === S[0].reps && (+(s.lest ?? 0) || 0) === (+(S[0].lest ?? 0) || 0));
   return (tous ? `${S.length} × ${par(S[0])}` : S.map(par).join(", ")) + (L.feel != null ? " · " + feels[L.feel] : "");
 }
@@ -288,11 +289,11 @@ export function suggere(E: Etat, w: number, s: number, i: number, id: string, W 
     if (!L || !L.done) continue;
     const pas = pasDe(x), monte = baseRPE(w) > baseRPE(p), u = UNITE[x.ch];
     const v = maxV(L), reps = L.reps ?? 0;
-    if (L.feel === 0 && !monte) return { v: v + pas, reps, t: `+${nb(pas)} ${u} par rapport à la semaine ${p + 1}, où tu avais trouvé ça facile.` };
-    if (L.feel === 0 && monte) return { v, reps, t: `Même charge qu'en semaine ${p + 1} : l'effort visé passe à RPE ${baseRPE(w)}, ce sera plus dur sans rien ajouter.` };
-    if (L.feel === 2) return { v: Math.max(0, v - pas), reps, t: `−${nb(pas)} ${u} : la semaine ${p + 1} était au-dessus de la cible.` };
-    if (monte) return { v, reps, t: `Même charge qu'en semaine ${p + 1} : l'effort visé monte à RPE ${baseRPE(w)}.` };
-    return { v, reps, t: `Reprise de ta semaine ${p + 1}. Si la série sort facile, monte de ${nb(pas)} ${u} la prochaine fois.` };
+    if (L.feel === 0 && !monte) return { v: v + pas, reps, t: tr("+{a} {u} par rapport à la semaine {a1}, où tu avais trouvé ça facile.", { a: nb(pas), u, a1: p + 1 }) };
+    if (L.feel === 0 && monte) return { v, reps, t: tr("Même charge qu'en semaine {a} : l'effort visé passe à RPE {a1}, ce sera plus dur sans rien ajouter.", { a: p + 1, a1: baseRPE(w) }) };
+    if (L.feel === 2) return { v: Math.max(0, v - pas), reps, t: tr("−{a} {u} : la semaine {a1} était au-dessus de la cible.", { a: nb(pas), u, a1: p + 1 }) };
+    if (monte) return { v, reps, t: tr("Même charge qu'en semaine {a} : l'effort visé monte à RPE {a1}.", { a: p + 1, a1: baseRPE(w) }) };
+    return { v, reps, t: tr("Reprise de ta semaine {a}. Si la série sort facile, monte de {a1} {u} la prochaine fois.", { a: p + 1, a1: nb(pas), u }) };
   }
   return null;
 }
@@ -337,7 +338,7 @@ export function ctxLibre(E: Etat, idx: number, j: number): Ctx | null {
   return {
     k, id: e.id, n: e.s,
     base: aj.base,
-    why: joindre(d ? "Reprise de ta dernière séance sur cet exercice." : undefined, aj.texte),
+    why: joindre(d ? tr("Reprise de ta dernière séance sur cet exercice.") : undefined, aj.texte),
     repos: e.p, prev: d,
   };
 }
@@ -379,7 +380,7 @@ export function histo(E: Etat, id: string, idx: number): LigneHisto[] {
       .sort((a, b) => (a.ts || 0) - (b.ts || 0))
       .slice(-8)
       .map((L) => ({
-        label: L.ts ? new Date(L.ts).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }) : "—",
+        label: L.ts ? new Date(L.ts).toLocaleDateString(loc(), { day: "2-digit", month: "2-digit" }) : "—",
         v: maxV(L), reps: L.reps ?? 0, lest: lestMax(L),
       }));
   }

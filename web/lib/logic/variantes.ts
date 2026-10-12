@@ -1,11 +1,12 @@
 /* Variantes d'un exercice : les exercices du même schéma moteur, d'abord ceux
    que permet le matériel déclaré. */
+import { tr } from "@/lib/i18n";
 import { EX } from "@/lib/data/exercices";
 import { dispoDeclare } from "./core";
 import type { Reponses } from "./types";
 
-const EQ = ["Machine", "Barre", "Haltères", "Poids du corps"];
-const ACC: Record<string, string> = { kb: "Kettlebell", el: "Élastique" };
+const EQ = [tr("Machine"), tr("Barre"), tr("Haltères"), tr("Poids du corps")];
+const ACC: Record<string, string> = { kb: tr("Kettlebell"), el: tr("Élastique") };
 
 /** Matériel d'un exercice, en clair. */
 export const materielDe = (id: string) => {

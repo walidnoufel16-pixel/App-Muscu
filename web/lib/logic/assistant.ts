@@ -1,6 +1,7 @@
 /* Séance construite à partir des muscles choisis : tout se calcule ici, sans
    IA (instantané, gratuit, hors ligne). Port fidèle de l'ancienne app. */
 
+import { tr } from "@/lib/i18n";
 import { EX } from "@/lib/data/exercices";
 import { DUREES, MUSC, ZPATS } from "@/lib/data/referentiels";
 import { exoFiltre, secondesDe } from "./core";
@@ -13,7 +14,7 @@ const tirer = <T,>(l: T[], rnd: Hasard) => l[Math.floor(rnd() * l.length)];
 export function prescription(id: string, poly: boolean, obj: number): ExLibre {
   const x = EX[id], abdo = ["ae", "ft"].includes(x.pat);
   let s = obj === 1 ? 4 : 3, r = [10, poly ? 6 : 8, 12, 10][obj] ?? 10;
-  const p = abdo ? "60 s" : obj === 1 ? (poly ? "3 min" : "2 min") : obj === 0 ? (poly ? "2 min" : "90 s") : poly ? "90 s" : "60 s";
+  const p = abdo ? tr("60 s") : obj === 1 ? (poly ? tr("3 min") : tr("2 min")) : obj === 0 ? (poly ? tr("2 min") : tr("90 s")) : poly ? tr("90 s") : tr("60 s");
   if (x.ch === "temps") r = obj === 1 ? 30 : 45;
   else if (x.ch === "aucune") r = Math.max(r, 12);
   if (obj === 1 && !poly) s = 3;
@@ -62,7 +63,7 @@ export function construireSeance(muscles: string[], duree: number, obj: number, 
 
 /* Nom de la séance générée. */
 export const nomSeance = (m: string[]) =>
-  m.length >= 5 ? "Full body" : m.map((k) => MUSC.find((g) => g.k === k)!.n).join(" · ");
+  m.length >= 5 ? tr("Full body") : m.map((k) => MUSC.find((g) => g.k === k)!.n).join(" · ");
 
 /* Durée approximative : 40 s d'effort par série (ou la durée demandée),
    le repos entre les séries, une minute de mise en place par exercice. */
@@ -100,5 +101,5 @@ export const sansAccent = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, 
 /* Prescription par défaut quand on ajoute un exercice à la main. */
 export const exParDefaut = (o: string): ExLibre => {
   const x = EX[o];
-  return { id: o, s: 3, r: x.ch === "temps" ? 45 : x.ch === "dist" ? 250 : 10, p: x.pat === "eg" || x.pat === "fh" ? "2 min 30" : "90 s" };
+  return { id: o, s: 3, r: x.ch === "temps" ? 45 : x.ch === "dist" ? 250 : 10, p: x.pat === "eg" || x.pat === "fh" ? tr("2 min 30") : tr("90 s") };
 };

@@ -2,6 +2,7 @@
 
 /* Option cycle menstruel. Donnée de santé sensible : elle reste UNIQUEMENT sur ce
    téléphone (clé localStorage à part), elle n'est jamais envoyée au serveur. */
+import { tr } from "@/lib/i18n";
 import { create } from "zustand";
 import { dateDe, jourDe } from "@/lib/logic/historique";
 
@@ -26,9 +27,9 @@ export function phaseDe(c: Cycle, auj = jourDe(Date.now())): Phase | null {
   const n = Math.round((dateDe(auj).getTime() - dateDe(c.debut).getTime()) / 864e5);
   if (n < 0 || c.duree < 20 || c.duree > 45) return null;
   const jour = (n % c.duree) + 1, ov = c.duree - 14;
-  if (jour <= 5) return { jour, nom: "Règles", leger: jour <= 2, conseil: "Si l'énergie manque, garde une ou deux répétitions de plus en réserve ; sinon, entraîne-toi normalement." };
-  if (jour < ov - 1) return { jour, nom: "Phase folliculaire", leger: false, conseil: "Souvent une bonne période pour viser des records et monter les charges." };
-  if (jour <= ov + 1) return { jour, nom: "Ovulation", leger: false, conseil: "Force souvent au rendez-vous. Soigne l'échauffement des genoux sur les sauts et les fentes." };
-  if (jour > c.duree - 5) return { jour, nom: "Fin de phase lutéale", leger: true, conseil: "Fatigue et rétention d'eau sont fréquentes : une séance un peu plus légère reste une bonne séance." };
-  return { jour, nom: "Phase lutéale", leger: false, conseil: "Hydrate-toi bien ; le ressenti de l'effort peut être un peu plus élevé." };
+  if (jour <= 5) return { jour, nom: tr("Règles"), leger: jour <= 2, conseil: tr("Si l'énergie manque, garde une ou deux répétitions de plus en réserve ; sinon, entraîne-toi normalement.") };
+  if (jour < ov - 1) return { jour, nom: tr("Phase folliculaire"), leger: false, conseil: tr("Souvent une bonne période pour viser des records et monter les charges.") };
+  if (jour <= ov + 1) return { jour, nom: tr("Ovulation"), leger: false, conseil: tr("Force souvent au rendez-vous. Soigne l'échauffement des genoux sur les sauts et les fentes.") };
+  if (jour > c.duree - 5) return { jour, nom: tr("Fin de phase lutéale"), leger: true, conseil: tr("Fatigue et rétention d'eau sont fréquentes : une séance un peu plus légère reste une bonne séance.") };
+  return { jour, nom: tr("Phase lutéale"), leger: false, conseil: tr("Hydrate-toi bien ; le ressenti de l'effort peut être un peu plus élevé.") };
 }

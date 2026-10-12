@@ -1,12 +1,13 @@
+import { tr } from "@/lib/i18n";
 import type { MetadataRoute } from "next";
 
 export const dynamic = "force-static";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Repère",
-    short_name: "Repère",
-    description: "Programme de musculation personnalisé, piloté à l'effort ressenti.",
+    name: tr("Repère"),
+    short_name: tr("Repère"),
+    description: tr("Programme de musculation personnalisé, piloté à l'effort ressenti."),
     start_url: "/",
     scope: "/",
     display: "standalone",

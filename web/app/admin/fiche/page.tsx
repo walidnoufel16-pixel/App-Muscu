@@ -2,6 +2,7 @@
 
 /* Admin : fiche détaillée d'un compte (lecture seule). Les calculs réutilisent la
    logique de l'app : historique, records, badges, course, forme, nutrition. */
+import { loc, pluriel, tr } from "@/lib/i18n";
 import { Component, Suspense, useEffect, useMemo, useState } from "react";
 import { CaretDownIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
@@ -36,7 +37,7 @@ export default function PageFiche() {
 }
 
 const date = (t: string | null) => { const v = instant(t); return v == null ? "—" : court(jourDe(v)) + " " + new Date(v).getFullYear(); };
-const kg = (v: number) => (v >= 10000 ? (Math.round(v / 100) / 10).toLocaleString("fr-FR") + " t" : Math.round(v).toLocaleString("fr-FR") + " kg");
+const kg = (v: number) => (v >= 10000 ? (Math.round(v / 100) / 10).toLocaleString(loc()) + " t" : Math.round(v).toLocaleString(loc()) + " kg");
 
 function Fiche() {
   const router = useRouter();
@@ -54,19 +55,19 @@ function Fiche() {
   const E = useMemo(() => (F ? versEtat(F.etat) : null), [F]);
   if (err || F === null) return (
     <>
-      <EnTete titre="Compte introuvable" gauche={<Retour repli="/admin" />} />
-      <p className="px-4 text-[14px] text-destructive">{err || "Ce compte n'existe plus."}</p>
+      <EnTete titre={tr("Compte introuvable")} gauche={<Retour repli="/admin" />} />
+      <p className="px-4 text-[14px] text-destructive">{err || tr("Ce compte n'existe plus.")}</p>
     </>
   );
   if (!F || !E) return (
     <>
-      <EnTete titre="Fiche" gauche={<Retour repli="/admin" />} />
-      <p className="py-10 text-center text-[14px] text-muted-foreground">Chargement…</p>
+      <EnTete titre={tr("Fiche")} gauche={<Retour repli="/admin" />} />
+      <p className="py-10 text-center text-[14px] text-muted-foreground">{tr("Chargement…")}</p>
     </>
   );
   return (
     <>
-      <EnTete surtitre={F.email || "Sans adresse"} titre={F.pseudo || "Sans surnom"} gauche={<Retour repli="/admin" />} />
+      <EnTete surtitre={F.email || tr("Sans adresse")} titre={F.pseudo || tr("Sans surnom")} gauche={<Retour repli="/admin" />} />
       <div className="flex flex-col gap-5 px-4 pb-10">
         <Garde><Contenu F={F} E={E} /></Garde>
         <Suppression F={F} seances={(E.HIST || []).length + (E.CARDIO || []).length + (E.SORTIES || []).length} />
@@ -81,7 +82,7 @@ class Garde extends Component<{ children: React.ReactNode }, { e: Error | null }
   static getDerivedStateFromError(e: Error) { return { e }; }
   render() {
     return this.state.e
-      ? <p className="text-[13px] text-destructive">Impossible d&apos;afficher cette partie : {this.state.e.message}</p>
+      ? <p className="text-[13px] text-destructive">{tr("Impossible d'afficher cette partie : {message}", { message: this.state.e.message })}</p>
       : this.props.children;
   }
 }
@@ -93,16 +94,16 @@ function Suppression({ F, seances }: { F: FicheAdmin; seances: number }) {
   if (!moi || moi === F.id) return null;
   const go = async () => {
     const ok = await confirmer({
-      titre: "Supprimer ce compte ?",
-      texte: `${F.pseudo || "Sans surnom"} · ${F.email || "sans adresse"} · ${seances} séance${seances > 1 ? "s" : ""}\n\n`
-        + "Son programme, son historique, ses défis créés et ses participations disparaissent. C'est définitif, et noté au journal admin.",
-      ok: "Supprimer", danger: true,
+      titre: tr("Supprimer ce compte ?"),
+      texte: tr("{a} · {a1} · {seances} séance{a2}\n\n", { a: F.pseudo || tr("Sans surnom"), a1: F.email || tr("sans adresse"), seances, a2: pluriel(seances) ? "s" : "" })
+        + tr("Son programme, son historique, ses défis créés et ses participations disparaissent. C'est définitif, et noté au journal admin."),
+      ok: tr("Supprimer"), danger: true,
     });
     if (!ok) return;
     setOccupe(true);
     try {
       await supprimer(F.id);
-      toast.success("Compte supprimé", { description: F.pseudo || F.email || undefined });
+      toast.success(tr("Compte supprimé"), { description: F.pseudo || F.email || undefined });
       router.replace("/admin?v=u", ARRIERE);
     } catch (e) {
       toast.error("Suppression impossible", { description: (e as Error).message });
@@ -111,9 +112,9 @@ function Suppression({ F, seances }: { F: FicheAdmin; seances: number }) {
   };
   return (
     <section className="rounded-[22px] border border-destructive/30 bg-card p-4">
-      <div className="flex items-center gap-2 text-[15px] font-semibold"><TrashIcon className="size-4 text-destructive" />Supprimer ce compte</div>
-      <p className="mt-1 text-[13.5px] leading-relaxed text-muted-foreground">Le compte et toutes ses données sont effacés du serveur. Ses séances partagées restent, sans auteur.</p>
-      <Button variant="destructive" className="mt-3 w-full rounded-xl" disabled={occupe} onClick={go}>{occupe ? "Suppression…" : "Supprimer ce compte"}</Button>
+      <div className="flex items-center gap-2 text-[15px] font-semibold"><TrashIcon className="size-4 text-destructive" />{tr("Supprimer ce compte")}</div>
+      <p className="mt-1 text-[13.5px] leading-relaxed text-muted-foreground">{tr("Le compte et toutes ses données sont effacés du serveur. Ses séances partagées restent, sans auteur.")}</p>
+      <Button variant="destructive" className="mt-3 w-full rounded-xl" disabled={occupe} onClick={go}>{occupe ? tr("Suppression…") : tr("Supprimer ce compte")}</Button>
     </section>
   );
 }
@@ -144,7 +145,7 @@ function LigneEx({ id, s, r, p }: { id: string; s: number; r: number; p?: string
   return (
     <div className="flex items-baseline justify-between gap-3">
       <span className="min-w-0">{x?.n || id}</span>
-      <span className="num shrink-0 text-muted-foreground">{s} × {r}{u}{p ? ` · ${p}` : ""}</span>
+      <span className="num shrink-0 text-muted-foreground">{tr("{s} × {r}{u}{a}", { s, r, u, a: p ? ` · ${p}` : "" })}</span>
     </div>
   );
 }
@@ -152,12 +153,12 @@ function LigneEx({ id, s, r, p }: { id: string; s: number; r: number; p?: string
 function SeanceComposee({ s }: { s: SeanceLibre }) {
   const muscles = (s.gen?.m || []).map(nomMuscle).join(", ");
   return (
-    <Depliable titre={s.nom || "Séance"} info={`${s.ex.length} ex.${s.blocs?.length ? ` + ${s.blocs.length} cardio` : ""} · ${dureeEstimee(s.ex)} min`}>
+    <Depliable titre={s.nom || tr("Séance")} info={tr("{length} ex.{a} · {a1} min", { length: s.ex.length, a: s.blocs?.length ? tr(" + {length} cardio", { length: s.blocs.length }) : "", a1: dureeEstimee(s.ex) })}>
       {ordre(s).map((el, k) => el.t === "ex"
         ? <LigneEx key={k} id={el.e.id} s={el.e.s} r={el.e.r} p={el.e.p} />
-        : <div key={k} className="font-medium text-plate-ink">Cardio : {FORMATS[el.b.f]?.nom || el.b.f} · {MACHINES[el.b.m]?.nom || el.b.m}</div>)}
+        : <div key={k} className="font-medium text-plate-ink">{tr("Cardio : {a} · {a1}", { a: FORMATS[el.b.f]?.nom || el.b.f, a1: MACHINES[el.b.m]?.nom || el.b.m })}</div>)}
       {(s.code || muscles) && (
-        <div className="mt-1 text-[12px] text-muted-foreground">{[muscles && `Créée par l'assistant : ${muscles}`, s.code && `Partagée, code ${s.code}`].filter(Boolean).join(" · ")}</div>
+        <div className="mt-1 text-[12px] text-muted-foreground">{[muscles && tr("Créée par l'assistant : {muscles}", { muscles }), s.code && tr("Partagée, code {code}", { code: s.code })].filter(Boolean).join(" · ")}</div>
       )}
     </Depliable>
   );
@@ -169,8 +170,8 @@ function Programme({ E }: { E: ReturnType<typeof versEtat> }) {
   return (
     <>
       {W.map((S, i) => S.sportOnly ? null : (
-        <Depliable key={i} titre={`${S.b ? "Bonus · " : ""}${titreSeance(S.t)}`}
-          info={`${(S.x || []).length} ex.${wkDone(E, E.wk, i, W) ? " · faite ✓" : ""}`}>
+        <Depliable key={i} titre={`${S.b ? tr("Bonus · ") : ""}${titreSeance(S.t)}`}
+          info={`${(S.x || []).length} ex.${wkDone(E, E.wk, i, W) ? tr(" · faite ✓") : ""}`}>
           {(S.x || []).map((e, j) => <LigneEx key={j} id={curId(E, E.wk, i, j, e[0], W)} s={e[1]} r={e[2]} p={e[3]} />)}
         </Depliable>
       ))}
@@ -205,108 +206,108 @@ function Contenu({ F, E }: { F: FicheAdmin; E: ReturnType<typeof versEtat> }) {
     <>
       {vide && (
         <p className="rounded-[22px] bg-muted px-4 py-3 text-[13.5px] leading-relaxed text-muted-foreground">
-          Ce compte n&apos;a encore enregistré aucune séance. Ses réponses au questionnaire et son programme sont plus bas.
+          {tr("Ce compte n'a encore enregistré aucune séance. Ses réponses au questionnaire et son programme sont plus bas.")}
         </p>
       )}
-        <Bloc titre="Compte">
-          <Ligne k="Adresse" v={F.email || "aucune (compte anonyme)"} />
-          <Ligne k="Inscription" v={date(F.cree)} />
-          <Ligne k="Dernière connexion" v={date(F.connexion)} />
-          <Ligne k="Dernière synchronisation" v={date(F.maj)} />
-          <Ligne k="Dernier entraînement" v={ilya(der, auj)} />
-          <Ligne k="Générations par IA" v={`${gen} au total`} />
+        <Bloc titre={tr("Compte")}>
+          <Ligne k={tr("Adresse")} v={F.email || tr("aucune (compte anonyme)")} />
+          <Ligne k={tr("Inscription")} v={date(F.cree)} />
+          <Ligne k={tr("Dernière connexion")} v={date(F.connexion)} />
+          <Ligne k={tr("Dernière synchronisation")} v={date(F.maj)} />
+          <Ligne k={tr("Dernier entraînement")} v={ilya(der, auj)} />
+          <Ligne k={tr("Générations par IA")} v={tr("{gen} au total", { gen })} />
           <p className="mt-2 text-[11.5px] break-all text-muted-foreground">{F.id}</p>
         </Bloc>
 
-        <Bloc titre="Activité">
+        <Bloc titre={tr("Activité")}>
           <div className="grid grid-cols-3 gap-2 text-center">
-            {[[s.seances, "séances"], [s.records, "records"], [s.serie, "sem. d'affilée (record)"], [kg(s.tonnes * 1000), "soulevés"], [(Math.round(s.heuresCardio * 10) / 10).toLocaleString("fr-FR") + " h", "de cardio"], [Math.round(s.km) + " km", "courus"]].map(([v, n]) => (
+            {[[s.seances, tr("séances")], [s.records, "records"], [s.serie, tr("sem. d'affilée (record)")], [kg(s.tonnes * 1000), tr("soulevés")], [(Math.round(s.heuresCardio * 10) / 10).toLocaleString(loc()) + " h", tr("de cardio")], [Math.round(s.km) + " km", "courus"]].map(([v, n]) => (
               <div key={n as string} className="rounded-2xl bg-muted/60 px-2 py-2.5">
                 <div className="num text-[18px] font-bold">{v}</div>
                 <div className="text-[11.5px] leading-tight text-muted-foreground">{n}</div>
               </div>
             ))}
           </div>
-          <div className="mt-3"><Barres valeurs={sem.map((x) => ({ x: court(x.lundi), y: x.seances }))} unite="séances" hauteur={100} /></div>
+          <div className="mt-3"><Barres valeurs={sem.map((x) => ({ x: court(x.lundi), y: x.seances }))} unite={tr("séances")} hauteur={100} /></div>
         </Bloc>
 
-        <Bloc titre="Réponses au questionnaire">
-          {A.objectif != null ? recap(E).map(([k, v]) => <Ligne key={k} k={k} v={v} />) : <Vide t="Questionnaire non rempli." />}
+        <Bloc titre={tr("Réponses au questionnaire")}>
+          {A.objectif != null ? recap(E).map(([k, v]) => <Ligne key={k} k={k} v={v} />) : <Vide t={tr("Questionnaire non rempli.")} />}
         </Bloc>
 
-        <Bloc titre="Programme">
+        <Bloc titre={tr("Programme")}>
           {E.FINI || E.PLAN ? (
             <>
-              <Ligne k="Programme" v={E.PLAN?.plan?.titre || "Règles intégrées"} />
-              <Ligne k="Semaine en cours" v={`${E.wk + 1} sur 8`} />
+              <Ligne k={tr("Programme")} v={E.PLAN?.plan?.titre || tr("Règles intégrées")} />
+              <Ligne k={tr("Semaine en cours")} v={tr("{a} sur 8", { a: E.wk + 1 })} />
               <Programme E={E} />
             </>
-          ) : <Vide t="Pas de plan de 8 semaines." />}
+          ) : <Vide t={tr("Pas de plan de 8 semaines.")} />}
         </Bloc>
 
-        <Bloc titre={`Séances composées · ${E.SEANCES.length + (E.SEANCES_CARDIO || []).length}`}>
+        <Bloc titre={tr("Séances composées · {a}", { a: E.SEANCES.length + (E.SEANCES_CARDIO || []).length })}>
           {E.SEANCES.map((x, i) => <SeanceComposee key={"s" + i} s={x} />)}
           {(E.SEANCES_CARDIO || []).map((x, i) => (
-            <Ligne key={"c" + i} k={x.nom || "Cardio"} v={`${FORMATS[x.f]?.nom || x.f} · ${MACHINES[x.m]?.nom || x.m}`} />
+            <Ligne key={"c" + i} k={x.nom || tr("Cardio")} v={`${FORMATS[x.f]?.nom || x.f} · ${MACHINES[x.m]?.nom || x.m}`} />
           ))}
-          {!E.SEANCES.length && !(E.SEANCES_CARDIO || []).length && <Vide t="Aucune séance composée." />}
+          {!E.SEANCES.length && !(E.SEANCES_CARDIO || []).length && <Vide t={tr("Aucune séance composée.")} />}
         </Bloc>
 
-        <Bloc titre={`Séances de musculation · ${H.length}`}>
+        <Bloc titre={tr("Séances de musculation · {length}", { length: H.length })}>
           {H.length ? H.slice(-25).reverse().map((l, i) => (
             <div key={i} className="flex items-baseline justify-between gap-3 border-t border-border/60 py-1.5 first:border-t-0">
               <span className="min-w-0"><span className="block truncate font-medium">{l.nom}</span>
-                <span className="text-[12px] text-muted-foreground">{Object.keys(l.ex).length} exercices · {l.ser} séries{l.rec ? ` · ${l.rec} record${l.rec > 1 ? "s" : ""}` : ""}</span></span>
+                <span className="text-[12px] text-muted-foreground">{tr("{length} exercices · {ser} séries{a}", { length: Object.keys(l.ex).length, ser: l.ser, a: l.rec ? tr(" · {rec} record{a}", { rec: l.rec, a: pluriel(l.rec) ? "s" : "" }) : "" })}</span></span>
               <span className="shrink-0 text-right text-[12.5px] text-muted-foreground">{court(l.d)}<span className="block num">{kg(l.vol)}</span></span>
             </div>
-          )) : <Vide t="Aucune séance." />}
+          )) : <Vide t={tr("Aucune séance.")} />}
         </Bloc>
 
-        <Bloc titre="Derniers records">
+        <Bloc titre={tr("Derniers records")}>
           {R.length ? R.map((r, i) => (
-            <Ligne key={i} k={`${EX[r.id]?.n || r.id} · ${court(r.d)}`} v={EX[r.id]?.ch === "kg" ? `${Math.round(r.rm)} kg (1RM estimé)` : `${r.reps} rép.`} />
-          )) : <Vide t="Aucun record." />}
+            <Ligne key={i} k={`${EX[r.id]?.n || r.id} · ${court(r.d)}`} v={EX[r.id]?.ch === "kg" ? tr("{a} kg (1RM estimé)", { a: Math.round(r.rm) }) : tr("{reps} rép.", { reps: r.reps })} />
+          )) : <Vide t={tr("Aucun record.")} />}
         </Bloc>
 
-        <Bloc titre={`Cardio · ${(E.CARDIO || []).length}`}>
+        <Bloc titre={tr("Cardio · {length}", { length: (E.CARDIO || []).length })}>
           {(E.CARDIO || []).length ? (E.CARDIO || []).slice(-10).reverse().map((c, i) => (
-            <Ligne key={i} k={`${c.nom || FORMATS[c.f]?.nom || c.f} · ${court(jourDe(c.ts))}`} v={`${Math.round(c.min)} min${c.ref ? " · combinée" : ""}`} />
-          )) : <Vide t="Aucune séance de cardio." />}
+            <Ligne key={i} k={`${c.nom || FORMATS[c.f]?.nom || c.f} · ${court(jourDe(c.ts))}`} v={`${Math.round(c.min)} min${c.ref ? tr(" · combinée") : ""}`} />
+          )) : <Vide t={tr("Aucune séance de cardio.")} />}
         </Bloc>
 
-        <Bloc titre="Course à pied">
+        <Bloc titre={tr("Course à pied")}>
           {E.COURSE && <>
-            <Ligne k="Objectif" v={`${DISTANCES[E.COURSE.obj]?.nom || E.COURSE.obj} le ${court(E.COURSE.date)}`} />
-            <Ligne k="Jours de course" v={`${E.COURSE.jours} par semaine`} />
-            <Ligne k="Chrono de référence" v={E.COURSE.ref ? `${E.COURSE.ref.km} km en ${chronoTxt(E.COURSE.ref.sec)}` : "débutant"} />
+            <Ligne k={tr("Objectif")} v={tr("{a} le {d}", { a: DISTANCES[E.COURSE.obj]?.nom || E.COURSE.obj, d: court(E.COURSE.date) })} />
+            <Ligne k={tr("Jours de course")} v={tr("{jours} par semaine", { jours: E.COURSE.jours })} />
+            <Ligne k={tr("Chrono de référence")} v={E.COURSE.ref ? tr("{km} km en {a}", { km: E.COURSE.ref.km, a: chronoTxt(E.COURSE.ref.sec) }) : tr("débutant")} />
           </>}
           {(E.SORTIES || []).slice(-8).reverse().map((x, i) => (
-            <Ligne key={i} k={`${court(x.d)}${x.course ? " · course" : ""}${x.douleur ? " · douleur" : ""}`} v={`${x.km} km · ${allureTxt(allureDe(x))}`} />
+            <Ligne key={i} k={`${court(x.d)}${x.course ? tr(" · course") : ""}${x.douleur ? tr(" · douleur") : ""}`} v={`${x.km} km · ${allureTxt(allureDe(x))}`} />
           ))}
-          {!E.COURSE && !(E.SORTIES || []).length && <Vide t="Pas de préparation course." />}
+          {!E.COURSE && !(E.SORTIES || []).length && <Vide t={tr("Pas de préparation course.")} />}
         </Bloc>
 
-        <Bloc titre={`Badges · ${badges.length}`}>
-          {badges.length ? <p className="leading-relaxed">{badges.map((b) => b.nom).join(" · ")}</p> : <Vide t="Aucun badge." />}
+        <Bloc titre={tr("Badges · {length}", { length: badges.length })}>
+          {badges.length ? <p className="leading-relaxed">{badges.map((b) => b.nom).join(" · ")}</p> : <Vide t={tr("Aucun badge.")} />}
         </Bloc>
 
-        <Bloc titre="Défis">
+        <Bloc titre={tr("Défis")}>
           {F.defis.length ? F.defis.map((d) => (
             <Ligne key={d.code} k={`${d.nom} · ${court(d.debut)} → ${court(d.fin)}`} v={`${d.score}/${d.cible} ${TYPES_DEFI[d.type as TypeDefi]?.unite || ""}`} />
-          )) : <Vide t="Aucun défi." />}
+          )) : <Vide t={tr("Aucun défi.")} />}
         </Bloc>
 
-        <Bloc titre="Santé et forme">
-          <Ligne k="Forme du jour" v={forme ? `${NOMS_NIVEAU[niveau(forme)]} (${court(forme.d)})` : "—"} />
-          <Ligne k="Douleurs signalées" v={zones.length ? zones.map(nomZone).join(", ") : "aucune"} />
-          <Ligne k="Zones à ménager" v={(A.blessure || []).map((i) => BLESN[i]).filter(Boolean).join(", ") || "aucune"} />
-          <Ligne k="Poids" v={poids ? `${poids} kg` : "—"} />
-          <Ligne k="Protéines (7 jours)" v={protObj ? prot.map((j) => protDuJour(A, j)).join(" · ") + ` / ${protObj} g` : "—"} />
+        <Bloc titre={tr("Santé et forme")}>
+          <Ligne k={tr("Forme du jour")} v={forme ? `${NOMS_NIVEAU[niveau(forme)]} (${court(forme.d)})` : "—"} />
+          <Ligne k={tr("Douleurs signalées")} v={zones.length ? zones.map(nomZone).join(", ") : tr("aucune")} />
+          <Ligne k={tr("Zones à ménager")} v={(A.blessure || []).map((i) => BLESN[i]).filter(Boolean).join(", ") || "aucune"} />
+          <Ligne k={tr("Poids")} v={poids ? `${poids} kg` : "—"} />
+          <Ligne k={tr("Protéines (7 jours)")} v={protObj ? prot.map((j) => protDuJour(A, j)).join(" · ") + ` / ${protObj} g` : "—"} />
         </Bloc>
 
-        <Bloc titre="Générations par IA">
-          {F.generations.length ? F.generations.slice(0, 10).map((g) => <Ligne key={g.jour} k={court(g.jour)} v={`${g.n}`} />) : <Vide t="Aucune." />}
-          <p className="mt-2 text-[12px] text-muted-foreground">Plafond : 5 par jour et par compte, {PLAFOND_IA} au total.</p>
+        <Bloc titre={tr("Générations par IA")}>
+          {F.generations.length ? F.generations.slice(0, 10).map((g) => <Ligne key={g.jour} k={court(g.jour)} v={`${g.n}`} />) : <Vide t={tr("Aucune.")} />}
+          <p className="mt-2 text-[12px] text-muted-foreground">{tr("Plafond : 5 par jour et par compte, {PLAFOND_IA} au total.", { PLAFOND_IA })}</p>
         </Bloc>
     </>
   );

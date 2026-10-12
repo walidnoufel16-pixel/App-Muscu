@@ -9,7 +9,7 @@ const etat = {
   SEANCES: [{ nom: "Push", code: "AB2CD", ex: [{ id: "dc", s: 3, r: 8, p: "2 min" }, { id: "dmh", s: 3, r: 10, p: "2 min" }] }],
 };
 const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
-const ctx = await b.newContext({
+const ctx = await b.newContext({ locale: "fr-FR",
   viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block", permissions: ["clipboard-read", "clipboard-write"],
   ...(process.env.VIDEO ? { recordVideo: { dir: process.env.VIDEO, size: { width: 393, height: 852 } } } : {}),
 });

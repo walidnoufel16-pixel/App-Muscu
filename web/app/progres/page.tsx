@@ -2,6 +2,7 @@
 
 /* Progrès : ce que l'entraînement a changé, en un coup d'œil.
    Tout vient de l'historique (HIST) et du cardio (CARDIO), rien n'est envoyé ailleurs. */
+import { loc, pct, pluriel, tr } from "@/lib/i18n";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { ArrowDownIcon, ArrowUpIcon, CaretDownIcon, CaretRightIcon, ChartLineUpIcon, ScalesIcon, SparkleIcon, TrophyIcon } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -28,9 +29,9 @@ import { useRepere } from "@/lib/store";
 import { usePremiereVisite } from "@/lib/entree";
 import { cn } from "@/lib/utils";
 
-const court = (j: string) => dateDe(j).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }).replace(".", "");
-const long = (j: string) => dateDe(j).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
-const kg = (v: number) => (v >= 10000 ? nb(Math.round(v / 100) / 10) + " t" : Math.round(v).toLocaleString("fr-FR") + " kg");
+const court = (j: string) => dateDe(j).toLocaleDateString(loc(), { day: "numeric", month: "short" }).replace(".", "");
+const long = (j: string) => dateDe(j).toLocaleDateString(loc(), { weekday: "long", day: "numeric", month: "long" });
+const kg = (v: number) => (v >= 10000 ? nb(Math.round(v / 100) / 10) + " t" : Math.round(v).toLocaleString(loc()) + " kg");
 
 export default function PageProgres() {
   return <Suspense><Progres /></Suspense>;
@@ -48,13 +49,13 @@ function Progres() {
   if (!H.length && !C.length)
     return (
       <>
-        <EnTete surtitre="Ton évolution" titre="Progrès" />
+        <EnTete surtitre={tr("Ton évolution")} titre={tr("Progrès")} />
         <div className={cn("px-4", premiere && "entree")}>
           <div className="rounded-[24px] border border-dashed border-border bg-card p-6 text-center">
             <ChartLineUpIcon className="mx-auto size-10 text-plate" weight="duotone" />
-            <h2 className="mt-3 text-[19px] font-bold">Ta première séance remplira cet écran</h2>
+            <h2 className="mt-3 text-[19px] font-bold">{tr("Ta première séance remplira cet écran")}</h2>
             <p className="mx-auto mt-1.5 max-w-[32ch] text-[14px] leading-relaxed text-muted-foreground">
-              Chaque série validée s&apos;ajoute ici : tes charges, tes records, le volume de chaque muscle et ta régularité.
+              {tr("Chaque série validée s'ajoute ici : tes charges, tes records, le volume de chaque muscle et ta régularité.")}
             </p>
           </div>
           <div className="mt-6"><SectionDefis ouvrirCode={codeDefi} /></div>
@@ -64,31 +65,31 @@ function Progres() {
 
   return (
     <>
-      <EnTete surtitre="Ton évolution" titre="Progrès" />
+      <EnTete surtitre={tr("Ton évolution")} titre={tr("Progrès")} />
       <div className={cn("flex flex-col gap-6 px-4", premiere && "entree")}>
         <CetteSemaine H={H} C={C} auj={auj} />
         <Bilans auj={auj} />
-        <Section titre="Régularité">
+        <Section titre={tr("Régularité")}>
           <div className="flex flex-col gap-2">
             <CarteRegularite reglable />
             <Activite H={H} C={C} auj={auj} onJour={setJour} />
           </div>
         </Section>
-        <Section titre="Muscles travaillés · 7 derniers jours">
+        <Section titre={tr("Muscles travaillés · 7 derniers jours")}>
           <Muscles H={H} auj={auj} />
         </Section>
         <SectionCourse />
         <SectionDefis ouvrirCode={codeDefi} />
         <Records H={H} />
         <GrilleBadges />
-        <Section titre="Ma progression par exercice">
+        <Section titre={tr("Ma progression par exercice")}>
           <ParExercice H={H} />
         </Section>
-        <Section titre="Poids du corps">
+        <Section titre={tr("Poids du corps")}>
           <Poids />
         </Section>
         {C.length > 0 && (
-          <Section titre="Cardio · minutes par semaine">
+          <Section titre={tr("Cardio · minutes par semaine")}>
             <Cardio H={H} C={C} auj={auj} />
           </Section>
         )}
@@ -120,7 +121,7 @@ function Ecart({ v, avant }: { v: number; avant: number }) {
   if (!p) return <span className="text-[11.5px] text-muted-foreground">=</span>;
   return (
     <span className={cn("inline-flex items-center gap-0.5 text-[11.5px] font-semibold", p > 0 ? "text-success" : "text-muted-foreground")}>
-      {p > 0 ? <ArrowUpIcon className="size-3" weight="bold" /> : <ArrowDownIcon className="size-3" weight="bold" />}{Math.abs(p)} %
+      {p > 0 ? <ArrowUpIcon className="size-3" weight="bold" /> : <ArrowDownIcon className="size-3" weight="bold" />}{pct(Math.abs(p))}
     </span>
   );
 }
@@ -128,14 +129,14 @@ function Ecart({ v, avant }: { v: number; avant: number }) {
 function CetteSemaine({ H, C, auj }: { H: LigneHist[]; C: NonNullable<ReturnType<typeof useRepere.getState>["etat"]["CARDIO"]>; auj: string }) {
   const [a, b] = semaines(H, C, 2, auj);
   const cases = [
-    { n: b.seances > 1 ? "séances" : "séance", v: b.seances, a: a.seances, f: (x: number) => String(x) },
-    { n: "soulevés", v: b.vol, a: a.vol, f: kg },
-    { n: b.ser > 1 ? "séries" : "série", v: b.ser, a: a.ser, f: (x: number) => String(x) },
-    { n: "min de cardio", v: b.cardio, a: a.cardio, f: (x: number) => String(Math.round(x)) },
+    { n: tr(pluriel(b.seances) ? "séances" : "séance"), v: b.seances, a: a.seances, f: (x: number) => String(x) },
+    { n: tr("soulevés"), v: b.vol, a: a.vol, f: kg },
+    { n: tr(pluriel(b.ser) ? "séries" : "série"), v: b.ser, a: a.ser, f: (x: number) => String(x) },
+    { n: tr("min de cardio"), v: b.cardio, a: a.cardio, f: (x: number) => String(Math.round(x)) },
   ];
   return (
     <section>
-      <h2 className="eyebrow mb-2 px-1">Cette semaine</h2>
+      <h2 className="eyebrow mb-2 px-1">{tr("Cette semaine")}</h2>
       <div className="grid grid-cols-2 gap-2">
         {cases.map((c, i) => (
           <div key={c.n} className="animate-[monter_.45s_ease-out_both] rounded-[18px] border border-border/80 bg-card p-3.5" style={{ animationDelay: i * 60 + "ms" }}>
@@ -160,10 +161,10 @@ function Activite({ H, C, auj, onJour }: { H: LigneHist[]; C: Parameters<typeof 
     <Carte>
       <Calendrier jours={jours} etat={(j) => act.get(j)} onJour={onJour} aujourdhui={auj} />
       <div className="mt-3 flex items-center justify-between text-[12px] text-muted-foreground">
-        <span><b className="num text-[15px] text-foreground">{actifs}</b> jours d&apos;entraînement</span>
+        <span><b className="num text-[15px] text-foreground">{actifs}</b>{" "}{tr("jours d'entraînement")}</span>
         <span className="flex items-center gap-3">
-          <span className="flex items-center gap-1"><i className="size-2.5 rounded-[3px] bg-plate" />Muscu</span>
-          <span className="flex items-center gap-1"><i className="size-2.5 rounded-[3px] bg-success" />Cardio</span>
+          <span className="flex items-center gap-1"><i className="size-2.5 rounded-[3px] bg-plate" />{tr("Muscu")}</span>
+          <span className="flex items-center gap-1"><i className="size-2.5 rounded-[3px] bg-success" />{tr("Cardio")}</span>
         </span>
       </div>
     </Carte>
@@ -175,21 +176,21 @@ function Muscles({ H, auj }: { H: LigneHist[]; auj: string }) {
   const parM = useMemo(() => seriesParMuscle(H, decaler(auj, -6), auj), [H, auj]);
   const liste = Object.entries(parM).sort((a, b) => b[1] - a[1]);
   const teinte = (r: { p?: string }) => { const m = r.p && PAT2MUSC[r.p]; return m && parM[m] ? Math.min(1, parM[m] / 16) : 0; };
-  if (!liste.length) return <Carte><p className="text-[14px] text-muted-foreground">Aucune série de musculation ces 7 derniers jours.</p></Carte>;
+  if (!liste.length) return <Carte><p className="text-[14px] text-muted-foreground">{tr("Aucune série de musculation ces 7 derniers jours.")}</p></Carte>;
   return (
     <div className="flex flex-col gap-2">
-      <SchemaCorps actif={() => false} choisi={() => false} onToucher={() => {}} teinte={teinte} legende="Plus c'est foncé, plus le muscle a travaillé" />
+      <SchemaCorps actif={() => false} choisi={() => false} onToucher={() => {}} teinte={teinte} legende={tr("Plus c'est foncé, plus le muscle a travaillé")} />
       <Carte className="flex flex-col gap-2.5">
         {liste.map(([m, n]) => (
           <div key={m}>
-            <div className="flex justify-between text-[13.5px]"><span className="font-medium">{nomMuscle(m)}</span><span className="num text-[15px] font-semibold">{n} <span className="text-[12px] font-normal text-muted-foreground">séries</span></span></div>
+            <div className="flex justify-between text-[13.5px]"><span className="font-medium">{nomMuscle(m)}</span><span className="num text-[15px] font-semibold">{n} <span className="text-[12px] font-normal text-muted-foreground">{tr("séries")}</span></span></div>
             <div className="relative mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
               <div className="h-full origin-left animate-[remplir_.7s_ease-out_both] rounded-full bg-plate" style={{ width: Math.min(100, (n / 20) * 100) + "%" }} />
               <span className="absolute inset-y-0 left-1/2 w-px bg-foreground/30" aria-hidden />
             </div>
           </div>
         ))}
-        <p className="text-[11.5px] leading-snug text-muted-foreground">Le trait marque 10 séries : entre 10 et 20 séries par semaine, un muscle progresse bien.</p>
+        <p className="text-[11.5px] leading-snug text-muted-foreground">{tr("Le trait marque 10 séries : entre 10 et 20 séries par semaine, un muscle progresse bien.")}</p>
       </Carte>
     </div>
   );
@@ -201,8 +202,8 @@ function Records({ H }: { H: LigneHist[] }) {
   if (!R.length) return null;
   const vus = tout ? R.slice(0, 40) : R.slice(0, 5);
   return (
-    <Section titre={`Records · ${R.length}`} action={R.length > 5 && (
-      <button onClick={() => setTout(!tout)} className="text-[13px] font-semibold text-plate-ink">{tout ? "Moins" : "Voir tout"}</button>
+    <Section titre={tr("Records · {length}", { length: R.length })} action={R.length > 5 && (
+      <button onClick={() => setTout(!tout)} className="text-[13px] font-semibold text-plate-ink">{tout ? tr("Moins") : tr("Voir tout")}</button>
     )}>
       <div className="overflow-hidden rounded-[20px] border border-border/80 bg-card">
         {vus.map((r, i) => {
@@ -216,7 +217,7 @@ function Records({ H }: { H: LigneHist[] }) {
                   {court(r.d)} · {x?.ch === "kg" ? `${nb(r.max)} kg × ${r.reps}` : x?.ch === "aucune" || x?.ch === "lest" ? (r.max ? `+${nb(r.max)} kg × ${r.reps}` : `${r.reps} reps`) : x?.ch === "temps" ? `${r.max} s` : `${nb(r.max)} m`}
                 </span>
               </span>
-              {x?.ch === "kg" && r.rm > 0 && <span className="num text-right text-[17px] font-bold">{nb(Math.round(r.rm))}<span className="block text-[10px] font-medium text-muted-foreground">1RM est.</span></span>}
+              {x?.ch === "kg" && r.rm > 0 && <span className="num text-right text-[17px] font-bold">{nb(Math.round(r.rm))}<span className="block text-[10px] font-medium text-muted-foreground">{tr("1RM est.")}</span></span>}
             </div>
           );
         })}
@@ -236,7 +237,7 @@ function ParExercice({ H }: { H: LigneHist[] }) {
   }, [q]);
   const courant = id ?? (faits.find((e) => EX[e.id].ch === "kg" && e.n > 1) || faits[0])?.id;
   const pts = useMemo(() => (courant ? courbe(H, courant) : []), [H, courant]);
-  if (!courant) return <Carte><p className="text-[14px] text-muted-foreground">Fais une séance pour voir ta progression.</p></Carte>;
+  if (!courant) return <Carte><p className="text-[14px] text-muted-foreground">{tr("Fais une séance pour voir ta progression.")}</p></Carte>;
   const x = EX[courant], rm = x.ch === "kg" && pts.some((p) => p.rm > 0);
   const pdc = (x.ch === "aucune" || x.ch === "lest") && !pts.some((q) => q.max > 0); // poids du corps sans lest : on suit les répétitions
   const val = (p: (typeof pts)[number]) => (rm ? p.rm : pdc ? p.reps : p.max);
@@ -247,16 +248,16 @@ function ParExercice({ H }: { H: LigneHist[] }) {
       <button id="par-exercice" onClick={() => setChoix(true)} className="flex w-full items-center gap-2 px-4 pt-3.5 text-left">
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[16px] font-semibold">{x.n}</span>
-          <span className="block text-[12px] text-muted-foreground">{rm ? "1RM estimé (formule d'Epley)" : "Meilleure série"} · {pts.length} séance{pts.length > 1 ? "s" : ""}</span>
+          <span className="block text-[12px] text-muted-foreground">{tr("{a} · {length} séance{a1}", { a: rm ? tr("1RM estimé (formule d'Epley)") : tr("Meilleure série"), length: pts.length, a1: pluriel(pts.length) ? "s" : "" })}</span>
         </span>
-        <span className="flex items-center gap-1 rounded-full bg-muted px-3 py-1.5 text-[12.5px] font-semibold">Changer<CaretDownIcon className="size-3.5" /></span>
+        <span className="flex items-center gap-1 rounded-full bg-muted px-3 py-1.5 text-[12.5px] font-semibold">{tr("Changer")}<CaretDownIcon className="size-3.5" /></span>
       </button>
       <div className="px-2 pt-2" key={courant}>
         <Courbe points={pts.map((p) => ({ x: court(p.d), y: val(p), info: court(p.d) }))} unite={unite} />
       </div>
       {pts.length > 1 && (
         <div className="grid grid-cols-3 border-t border-border/70 text-center">
-          {[["Début", premier], ["Aujourd'hui", dernier], ["Progrès", dernier - premier]].map(([n, v], i) => (
+          {[[tr("Début"), premier], [tr("Aujourd'hui"), dernier], [tr("Progrès"), dernier - premier]].map(([n, v], i) => (
             <div key={n as string} className={cn("py-2.5", i && "border-l border-border/70")}>
               <div className={cn("num text-[19px] font-bold", i === 2 && (v as number) > 0 && "text-success")}>{i === 2 && (v as number) > 0 ? "+" : ""}{nb(Math.round((v as number) * 10) / 10)}</div>
               <div className="text-[11px] text-muted-foreground">{n} · {unite}</div>
@@ -266,15 +267,15 @@ function ParExercice({ H }: { H: LigneHist[] }) {
       )}
       <Drawer open={choix} onOpenChange={setChoix}>
         <DrawerContent>
-          <DrawerTitle className="px-5 pt-2 text-[19px] font-bold">Choisir un exercice</DrawerTitle>
-          <DrawerDescription className="px-5 text-[13px] text-muted-foreground">Les exercices que tu as déjà faits</DrawerDescription>
+          <DrawerTitle className="px-5 pt-2 text-[19px] font-bold">{tr("Choisir un exercice")}</DrawerTitle>
+          <DrawerDescription className="px-5 text-[13px] text-muted-foreground">{tr("Les exercices que tu as déjà faits")}</DrawerDescription>
           <div className="mt-2 max-h-[60vh] overflow-y-auto px-2 pb-[max(env(safe-area-inset-bottom),16px)]">
             {faits.map((e) => (
               <button key={e.id} onClick={() => { setId(e.id); setChoix(false); }}
                 className={cn("flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-muted", e.id === courant && "bg-plate-soft")}>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[15px] font-medium">{EX[e.id].n}</span>
-                  <span className="block text-[12px] text-muted-foreground">{e.n} séance{e.n > 1 ? "s" : ""} · dernière le {court(e.dernier)}</span>
+                  <span className="block text-[12px] text-muted-foreground">{tr("{n} séance{a} · dernière le {a1}", { n: e.n, a: pluriel(e.n) ? "s" : "", a1: court(e.dernier) })}</span>
                 </span>
                 <CaretRightIcon className="size-4 text-muted-foreground" />
               </button>
@@ -315,11 +316,11 @@ function Poids() {
           value={v}
           onChange={(e) => setV(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && enregistrer()}
-          placeholder={dernier ? `Dernier : ${nb(dernier)} kg` : "Ton poids, en kg"}
-          aria-label="Poids du jour en kg"
+          placeholder={dernier ? tr("Dernier : {a} kg", { a: nb(dernier) }) : tr("Ton poids, en kg")}
+          aria-label={tr("Poids du jour en kg")}
           className="h-11 min-w-0 flex-1 rounded-xl border bg-background px-3 text-[16px] outline-none focus:border-plate"
         />
-        <Button variant="plate" className="h-11 rounded-xl" onClick={enregistrer} disabled={!v.trim()}>Noter</Button>
+        <Button variant="plate" className="h-11 rounded-xl" onClick={enregistrer} disabled={!v.trim()}>{tr("Noter")}</Button>
       </div>
     </Carte>
   );
@@ -353,12 +354,12 @@ function DetailJour({ jour, onClose, H, C }: { jour: string | null; onClose: () 
         {jour && (
           <div className="max-h-[75vh] overflow-y-auto px-5 pt-2 pb-[max(env(safe-area-inset-bottom),20px)]">
             <DrawerTitle className="text-[20px] font-bold first-letter:uppercase">{long(jour)}</DrawerTitle>
-            <DrawerDescription className="sr-only">Séances de ce jour</DrawerDescription>
+            <DrawerDescription className="sr-only">{tr("Séances de ce jour")}</DrawerDescription>
             {lignes.map((l) => (
               <div key={l.s} className="mt-3 rounded-2xl border bg-card p-3.5">
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="truncate text-[16px] font-semibold">{l.nom}</span>
-                  <span className="shrink-0 text-[12.5px] text-muted-foreground">{l.ser} séries{l.vol ? " · " + kg(l.vol) : ""}{l.min ? ` · ${l.min} min` : ""}</span>
+                  <span className="shrink-0 text-[12.5px] text-muted-foreground">{tr("{ser} séries{a}{a1}", { ser: l.ser, a: l.vol ? " · " + kg(l.vol) : "", a1: l.min ? tr(" · {min} min", { min: l.min }) : "" })}</span>
                 </div>
                 <ul className="mt-2 flex flex-col gap-1">
                   {Object.entries(l.ex).map(([id, p]) => {
@@ -366,9 +367,7 @@ function DetailJour({ jour, onClose, H, C }: { jour: string | null; onClose: () 
                     return (
                       <li key={id} className="flex justify-between gap-2 text-[13.5px]">
                         <span className="truncate">{x?.n || id}</span>
-                        <span className="num shrink-0 text-[14px] text-muted-foreground">
-                          {p[4]} × {x?.ch === "kg" ? `${nb(p[2])} kg × ${p[3]}` : x?.ch === "temps" ? `${p[2]} s` : x?.ch === "dist" ? `${p[2]} m` : `${p[3]} reps${p[2] ? ` +${nb(p[2])} kg` : ""}`}
-                        </span>
+                        <span className="num shrink-0 text-[14px] text-muted-foreground">{tr("{a} × {a1}", { a: p[4], a1: x?.ch === "kg" ? `${nb(p[2])} kg × ${p[3]}` : x?.ch === "temps" ? `${p[2]} s` : x?.ch === "dist" ? `${p[2]} m` : `${p[3]} reps${p[2] ? ` +${nb(p[2])} kg` : ""}` })}</span>
                       </li>
                     );
                   })}
@@ -378,7 +377,7 @@ function DetailJour({ jour, onClose, H, C }: { jour: string | null; onClose: () 
             {cardio.map((c, i) => (
               <div key={i} className="mt-3 flex items-center justify-between rounded-2xl border bg-card p-3.5">
                 <span className="truncate text-[15px] font-semibold">{c.nom}</span>
-                <span className="text-[12.5px] text-muted-foreground">{Math.round(c.min)} min · RPE {c.effort}</span>
+                <span className="text-[12.5px] text-muted-foreground">{tr("{a} min · RPE {effort}", { a: Math.round(c.min), effort: c.effort })}</span>
               </div>
             ))}
           </div>
@@ -403,8 +402,8 @@ function Bilans({ auj }: { auj: string }) {
           <LogoDisque className="pointer-events-none absolute -right-8 -bottom-10 -z-10 size-36 text-white/10" />
           <SparkleIcon className="size-7 shrink-0" weight="fill" />
           <span className="min-w-0 flex-1">
-            <span className="block text-[17px] font-bold first-letter:uppercase">{r.p.annee ? `Ton année ${r.p.nom}` : `Ton bilan de ${r.p.nom.split(" ")[0]}`}</span>
-            <span className="block text-[13px] opacity-85">{r.seances} séances{r.tonnes >= 1 ? ` · ${nb(Math.round(r.tonnes * 10) / 10)} t soulevées` : ""} · à partager</span>
+            <span className="block text-[17px] font-bold first-letter:uppercase">{r.p.annee ? tr("Ton année {nom}", { nom: r.p.nom }) : tr("Ton bilan de {a}", { a: r.p.nom.split(" ")[0] })}</span>
+            <span className="block text-[13px] opacity-85">{tr("{seances} séances{a} · à partager", { seances: r.seances, a: r.tonnes >= 1 ? tr(" · {a} t soulevées", { a: nb(Math.round(r.tonnes * 10) / 10) }) : "" })}</span>
           </span>
           <CaretRightIcon className="size-4 shrink-0 opacity-80" />
         </button>

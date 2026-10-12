@@ -7,6 +7,7 @@
    - Toute modification passe par `muter`, qui produit un nouvel état (immer),
      l'enregistre localement et le pousse vers Supabase 1,5 s plus tard. */
 
+import { changerLangue, choixExplicite, langue, tr } from "@/lib/i18n";
 import { create } from "zustand";
 import { produce } from "immer";
 import type { User } from "@supabase/supabase-js";
@@ -107,7 +108,7 @@ let minuteurPush: ReturnType<typeof setTimeout> | null = null;
 /* Publie une séance sous un code de cinq caractères (quatre essais en cas de collision). */
 async function publier(nom: string, ex: unknown[]): Promise<{ code?: string; erreur?: string }> {
   const c = await sb(), u = useRepere.getState().user;
-  if (!c || !u) return { erreur: "Le partage demande un compte." };
+  if (!c || !u) return { erreur: tr("Le partage demande un compte.") };
   const ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let err: string | undefined;
   for (let essai = 0; essai < 4; essai++) {
@@ -116,7 +117,7 @@ async function publier(nom: string, ex: unknown[]): Promise<{ code?: string; err
     if (!error) return { code: x };
     err = error.message;
   }
-  return { erreur: "Partage impossible : " + (err || "réessaie") };
+  return { erreur: tr("Partage impossible : ") + (err || tr("réessaie")) };
 }
 
 export const useRepere = create<Store>((set, get) => ({
@@ -184,8 +185,11 @@ export const useRepere = create<Store>((set, get) => ({
     const choisi = forcerDistant ? distant || local
       : distant && local ? ((distant.ts || 0) >= (local.ts || 0) ? distant : local) : distant || local;
     set({ etat: versEtat(choisi), pret: true, sync: true });
+    /* Compte retrouvé sur un appareil où la langue n'a jamais été choisie : on reprend celle du compte. */
+    const l = get().etat.A.langue;
+    if ((l === "fr" || l === "en") && l !== langue() && !choixExplicite()) changerLangue(l);
     if (forcerDistant && !distant)
-      info = "Compte ouvert, mais il ne contenait aucune sauvegarde. Ce qui était sur cet appareil a été conservé et lui est maintenant rattaché.";
+      info = tr("Compte ouvert, mais il ne contenait aucune sauvegarde. Ce qui était sur cet appareil a été conservé et lui est maintenant rattaché.");
     try { if (get().pseudo) localStorage.setItem(PKEY, get().pseudo); } catch {}
     if (!distant || (local && (local.ts || 0) > (distant.ts || 0))) {
       try { localStorage.setItem(SKEY, JSON.stringify(instantane(get().etat))); } catch {}
@@ -199,14 +203,14 @@ export const useRepere = create<Store>((set, get) => ({
     const p = sansBalise(pseudo.trim());
     set({ pseudo: p });
     try { localStorage.setItem(PKEY, p); } catch {}
-    if (!c) { set({ etat: versEtat(lireLocal()), pret: true }); return { ok: true, message: "Mode local : tes données restent sur ce téléphone." }; }
+    if (!c) { set({ etat: versEtat(lireLocal()), pret: true }); return { ok: true, message: tr("Mode local : tes données restent sur ce téléphone.") }; }
     const { data, error } = await c.auth.signInAnonymously();
     if (error || !data.user) return { ok: false, message: error?.message };
     set({ user: data.user, session: "ouverte" });
     let message: string | undefined;
     if (mail) {
       const r = await c.auth.updateUser({ email: mail });
-      if (r.error) message = "Ton compte est créé, mais l'adresse n'a pas pu y être rattachée. Tu peux réessayer depuis l'onglet Compte.";
+      if (r.error) message = tr("Ton compte est créé, mais l'adresse n'a pas pu y être rattachée. Tu peux réessayer depuis l'onglet Compte.");
       else set({ user: r.data.user ? { ...r.data.user, new_email: r.data.user.new_email || mail } : get().user });
     }
     await get().apresConnexion();
@@ -252,20 +256,20 @@ export const useRepere = create<Store>((set, get) => ({
   /* ---------- partage d'une séance ---------- */
   async partager(i) {
     const s = get().etat.SEANCES[i];
-    if (!s) return { erreur: "Séance introuvable." };
+    if (!s) return { erreur: tr("Séance introuvable.") };
     if (s.code) return { code: s.code };
     /* Séance combinée : les blocs cardio voyagent aussi, s'il reste de la place (12 éléments au plus). */
     const blocs = encoderBlocs(s.blocs);
     const place = s.ex.length + blocs.length <= 12;
     const r = await publier(s.nom, [...s.ex.map((e) => ({ id: e.id, s: e.s, r: e.r, p: e.p })), ...(place ? blocs : [])]); // jamais les charges
     if (r.code) get().muter((e) => { e.SEANCES[i].code = r.code!; });
-    return blocs.length && !place && r.code ? { ...r, avertissement: "Séance trop longue : les blocs cardio n'ont pas pu être joints au partage." } : r;
+    return blocs.length && !place && r.code ? { ...r, avertissement: tr("Séance trop longue : les blocs cardio n'ont pas pu être joints au partage.") } : r;
   },
 
   /* Une séance cardio voyage dans le même format (voir encoderCardio). */
   async partagerCardio(i) {
     const s = get().etat.SEANCES_CARDIO?.[i];
-    if (!s) return { erreur: "Séance introuvable." };
+    if (!s) return { erreur: tr("Séance introuvable.") };
     if (s.code) return { code: s.code };
     const r = await publier(s.nom, encoderCardio(s));
     if (r.code) get().muter((e) => { e.SEANCES_CARDIO![i].code = r.code!; });
@@ -274,30 +278,30 @@ export const useRepere = create<Store>((set, get) => ({
 
   async importer(codeBrut) {
     const code = (codeBrut || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
-    if (code.length < 4) return { erreur: "Le code fait cinq caractères." };
+    if (code.length < 4) return { erreur: tr("Le code fait cinq caractères.") };
     const c = await sb();
-    if (!c) return { erreur: "L'import demande une connexion." };
+    if (!c) return { erreur: tr("L'import demande une connexion.") };
     try {
       const { data, error } = await c.rpc("lire_seance", { p_code: code }).maybeSingle<{ nom: string; ex: unknown }>();
       if (error) throw error;
-      if (!data) return { erreur: "Aucune séance ne correspond au code " + code + "." };
-      const cardio = decoderCardio(sansBalise(data.nom).slice(0, 60) || "Cardio", data.ex);
+      if (!data) return { erreur: tr("Aucune séance ne correspond au code ") + code + "." };
+      const cardio = decoderCardio(sansBalise(data.nom).slice(0, 60) || tr("Cardio"), data.ex);
       if (cardio) {
-        get().muter((e) => { (e.SEANCES_CARDIO ??= []).push({ ...cardio, nom: cardio.nom + " (reçue)" }); });
+        get().muter((e) => { (e.SEANCES_CARDIO ??= []).push({ ...cardio, nom: cardio.nom + tr(" (reçue)") }); });
         return { nom: cardio.nom, cardio: true };
       }
       const ex = (Array.isArray(data.ex) ? data.ex : [])
         .filter((e: { id?: string }) => e && e.id && EX[e.id]).slice(0, 12)
         .map((e: { id: string; s: unknown; r: unknown; p: unknown }) => ({
-          id: e.id, s: borne(e.s, 1, 10, 3), r: borne(e.r, 1, 600, 10), p: sansBalise(e.p).slice(0, 12) || "90 s",
+          id: e.id, s: borne(e.s, 1, 10, 3), r: borne(e.r, 1, 600, 10), p: sansBalise(e.p).slice(0, 12) || tr("90 s"),
         }));
-      if (!ex.length) return { erreur: "Cette séance ne contient aucun exercice reconnu." };
-      const nom = sansBalise(data.nom).slice(0, 60) || "Séance";
+      if (!ex.length) return { erreur: tr("Cette séance ne contient aucun exercice reconnu.") };
+      const nom = sansBalise(data.nom).slice(0, 60) || tr("Séance");
       const blocs = decoderBlocs(data.ex).map((b) => ({ ...b, apres: Math.min(b.apres, ex.length) }));
-      get().muter((e) => { e.SEANCES.push({ nom: nom + " (reçue)", ex, ...(blocs.length ? { blocs } : {}) } as SeanceLibre); });
+      get().muter((e) => { e.SEANCES.push({ nom: nom + tr(" (reçue)"), ex, ...(blocs.length ? { blocs } : {}) } as SeanceLibre); });
       return { nom, absents: 0 };
     } catch (e) {
-      return { erreur: "Import impossible : " + (e as Error).message };
+      return { erreur: tr("Import impossible : ") + (e as Error).message };
     }
   },
 }));

@@ -2,6 +2,7 @@
 
 /* Réglages d'une séance cardio, communs à l'écran de préparation et à l'assistant :
    format, machine, niveau, puis durées ajustables au pas près. */
+import { tr } from "@/lib/i18n";
 import { FireIcon, HeartbeatIcon, LightningIcon, MinusIcon, MountainsIcon, PlusIcon, RepeatIcon, StairsIcon, TimerIcon, TriangleIcon, WaveSineIcon } from "@phosphor-icons/react";
 import { Segmente } from "./segmente";
 import { Vignette } from "./exercice-carte";
@@ -25,17 +26,17 @@ export type ChoixCardio = { f: FormatCardio; m: Machine; n: Niveau; r: Reglages 
 /* Champs réglables selon le format : [clé, libellé, pas, min, max, affichage]. */
 type Champ = [keyof Reglages, string, number, number, number, (v: number) => string];
 const CHAMPS: Record<FormatCardio, Champ[]> = {
-  fractionne: [["effort", "Effort", 15, 15, 300, mmss], ["recup", "Récupération", 15, 15, 300, mmss], ["tours", "Tours", 1, 2, 20, String]],
-  tabata: [["blocs", "Blocs de 8 tours", 1, 1, 6, String], ["pauseBlocs", "Pause entre blocs", 15, 30, 180, mmss]],
-  emom: [["tours", "Minutes", 1, 4, 30, String], ["reps", "Répétitions par minute", 1, 4, 30, String]],
-  endurance: [["duree", "Durée", 5, 10, 90, (v) => `${v} min`]],
-  norvegien: [["effort", "Effort", 30, 120, 300, mmss], ["recup", "Récupération", 30, 60, 240, mmss], ["tours", "Tours", 1, 2, 6, String]],
-  trente: [["tours", "Tours par bloc", 1, 4, 20, String], ["blocs", "Blocs", 1, 1, 4, String], ["pauseBlocs", "Pause entre blocs", 15, 30, 240, mmss]],
-  pyramide: [["effort", "Pas de la pyramide", 15, 15, 60, mmss], ["tours", "Marches jusqu'au sommet", 1, 2, 6, String], ["recup", "Récupération", 15, 15, 180, mmss]],
-  cote: [["effort", "Sprint", 5, 10, 60, mmss], ["recup", "Récupération", 15, 30, 180, mmss], ["tours", "Sprints", 1, 3, 15, String]],
-  paliers: [["duree", "Durée", 3, 12, 90, (v) => `${v} min`], ["tours", "Paliers", 1, 2, 5, String]],
+  fractionne: [["effort", tr("Effort"), 15, 15, 300, mmss], ["recup", tr("Récupération"), 15, 15, 300, mmss], ["tours", tr("Tours"), 1, 2, 20, String]],
+  tabata: [["blocs", tr("Blocs de 8 tours"), 1, 1, 6, String], ["pauseBlocs", tr("Pause entre blocs"), 15, 30, 180, mmss]],
+  emom: [["tours", tr("Minutes"), 1, 4, 30, String], ["reps", tr("Répétitions par minute"), 1, 4, 30, String]],
+  endurance: [["duree", tr("Durée"), 5, 10, 90, (v) => `${v} min`]],
+  norvegien: [["effort", tr("Effort"), 30, 120, 300, mmss], ["recup", tr("Récupération"), 30, 60, 240, mmss], ["tours", tr("Tours"), 1, 2, 6, String]],
+  trente: [["tours", tr("Tours par bloc"), 1, 4, 20, String], ["blocs", tr("Blocs"), 1, 1, 4, String], ["pauseBlocs", tr("Pause entre blocs"), 15, 30, 240, mmss]],
+  pyramide: [["effort", tr("Pas de la pyramide"), 15, 15, 60, mmss], ["tours", tr("Marches jusqu'au sommet"), 1, 2, 6, String], ["recup", tr("Récupération"), 15, 15, 180, mmss]],
+  cote: [["effort", tr("Sprint"), 5, 10, 60, mmss], ["recup", tr("Récupération"), 15, 30, 180, mmss], ["tours", tr("Sprints"), 1, 3, 15, String]],
+  paliers: [["duree", tr("Durée"), 3, 12, 90, (v) => `${v} min`], ["tours", tr("Paliers"), 1, 2, 5, String]],
 };
-const COMMUNS: Champ[] = [["echauf", "Échauffement", 60, 0, 600, enMin], ["calme", "Retour au calme", 60, 0, 600, enMin]];
+const COMMUNS: Champ[] = [["echauf", tr("Échauffement"), 60, 0, 600, enMin], ["calme", tr("Retour au calme"), 60, 0, 600, enMin]];
 
 export function ReglagesCardio({ choix, onChange, avecFormat = true }: { choix: ChoixCardio; onChange: (c: ChoixCardio) => void; avecFormat?: boolean }) {
   const { f, m, n, r } = choix;
@@ -49,7 +50,7 @@ export function ReglagesCardio({ choix, onChange, avecFormat = true }: { choix: 
     <div className="flex flex-col gap-6">
       {avecFormat && (
         <section>
-          <h2 className="eyebrow mb-2 px-1">Format</h2>
+          <h2 className="eyebrow mb-2 px-1">{tr("Format")}</h2>
           {FAMILLES.map((fam) => (
           <div key={fam.nom} className="mb-3">
           <h3 className="mb-1.5 px-1 text-[13px] font-semibold text-muted-foreground">{fam.nom}</h3>
@@ -75,7 +76,7 @@ export function ReglagesCardio({ choix, onChange, avecFormat = true }: { choix: 
       )}
 
       <section>
-        <h2 className="eyebrow mb-2 px-1">Matériel</h2>
+        <h2 className="eyebrow mb-2 px-1">{tr("Matériel")}</h2>
         <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
           {machines.map((k) => {
             const on = k === m, ex = MACHINES[k].ex;
@@ -93,24 +94,24 @@ export function ReglagesCardio({ choix, onChange, avecFormat = true }: { choix: 
       </section>
 
       <section>
-        <h2 className="eyebrow mb-2 px-1">Niveau</h2>
-        <Segmente label="Niveau" valeur={n} onChange={(v) => onChange({ ...choix, n: v, r: reglagesDe(f, v) })} options={NIVEAUX.map((x, i) => ({ v: i as Niveau, n: x }))} />
+        <h2 className="eyebrow mb-2 px-1">{tr("Niveau")}</h2>
+        <Segmente label={tr("Niveau")} valeur={n} onChange={(v) => onChange({ ...choix, n: v, r: reglagesDe(f, v) })} options={NIVEAUX.map((x, i) => ({ v: i as Niveau, n: x }))} />
       </section>
 
       <section>
         <div className="mb-2 flex items-baseline justify-between px-1">
-          <h2 className="eyebrow">Durées</h2>
-          <span className="text-[13px] text-muted-foreground">Total <b className="num text-[17px] text-foreground">{Math.round(total / 60)} min</b></span>
+          <h2 className="eyebrow">{tr("Durées")}</h2>
+          <span className="text-[13px] text-muted-foreground">{tr("Total")}{" "}<b className="num text-[17px] text-foreground">{Math.round(total / 60)}{" "}{tr("min")}</b></span>
         </div>
         <div className="overflow-hidden rounded-[20px] border border-border/80 bg-card">
           {[...CHAMPS[f], ...COMMUNS].map(([k, lib, pas, min, max, aff]) => (
             <div key={k} className="flex items-center gap-3 border-t border-border/70 px-4 py-2.5 first:border-t-0">
               <span className="flex-1 text-[14.5px] font-medium">{lib}</span>
-              <button aria-label={`${lib} : moins`} disabled={r[k] <= min} onClick={() => { tactile(4); onChange({ ...choix, r: { ...r, [k]: Math.max(min, r[k] - pas) } }); }} className="grid size-9 place-items-center rounded-full bg-muted active:scale-90 disabled:opacity-35">
+              <button aria-label={tr("{lib} : moins", { lib })} disabled={r[k] <= min} onClick={() => { tactile(4); onChange({ ...choix, r: { ...r, [k]: Math.max(min, r[k] - pas) } }); }} className="grid size-9 place-items-center rounded-full bg-muted active:scale-90 disabled:opacity-35">
                 <MinusIcon className="size-4" weight="bold" />
               </button>
               <span className="num w-[58px] text-center text-[20px] font-bold">{aff(r[k])}</span>
-              <button aria-label={`${lib} : plus`} disabled={r[k] >= max} onClick={() => { tactile(4); onChange({ ...choix, r: { ...r, [k]: Math.min(max, r[k] + pas) } }); }} className="grid size-9 place-items-center rounded-full bg-muted active:scale-90 disabled:opacity-35">
+              <button aria-label={tr("{lib} : plus", { lib })} disabled={r[k] >= max} onClick={() => { tactile(4); onChange({ ...choix, r: { ...r, [k]: Math.min(max, r[k] + pas) } }); }} className="grid size-9 place-items-center rounded-full bg-muted active:scale-90 disabled:opacity-35">
                 <PlusIcon className="size-4" weight="bold" />
               </button>
             </div>
@@ -119,7 +120,7 @@ export function ReglagesCardio({ choix, onChange, avecFormat = true }: { choix: 
         <p className="mt-2 px-1 text-[12.5px] leading-relaxed text-muted-foreground">
           {f === "endurance"
             ? MACHINES[m].continu
-            : <>À l&apos;effort : {MACHINES[m].effort} En récupération : {MACHINES[m].recup.charAt(0).toLowerCase() + MACHINES[m].recup.slice(1)}</>}
+            : <>{tr("À l'effort :")}{" "}{MACHINES[m].effort}{" "}{tr("En récupération :")}{" "}{MACHINES[m].recup.charAt(0).toLowerCase() + MACHINES[m].recup.slice(1)}</>}
         </p>
       </section>
     </div>

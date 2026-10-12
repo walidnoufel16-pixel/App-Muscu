@@ -3,6 +3,7 @@
 /* Cardio guidé : préparation (format, machine, niveau, durées), puis minuteur
    plein écran (components/repere/minuteur.tsx). Séance enregistrée (?s=index)
    ou bloc d'une séance combinée (?l=index&b=bloc). */
+import { tr } from "@/lib/i18n";
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowRightIcon } from "@phosphor-icons/react";
@@ -50,7 +51,7 @@ function PreparationBloc({ i, id }: { i: number; id: string }) {
   const bloc = seance?.blocs?.find((x) => x.id === id);
   return (
     <Preparation
-      source={bloc && { nom: `Cardio · ${seance!.nom}`, f: bloc.f, m: bloc.m, n: bloc.n, r: bloc.r }} go={false} refBloc={id}
+      source={bloc && { nom: tr("Cardio · {nom}", { nom: seance!.nom }), f: bloc.f, m: bloc.m, n: bloc.n, r: bloc.r }} go={false} refBloc={id}
       sauver={(choix) => muter((E) => { const x = E.SEANCES[i]?.blocs?.find((y) => y.id === id); if (x) Object.assign(x, choix); })}
     />
   );
@@ -69,8 +70,8 @@ function Preparation({ source: enregistree, go, nomModifiable, refBloc, sauver }
   if (!enregistree || !choix)
     return (
       <>
-        <EnTete titre="Séance introuvable" gauche={<Retour repli="/entrainement" />} />
-        <p className="px-5 text-[15px] text-muted-foreground">Cette séance cardio n&apos;existe plus sur ce téléphone.</p>
+        <EnTete titre={tr("Séance introuvable")} gauche={<Retour repli="/entrainement" />} />
+        <p className="px-5 text-[15px] text-muted-foreground">{tr("Cette séance cardio n'existe plus sur ce téléphone.")}</p>
       </>
     );
 
@@ -82,18 +83,18 @@ function Preparation({ source: enregistree, go, nomModifiable, refBloc, sauver }
   const I = ICONE_FORMAT[choix.f];
   return (
     <>
-      <EnTete surtitre={<span className="flex items-center gap-1.5"><I className="size-3.5" weight="fill" />Cardio · {FORMATS[choix.f].nom}</span>} titre={titre} gauche={<Retour repli="/entrainement" />} />
+      <EnTete surtitre={<span className="flex items-center gap-1.5"><I className="size-3.5" weight="fill" />{tr("Cardio ·")}{" "}{FORMATS[choix.f].nom}</span>} titre={titre} gauche={<Retour repli="/entrainement" />} />
       <div className="px-4 pb-32">
         {nomModifiable && (
           <section className="mb-6">
-            <h2 className="eyebrow mb-2 px-1">Nom de la séance</h2>
-            <Input value={nom} onChange={(e) => setNom(e.target.value)} maxLength={60} className="h-12 rounded-2xl bg-card text-[16px]" aria-label="Nom de la séance" />
+            <h2 className="eyebrow mb-2 px-1">{tr("Nom de la séance")}</h2>
+            <Input value={nom} onChange={(e) => setNom(e.target.value)} maxLength={60} className="h-12 rounded-2xl bg-card text-[16px]" aria-label={tr("Nom de la séance")} />
           </section>
         )}
         <ReglagesCardio choix={choix} onChange={setChoix} avecFormat={false} />
         {modifiee && (
-          <Button variant="soft" size="lg" className="mt-4 w-full rounded-xl" onClick={() => { sauver(choix, nom); toast.success("Séance enregistrée"); }}>
-            Enregistrer ces réglages dans la séance
+          <Button variant="soft" size="lg" className="mt-4 w-full rounded-xl" onClick={() => { sauver(choix, nom); toast.success(tr("Séance enregistrée")); }}>
+            {tr("Enregistrer ces réglages dans la séance")}
           </Button>
         )}
       </div>
@@ -102,7 +103,7 @@ function Preparation({ source: enregistree, go, nomModifiable, refBloc, sauver }
           variant="plate" size="xl" className="w-full"
           onClick={() => { preparer(); setCourse({ debut: Date.now(), pause: null, cumulPause: 0, saut: 0 }); }}
         >
-          Démarrer · {Math.round(dureeTotale(phases) / 60)} min<ArrowRightIcon />
+          {tr("Démarrer ·")}{" "}{Math.round(dureeTotale(phases) / 60)}{" "}{tr("min")}<ArrowRightIcon />
         </Button>
       </div>
     </>
@@ -116,10 +117,10 @@ function finCardio(phases: Phase[], titre: string, choix: ChoixCardio, refBloc: 
   useCelebrer.getState().montrerBilan({
     titre,
     cases: [
-      { n: "minutes", v: b.minutes },
-      choix.f === "endurance" ? { n: "minutes en endurance", v: Math.round(b.effort / 60) } : { n: "minutes à l'effort", v: Math.round(b.effort / 60) },
-      ...(choix.f === "endurance" ? [] : [{ n: "tours d'effort", v: b.tours }]),
-      { n: "séances cardio sur 7 jours", v: (useRepere.getState().etat.CARDIO || []).filter((h) => Date.now() - h.ts < 7 * 864e5).length, accent: true },
+      { n: tr("minutes"), v: b.minutes },
+      choix.f === "endurance" ? { n: tr("minutes en endurance"), v: Math.round(b.effort / 60) } : { n: tr("minutes à l'effort"), v: Math.round(b.effort / 60) },
+      ...(choix.f === "endurance" ? [] : [{ n: tr("tours d'effort"), v: b.tours }]),
+      { n: tr("séances cardio sur 7 jours"), v: (useRepere.getState().etat.CARDIO || []).filter((h) => Date.now() - h.ts < 7 * 864e5).length, accent: true },
     ],
   });
 }

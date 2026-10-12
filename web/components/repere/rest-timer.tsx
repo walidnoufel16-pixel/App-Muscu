@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useEffect, useState } from "react";
 import { MinusIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
 import { useRepos } from "@/lib/repos";
@@ -74,19 +75,19 @@ export function RestTimer({ avecOnglets }: { avecOnglets: boolean }) {
           <button
             onClick={() => !fini && setDeplie((d) => !d)}
             aria-expanded={deplie}
-            aria-label={fini ? "Repos terminé" : "Régler le repos"}
+            aria-label={fini ? tr("Repos terminé") : tr("Régler le repos")}
             className="min-w-0 flex-1 text-left"
           >
             <div className={cn("text-[11px] font-medium tracking-[0.12em] uppercase", fini ? "opacity-80" : "opacity-60")}>
-              {fini ? "Repos terminé" : alerte ? "Prépare-toi" : "Repos"}
+              {fini ? tr("Repos terminé") : alerte ? tr("Prépare-toi") : tr("Repos")}
             </div>
             <div className={cn("num text-[34px] leading-none font-bold", alerte && "text-plate", fini && "animate-[pop_.5s_cubic-bezier(.3,1.6,.5,1)]")}>
-              {fini ? "C'est reparti" : <Defile texte={`${Math.floor(reste / 60)}:${String(reste % 60).padStart(2, "0")}`} />}
+              {fini ? tr("C'est reparti") : <Defile texte={`${Math.floor(reste / 60)}:${String(reste % 60).padStart(2, "0")}`} />}
             </div>
           </button>
           {!fini && (
             <button onClick={arreter} className="flex h-10 items-center gap-1.5 rounded-full bg-plate px-3.5 text-sm font-semibold text-plate-foreground active:scale-95">
-              Passer <XIcon className="size-3.5" />
+              {tr("Passer")}{" "}<XIcon className="size-3.5" />
             </button>
           )}
         </div>
@@ -94,11 +95,11 @@ export function RestTimer({ avecOnglets }: { avecOnglets: boolean }) {
         <div className={cn("grid transition-[grid-template-rows] duration-300 ease-out", deplie && !fini ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
           <div className="overflow-hidden">
             <div className="flex gap-2 px-3.5 pb-3">
-              <button onClick={() => ajuster(-15)} className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-background/12 text-sm font-semibold active:scale-95" aria-label="Retirer 15 secondes">
-                <MinusIcon className="size-4" /> 15 s
+              <button onClick={() => ajuster(-15)} className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-background/12 text-sm font-semibold active:scale-95" aria-label={tr("Retirer 15 secondes")}>
+                <MinusIcon className="size-4" />{" "}{tr("15 s")}
               </button>
-              <button onClick={() => ajuster(15)} className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-background/12 text-sm font-semibold active:scale-95" aria-label="Ajouter 15 secondes">
-                <PlusIcon className="size-4" /> 15 s
+              <button onClick={() => ajuster(15)} className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-background/12 text-sm font-semibold active:scale-95" aria-label={tr("Ajouter 15 secondes")}>
+                <PlusIcon className="size-4" />{" "}{tr("15 s")}
               </button>
             </div>
           </div>

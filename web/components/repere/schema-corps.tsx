@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useState } from "react";
 import { CORPS, CORPS_VB } from "@/lib/data/corps";
 import { Segmente } from "./segmente";
@@ -22,12 +23,12 @@ export function SchemaCorps({
   return (
     <div className="rounded-[24px] border border-border/80 bg-card p-3">
       <Segmente
-        label="Côté du corps"
+        label={tr("Côté du corps")}
         valeur={cote}
         onChange={setCote}
-        options={[{ v: "front", n: "De face" }, { v: "back", n: "De dos" }]}
+        options={[{ v: "front", n: tr("De face") }, { v: "back", n: tr("De dos") }]}
       />
-      <svg viewBox={CORPS_VB[cote]} className="mx-auto mt-2 block max-h-[58vh] w-full touch-manipulation" role="img" aria-label="Schéma du corps">
+      <svg viewBox={CORPS_VB[cote]} className="mx-auto mt-2 block max-h-[58vh] w-full touch-manipulation" role="img" aria-label={tr("Schéma du corps")}>
         {regions.map((r) => {
           const on = actif(r), sel = on && choisi(r), t = teinte?.(r) ?? 0;
           return (
@@ -54,7 +55,7 @@ export function SchemaCorps({
           </path>
         ))}
       </svg>
-      <p className="mt-1 text-center text-[10.5px] text-muted-foreground">{legende ? legende + " · " : ""}Schéma : body-highlighter, Hicham Elabbassi — MIT</p>
+      <p className="mt-1 text-center text-[10.5px] text-muted-foreground">{tr("{a}Schéma : body-highlighter, Hicham Elabbassi — MIT", { a: legende ? legende + " · " : "" })}</p>
     </div>
   );
 }

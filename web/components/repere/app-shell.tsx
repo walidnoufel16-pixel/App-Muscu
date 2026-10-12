@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useEffect, ViewTransition } from "react";
 import { usePathname } from "next/navigation";
 import { useRepere } from "@/lib/store";
@@ -41,7 +42,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="grid min-h-dvh place-items-center">
         <div className="flex flex-col items-center gap-3 text-muted-foreground">
           <LogoDisque accent className="size-12 animate-pulse" />
-          <span className="eyebrow">Repère</span>
+          <span className="eyebrow">{tr("Repère")}</span>
         </div>
       </div>
     );

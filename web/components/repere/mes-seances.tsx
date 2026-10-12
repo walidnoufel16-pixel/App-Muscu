@@ -1,5 +1,6 @@
 "use client";
 
+import { pluriel, tr } from "@/lib/i18n";
 import { useState, ViewTransition } from "react";
 import { useRouter } from "next/navigation";
 import { BarbellIcon, StackIcon, CaretDownIcon, CaretRightIcon, CheckIcon, DownloadSimpleIcon, ExportIcon, HeartbeatIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
@@ -38,21 +39,21 @@ export function MesSeances() {
 
   const supprimer = async (i: number) => {
     const ok = await confirmer({
-      titre: `Supprimer « ${etat.SEANCES[i].nom} » ?`,
-      texte: "Les charges enregistrées sur cette séance seront effacées aussi, y compris dans l'historique des exercices concernés.",
-      ok: "Supprimer", danger: true,
+      titre: tr("Supprimer « {nom} » ?", { nom: etat.SEANCES[i].nom }),
+      texte: tr("Les charges enregistrées sur cette séance seront effacées aussi, y compris dans l'historique des exercices concernés."),
+      ok: tr("Supprimer"), danger: true,
     });
     if (ok) muter((E) => act.supprimerSeance(E, i));
   };
 
   const supprimerCardio = async (i: number) => {
-    if (await confirmer({ titre: `Supprimer « ${cardio[i].nom} » ?`, texte: "Ton historique de cardio est conservé.", ok: "Supprimer", danger: true }))
+    if (await confirmer({ titre: tr("Supprimer « {nom} » ?", { nom: cardio[i].nom }), texte: tr("Ton historique de cardio est conservé."), ok: tr("Supprimer"), danger: true }))
       muter((E) => { E.SEANCES_CARDIO!.splice(i, 1); });
   };
 
   const partagerSeance = async (i: number, estCardio = false) => {
     const r = await (estCardio ? partagerCardio(i) : partager(i));
-    if (r.erreur || !r.code) { dire("Partage impossible", r.erreur); return; }
+    if (r.erreur || !r.code) { dire(tr("Partage impossible"), r.erreur); return; }
     const av = (r as { avertissement?: string }).avertissement;
     if (av) toast(av);
     setPartage({ nom: estCardio ? cardio[i].nom : etat.SEANCES[i].nom, code: r.code });
@@ -60,9 +61,9 @@ export function MesSeances() {
 
   const lancerImport = async () => {
     const r = await importer(code);
-    if (r.erreur) { dire("Import impossible", r.erreur); return; }
+    if (r.erreur) { dire(tr("Import impossible"), r.erreur); return; }
     setImp(false); setCode("");
-    toast.success(`« ${r.nom} » ajoutée à tes séances${r.cardio ? " cardio" : ""}`);
+    toast.success(tr("« {nom} » ajoutée à tes séances{a}", { nom: r.nom, a: r.cardio ? " cardio" : "" }));
   };
 
   /* Ligne d'une séance de musculation ou combinée (index dans SEANCES). */
@@ -82,12 +83,12 @@ export function MesSeances() {
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[16px] font-semibold tracking-[-0.01em]">{s.nom}</span>
               <span className="block truncate text-[12.5px] text-muted-foreground">
-                {s.ex.length} exercice{s.ex.length > 1 ? "s" : ""}{s.blocs?.length ? ` + ${s.blocs.length} cardio` : ""} · environ {dureeSeance(s)} min · {musclesDe(s.ex.map((e) => e.id)).slice(0, 3).join(", ")}
+                {s.ex.length}{" "}{tr("exercice")}{pluriel(s.ex.length) ? "s" : ""}{s.blocs?.length ? tr(" + {length} cardio", { length: s.blocs.length }) : ""}{" "}{tr("· environ")}{" "}{dureeSeance(s)}{" "}{tr("min ·")}{" "}{musclesDe(s.ex.map((e) => e.id)).slice(0, 3).join(", ")}
               </span>
-              {absents > 0 && <span className="block text-[12px] text-destructive">{absents} hors de ton matériel</span>}
+              {absents > 0 && <span className="block text-[12px] text-destructive">{tr("{absents} hors de ton matériel", { absents })}</span>}
             </span>
           </button>
-          <button onClick={() => partagerSeance(i)} aria-label="Partager" className="grid w-12 place-items-center border-l border-border/70 text-muted-foreground">
+          <button onClick={() => partagerSeance(i)} aria-label={tr("Partager")} className="grid w-12 place-items-center border-l border-border/70 text-muted-foreground">
             {s.code ? <CheckIcon className="size-5" /> : <ExportIcon className="size-5" />}
           </button>
         </div>
@@ -100,24 +101,24 @@ export function MesSeances() {
       <div className="flex flex-col gap-2">
         {!etat.SEANCES.length && !cardio.length && (
           <div className="rounded-[22px] border border-dashed bg-card/50 p-5 text-center text-[14px] leading-relaxed text-muted-foreground">
-            Aucune séance enregistrée pour l&apos;instant. Crée la première : elle restera disponible ensuite.
+            {tr("Aucune séance enregistrée pour l'instant. Crée la première : elle restera disponible ensuite.")}
           </div>
         )}
 
         {muscu.length > 0 && (
-          <Groupe cle="muscu" titre="Musculation" icone={<BarbellIcon className="size-5" weight="fill" />} noms={muscu.map((i) => etat.SEANCES[i].nom)}>
+          <Groupe cle="muscu" titre={tr("Musculation")} icone={<BarbellIcon className="size-5" weight="fill" />} noms={muscu.map((i) => etat.SEANCES[i].nom)}>
             {muscu.map((i) => ligneMuscu(i))}
           </Groupe>
         )}
 
         {combinees.length > 0 && (
-          <Groupe cle="combinees" titre="Combinées" icone={<StackIcon className="size-5" weight="fill" />} noms={combinees.map((i) => etat.SEANCES[i].nom)}>
+          <Groupe cle="combinees" titre={tr("Combinées")} icone={<StackIcon className="size-5" weight="fill" />} noms={combinees.map((i) => etat.SEANCES[i].nom)}>
             {combinees.map((i) => ligneMuscu(i))}
           </Groupe>
         )}
 
         {cardio.length > 0 && (
-          <Groupe cle="cardio" titre="Cardio" icone={<HeartbeatIcon className="size-5" weight="fill" />} noms={cardio.map((c) => c.nom)}>
+          <Groupe cle="cardio" titre={tr("Cardio")} icone={<HeartbeatIcon className="size-5" weight="fill" />} noms={cardio.map((c) => c.nom)}>
             {cardio.map((c, i) => {
               const I = ICONE_FORMAT[c.f];
               return (
@@ -127,12 +128,10 @@ export function MesSeances() {
                       <span className="grid size-11 shrink-0 place-items-center rounded-[12px] bg-plate-soft text-plate-ink"><I className="size-6" weight="fill" /></span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-[16px] font-semibold tracking-[-0.01em]">{c.nom}</span>
-                        <span className="block truncate text-[12.5px] text-muted-foreground">
-                          {FORMATS[c.f].nom} · {MACHINES[c.m].nom} · {Math.round(dureeTotale(construireSeance(c.f, c.m, c.r)) / 60)} min
-                        </span>
+                        <span className="block truncate text-[12.5px] text-muted-foreground">{tr("{nom} · {nom1} · {a} min", { nom: FORMATS[c.f].nom, nom1: MACHINES[c.m].nom, a: Math.round(dureeTotale(construireSeance(c.f, c.m, c.r)) / 60) })}</span>
                       </span>
                     </button>
-                    <button onClick={() => partagerSeance(i, true)} aria-label="Partager" className="grid w-12 place-items-center border-l border-border/70 text-muted-foreground">
+                    <button onClick={() => partagerSeance(i, true)} aria-label={tr("Partager")} className="grid w-12 place-items-center border-l border-border/70 text-muted-foreground">
                       {c.code ? <CheckIcon className="size-5" /> : <ExportIcon className="size-5" />}
                     </button>
                   </div>
@@ -141,12 +140,12 @@ export function MesSeances() {
             })}
           </Groupe>
         )}
-        {etat.SEANCES.length + cardio.length > 0 && <p className="px-2 text-center text-[11.5px] text-muted-foreground">Fais glisser une séance vers la gauche pour la supprimer.</p>}
+        {etat.SEANCES.length + cardio.length > 0 && <p className="px-2 text-center text-[11.5px] text-muted-foreground">{tr("Fais glisser une séance vers la gauche pour la supprimer.")}</p>}
 
         <div className="mt-1 overflow-hidden rounded-[20px] border border-border/80 bg-card">
-          <Action accent icone={<SparkleIcon className="size-5" weight="fill" />} label="Créer une séance pour moi" onClick={() => router.push("/entrainement/assistant", AVANT)} />
-          <Action icone={<PlusIcon className="size-5" />} label="Composer exercice par exercice" onClick={() => { setLibre({ nom: "Séance libre", ex: [], idx: null }); router.push("/entrainement/composer", AVANT); }} />
-          <Action icone={<DownloadSimpleIcon className="size-5" />} label="Importer une séance avec un code" onClick={() => setImp(true)} />
+          <Action accent icone={<SparkleIcon className="size-5" weight="fill" />} label={tr("Créer une séance pour moi")} onClick={() => router.push("/entrainement/assistant", AVANT)} />
+          <Action icone={<PlusIcon className="size-5" />} label={tr("Composer exercice par exercice")} onClick={() => { setLibre({ nom: tr("Séance libre"), ex: [], idx: null }); router.push("/entrainement/composer", AVANT); }} />
+          <Action icone={<DownloadSimpleIcon className="size-5" />} label={tr("Importer une séance avec un code")} onClick={() => setImp(true)} />
         </div>
       </div>
 
@@ -156,8 +155,8 @@ export function MesSeances() {
       <Drawer open={imp} onOpenChange={setImp} repositionInputs>
         <DrawerContent>
           <div className="px-5 pt-2 pb-[max(env(safe-area-inset-bottom),20px)]">
-            <DrawerTitle className="text-center text-[20px] font-bold">Importer une séance</DrawerTitle>
-            <DrawerDescription className="mt-1 text-center text-[13.5px] text-muted-foreground">Le code que t&apos;a transmis la personne qui partage la séance : cinq caractères.</DrawerDescription>
+            <DrawerTitle className="text-center text-[20px] font-bold">{tr("Importer une séance")}</DrawerTitle>
+            <DrawerDescription className="mt-1 text-center text-[13.5px] text-muted-foreground">{tr("Le code que t'a transmis la personne qui partage la séance : cinq caractères.")}</DrawerDescription>
             <Input
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
@@ -166,10 +165,10 @@ export function MesSeances() {
               maxLength={8}
               autoCapitalize="characters"
               autoComplete="off"
-              aria-label="Code de la séance"
+              aria-label={tr("Code de la séance")}
               className="num mt-4 h-16 rounded-2xl text-center text-[34px] font-bold tracking-[0.3em]"
             />
-            <Button variant="plate" size="xl" className="mt-3 w-full" onClick={lancerImport}>Importer</Button>
+            <Button variant="plate" size="xl" className="mt-3 w-full" onClick={lancerImport}>{tr("Importer")}</Button>
           </div>
         </DrawerContent>
       </Drawer>

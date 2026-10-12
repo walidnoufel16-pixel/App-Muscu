@@ -2,6 +2,7 @@
    et par jour, qui survit aux nouveaux cycles et aux séances libres refaites
    (leurs lignes du journal sont réécrites à chaque fois). Logique pure.
    Le cardio garde son propre historique (CARDIO). */
+import { tr } from "@/lib/i18n";
 import { EX } from "@/lib/data/exercices";
 import { MUSC, PAT2MUSC } from "@/lib/data/referentiels";
 import { okDe, titreSeance, week } from "./core";
@@ -60,9 +61,9 @@ export function perfDe(L: Journal): PerfEx | null {
 /** Nom affiché d'une séance du journal. */
 export function nomSeance(E: Etat, s: string) {
   const [a, b] = s.split("|");
-  if (a === "L") return E.SEANCES[+b]?.nom || "Séance libre";
+  if (a === "L") return E.SEANCES[+b]?.nom || tr("Séance libre");
   const S = week(E)[+b];
-  return S ? titreSeance(S.t) : "Séance";
+  return S ? titreSeance(S.t) : tr("Séance");
 }
 
 /** Ligne d'historique d'une séance pour un jour : les lignes du journal de la séance modifiées ce jour-là. */
