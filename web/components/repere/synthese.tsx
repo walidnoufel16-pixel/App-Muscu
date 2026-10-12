@@ -90,7 +90,7 @@ export function Synthese() {
               return (
                 <div key={g}>
                   <div className="mb-1 flex items-baseline justify-between text-[13.5px]">
-                    <span className={cn("font-medium", off && "text-muted-foreground")}>{g}</span>
+                    <span className={cn("font-medium", off && "text-muted-foreground")}>{tr(g)}</span>
                     <span className="num text-[16px] font-bold">{off ? <span className="font-sans text-[12.5px] font-medium text-muted-foreground">{tr("écarté")}</span> : v}</span>
                   </div>
                   <div className="flex gap-[3px]">

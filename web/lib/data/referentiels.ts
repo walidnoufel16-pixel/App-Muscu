@@ -1,5 +1,6 @@
 /* Généré depuis l'ancienne app (public/index.html) — ne pas éditer à la main sans relancer les tests de parité. */
 import type { Seance, Etape, Collation, Sport, MuscleAss } from "./types";
+import { langue, tr } from "@/lib/i18n";
 
 export const PLATE: [string, number][] = [
  [
@@ -1324,3 +1325,19 @@ export const TYPES: [string, string][] = [
   "Élastiques"
  ]
 ];
+
+/* En anglais, les textes affichés sont traduits sur place au chargement. Les
+   textes qui servent aussi de clés (GROUPES, PAT2GRP, OBJN, REGN, MATN, BLESN)
+   restent en français et sont traduits à l'affichage. */
+if (langue() === "en") {
+  SPORTS.forEach((s) => { s.n = tr(s.n); if (s.d) s.d = tr(s.d); });
+  for (const o of [PAT, PATN, ZONES]) for (const k in o) o[k] = tr(o[k]);
+  for (const l of [MATCATS, TYPES, MUSCLES]) l.forEach((x) => (x[1] = tr(x[1])));
+  ACC.forEach((x) => (x[1] = tr(x[1])));
+  AXES.forEach((x, i) => (AXES[i] = tr(x)));
+  OBJS.forEach((x, i) => (OBJS[i] = tr(x)));
+  MUSC.forEach((m) => (m.n = tr(m.n)));
+  [...SOCLE, ...BONUS].forEach((s) => { s.t = tr(s.t); s.f = tr(s.f); if (s.dur) s.dur = tr(s.dur); if (s.sp) s.sp[1] = tr(s.sp[1]); });
+  Object.values(ECHAUF).forEach((e) => { e.d = tr(e.d); e.l.forEach((x) => { x[0] = tr(x[0]); x[1] = tr(x[1]); x[3] = tr(x[3]); }); });
+  Object.values(COLLATION).forEach((c) => { c.t = tr(c.t); c.i = tr(c.i); c.n = tr(c.n); c.l.forEach((x) => { x[0] = tr(x[0]); x[1] = tr(x[1]); }); });
+}

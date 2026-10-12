@@ -4,7 +4,7 @@
    l'ancien code sur les mêmes entrées. */
 
 import { langue, loc, tr } from "@/lib/i18n";
-import { EX } from "@/lib/data/exercices";
+import { EX, EX_FR } from "@/lib/data/exercices";
 import {
   ACC, BAS, BONUS, HAUT, MUSCLES, PAT, PAT2GRP, PATN, SOCLE, SPORTS, VARIANTES, GROUPES,
 } from "@/lib/data/referentiels";
@@ -210,7 +210,7 @@ export function espacementDe(W: SeanceSemaine[], i: number): [number, string] {
 export function musclesDe(ids: string[]) {
   const l: string[] = [];
   ids.forEach((id) => {
-    const x = EX[id];
+    const x = EX_FR[id];
     if (!x || !x.m) return;
     x.m.split(",").forEach((t) => {
       const f = MUSCLES.find(([r]) => r.test(t.trim().toLowerCase()));
