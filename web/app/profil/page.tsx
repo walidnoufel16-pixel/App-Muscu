@@ -1,6 +1,6 @@
 "use client";
 
-import { changerLangue, langue, LANGUES, pluriel, tr, type Langue } from "@/lib/i18n";
+import { langue, LANGUES, pluriel, tr } from "@/lib/i18n";
 import { ReglageCycle, useCycleCharge } from "@/components/repere/cycle";
 import { ReglageZones } from "@/components/repere/forme";
 import { useState } from "react";
@@ -10,6 +10,7 @@ import { ArrowsLeftRightIcon, CaretRightIcon, ChartBarIcon, CheckCircleIcon, Clo
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SaisieCodeMail } from "@/components/repere/code-mail";
+import { ChoixLangue, useChangerLangue } from "@/components/repere/choix-langue";
 import { EnTete } from "@/components/repere/en-tete";
 import { Segmente } from "@/components/repere/segmente";
 import { confirmer } from "@/components/repere/confirmer";
@@ -23,8 +24,9 @@ import { cn } from "@/lib/utils";
 
 export default function PageProfil() {
   const router = useRouter();
-  const { user, pseudo, sync, etat, setUser, pousser, muter, toutEffacer, changerDeCompte } = useRepere();
+  const { user, pseudo, sync, etat, setUser, pousser, toutEffacer, changerDeCompte } = useRepere();
   const { theme, setTheme } = useTheme();
+  const changerLangue = useChangerLangue();
   const cycleActif = !!useCycleCharge()?.actif;
   const admin = useEstAdmin();
   const [mail, setMail] = useState("");
@@ -89,7 +91,7 @@ export default function PageProfil() {
 
   return (
     <>
-      <EnTete titre={tr("Profil")} />
+      <EnTete titre={tr("Profil")} actions={<ChoixLangue />} />
       <div className="flex flex-col gap-6 px-4">
         {/* identité */}
         <div className="flex items-center gap-4 rounded-[22px] bg-card p-4">
@@ -187,13 +189,7 @@ export default function PageProfil() {
           <Segmente
             label={tr("Langue")}
             valeur={langue()}
-            onChange={async (l: Langue) => {
-              if (l === langue()) return;
-              muter((E) => { E.A.langue = l; });
-              /* Envoyé tout de suite : l'app se recharge pour changer de langue. */
-              if (user) await pousser();
-              changerLangue(l);
-            }}
+            onChange={changerLangue}
             options={LANGUES}
           />
         </section>
