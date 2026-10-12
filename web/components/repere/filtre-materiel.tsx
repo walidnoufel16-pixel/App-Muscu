@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { TYPES } from "@/lib/data/referentiels";
 import { cn } from "@/lib/utils";
 
@@ -10,10 +11,10 @@ export function FiltreMateriel({ sel, onChange, declare }: { sel: string[]; onCh
   return (
     <div>
       <div className="mb-2 flex items-baseline justify-between">
-        <span className="eyebrow">Matériel disponible</span>
+        <span className="eyebrow">{tr("Matériel disponible")}</span>
         {perso && (
           <button onClick={() => onChange(declare)} className="text-[12.5px] font-medium text-muted-foreground hover:text-foreground">
-            Mon matériel déclaré
+            {tr("Mon matériel déclaré")}
           </button>
         )}
       </div>
@@ -35,7 +36,7 @@ export function FiltreMateriel({ sel, onChange, declare }: { sel: string[]; onCh
           );
         })}
       </div>
-      {!sel.length && <p className="mt-2 text-[12.5px] text-muted-foreground">Sélectionne au moins un matériel pour voir des exercices.</p>}
+      {!sel.length && <p className="mt-2 text-[12.5px] text-muted-foreground">{tr("Sélectionne au moins un matériel pour voir des exercices.")}</p>}
     </div>
   );
 }

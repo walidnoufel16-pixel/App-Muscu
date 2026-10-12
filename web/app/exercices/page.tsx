@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useState } from "react";
 import { EnTete } from "@/components/repere/en-tete";
 import { Bibliotheque, ListeRecherche } from "@/components/repere/bibliotheque";
@@ -18,13 +19,13 @@ export default function PageExercices() {
   const [zone, setZone] = useState<{ z: string; p: string | null } | null>(null);
   const [q, setQ] = useState("");
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);
-  const ouvrir = (id: string) => setFiche({ id, idx: -1, pres: [3, 10, "90 s"], libelle: "bibliothèque" });
+  const ouvrir = (id: string) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") });
   return (
     <>
-      <EnTete surtitre="Bibliothèque · 231 exercices" titre="Exercices" />
+      <EnTete surtitre={tr("Bibliothèque · 231 exercices")} titre={tr("Exercices")} />
       <div className="flex flex-col gap-3 px-4">
         <FiltreMateriel sel={sel} declare={selDeclare(A)} onChange={setSel} />
-        <Segmente label="Affichage" valeur={vue} onChange={setVue} options={[{ v: "corps", n: "Par le corps" }, { v: "liste", n: "Liste" }]} />
+        <Segmente label={tr("Affichage")} valeur={vue} onChange={setVue} options={[{ v: "corps", n: tr("Par le corps") }, { v: "liste", n: tr("Liste") }]} />
         {vue === "corps"
           ? <Bibliotheque sel={sel} zone={zone} setZone={setZone} onFiche={ouvrir} />
           : <ListeRecherche sel={sel} q={q} setQ={setQ} onFiche={ouvrir} />}

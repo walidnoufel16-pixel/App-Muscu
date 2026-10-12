@@ -2,6 +2,7 @@
 
 /* Entraînement : la réponse à « qu'est-ce que je fais aujourd'hui ? » en haut,
    puis la semaine du programme, puis les séances libres. */
+import { pluriel, tr } from "@/lib/i18n";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRightIcon, CaretRightIcon, CheckIcon, StarIcon, TrophyIcon, PersonSimpleRunIcon } from "@phosphor-icons/react";
@@ -19,7 +20,7 @@ import { usePremiereVisite } from "@/lib/entree";
 import { cn } from "@/lib/utils";
 
 type Jour = SeanceSemaine;
-const nomJour = (p: Jour, i: number) => (p.b ? "Bonus" : p.sportOnly ? "Ton sport" : `Séance ${i + 1}`);
+const nomJour = (p: Jour, i: number) => (p.b ? tr("Bonus") : p.sportOnly ? tr("Ton sport") : tr("Séance {a}", { a: i + 1 }));
 
 export default function PageEntrainement() {
   const router = useRouter();
@@ -39,35 +40,35 @@ export default function PageEntrainement() {
   return (
     <>
       <EnTete
-        surtitre={plan ? <>Semaine {wk + 1} sur 8 · effort visé <span className="num text-[13px]">RPE {baseRPE(wk)}</span></> : "Séances à la carte"}
-        titre="Entraînement"
+        surtitre={plan ? <>{tr("Semaine")}{" "}{wk + 1}{" "}{tr("sur 8 · effort visé")}{" "}<span className="num text-[13px]">{tr("RPE")}{" "}{baseRPE(wk)}</span></> : tr("Séances à la carte")}
+        titre={tr("Entraînement")}
       />
       <div className={cn("flex flex-col gap-6 px-4", premiere && "entree")}>
         {!plan ? (
           <Hero
-            surtitre="Programme sur 8 semaines"
-            titre="Construis ton programme"
-            texte="Une douzaine de questions sur ton objectif, ton matériel et ton rythme : Repère prépare huit semaines de séances et fait monter l'effort semaine après semaine."
-            bouton="Commencer le questionnaire"
+            surtitre={tr("Programme sur 8 semaines")}
+            titre={tr("Construis ton programme")}
+            texte={tr("Une douzaine de questions sur ton objectif, ton matériel et ton rythme : Repère prépare huit semaines de séances et fait monter l'effort semaine après semaine.")}
+            bouton={tr("Commencer le questionnaire")}
             onClick={() => router.push("/questionnaire", AVANT)}
           />
         ) : jour != null ? (
           <HeroSeance etatJour={jour} W={W} onClick={() => ouvrir(jour)} />
         ) : wk < 7 ? (
           <Hero
-            surtitre={`Semaine ${wk + 1} terminée`}
-            titre="Bravo, semaine bouclée"
-            texte={`L'effort visé passe à RPE ${baseRPE(wk + 1)} la semaine prochaine. Tes charges suivent automatiquement.`}
-            bouton={`Passer à la semaine ${wk + 2}`}
+            surtitre={tr("Semaine {a} terminée", { a: wk + 1 })}
+            titre={tr("Bravo, semaine bouclée")}
+            texte={tr("L'effort visé passe à RPE {a} la semaine prochaine. Tes charges suivent automatiquement.", { a: baseRPE(wk + 1) })}
+            bouton={tr("Passer à la semaine {a}", { a: wk + 2 })}
             icone={<TrophyIcon className="size-5" weight="fill" />}
             onClick={() => muter((E) => { E.wk = wk + 1; E.day = 0; })}
           />
         ) : (
           <Hero
-            surtitre="Cycle terminé"
-            titre="Huit semaines, bouclées"
-            texte="Tu peux revoir chaque semaine dans le programme, ou en construire un nouveau depuis ton profil."
-            bouton="Voir le programme"
+            surtitre={tr("Cycle terminé")}
+            titre={tr("Huit semaines, bouclées")}
+            texte={tr("Tu peux revoir chaque semaine dans le programme, ou en construire un nouveau depuis ton profil.")}
+            bouton={tr("Voir le programme")}
             icone={<TrophyIcon className="size-5" weight="fill" />}
             onClick={() => router.push("/entrainement/programme", AVANT)}
           />
@@ -83,21 +84,21 @@ export default function PageEntrainement() {
         )}
 
         <section>
-          <h2 className="eyebrow mb-2 px-1">Mes séances</h2>
+          <h2 className="eyebrow mb-2 px-1">{tr("Mes séances")}</h2>
           <MesSeances />
         </section>
 
         {plan && (
           <section>
-            <h2 className="eyebrow mb-2 px-1">Ma semaine</h2>
+            <h2 className="eyebrow mb-2 px-1">{tr("Ma semaine")}</h2>
             <div className="overflow-hidden rounded-[20px] border border-border/80 bg-card">
               <button onClick={() => router.push("/entrainement/programme", AVANT)} className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-muted">
                 <span className="grid size-9 shrink-0 place-items-center rounded-full" style={{ background: `conic-gradient(var(--plate) ${(socle.length ? faites / socle.length : 0) * 360}deg, var(--muted) 0)` }}>
                   <span className="num grid size-[27px] place-items-center rounded-full bg-card text-[16px] font-bold">{wk + 1}</span>
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-[15px] font-semibold">Semaine {wk + 1} sur 8</span>
-                  <span className="block text-[12.5px] text-muted-foreground">{faites} séance{faites > 1 ? "s" : ""} sur {socle.length} · voir le programme complet</span>
+                  <span className="block text-[15px] font-semibold">{tr("Semaine {a} sur 8", { a: wk + 1 })}</span>
+                  <span className="block text-[12.5px] text-muted-foreground">{tr("{faites} séance{a} sur {length} · voir le programme complet", { faites, a: pluriel(faites) ? "s" : "", length: socle.length })}</span>
                 </span>
                 <CaretRightIcon className="size-4 text-muted-foreground" />
               </button>
@@ -110,7 +111,7 @@ export default function PageEntrainement() {
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[14.5px] font-medium">{nomJour(p, i)}{!p.sportOnly && <span className="text-muted-foreground"> · {titreSeance(p.t)}</span>}</span>
-                      <span className="block text-[12px] text-muted-foreground">{fait ? "faite" : p.b ? "facultative" : p.sportOnly ? "ta pratique" : i === jour ? "la prochaine" : "à faire"}</span>
+                      <span className="block text-[12px] text-muted-foreground">{fait ? tr("faite") : p.b ? tr("facultative") : p.sportOnly ? tr("ta pratique") : i === jour ? tr("la prochaine") : tr("à faire")}</span>
                     </span>
                     <CaretRightIcon className="size-4 text-muted-foreground" />
                   </button>
@@ -145,10 +146,10 @@ function HeroSeance({ etatJour: d, W, onClick }: { etatJour: number; W: Jour[]; 
   const entamee = ids.some((_, i) => etat.LOG[`${etat.wk}|${d}|${i}`]?.series?.some((s) => s.ok));
   return (
     <Hero
-      surtitre={`Séance du jour · ${nomJour(S, d)}${S.dur ? " · " + S.dur : ""}`}
+      surtitre={tr("Séance du jour · {a}{a1}", { a: nomJour(S, d), a1: S.dur ? " · " + S.dur : "" })}
       titre={titreSeance(S.t)}
-      texte={`${musclesDe(ids).slice(0, 4).join(", ")} · ${ids.length} exercices`}
-      bouton={entamee ? "Reprendre" : "Commencer"}
+      texte={tr("{a} · {length} exercices", { a: musclesDe(ids).slice(0, 4).join(", "), length: ids.length })}
+      bouton={entamee ? tr("Reprendre") : tr("Commencer")}
       onClick={onClick}
     />
   );

@@ -6,6 +6,7 @@
      (router.back) pour ramener exactement d'où l'on vient ; comme une
      navigation d'historique ne porte pas de type de transition, le sens est
      posé juste avant dans `useSens` et lu par la transition de l'AppShell. */
+import { tr } from "@/lib/i18n";
 import { create } from "zustand";
 
 export const AVANT = { transitionTypes: ["nav-forward"] };
@@ -33,21 +34,21 @@ export const usePile = create<Pile>((set, get) => ({
 export const remplacement = () => usePile.setState({ remplace: true });
 
 const TITRES: [RegExp, string][] = [
-  [/^\/entrainement\/programme/, "Programme"],
-  [/^\/entrainement\/seance/, "Séance"],
-  [/^\/entrainement\/assistant/, "Créer une séance"],
-  [/^\/entrainement\/composer/, "Composer"],
-  [/^\/entrainement\/cardio/, "Cardio"],
-  [/^\/entrainement\/course/, "Course"],
-  [/^\/entrainement/, "Entraînement"],
-  [/^\/exercices/, "Exercices"],
-  [/^\/progres\/bilan/, "Bilan"],
-  [/^\/progres/, "Progrès"],
-  [/^\/profil/, "Profil"],
-  [/^\/admin\/fiche/, "Fiche"],
-  [/^\/admin/, "Admin"],
+  [/^\/entrainement\/programme/, tr("Programme")],
+  [/^\/entrainement\/seance/, tr("Séance")],
+  [/^\/entrainement\/assistant/, tr("Créer une séance")],
+  [/^\/entrainement\/composer/, tr("Composer")],
+  [/^\/entrainement\/cardio/, tr("Cardio")],
+  [/^\/entrainement\/course/, tr("Course")],
+  [/^\/entrainement/, tr("Entraînement")],
+  [/^\/exercices/, tr("Exercices")],
+  [/^\/progres\/bilan/, tr("Bilan")],
+  [/^\/progres/, tr("Progrès")],
+  [/^\/profil/, tr("Profil")],
+  [/^\/admin\/fiche/, tr("Fiche")],
+  [/^\/admin/, tr("Admin")],
 ];
-export const titreDe = (chemin: string) => TITRES.find(([r]) => r.test(chemin))?.[1] ?? "Retour";
+export const titreDe = (chemin: string) => TITRES.find(([r]) => r.test(chemin))?.[1] ?? tr("Retour");
 
 /* Revenir jusqu'à un écran déjà visité (par exemple Entraînement après avoir
    créé une séance via l'assistant puis le composeur), en remontant l'historique

@@ -8,7 +8,7 @@ const srv = servir(new URL("../../out/", import.meta.url).pathname, 8805);
 const U = "http://localhost:8805";
 const etat = { A: { objectif: 0, regularite: 2, materiel: 0, acc: [] }, LOG: {}, SWAP: {}, SWAPP: {}, PLAN: null, SEANCES: [], wk: 0, day: 0, FINI: false, ts: Date.now() };
 const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
-const ctx = await b.newContext({
+const ctx = await b.newContext({ locale: "fr-FR",
   viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, serviceWorkers: "block", colorScheme: process.env.SOMBRE ? "dark" : "light",
   ...(process.env.VIDEO ? { recordVideo: { dir: process.env.VIDEO, size: { width: 390, height: 844 } } } : {}),
 });

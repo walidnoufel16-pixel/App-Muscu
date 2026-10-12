@@ -1,5 +1,6 @@
 "use client";
 
+import { pluriel, tr } from "@/lib/i18n";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowsClockwiseIcon, ArrowsLeftRightIcon, CaretDownIcon, CaretRightIcon, DotsSixVerticalIcon, HeartbeatIcon, InfoIcon, MinusIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
@@ -94,7 +95,7 @@ export default function PageComposer() {
   const retirerBloc = (id: string) => { majLibre((l) => { l.blocs = (l.blocs || []).filter((x) => x.id !== id); }); setBlocOuvert(null); };
 
   const enregistrer = () => {
-    const nom = L.nom.trim() || "Séance libre";
+    const nom = L.nom.trim() || tr("Séance libre");
     const s = { nom, ex: L.ex, ...(L.blocs?.length ? { blocs: L.blocs } : {}), ...(L.obj != null ? { obj: L.obj } : {}), ...(L.colObj != null ? { colObj: L.colObj } : {}), ...(L.gen ? { gen: L.gen } : {}), ...(L.code ? { code: L.code } : {}) };
     muter((E) => { if (L.idx != null) E.SEANCES[L.idx] = s; else E.SEANCES.push(s); });
     part.current = true;
@@ -104,7 +105,7 @@ export default function PageComposer() {
   };
   const supprimer = async () => {
     if (L.idx == null) { part.current = true; setLibre(null); retour(); return; }
-    if (!(await confirmer({ titre: `Supprimer « ${etat.SEANCES[L.idx]?.nom} » ?`, texte: "Les charges enregistrées sur cette séance seront effacées aussi.", ok: "Supprimer", danger: true }))) return;
+    if (!(await confirmer({ titre: tr("Supprimer « {nom} » ?", { nom: etat.SEANCES[L.idx]?.nom }), texte: tr("Les charges enregistrées sur cette séance seront effacées aussi."), ok: tr("Supprimer"), danger: true }))) return;
     const i = L.idx;
     muter((E) => act.supprimerSeance(E, i));
     part.current = true;
@@ -118,16 +119,16 @@ export default function PageComposer() {
   return (
     <>
       <EnTete
-        surtitre={L.idx != null ? "Modifier la séance" : "Nouvelle séance"}
-        titre={L.nom || "Séance libre"}
+        surtitre={L.idx != null ? tr("Modifier la séance") : tr("Nouvelle séance")}
+        titre={L.nom || tr("Séance libre")}
         gauche={<Retour repli="/entrainement" />}
-        actions={<Button variant="ghost" size="icon" aria-label="Supprimer" onClick={supprimer}><TrashIcon className="size-5 text-destructive" /></Button>}
+        actions={<Button variant="ghost" size="icon" aria-label={tr("Supprimer")} onClick={supprimer}><TrashIcon className="size-5 text-destructive" /></Button>}
       />
       <div className="flex flex-col gap-5 px-4 pb-28">
         <section>
-          <label className="eyebrow mb-1.5 block px-1" htmlFor="nom">Nom de la séance</label>
-          <Input id="nom" value={L.nom} onChange={(e) => majLibre((l) => { l.nom = e.target.value; })} placeholder="Haut du corps, jambes, jour de bras…" className="h-12 rounded-2xl bg-card text-[17px] font-semibold" />
-          <div className="eyebrow mt-4 mb-1.5 px-1">Objectif · facultatif</div>
+          <label className="eyebrow mb-1.5 block px-1" htmlFor="nom">{tr("Nom de la séance")}</label>
+          <Input id="nom" value={L.nom} onChange={(e) => majLibre((l) => { l.nom = e.target.value; })} placeholder={tr("Haut du corps, jambes, jour de bras…")} className="h-12 rounded-2xl bg-card text-[17px] font-semibold" />
+          <div className="eyebrow mt-4 mb-1.5 px-1">{tr("Objectif · facultatif")}</div>
           <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4">
             {OBJS.map((o, i) => (
               <button key={o} aria-pressed={L.obj === i} onClick={() => majLibre((l) => { l.obj = l.obj === i ? undefined : i; })}
@@ -140,19 +141,15 @@ export default function PageComposer() {
 
         {L.gen && (
           <div className="flex items-center gap-3 rounded-[20px] bg-plate-soft p-3.5">
-            <p className="flex-1 text-[13.5px] leading-snug">Proposition de départ : réordonne, remplace ou ajoute ce que tu veux.</p>
+            <p className="flex-1 text-[13.5px] leading-snug">{tr("Proposition de départ : réordonne, remplace ou ajoute ce que tu veux.")}</p>
             <Button variant="outline" size="sm" className="rounded-full bg-card" onClick={() => { tactile(10); majLibre((l) => { const zones = zonesActives(etat.A), ex = construireSeance(l.gen!.m, l.gen!.d, l.gen!.obj, sel, Math.random, (o) => zonesDe(o, zones).length > 0); if (ex.length) l.ex = ex; }); setOuv(null); }}>
-              <ArrowsClockwiseIcon />Autre
+              <ArrowsClockwiseIcon />{tr("Autre")}
             </Button>
           </div>
         )}
 
         <section>
-          <div className="eyebrow mb-2 px-1">
-            Ta séance · {L.ex.length} exercice{L.ex.length > 1 ? "s" : ""}
-            {L.blocs?.length ? ` + ${L.blocs.length} bloc${L.blocs.length > 1 ? "s" : ""} cardio` : ""}
-            {L.ex.length ? ` · environ ${dureeSeance(L)} min` : ""}
-          </div>
+          <div className="eyebrow mb-2 px-1">{tr("Ta séance · {length} exercice{a} {a1} {a2}", { length: L.ex.length, a: pluriel(L.ex.length) ? "s" : "", a1: L.blocs?.length ? tr(" + {length} bloc{a} cardio", { length: L.blocs.length, a: pluriel(L.blocs.length) ? "s" : "" }) : "", a2: L.ex.length ? tr(" · environ {a} min", { a: dureeSeance(L) }) : "" })}</div>
           <div ref={liste} className="flex flex-col gap-2">
             {L.ex.length || L.blocs?.length ? ordre(L).map((x) => x.t === "ex" ? (
               <CarteCompo
@@ -163,7 +160,7 @@ export default function PageComposer() {
                 onToggle={() => setOuv(ouv === x.e.id ? null : x.e.id)}
                 onSaisir={(ev) => saisir(ev, x.e.id)}
                 regl={regl} reglRepos={reglRepos} deplacer={deplacer}
-                onFiche={() => setFiche({ id: x.e.id, idx: -1, pres: [x.e.s, x.e.r, x.e.p], libelle: "séance libre" })}
+                onFiche={() => setFiche({ id: x.e.id, idx: -1, pres: [x.e.s, x.e.r, x.e.p], libelle: tr("séance libre") })}
                 onRemplacer={() => setRemp(x.i)}
                 onRetirer={() => retirer(x.i)}
               />
@@ -171,16 +168,16 @@ export default function PageComposer() {
               <CarteBloc key={x.b.id} b={x.b} glisse={glisse === "bloc-" + x.b.id} onSaisir={(ev) => saisir(ev, "bloc-" + x.b.id)} onOuvrir={() => setBlocOuvert(x.b.id)} />
             )) : (
               <button onClick={() => setAjout(true)} className="flex flex-col items-center gap-1.5 rounded-[20px] border border-dashed border-plate/60 bg-card/50 p-6 text-[15px] font-semibold text-plate-ink active:scale-[.99]">
-                <PlusIcon className="size-6" weight="bold" />Ajouter un exercice
+                <PlusIcon className="size-6" weight="bold" />{tr("Ajouter un exercice")}
               </button>
             )}
           </div>
           <div className="mt-2 grid grid-cols-2 gap-2">
             <button onClick={() => { tactile(6); setAjout(true); }} className="flex items-center justify-center gap-2 rounded-[18px] bg-plate py-3 text-[14.5px] font-semibold text-plate-foreground active:scale-[.98]">
-              <PlusIcon className="size-4" weight="bold" />Exercice
+              <PlusIcon className="size-4" weight="bold" />{tr("Exercice")}
             </button>
             <button onClick={ajouterBloc} className="flex items-center justify-center gap-2 rounded-[18px] border border-dashed border-plate/60 py-3 text-[14.5px] font-semibold text-plate-ink active:scale-[.98]">
-              <PlusIcon className="size-4" weight="bold" />Bloc cardio
+              <PlusIcon className="size-4" weight="bold" />{tr("Bloc cardio")}
             </button>
           </div>
         </section>
@@ -188,10 +185,10 @@ export default function PageComposer() {
 
       <FeuilleAjout
         ouvert={ajout} onClose={() => setAjout(false)} onAjouter={ajouter} pris={pris} sel={sel} onSel={setSel}
-        onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, "90 s"], libelle: "bibliothèque" })}
+        onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") })}
       />
       <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
-        <Button variant="plate" size="xl" className="w-full" disabled={!L.ex.length} onClick={enregistrer}>Enregistrer la séance</Button>
+        <Button variant="plate" size="xl" className="w-full" disabled={!L.ex.length} onClick={enregistrer}>{tr("Enregistrer la séance")}</Button>
       </div>
 
       <FicheExercice fiche={fiche} onClose={() => setFiche(null)} />
@@ -199,12 +196,12 @@ export default function PageComposer() {
         <DrawerContent className="max-h-[92dvh]">
           {blocActif && (
             <div className="overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),20px)]">
-              <DrawerTitle className="mt-2 px-1 text-[22px] font-bold">Bloc cardio</DrawerTitle>
-              <DrawerDescription className="mt-1 mb-4 px-1 text-[13.5px] text-muted-foreground">Il se place où tu veux dans la séance : fais-le glisser par sa poignée.</DrawerDescription>
+              <DrawerTitle className="mt-2 px-1 text-[22px] font-bold">{tr("Bloc cardio")}</DrawerTitle>
+              <DrawerDescription className="mt-1 mb-4 px-1 text-[13.5px] text-muted-foreground">{tr("Il se place où tu veux dans la séance : fais-le glisser par sa poignée.")}</DrawerDescription>
               <ReglagesCardio choix={blocActif} onChange={(c) => majBloc(blocActif.id, c)} />
               <div className="mt-5 grid grid-cols-2 gap-2">
-                <Button variant="soft" size="lg" className="rounded-xl text-destructive" onClick={() => retirerBloc(blocActif.id)}><TrashIcon />Retirer</Button>
-                <Button variant="plate" size="lg" className="rounded-xl" onClick={() => setBlocOuvert(null)}>OK</Button>
+                <Button variant="soft" size="lg" className="rounded-xl text-destructive" onClick={() => retirerBloc(blocActif.id)}><TrashIcon />{tr("Retirer")}</Button>
+                <Button variant="plate" size="lg" className="rounded-xl" onClick={() => setBlocOuvert(null)}>{tr("OK")}</Button>
               </div>
             </div>
           )}
@@ -214,7 +211,7 @@ export default function PageComposer() {
         ouvert={remp != null && !!rempCur}
         onClose={() => setRemp(null)}
         titre={rempCur ? EX[rempCur].n : ""}
-        sousTitre={rempCur ? `Remplacer · ${nomPat(EX[rempCur].pat)}` : ""}
+        sousTitre={rempCur ? tr("Remplacer · {a}", { a: nomPat(EX[rempCur].pat) }) : ""}
         liste={rempListe}
         courant={rempCur}
         onChoisir={(o) => {
@@ -244,7 +241,7 @@ function CarteCompo({
   return (
     <div data-carte={e.id} className={cn("overflow-hidden rounded-[20px] border bg-card transition-shadow", glisse ? "z-10 border-plate shadow-[0_14px_34px_-14px_rgba(0,0,0,.45)]" : "border-border/80")}>
       <div className="flex items-center">
-        <button onPointerDown={onSaisir} aria-label="Glisser pour déplacer" className="grid h-16 w-8 shrink-0 cursor-grab touch-none place-items-center text-muted-foreground/70 active:cursor-grabbing">
+        <button onPointerDown={onSaisir} aria-label={tr("Glisser pour déplacer")} className="grid h-16 w-8 shrink-0 cursor-grab touch-none place-items-center text-muted-foreground/70 active:cursor-grabbing">
           <DotsSixVerticalIcon className="size-5" />
         </button>
         <button onClick={onToggle} aria-expanded={ouvert} className="flex min-w-0 flex-1 items-center gap-3 py-3 pr-3 text-left">
@@ -252,7 +249,7 @@ function CarteCompo({
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="truncate text-[16px] font-semibold tracking-[-0.01em]">{x.n}</span>
             {mus.length > 0 && <span className="truncate text-[12.5px] text-muted-foreground">{mus.join(" · ")}</span>}
-            <span className="num text-[15px] font-semibold text-foreground/80">{prescr} <span className="font-sans text-[12.5px] font-normal text-muted-foreground">· repos {e.p}</span></span>
+            <span className="num text-[15px] font-semibold text-foreground/80">{prescr} <span className="font-sans text-[12.5px] font-normal text-muted-foreground">{tr("· repos {p}", { p: e.p })}</span></span>
           </span>
           <CaretDownIcon className={cn("size-5 shrink-0 text-muted-foreground transition-transform", ouvert && "rotate-180")} />
         </button>
@@ -260,15 +257,15 @@ function CarteCompo({
       {ouvert && (
         <div className="animate-in fade-in-0 duration-150">
           <div className="grid grid-cols-2 gap-2 border-t border-border/70 p-3">
-            <Pas titre="Séries" val={e.s} moins={() => regl(i, "s", -1)} plus={() => regl(i, "s", 1)} d1={e.s <= 1} d2={e.s >= 6} />
-            <Pas titre={x.ch === "temps" ? "Secondes" : x.ch === "dist" ? "Mètres" : "Répétitions"} val={e.r} moins={() => regl(i, "r", -pas)} plus={() => regl(i, "r", pas)} d1={e.r <= pas} />
-            <Pas titre="Repos" val={e.p} moins={() => reglRepos(i, -1)} plus={() => reglRepos(i, 1)} />
-            <Pas titre="Position" val={`${i + 1} / ${n}`} moins={() => deplacer(i, -1)} plus={() => deplacer(i, 1)} d1={i === 0} d2={i === n - 1} />
+            <Pas titre={tr("Séries")} val={e.s} moins={() => regl(i, "s", -1)} plus={() => regl(i, "s", 1)} d1={e.s <= 1} d2={e.s >= 6} />
+            <Pas titre={x.ch === "temps" ? tr("Secondes") : x.ch === "dist" ? tr("Mètres") : tr("Répétitions")} val={e.r} moins={() => regl(i, "r", -pas)} plus={() => regl(i, "r", pas)} d1={e.r <= pas} />
+            <Pas titre={tr("Repos")} val={e.p} moins={() => reglRepos(i, -1)} plus={() => reglRepos(i, 1)} />
+            <Pas titre={tr("Position")} val={`${i + 1} / ${n}`} moins={() => deplacer(i, -1)} plus={() => deplacer(i, 1)} d1={i === 0} d2={i === n - 1} />
           </div>
           <div className="grid grid-cols-3 border-t border-border/70">
-            <Outil onClick={onFiche} icone={<InfoIcon className="size-5" />} label="Fiche" />
-            <Outil onClick={onRemplacer} icone={<ArrowsLeftRightIcon className="size-5" />} label="Remplacer" />
-            <Outil onClick={onRetirer} icone={<TrashIcon className="size-5 text-destructive" />} label="Retirer" />
+            <Outil onClick={onFiche} icone={<InfoIcon className="size-5" />} label={tr("Fiche")} />
+            <Outil onClick={onRemplacer} icone={<ArrowsLeftRightIcon className="size-5" />} label={tr("Remplacer")} />
+            <Outil onClick={onRetirer} icone={<TrashIcon className="size-5 text-destructive" />} label={tr("Retirer")} />
           </div>
         </div>
       )}
@@ -304,15 +301,15 @@ function CarteBloc({ b, glisse, onSaisir, onOuvrir }: { b: BlocCardio; glisse: b
   return (
     <div data-carte={"bloc-" + b.id} className={cn("overflow-hidden rounded-[20px] border bg-plate-soft transition-shadow", glisse ? "z-10 border-plate shadow-[0_14px_34px_-14px_rgba(0,0,0,.45)]" : "border-plate/40")}>
       <div className="flex items-center">
-        <button onPointerDown={onSaisir} aria-label="Glisser pour déplacer" className="grid h-16 w-8 shrink-0 cursor-grab touch-none place-items-center text-plate-ink/70 active:cursor-grabbing">
+        <button onPointerDown={onSaisir} aria-label={tr("Glisser pour déplacer")} className="grid h-16 w-8 shrink-0 cursor-grab touch-none place-items-center text-plate-ink/70 active:cursor-grabbing">
           <DotsSixVerticalIcon className="size-5" />
         </button>
-        <button onClick={onOuvrir} className="flex min-w-0 flex-1 items-center gap-3 py-3 pr-3 text-left" aria-label={`Bloc cardio : ${FORMATS[b.f].nom}, réglages`}>
+        <button onClick={onOuvrir} className="flex min-w-0 flex-1 items-center gap-3 py-3 pr-3 text-left" aria-label={tr("Bloc cardio : {nom}, réglages", { nom: FORMATS[b.f].nom })}>
           <span className="grid size-14 shrink-0 place-items-center rounded-[14px] bg-plate text-plate-foreground"><I className="size-7" weight="fill" /></span>
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.1em] text-plate-ink uppercase"><HeartbeatIcon className="size-3.5" weight="fill" />Bloc cardio</span>
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.1em] text-plate-ink uppercase"><HeartbeatIcon className="size-3.5" weight="fill" />{tr("Bloc cardio")}</span>
             <span className="truncate text-[16px] font-semibold tracking-[-0.01em]">{FORMATS[b.f].nom}</span>
-            <span className="truncate text-[12.5px] text-muted-foreground">{MACHINES[b.m].nom} · {minutesBloc(b)} min</span>
+            <span className="truncate text-[12.5px] text-muted-foreground">{tr("{nom} · {a} min", { nom: MACHINES[b.m].nom, a: minutesBloc(b) })}</span>
           </span>
           <CaretRightIcon className="size-5 shrink-0 text-muted-foreground" />
         </button>

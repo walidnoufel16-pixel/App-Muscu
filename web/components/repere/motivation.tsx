@@ -2,6 +2,7 @@
 
 /* Régularité et badges : la carte « semaines d'affilée », la grille des badges,
    et la célébration quand un badge tombe. */
+import { loc, tp, tr } from "@/lib/i18n";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -28,7 +29,6 @@ export function IconeBadge({ b, on, className }: { b: Badge; on: boolean; classN
   );
 }
 
-const pluriel = (n: number, s: string) => `${n} ${s}${n > 1 ? "s" : ""}`;
 
 /* Carte « Ma régularité » : la série en cours, les séances de la semaine, le joker. */
 export function CarteRegularite({ lien = false, reglable = false }: { lien?: boolean; reglable?: boolean }) {
@@ -45,13 +45,13 @@ export function CarteRegularite({ lien = false, reglable = false }: { lien?: boo
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-[16px] leading-tight font-semibold">
-          {S.semaines ? `${pluriel(S.semaines, "semaine")} d'affilée` : "Lance ta série cette semaine"}
+          {S.semaines ? tr("{a} d'affilée", { a: tp(S.semaines, "{n} semaine", "{n} semaines") }) : tr("Lance ta série cette semaine")}
         </span>
-        <span className="mt-1 flex items-center gap-1" aria-label={`${S.cetteSemaine} séance(s) sur ${S.objectif} cette semaine`}>
+        <span className="mt-1 flex items-center gap-1" aria-label={tr("{cetteSemaine} séance(s) sur {objectif} cette semaine", { cetteSemaine: S.cetteSemaine, objectif: S.objectif })}>
           {Array.from({ length: Math.max(S.objectif, Math.min(S.cetteSemaine, 7)) }, (_, i) => (
             <i key={i} className={cn("h-1.5 w-5 rounded-full", i < S.cetteSemaine ? (i < S.objectif ? "bg-plate" : "bg-success") : "bg-muted")} />
           ))}
-          <span className="ml-1 text-[12px] text-muted-foreground">{fait ? "objectif atteint" : `${S.cetteSemaine}/${S.objectif} cette semaine`}</span>
+          <span className="ml-1 text-[12px] text-muted-foreground">{fait ? tr("objectif atteint") : tr("{cetteSemaine}/{objectif} cette semaine", { cetteSemaine: S.cetteSemaine, objectif: S.objectif })}</span>
         </span>
       </span>
       {lien && <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" />}
@@ -67,13 +67,13 @@ export function CarteRegularite({ lien = false, reglable = false }: { lien?: boo
       {reglable && (
         <div className="flex items-center gap-3 border-t border-border/70 px-3.5 py-2.5">
           <span className="flex-1 text-[13px] leading-snug text-muted-foreground">
-            <span className="flex items-center gap-1 font-medium text-foreground"><ShieldCheckIcon className="size-4 text-success" weight="fill" />{S.jokerDispo ? "Joker du mois disponible" : "Joker du mois utilisé"}</span>
-            Une semaine manquée par mois ne casse pas ta série.{S.record > S.semaines ? ` Record : ${pluriel(S.record, "semaine")}.` : ""}
+            <span className="flex items-center gap-1 font-medium text-foreground"><ShieldCheckIcon className="size-4 text-success" weight="fill" />{S.jokerDispo ? tr("Joker du mois disponible") : tr("Joker du mois utilisé")}</span>
+            {tr("Une semaine manquée par mois ne casse pas ta série.")}{S.record > S.semaines ? tr(" Record : {a}.", { a: tp(S.record, "{n} semaine", "{n} semaines") }) : ""}
           </span>
-          <span className="flex items-center gap-1 rounded-full bg-muted p-1" aria-label="Objectif de séances par semaine">
-            <button aria-label="Objectif : moins" disabled={S.objectif <= 1} onClick={() => muter((E) => { E.A.objHebdo = S.objectif - 1; })} className="grid size-7 place-items-center rounded-full bg-card disabled:opacity-40"><MinusIcon className="size-3.5" weight="bold" /></button>
-            <span className="num w-12 text-center text-[15px] font-bold leading-none">{S.objectif}<span className="block text-[9.5px] font-medium text-muted-foreground">/ sem.</span></span>
-            <button aria-label="Objectif : plus" disabled={S.objectif >= 6} onClick={() => muter((E) => { E.A.objHebdo = S.objectif + 1; })} className="grid size-7 place-items-center rounded-full bg-card disabled:opacity-40"><PlusIcon className="size-3.5" weight="bold" /></button>
+          <span className="flex items-center gap-1 rounded-full bg-muted p-1" aria-label={tr("Objectif de séances par semaine")}>
+            <button aria-label={tr("Objectif : moins")} disabled={S.objectif <= 1} onClick={() => muter((E) => { E.A.objHebdo = S.objectif - 1; })} className="grid size-7 place-items-center rounded-full bg-card disabled:opacity-40"><MinusIcon className="size-3.5" weight="bold" /></button>
+            <span className="num w-12 text-center text-[15px] font-bold leading-none">{S.objectif}<span className="block text-[9.5px] font-medium text-muted-foreground">{tr("/ sem.")}</span></span>
+            <button aria-label={tr("Objectif : plus")} disabled={S.objectif >= 6} onClick={() => muter((E) => { E.A.objHebdo = S.objectif + 1; })} className="grid size-7 place-items-center rounded-full bg-card disabled:opacity-40"><PlusIcon className="size-3.5" weight="bold" /></button>
           </span>
         </div>
       )}
@@ -92,7 +92,7 @@ export function GrilleBadges() {
   return (
     <section>
       <div className="mb-2 flex items-baseline justify-between px-1">
-        <h2 className="eyebrow">Badges · {n} sur {BADGES.length}</h2>
+        <h2 className="eyebrow">{tr("Badges · {n} sur {length}", { n, length: BADGES.length })}</h2>
       </div>
       <div className="grid grid-cols-4 gap-x-2 gap-y-3 rounded-[20px] border border-border/80 bg-card p-3.5">
         {tries.map((b) => {
@@ -116,11 +116,11 @@ export function GrilleBadges() {
                 <DrawerTitle className="mt-1 text-[24px] font-bold">{vu.nom}</DrawerTitle>
                 <DrawerDescription className="mt-1 text-[15px] text-muted-foreground">{vu.texte}</DrawerDescription>
                 {on ? (
-                  <p className="mt-4 text-[14px] font-medium text-success">Obtenu{notes[vu.id] ? " le " + new Date(notes[vu.id]).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : ""}</p>
+                  <p className="mt-4 text-[14px] font-medium text-success">{notes[vu.id] ? tr("Obtenu le {a}", { a: new Date(notes[vu.id]).toLocaleDateString(loc(), { day: "numeric", month: "long", year: "numeric" }) }) : tr("Obtenu")}</p>
                 ) : (
                   <div className="mt-4">
                     <div className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-plate" style={{ width: Math.min(100, (v / vu.cible) * 100) + "%" }} /></div>
-                    <p className="mt-1.5 text-[13px] text-muted-foreground">{Math.floor(v * 10) / 10 === Math.floor(v) ? Math.floor(v) : (Math.floor(v * 10) / 10).toLocaleString("fr-FR")} sur {vu.cible.toLocaleString("fr-FR")}</p>
+                    <p className="mt-1.5 text-[13px] text-muted-foreground">{Math.floor(v * 10) / 10 === Math.floor(v) ? Math.floor(v) : (Math.floor(v * 10) / 10).toLocaleString(loc())}{" "}{tr("sur")}{" "}{vu.cible.toLocaleString(loc())}</p>
                   </div>
                 )}
               </div>
@@ -168,10 +168,10 @@ export function SurveillantBadges() {
         {b && (
           <div className="px-5 pt-4 pb-[max(env(safe-area-inset-bottom),20px)] text-center">
             <IconeBadge b={b} on className="mx-auto size-24 animate-[medaille_.8s_cubic-bezier(.3,1.5,.5,1)_both]" />
-            <div className="eyebrow mt-5 animate-[monter_.5s_.15s_ease-out_both]">Nouveau badge</div>
+            <div className="eyebrow mt-5 animate-[monter_.5s_.15s_ease-out_both]">{tr("Nouveau badge")}</div>
             <DrawerTitle className="mt-1 animate-[monter_.5s_.22s_ease-out_both] text-[26px] font-bold tracking-[-0.02em]">{b.nom}</DrawerTitle>
             <DrawerDescription className="mt-1 animate-[monter_.5s_.3s_ease-out_both] text-[15px] text-muted-foreground">{b.texte}</DrawerDescription>
-            <Button variant="plate" size="xl" className="mt-6 w-full" onClick={() => setFete((f) => f.slice(1))}>Super</Button>
+            <Button variant="plate" size="xl" className="mt-6 w-full" onClick={() => setFete((f) => f.slice(1))}>{tr("Super")}</Button>
           </div>
         )}
       </DrawerContent>
@@ -191,8 +191,8 @@ export function Reprise() {
     <div className="flex gap-3 rounded-[20px] border border-success/30 bg-success-soft p-3.5">
       <HandWavingIcon className="size-6 shrink-0 text-success" weight="fill" />
       <span className="text-[13.5px] leading-snug">
-        <b className="block text-[15px]">Content de te revoir</b>
-        {jours} jours de pause, ça arrive. Pour cette première séance, garde 1 ou 2 répétitions de plus en réserve : tes charges reviendront vite.
+        <b className="block text-[15px]">{tr("Content de te revoir")}</b>
+        {jours}{" "}{tr("jours de pause, ça arrive. Pour cette première séance, garde 1 ou 2 répétitions de plus en réserve : tes charges reviendront vite.")}
       </span>
     </div>
   );

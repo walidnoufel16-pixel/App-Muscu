@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { ArrowsLeftRightIcon, CaretDownIcon, CheckIcon, CrosshairIcon, InfoIcon } from "@phosphor-icons/react";
 import { EX } from "@/lib/data/exercices";
 import { musclesDe, okDe, resumeDe } from "@/lib/logic/core";
@@ -10,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 import { imgEx } from "@/lib/medias";
 
-const UNITE_RESUME: Record<string, string> = { kg: "kg", lest: "kg de lest", aucune: "", temps: "s", dist: "m" };
+const UNITE_RESUME: Record<string, string> = { kg: "kg", lest: tr("kg de lest"), aucune: "", temps: "s", dist: "m" };
 
 /* Vignette photo d'un exercice, avec repli discret si l'image manque. */
 export function Vignette({ id, num, fait, trace, className }: { id: string; num?: number; fait?: boolean; trace?: boolean; className?: string }) {
@@ -57,7 +58,7 @@ export function EtatCarte({ L, id, n }: { L?: Journal; id: string; n: number }) 
       <span className="h-1.5 w-14 overflow-hidden rounded-full bg-muted">
         <span className="block h-full rounded-full bg-plate" style={{ width: (ok / n) * 100 + "%" }} />
       </span>
-      {ok} / {n} séries
+      {ok} / {n}{" "}{tr("séries")}
     </span>
   );
 }
@@ -86,7 +87,7 @@ export function ExerciceCarte({
     >
       <div className="flex items-center gap-3.5 p-3">
         {/* la photo ouvre la fiche ; le reste de la carte déplie les séries */}
-        <button onClick={onFiche} aria-label={`Fiche : ${x.n}`} className="shrink-0 rounded-[14px] active:scale-95">
+        <button onClick={onFiche} aria-label={tr("Fiche : {n}", { n: x.n })} className="shrink-0 rounded-[14px] active:scale-95">
           <Vignette id={id} num={num} fait={fait} trace={celebre} />
         </button>
         <button onClick={onToggle} aria-expanded={ouvert} className="flex min-w-0 flex-1 items-center gap-3.5 text-left">
@@ -106,7 +107,7 @@ export function ExerciceCarte({
             <EtatCarte L={L} id={id} n={n} />
           ) : (
             <span className="num text-[15px] font-semibold tracking-wide text-foreground/80">
-              {prescr} <span className="font-sans text-[12.5px] font-normal text-muted-foreground">· repos {repos}</span>
+              {prescr} <span className="font-sans text-[12.5px] font-normal text-muted-foreground">{tr("· repos {repos}", { repos })}</span>
             </span>
           )}
         </span>
@@ -120,21 +121,21 @@ export function ExerciceCarte({
             {role !== undefined && (
               <span className="inline-flex items-center gap-1.5 font-medium text-foreground">
                 <span className={cn("size-2 rounded-full", role ? "bg-foreground" : "bg-muted-foreground/60")} />
-                {role ? "Principal" : "Accessoire"}
+                {role ? tr("Principal") : tr("Accessoire")}
               </span>
             )}
-            {!!rpe && <span>Effort <b className="num text-[14px] text-foreground">RPE {rpe}</b></span>}
-            <span>Repos <b className="font-semibold text-foreground">{repos}</b></span>
+            {!!rpe && <span>{tr("Effort")}{" "}<b className="num text-[14px] text-foreground">{tr("RPE")}{" "}{rpe}</b></span>}
+            <span>{tr("Repos")}{" "}<b className="font-semibold text-foreground">{repos}</b></span>
           </div>
           {children}
           <div className="grid grid-cols-3 border-t border-border/70">
-            <OutilBtn onClick={onFiche} icone={<InfoIcon className="size-5" />} label="Fiche" />
+            <OutilBtn onClick={onFiche} icone={<InfoIcon className="size-5" />} label={tr("Fiche")} />
             {onRemplacer ? (
-              <OutilBtn onClick={onRemplacer} icone={<ArrowsLeftRightIcon className="size-5" />} label="Remplacer" />
+              <OutilBtn onClick={onRemplacer} icone={<ArrowsLeftRightIcon className="size-5" />} label={tr("Remplacer")} />
             ) : (
               <span />
             )}
-            <OutilBtn onClick={onTout} icone={<CheckIcon className="size-5" weight="bold" />} label={fait ? "Tout décocher" : "Tout valider"} accent />
+            <OutilBtn onClick={onTout} icone={<CheckIcon className="size-5" weight="bold" />} label={fait ? tr("Tout décocher") : tr("Tout valider")} accent />
           </div>
         </div>
       )}

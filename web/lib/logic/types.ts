@@ -66,6 +66,8 @@ export type Reponses = {
   prefs?: Record<string, number[]>;
   exclus?: string[];
   actuel?: number;
+  /** Langue choisie dans Profil (suit le compte sur un autre appareil). */
+  langue?: "fr" | "en";
   profil?: Record<string, number>;
   [k: string]: unknown;
 };

@@ -2,6 +2,7 @@
 
 /* Programme : les huit semaines (on choisit celle qu'on suit), les séances de
    la semaine choisie, puis la synthèse de ce que Repère a construit. */
+import { tr } from "@/lib/i18n";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { CaretRightIcon, CheckIcon, PersonSimpleRunIcon, StarIcon } from "@phosphor-icons/react";
@@ -27,10 +28,10 @@ export default function PageProgramme() {
   if (!plan)
     return (
       <>
-        <EnTete titre="Programme" gauche={<Retour repli="/entrainement" />} />
+        <EnTete titre={tr("Programme")} gauche={<Retour repli="/entrainement" />} />
         <div className="flex flex-col gap-3 px-5">
-          <p className="text-[15px] leading-relaxed text-muted-foreground">Tu n&apos;as pas encore de programme. Une douzaine de questions suffisent pour le construire.</p>
-          <Button variant="plate" size="xl" onClick={() => router.push("/questionnaire", AVANT)}>Construire mon programme</Button>
+          <p className="text-[15px] leading-relaxed text-muted-foreground">{tr("Tu n'as pas encore de programme. Une douzaine de questions suffisent pour le construire.")}</p>
+          <Button variant="plate" size="xl" onClick={() => router.push("/questionnaire", AVANT)}>{tr("Construire mon programme")}</Button>
         </div>
       </>
     );
@@ -41,12 +42,12 @@ export default function PageProgramme() {
 
   return (
     <>
-      <EnTete surtitre="Huit semaines" titre={titreProgramme(etat.PLAN)} gauche={<Retour repli="/entrainement" />}>
+      <EnTete surtitre={tr("Huit semaines")} titre={titreProgramme(etat.PLAN)} gauche={<Retour repli="/entrainement" />}>
         <FriseSemaines wk={wk} avancement={avancement} onChoisir={(w) => muter((E) => { E.wk = w; })} />
       </EnTete>
       <div className="flex flex-col gap-8 px-4 pb-6">
         <section>
-          <h2 className="eyebrow mb-2 px-1">Semaine {wk + 1} · effort visé <span className="num text-[13px]">RPE {baseRPE(wk)}</span></h2>
+          <h2 className="eyebrow mb-2 px-1">{tr("Semaine")}{" "}{wk + 1}{" "}{tr("· effort visé")}{" "}<span className="num text-[13px]">{tr("RPE")}{" "}{baseRPE(wk)}</span></h2>
           <div className="overflow-hidden rounded-[20px] border border-border/80 bg-card">
             {W.map((p, i) => {
               const fait = wkDone(etat, wk, i, W);
@@ -56,9 +57,9 @@ export default function PageProgramme() {
                     {fait ? <CheckIcon className="size-4" weight="bold" /> : p.b ? <StarIcon className="size-4" /> : p.sportOnly ? <PersonSimpleRunIcon className="size-4" /> : i + 1}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[15px] font-medium">{p.sportOnly ? "Ton sport" : titreSeance(p.t)}</span>
+                    <span className="block truncate text-[15px] font-medium">{p.sportOnly ? tr("Ton sport") : titreSeance(p.t)}</span>
                     <span className="block text-[12.5px] text-muted-foreground">
-                      {p.b ? "Séance bonus, facultative" : p.sportOnly ? "Ta pratique, comptée dans le cycle" : `Séance ${i + 1} · ${(p.x || []).length} exercices`}{fait ? " · faite" : ""}
+                      {p.b ? tr("Séance bonus, facultative") : p.sportOnly ? tr("Ta pratique, comptée dans le cycle") : tr("Séance {a} · {length} exercices", { a: i + 1, length: (p.x || []).length })}{fait ? tr(" · faite") : ""}
                     </span>
                   </span>
                   <CaretRightIcon className="size-4 text-muted-foreground" />
@@ -68,7 +69,7 @@ export default function PageProgramme() {
           </div>
         </section>
         <section>
-          <h2 className="eyebrow mb-3 px-1">Ce qu&apos;on va faire</h2>
+          <h2 className="eyebrow mb-3 px-1">{tr("Ce qu'on va faire")}</h2>
           <Synthese />
         </section>
       </div>

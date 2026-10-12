@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { CheckIcon, PlusIcon } from "@phosphor-icons/react";
 import { EX } from "@/lib/data/exercices";
 import { Vignette } from "./exercice-carte";
@@ -21,7 +22,7 @@ export function LigneExercice({ id, onOuvrir, onAjouter, pris }: { id: string; o
         <button
           onClick={onAjouter}
           disabled={pris}
-          aria-label={pris ? "Déjà dans ta séance" : "Ajouter " + x.n}
+          aria-label={pris ? tr("Déjà dans ta séance") : tr("Ajouter ") + x.n}
           className="mr-2.5 grid size-9 shrink-0 place-items-center rounded-full bg-muted text-foreground active:scale-90 disabled:bg-transparent"
         >
           {pris ? <CheckIcon className="size-4" weight="bold" /> : <PlusIcon className="size-4" weight="bold" />}

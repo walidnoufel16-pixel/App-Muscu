@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { toast } from "sonner";
@@ -20,7 +21,7 @@ export function SaisieCodeMail({ grand, onConfirme }: { grand?: boolean; onConfi
   const confirmer = async (saisi = code) => {
     const c = await sb(), k = saisi.replace(/\D/g, "");
     if (!c || !user?.new_email || occupe) return;
-    if (k.length !== 6) { setMsg({ t: "Le code fait six chiffres." }); return; }
+    if (k.length !== 6) { setMsg({ t: tr("Le code fait six chiffres.") }); return; }
     setOccupe(true);
     try {
       const essai = (email: string) => c.auth.verifyOtp({ email, token: k, type: "email_change" });
@@ -31,8 +32,8 @@ export function SaisieCodeMail({ grand, onConfirme }: { grand?: boolean; onConfi
       const u = data.user || (await c.auth.getUser()).data.user;
       if (u) setUser(u);
       setCode("");
-      toast.success(u?.new_email ? "Code accepté" : "Adresse confirmée", {
-        description: u?.new_email ? "Un second code a été envoyé à ton ancienne adresse : saisis-le aussi." : "Ton compte est maintenant récupérable sur un autre appareil.",
+      toast.success(u?.new_email ? tr("Code accepté") : tr("Adresse confirmée"), {
+        description: u?.new_email ? tr("Un second code a été envoyé à ton ancienne adresse : saisis-le aussi.") : tr("Ton compte est maintenant récupérable sur un autre appareil."),
       });
       setMsg(null);
       onConfirme?.(u);
@@ -44,7 +45,7 @@ export function SaisieCodeMail({ grand, onConfirme }: { grand?: boolean; onConfi
     const c = await sb(), m = user?.new_email;
     if (!c || !m) return;
     const { error } = await c.auth.updateUser({ email: m });
-    setMsg(error ? { t: messageErreur(error) } : { t: "Nouveau code envoyé à " + m + ".", ok: true });
+    setMsg(error ? { t: messageErreur(error) } : { t: tr("Nouveau code envoyé à ") + m + ".", ok: true });
   };
 
   return (
@@ -61,14 +62,14 @@ export function SaisieCodeMail({ grand, onConfirme }: { grand?: boolean; onConfi
         inputMode="numeric"
         autoComplete="one-time-code"
         placeholder="000000"
-        aria-label="Code à six chiffres"
+        aria-label={tr("Code à six chiffres")}
         className={cn("num rounded-2xl text-center font-bold tracking-[0.4em]", grand ? "h-16 bg-card text-[34px]" : "mt-3 h-14 text-[30px]")}
       />
       <div className="mt-2 flex gap-2">
         <Button variant="plate" size="lg" className="flex-1 rounded-xl" disabled={occupe} onClick={() => confirmer()}>
-          {occupe ? "Vérification…" : "Confirmer l'adresse"}
+          {occupe ? tr("Vérification…") : tr("Confirmer l'adresse")}
         </Button>
-        <Button variant="soft" size="lg" className="rounded-xl" onClick={renvoyer}>Renvoyer</Button>
+        <Button variant="soft" size="lg" className="rounded-xl" onClick={renvoyer}>{tr("Renvoyer")}</Button>
       </div>
       {msg && <p className={cn("mt-2 text-[13px]", msg.ok ? "text-success" : "text-destructive")}>{msg.t}</p>}
     </div>

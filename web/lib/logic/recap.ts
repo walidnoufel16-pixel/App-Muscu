@@ -1,4 +1,5 @@
 /* Bilan d'une période (un mois ou une année) à partager. Logique pure. */
+import { loc, tr } from "@/lib/i18n";
 import { EX } from "@/lib/data/exercices";
 import { FORMATS } from "./cardio";
 import { dateDe, jourDe, records } from "./historique";
@@ -8,7 +9,8 @@ import type { Etat } from "./types";
 import { avecSorties } from "./course";
 
 export type Periode = { id: string; debut: string; fin: string; nom: string; annee: boolean };
-const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+/* Noms des mois et des jours dans la langue de l'app (« septembre », « September »…). */
+const MOIS = Array.from({ length: 12 }, (_, i) => new Date(2026, i, 1).toLocaleDateString(loc(), { month: "long" }));
 const deux = (n: number) => String(n).padStart(2, "0");
 
 /** « 2026-09 » (un mois) ou « 2026 » (une année). */
@@ -34,14 +36,14 @@ export type Recap = {
   record: { n: string; avant: number; apres: number; unite: string } | null; nbRecords: number; serie: number; badges: string[];
   comparaison: string;
 };
-const JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+const JOURS = Array.from({ length: 7 }, (_, i) => new Date(2026, 9, 4 + i).toLocaleDateString(loc(), { weekday: "long" })); // 4 octobre 2026 : un dimanche
 
 /** Image parlante pour un tonnage. */
 export function comparer(t: number) {
-  if (t >= 150) return `le poids d'une baleine bleue${t >= 300 ? ` × ${Math.round(t / 150)}` : ""}`;
-  if (t >= 12) return `${Math.round(t / 6)} éléphants d'Afrique`;
-  if (t >= 1.2) return `${Math.max(1, Math.round(t / 1.2))} voiture${t >= 2.4 ? "s" : ""} citadine${t >= 2.4 ? "s" : ""}`;
-  if (t > 0) return `${Math.max(1, Math.round((t * 1000) / 80))} sacs de ciment`;
+  if (t >= 150) return tr("le poids d'une baleine bleue{a}", { a: t >= 300 ? ` × ${Math.round(t / 150)}` : "" });
+  if (t >= 12) return tr("{a} éléphants d'Afrique", { a: Math.round(t / 6) });
+  if (t >= 1.2) return tr("{a} voiture{a1} citadine{a2}", { a: Math.max(1, Math.round(t / 1.2)), a1: t >= 2.4 ? "s" : "", a2: t >= 2.4 ? "s" : "" });
+  if (t > 0) return tr("{a} sacs de ciment", { a: Math.max(1, Math.round((t * 1000) / 80)) });
   return "";
 }
 
@@ -72,8 +74,8 @@ export function recap(E: Etat, id: string): Recap | null {
   const top = R.sort((a, b) => gain(b) - gain(a))[0];
   const record = top ? (() => {
     const ch = EX[top.id].ch;
-    if (ch === "kg") return { n: EX[top.id].n, avant: Math.round(top.avant), apres: Math.round(top.rm), unite: "kg (1RM estimé)" };
-    return { n: EX[top.id].n, avant: top.avant % 1000, apres: top.reps, unite: "répétitions" };
+    if (ch === "kg") return { n: EX[top.id].n, avant: Math.round(top.avant), apres: Math.round(top.rm), unite: tr("kg (1RM estimé)") };
+    return { n: EX[top.id].n, avant: top.avant % 1000, apres: top.reps, unite: tr("répétitions") };
   })() : null;
   const notes = (E.A.badges || {}) as Record<string, string>;
   const badges = BADGES.filter((b) => notes[b.id] && dans(notes[b.id])).map((b) => b.nom);

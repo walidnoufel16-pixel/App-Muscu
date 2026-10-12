@@ -1,5 +1,6 @@
 /* Défis entre amis : types, score calculé depuis l'historique, jours restants. Logique pure.
    Le serveur ne reçoit que le score (lib/defis.ts). */
+import { loc, pluriel, tr } from "@/lib/i18n";
 import { dateDe, decaler, jourDe } from "./historique";
 import type { Etat } from "./types";
 import { avecSorties } from "./course";
@@ -9,10 +10,10 @@ export type Participant = { pseudo: string; score: number; moi: boolean };
 export type Defi = { code: string; nom: string; type: TypeDefi; cible: number; debut: string; fin: string; participants: Participant[] };
 
 export const TYPES_DEFI: Record<TypeDefi, { nom: string; unite: string; aide: string; cibles: number[]; exemple: (c: number, sem: number) => string }> = {
-  seances: { nom: "Séances", unite: "séances", aide: "Chaque séance de muscu ou de cardio compte pour 1.", cibles: [4, 8, 12, 16, 20], exemple: (c, s) => `${c} séances en ${s} semaine${s > 1 ? "s" : ""}` },
-  tonnage: { nom: "Poids soulevé", unite: "kg", aide: "Charge × répétitions de chaque série, additionnées. Exemple : 3 séries de 10 à 60 kg = 1 800 kg.", cibles: [5000, 10000, 20000, 40000, 80000], exemple: (c, s) => `${(c / 1000).toLocaleString("fr-FR")} t soulevées en ${s} semaine${s > 1 ? "s" : ""}` },
-  km: { nom: "Kilomètres", unite: "km", aide: "Kilomètres courus, notés après chaque sortie (montre, Strava ou minuteur).", cibles: [20, 50, 100, 150, 250], exemple: (c, s) => `${c} km courus en ${s} semaine${s > 1 ? "s" : ""}` },
-  cardio: { nom: "Cardio", unite: "min", aide: "Minutes de cardio guidé.", cibles: [60, 120, 200, 300, 500], exemple: (c, s) => `${c} min de cardio en ${s} semaine${s > 1 ? "s" : ""}` },
+  seances: { nom: tr("Séances"), unite: tr("séances"), aide: tr("Chaque séance de muscu ou de cardio compte pour 1."), cibles: [4, 8, 12, 16, 20], exemple: (c, s) => tr("{c} séances en {s} semaine{a}", { c, s, a: pluriel(s) ? "s" : "" }) },
+  tonnage: { nom: tr("Poids soulevé"), unite: "kg", aide: tr("Charge × répétitions de chaque série, additionnées. Exemple : 3 séries de 10 à 60 kg = 1 800 kg."), cibles: [5000, 10000, 20000, 40000, 80000], exemple: (c, s) => tr("{a} t soulevées en {s} semaine{a1}", { a: (c / 1000).toLocaleString(loc()), s, a1: pluriel(s) ? "s" : "" }) },
+  km: { nom: tr("Kilomètres"), unite: "km", aide: tr("Kilomètres courus, notés après chaque sortie (montre, Strava ou minuteur)."), cibles: [20, 50, 100, 150, 250], exemple: (c, s) => tr("{c} km courus en {s} semaine{a}", { c, s, a: pluriel(s) ? "s" : "" }) },
+  cardio: { nom: tr("Cardio"), unite: "min", aide: tr("Minutes de cardio guidé."), cibles: [60, 120, 200, 300, 500], exemple: (c, s) => tr("{c} min de cardio en {s} semaine{a}", { c, s, a: pluriel(s) ? "s" : "" }) },
 };
 
 /** Mon score sur la période du défi : séances (muscu + cardio seul), kg soulevés ou minutes de cardio. */

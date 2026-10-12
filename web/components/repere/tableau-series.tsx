@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { ConseilZone } from "./forme";
 import { useCallback, useState } from "react";
 import { CheckIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
@@ -14,11 +15,11 @@ import { estRecord } from "@/lib/logic/records";
 import { gerbe, mouvementReduit, seanceDe, useCelebrer } from "@/lib/celebrer";
 import { cn } from "@/lib/utils";
 
-const RESSENTIS = ["Facile", "Juste", "Trop dur"];
+const RESSENTIS = [tr("Facile"), tr("Juste"), tr("Trop dur")];
 const CONSEIL = [
-  ["Trop facile pour l'effort visé.", "La fois suivante, monte la charge : c'est la règle de surcharge."],
-  ["Exactement la cible.", "Garde cette charge, l'effort visé montera tout seul."],
-  ["Au-dessus de la cible.", "Redescends d'un cran la fois suivante."],
+  [tr("Trop facile pour l'effort visé."), tr("La fois suivante, monte la charge : c'est la règle de surcharge.")],
+  [tr("Exactement la cible."), tr("Garde cette charge, l'effort visé montera tout seul.")],
+  [tr("Au-dessus de la cible."), tr("Redescends d'un cran la fois suivante.")],
 ];
 
 /* Champ numérique : texte local pendant la saisie, validé à la sortie. */
@@ -80,7 +81,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
   const S: Serie[] = L
     ? seriesDe(structuredClone(L), c.n)
     : Array.from({ length: c.n }, (_, n) => ({ ...c.base, lest: avecLest ? +((Pp[n] || Pp[Pp.length - 1] || ({} as Serie)).lest ?? 0) || 0 : undefined }));
-  const tete = { kg: "kg", lest: "lest", aucune: "réps", temps: "sec", dist: "m" }[x.ch];
+  const tete = { kg: "kg", lest: "lest", aucune: tr("réps"), temps: "sec", dist: "m" }[x.ch];
   const P2 = c.prev?.series?.length ? c.prev.series : c.prev ? [{ v: maxV(c.prev), reps: c.prev.reps ?? 0 }] : [];
   const why = L ? L.why : c.why, done = !!L?.done;
   const cols = dbl || avecLest ? "grid-cols-[22px_minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,1fr)_40px]" : "grid-cols-[22px_minmax(0,1.25fr)_minmax(0,1.4fr)_40px]";
@@ -91,9 +92,9 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
       {why && <p className="mx-1 mb-2 text-[13px] leading-snug text-muted-foreground">{why}</p>}
       <div className={cn("grid items-center gap-x-2 px-1 pb-1.5 text-[10.5px] font-medium tracking-[0.1em] text-muted-foreground uppercase", cols)}>
         <span>#</span>
-        <span>Précédent</span>
+        <span>{tr("Précédent")}</span>
         <span className="text-center">{tete}</span>
-        {(dbl || avecLest) && <span className="text-center">{dbl ? "réps" : "+ kg"}</span>}
+        {(dbl || avecLest) && <span className="text-center">{dbl ? tr("réps") : tr("+ kg")}</span>}
         <span />
       </div>
       <div className="flex flex-col gap-1">
@@ -106,17 +107,17 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
               <span className={cn("num text-center text-[15px] font-bold transition-colors", ok ? "text-foreground" : "text-muted-foreground")}>{n + 1}</span>
               {record ? (
                 <span className="inline-flex w-fit animate-[pop_.5s_cubic-bezier(.3,1.6,.5,1)] items-center rounded-full bg-plate px-2 py-0.5 text-[11px] font-bold tracking-wide text-plate-foreground uppercase">
-                  Record
+                  {tr("Record")}
                 </span>
               ) : (
                 <span className="truncate text-[13px] text-muted-foreground">{fmtSerie(x, P2[n] || P2[P2.length - 1])}</span>
               )}
-              <Champ depuis={depuis} key={"v" + s.v} valeur={nb(s.v)} mode="decimal" label={`${tete} série ${n + 1}`} onValide={(v) => muter((E) => act.serVal(E, c, n, "v", v))} />
-              {dbl && <Champ depuis={depuis} key={"r" + s.reps} valeur={String(s.reps)} mode="numeric" label={`répétitions série ${n + 1}`} onValide={(v) => muter((E) => act.serVal(E, c, n, "reps", v))} />}
-              {!dbl && avecLest && <Champ depuis={depuis} key={"l" + s.lest} valeur={nb(+(s.lest ?? 0) || 0)} mode="decimal" label={`lest série ${n + 1}`} onValide={(v) => muter((E) => act.serVal(E, c, n, "lest", v))} />}
+              <Champ depuis={depuis} key={"v" + s.v} valeur={nb(s.v)} mode="decimal" label={tr("{tete} série {a}", { tete, a: n + 1 })} onValide={(v) => muter((E) => act.serVal(E, c, n, "v", v))} />
+              {dbl && <Champ depuis={depuis} key={"r" + s.reps} valeur={String(s.reps)} mode="numeric" label={tr("répétitions série {a}", { a: n + 1 })} onValide={(v) => muter((E) => act.serVal(E, c, n, "reps", v))} />}
+              {!dbl && avecLest && <Champ depuis={depuis} key={"l" + s.lest} valeur={nb(+(s.lest ?? 0) || 0)} mode="decimal" label={tr("lest série {a}", { a: n + 1 })} onValide={(v) => muter((E) => act.serVal(E, c, n, "lest", v))} />}
               <button
                 onClick={(e) => valider(n, s, e.currentTarget)}
-                aria-label={`${ok ? "Décocher" : "Valider"} la série ${n + 1}`}
+                aria-label={tr("{a} la série {a1}", { a: ok ? tr("Décocher") : tr("Valider"), a1: n + 1 })}
                 aria-pressed={ok}
                 className={cn(
                   "grid size-10 place-items-center rounded-full border-2 transition-[background-color,border-color,color] duration-200 active:scale-90",
@@ -137,7 +138,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
           className="mt-2 ml-1 inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[13px] font-medium text-muted-foreground hover:text-foreground"
         >
           {avecLest ? <XIcon className="size-3.5" /> : <PlusIcon className="size-3.5" />}
-          {avecLest ? "Retirer le lest" : "Ajouter un lest (disque, haltère…)"}
+          {avecLest ? tr("Retirer le lest") : tr("Ajouter un lest (disque, haltère…)")}
         </button>
       )}
 
@@ -145,7 +146,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
         <div className="mt-3 rounded-2xl bg-muted/70 p-3">
           {rpe > 0 && (
             <>
-              <div className="mb-2 text-[13px] font-medium">C&apos;était comment pour un RPE {rpe} ?</div>
+              <div className="mb-2 text-[13px] font-medium">{tr("C'était comment pour un RPE {rpe} ?", { rpe })}</div>
               <div className="grid grid-cols-3 gap-1 rounded-xl bg-background p-1">
                 {RESSENTIS.map((f, j) => (
                   <button
@@ -169,7 +170,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
             </>
           )}
           <button onClick={onReplier} className="mt-2 w-full rounded-lg py-1.5 text-[13px] font-medium text-muted-foreground hover:text-foreground">
-            Replier
+            {tr("Replier")}
           </button>
         </div>
       )}

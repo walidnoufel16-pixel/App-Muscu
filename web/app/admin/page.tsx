@@ -2,6 +2,7 @@
 
 /* Admin : vue d'ensemble de tous les comptes, réservée aux comptes de la table
    admins (vérifié par le serveur à chaque appel). Lecture seule. */
+import { pluriel, tp, tr } from "@/lib/i18n";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CaretRightIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
@@ -38,12 +39,12 @@ function Admin() {
 
   return (
     <>
-      <EnTete surtitre="Réservé à l'admin" titre="Admin" gauche={<Retour repli="/profil" />} />
+      <EnTete surtitre={tr("Réservé à l'admin")} titre={tr("Admin")} gauche={<Retour repli="/profil" />} />
       <div className="flex flex-col gap-5 px-4 pb-10">
-        <Segmente label="Vue" valeur={vue} onChange={(v) => router.replace(v === "u" ? "/admin?v=u" : "/admin")}
-          options={[{ v: "t", n: "Tableau de bord" }, { v: "u", n: "Utilisateurs" }]} />
+        <Segmente label={tr("Vue")} valeur={vue} onChange={(v) => router.replace(v === "u" ? "/admin?v=u" : "/admin")}
+          options={[{ v: "t", n: tr("Tableau de bord") }, { v: "u", n: tr("Utilisateurs") }]} />
         {err && <p className="rounded-2xl bg-card p-4 text-[14px] text-destructive">{err}</p>}
-        {!err && (!L || !S) && <p className="py-10 text-center text-[14px] text-muted-foreground">Chargement…</p>}
+        {!err && (!L || !S) && <p className="py-10 text-center text-[14px] text-muted-foreground">{tr("Chargement…")}</p>}
         {L && S && (vue === "t" ? <Tableau L={L} S={S} /> : <Utilisateurs L={L} />)}
       </div>
     </>
@@ -92,37 +93,37 @@ function Tableau({ L, S }: { L: CompteAdmin[]; S: StatsAdmin }) {
   const actifs = S.defis.filter((d) => d.fin >= auj && d.debut <= auj);
   return (
     <>
-      <Carte titre="Utilisateurs">
+      <Carte titre={tr("Utilisateurs")}>
         <div className="grid grid-cols-2 gap-2">
-          <Chiffre v={T.total} n="comptes" d={`${T.avecMail} avec adresse · ${T.anonymes} sans`} />
-          <Chiffre v={T.actifs7} n="actifs sur 7 jours" d={`${T.actifs30} sur 30 jours`} />
-          <Chiffre v={T.nouveaux7} n="nouveaux sur 7 jours" d={`${T.nouveaux30} sur 30 jours`} />
-          <Chiffre v={T.semaines.at(-1)?.seances ?? 0} n="séances cette semaine" d={`${pl(T.semaines.at(-1)?.comptes ?? 0, "compte")} actif${(T.semaines.at(-1)?.comptes ?? 0) > 1 ? "s" : ""}`} />
+          <Chiffre v={T.total} n={tr("comptes")} d={tr("{a} avec adresse · {b} sans", { a: T.avecMail, b: T.anonymes })} />
+          <Chiffre v={T.actifs7} n={tr("actifs sur 7 jours")} d={tr("{a} sur 30 jours", { a: T.actifs30 })} />
+          <Chiffre v={T.nouveaux7} n={tr("nouveaux sur 7 jours")} d={`${T.nouveaux30} sur 30 jours`} />
+          <Chiffre v={T.semaines.at(-1)?.seances ?? 0} n={tr("séances cette semaine")} d={tp(T.semaines.at(-1)?.comptes ?? 0, "{n} compte actif", "{n} comptes actifs")} />
         </div>
       </Carte>
-      <Carte titre="Séances par semaine, tous comptes">
-        <Barres valeurs={T.semaines.map((s) => ({ x: court(s.lundi), y: s.seances }))} unite="séances" />
+      <Carte titre={tr("Séances par semaine, tous comptes")}>
+        <Barres valeurs={T.semaines.map((s) => ({ x: court(s.lundi), y: s.seances }))} unite={tr("séances")} />
       </Carte>
-      <Carte titre="Génération par IA">
+      <Carte titre={tr("Génération par IA")}>
         <div className="grid grid-cols-2 gap-2">
-          <Chiffre v={`${iaJour}/${PLAFOND_IA}`} n="aujourd'hui" d="plafond quotidien" />
-          <Chiffre v={ia.reduce((n, x) => n + x.y, 0)} n="sur 30 jours" d={`${pl(S.cache, "programme")} en cache`} />
+          <Chiffre v={`${iaJour}/${PLAFOND_IA}`} n={tr("aujourd'hui")} d={tr("plafond quotidien")} />
+          <Chiffre v={ia.reduce((n, x) => n + x.y, 0)} n={tr("sur 30 jours")} d={tr("{a} en cache", { a: pl(S.cache, tr("programme")) })} />
         </div>
-        <div className="mt-3"><Barres valeurs={ia} unite="générations" hauteur={100} /></div>
+        <div className="mt-3"><Barres valeurs={ia} unite={tr("générations")} hauteur={100} /></div>
       </Carte>
-      <Carte titre="Usage des fonctions (comptes)">
+      <Carte titre={tr("Usage des fonctions (comptes)")}>
         {T.usage.map((u) => <Jauge key={u.k} n={u.n} v={u.comptes} max={T.total} d={`/ ${T.total}`} />)}
       </Carte>
-      <Carte titre="Exercices les plus faits">
+      <Carte titre={tr("Exercices les plus faits")}>
         {T.topEx.length ? T.topEx.map((e) => (
-          <Jauge key={e.id} n={EX[e.id]?.n || e.id} v={e.seances} max={T.topEx[0].seances} d={`${e.seances > 1 ? "séances" : "séance"} · ${pl(e.comptes, "compte")}`} />
-        )) : <p className="text-[14px] text-muted-foreground">Aucune séance enregistrée.</p>}
+          <Jauge key={e.id} n={EX[e.id]?.n || e.id} v={e.seances} max={T.topEx[0].seances} d={`${tr(pluriel(e.seances) ? "séances" : "séance")} · ${pl(e.comptes, tr("compte"))}`} />
+        )) : <p className="text-[14px] text-muted-foreground">{tr("Aucune séance enregistrée.")}</p>}
       </Carte>
       <div className="grid gap-5 sm:grid-cols-2">
-        <Carte titre="Objectifs">{T.objectifs.map(([n, v]) => <Jauge key={n} n={n} v={v} max={T.total} />)}</Carte>
-        <Carte titre="Matériel">{T.materiel.map(([n, v]) => <Jauge key={n} n={n} v={v} max={T.total} />)}</Carte>
+        <Carte titre={tr("Objectifs")}>{T.objectifs.map(([n, v]) => <Jauge key={n} n={n} v={v} max={T.total} />)}</Carte>
+        <Carte titre={tr("Matériel")}>{T.materiel.map(([n, v]) => <Jauge key={n} n={n} v={v} max={T.total} />)}</Carte>
       </div>
-      <Carte titre={`Défis · ${actifs.length} en cours sur ${S.defis.length}`}>
+      <Carte titre={tr("Défis · {length} en cours sur {length1}", { length: actifs.length, length1: S.defis.length })}>
         {S.defis.length ? S.defis.slice(0, 15).map((d) => (
           <div key={d.code} className="flex items-center justify-between gap-3 border-t border-border/60 py-2 text-[14px] first:border-t-0">
             <span className="min-w-0">
@@ -131,16 +132,16 @@ function Tableau({ L, S }: { L: CompteAdmin[]; S: StatsAdmin }) {
                 {TYPES_DEFI[d.type as TypeDefi]?.nom || d.type} · {d.cible} {TYPES_DEFI[d.type as TypeDefi]?.unite || ""} · {court(d.debut)} → {court(d.fin)}
               </span>
             </span>
-            <span className="num shrink-0 text-[13px] text-muted-foreground">{d.participants} pers.</span>
+            <span className="num shrink-0 text-[13px] text-muted-foreground">{d.participants}{" "}{tr("pers.")}</span>
           </div>
-        )) : <p className="text-[14px] text-muted-foreground">Aucun défi.</p>}
+        )) : <p className="text-[14px] text-muted-foreground">{tr("Aucun défi.")}</p>}
       </Carte>
-      <Carte titre={`Séances partagées · ${S.partages}`}>
+      <Carte titre={tr("Séances partagées · {partages}", { partages: S.partages })}>
         {S.partages_recents.length ? S.partages_recents.map((p, i) => (
           <div key={i} className="flex justify-between gap-3 border-t border-border/60 py-1.5 text-[14px] first:border-t-0">
             <span className="truncate">{p.nom}</span><span className="shrink-0 text-muted-foreground">{jourIso(p.cree) ? court(jourIso(p.cree)!) : "—"}</span>
           </div>
-        )) : <p className="text-[14px] text-muted-foreground">Aucune séance partagée.</p>}
+        )) : <p className="text-[14px] text-muted-foreground">{tr("Aucune séance partagée.")}</p>}
       </Carte>
     </>
   );
@@ -155,11 +156,11 @@ function Utilisateurs({ L }: { L: CompteAdmin[] }) {
     <>
       <div className="relative">
         <MagnifyingGlassIcon className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Surnom ou adresse" aria-label="Rechercher un utilisateur" className="h-11 rounded-xl pl-10" />
+        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Surnom ou adresse")} aria-label={tr("Rechercher un utilisateur")} className="h-11 rounded-xl pl-10" />
       </div>
-      <Segmente label="Trier par" valeur={tri} onChange={setTri}
-        options={[{ v: "activite", n: "Activité" }, { v: "inscription", n: "Inscription" }, { v: "seances", n: "Séances" }]} />
-      <p className="px-1 text-[12.5px] text-muted-foreground">{l.length} compte{l.length > 1 ? "s" : ""}</p>
+      <Segmente label={tr("Trier par")} valeur={tri} onChange={setTri}
+        options={[{ v: "activite", n: tr("Activité") }, { v: "inscription", n: tr("Inscription") }, { v: "seances", n: tr("Séances") }]} />
+      <p className="px-1 text-[12.5px] text-muted-foreground">{l.length}{" "}{tr("compte")}{pluriel(l.length) ? "s" : ""}</p>
       <div className="overflow-hidden rounded-[22px] bg-card">
         {l.map((c) => {
           const r = resume(c);
@@ -170,11 +171,9 @@ function Utilisateurs({ L }: { L: CompteAdmin[] }) {
                 {(c.pseudo || "?").slice(0, 1).toUpperCase()}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[15px] font-semibold">{c.pseudo || "Sans surnom"}</span>
-                <span className="block truncate text-[12.5px] text-muted-foreground">{c.email || "Sans adresse"}</span>
-                <span className="block truncate text-[12.5px] text-muted-foreground">
-                  {r.seances} séance{r.seances > 1 ? "s" : ""} · actif {ilya(r.derniere)}{r.plan ? ` · ${r.plan}` : ""}{r.course ? " · course" : ""}
-                </span>
+                <span className="block truncate text-[15px] font-semibold">{c.pseudo || tr("Sans surnom")}</span>
+                <span className="block truncate text-[12.5px] text-muted-foreground">{c.email || tr("Sans adresse")}</span>
+                <span className="block truncate text-[12.5px] text-muted-foreground">{tr("{seances} séance{a} · actif {a1}{a2}{a3}", { seances: r.seances, a: pluriel(r.seances) ? "s" : "", a1: ilya(r.derniere), a2: r.plan ? ` · ${r.plan}` : "", a3: r.course ? tr(" · course") : "" })}</span>
               </span>
               <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" />
             </button>

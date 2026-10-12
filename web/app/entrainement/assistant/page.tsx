@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
@@ -50,7 +51,7 @@ function Assistant() {
     const nom = nomCardio.trim().slice(0, 60) || nomSeanceCardio(choix.f, choix.m);
     const i = useRepere.getState().etat.SEANCES_CARDIO?.length ?? 0;
     muter((E) => { (E.SEANCES_CARDIO ??= []).push({ nom, ...choix }); });
-    toast.success(`« ${nom} » ajoutée à tes séances cardio`);
+    toast.success(tr("« {nom} » ajoutée à tes séances cardio", { nom }));
     if (demarrer) { preparer(); remplacement(); router.replace(`/entrainement/cardio?s=${i}&go=1` as Route, AVANT); return; }
     revenirA("/entrainement", () => router.replace("/entrainement", ARRIERE));
   };
@@ -70,30 +71,30 @@ function Assistant() {
     if (obj == null) return;
     const zones = zonesActives(A);
     const ex = construireSeance(m, d, obj, sel, Math.random, (o) => zonesDe(o, zones).length > 0);
-    if (!ex.length) { dire("Pas d'exercice disponible", "Aucun exercice ne correspond à ces muscles avec le matériel coché. Ajoute du matériel ou choisis d'autres muscles."); return; }
+    if (!ex.length) { dire(tr("Pas d'exercice disponible"), tr("Aucun exercice ne correspond à ces muscles avec le matériel coché. Ajoute du matériel ou choisis d'autres muscles.")); return; }
     /* combinée : le bloc cardio arrive à la fin, sans échauffement ; il se déplace ensuite dans le composeur */
     const blocs = type === "mixte" ? [{ ...nouveauBloc(ex.length, choix.f, choix.m, choix.n), r: { ...choix.r, echauf: 0 } }] : undefined;
-    setLibre({ nom: nomSeance(m) + (blocs ? " + cardio" : ""), ex, idx: null, obj, gen: { m: [...m], d, obj }, ...(blocs ? { blocs } : {}) });
+    setLibre({ nom: nomSeance(m) + (blocs ? tr(" + cardio") : ""), ex, idx: null, obj, gen: { m: [...m], d, obj }, ...(blocs ? { blocs } : {}) });
     router.push("/entrainement/composer", AVANT);
   };
 
   return (
     <>
       <EnTete
-        surtitre="Séance sur mesure"
-        titre="Créer une séance pour moi"
+        surtitre={tr("Séance sur mesure")}
+        titre={tr("Créer une séance pour moi")}
         gauche={<Retour repli="/entrainement" />}
       >
         <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
           {type === "muscu"
-            ? "Choisis ce que tu veux travailler : Repère te propose une séance, que tu modifies ensuite comme tu veux."
+            ? tr("Choisis ce que tu veux travailler : Repère te propose une séance, que tu modifies ensuite comme tu veux.")
             : type === "mixte"
-              ? "De la musculation et un bloc cardio dans la même séance. Le bloc se place où tu veux : avant, entre deux exercices ou à la fin."
+              ? tr("De la musculation et un bloc cardio dans la même séance. Le bloc se place où tu veux : avant, entre deux exercices ou à la fin.")
               : type === "course"
-                ? "Un plan de préparation pour ta course : allures calculées sur ton niveau, montée progressive, affûtage avant le jour J, et renfo du coureur."
-                : "Une séance guidée : Repère annonce chaque effort et chaque récupération, avec un signal sonore."}
+                ? tr("Un plan de préparation pour ta course : allures calculées sur ton niveau, montée progressive, affûtage avant le jour J, et renfo du coureur.")
+                : tr("Une séance guidée : Repère annonce chaque effort et chaque récupération, avec un signal sonore.")}
         </p>
-        <Segmente label="Catégorie" className="mt-4" valeur={type} onChange={setType} options={[{ v: "muscu", n: "Muscu" }, { v: "cardio", n: "Cardio" }, { v: "mixte", n: "Combinée" }, { v: "course", n: "Course" }]} />
+        <Segmente label={tr("Catégorie")} className="mt-4" valeur={type} onChange={setType} options={[{ v: "muscu", n: tr("Muscu") }, { v: "cardio", n: tr("Cardio") }, { v: "mixte", n: tr("Combinée") }, { v: "course", n: tr("Course") }]} />
       </EnTete>
 
       {type === "course" ? (
@@ -103,14 +104,14 @@ function Assistant() {
           <div className="flex flex-col gap-6 px-4 pb-28">
             <ReglagesCardio choix={choix} onChange={setChoix} />
             <section>
-              <h2 className="eyebrow mb-2 px-1">Nom de la séance</h2>
+              <h2 className="eyebrow mb-2 px-1">{tr("Nom de la séance")}</h2>
               <Input value={nomCardio} onChange={(e) => setNomCardio(e.target.value)} maxLength={60} placeholder={nomSeanceCardio(choix.f, choix.m)} className="h-12 rounded-2xl bg-card text-[16px]" />
             </section>
           </div>
           <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
             <div className="flex gap-2">
-              <Button variant="soft" size="xl" className="flex-1 border border-border/80 bg-card" onClick={() => creerCardio()}>Enregistrer</Button>
-              <Button variant="plate" size="xl" className="flex-[1.4]" onClick={() => creerCardio(true)}>Créer et démarrer</Button>
+              <Button variant="soft" size="xl" className="flex-1 border border-border/80 bg-card" onClick={() => creerCardio()}>{tr("Enregistrer")}</Button>
+              <Button variant="plate" size="xl" className="flex-[1.4]" onClick={() => creerCardio(true)}>{tr("Créer et démarrer")}</Button>
             </div>
           </div>
         </>
@@ -119,25 +120,25 @@ function Assistant() {
       <div className="flex flex-col gap-6 px-4 pb-24">
         <section>
           <div className="mb-2 flex items-baseline justify-between px-1">
-            <span className="eyebrow">Muscles{m.length ? ` · ${m.length}` : ""}</span>
+            <span className="eyebrow">{tr("Muscles{a}", { a: m.length ? ` · ${m.length}` : "" })}</span>
             <span className="flex gap-3 text-[13px] font-medium">
-              <button onClick={() => setM([...FULLBODY])} className="text-foreground">Full body</button>
-              {m.length > 0 && <button onClick={() => setM([])} className="text-muted-foreground">Tout décocher</button>}
+              <button onClick={() => setM([...FULLBODY])} className="text-foreground">{tr("Full body")}</button>
+              {m.length > 0 && <button onClick={() => setM([])} className="text-muted-foreground">{tr("Tout décocher")}</button>}
             </span>
           </div>
           <Segmente
-            label="Mode de sélection"
+            label={tr("Mode de sélection")}
             className="mb-2"
             valeur={vue}
             onChange={setVue}
-            options={[{ v: "corps", n: "Sur le corps" }, { v: "liste", n: "Liste" }]}
+            options={[{ v: "corps", n: tr("Sur le corps") }, { v: "liste", n: tr("Liste") }]}
           />
           {vue === "corps" ? (
             <SchemaCorps
               actif={(r) => !!(r.p && PAT2MUSC[r.p])}
               choisi={(r) => !!(r.p && m.includes(PAT2MUSC[r.p]))}
               onToucher={(r) => r.p && bascule(PAT2MUSC[r.p])}
-              legende="Touche un muscle pour le cocher"
+              legende={tr("Touche un muscle pour le cocher")}
             />
           ) : (
             <div className="flex flex-wrap gap-1.5">
@@ -157,12 +158,10 @@ function Assistant() {
             </div>
           )}
           <p className={cn("mt-2 px-1 text-[14px] font-medium", !noms.length && "text-muted-foreground")}>
-            {noms.length ? noms.join(" · ") : "Aucun muscle choisi pour l'instant."}
+            {noms.length ? noms.join(" · ") : tr("Aucun muscle choisi pour l'instant.")}
           </p>
           {m.length > budget && (
-            <p className="mt-1 px-1 text-[12.5px] leading-snug text-muted-foreground">
-              Beaucoup de muscles pour {d} minutes : un exercice par muscle, avec moins de séries sur les petits groupes. Tu pourras ajuster ensuite.
-            </p>
+            <p className="mt-1 px-1 text-[12.5px] leading-snug text-muted-foreground">{tr("Beaucoup de muscles pour {d} minutes : un exercice par muscle, avec moins de séries sur les petits groupes. Tu pourras ajuster ensuite.", { d })}</p>
           )}
         </section>
 
@@ -171,12 +170,12 @@ function Assistant() {
         </section>
 
         <section>
-          <div className="eyebrow mb-2 px-1">Durée</div>
-          <Segmente label="Durée" valeur={d} onChange={setD} options={DUREES.map(([x]) => ({ v: x, n: `${x} min` }))} />
+          <div className="eyebrow mb-2 px-1">{tr("Durée")}</div>
+          <Segmente label={tr("Durée")} valeur={d} onChange={setD} options={DUREES.map(([x]) => ({ v: x, n: `${x} min` }))} />
         </section>
 
         <section>
-          <div className="eyebrow mb-2 px-1">Objectif de la séance</div>
+          <div className="eyebrow mb-2 px-1">{tr("Objectif de la séance")}</div>
           <div className="grid grid-cols-2 gap-1.5">
             {OBJS.map((o, i) => (
               <button
@@ -189,24 +188,24 @@ function Assistant() {
               </button>
             ))}
           </div>
-          {obj == null && <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">Choisis un objectif : il règle les répétitions, les repos et la collation.</p>}
+          {obj == null && <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{tr("Choisis un objectif : il règle les répétitions, les repos et la collation.")}</p>}
         </section>
 
         {type === "mixte" && (
           <section className="rounded-[24px] border border-plate/40 bg-plate-soft/60 p-4">
             <div className="mb-3 flex items-baseline justify-between">
-              <h2 className="text-[17px] font-bold">Bloc cardio</h2>
-              <span className="text-[13px] text-muted-foreground">Total ≈ <b className="num text-[16px] text-foreground">{d + Math.round(dureeTotaleCardio(construireCardio(choix.f, choix.m, { ...choix.r, echauf: 0 })) / 60)} min</b></span>
+              <h2 className="text-[17px] font-bold">{tr("Bloc cardio")}</h2>
+              <span className="text-[13px] text-muted-foreground">{tr("Total ≈")}{" "}<b className="num text-[16px] text-foreground">{d + Math.round(dureeTotaleCardio(construireCardio(choix.f, choix.m, { ...choix.r, echauf: 0 })) / 60)}{" "}{tr("min")}</b></span>
             </div>
             <ReglagesCardio choix={choix} onChange={setChoix} />
-            <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">Il est placé à la fin, sans échauffement puisque la musculation t&apos;aura chauffé. Dans le composeur, tu le déplaces où tu veux.</p>
+            <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">{tr("Il est placé à la fin, sans échauffement puisque la musculation t'aura chauffé. Dans le composeur, tu le déplaces où tu veux.")}</p>
           </section>
         )}
       </div>
 
       <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
         <Button variant="plate" size="xl" className="w-full" disabled={!peut} onClick={creer}>
-          Créer ma séance
+          {tr("Créer ma séance")}
         </Button>
       </div>
       </>

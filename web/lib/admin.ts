@@ -3,6 +3,7 @@
 /* Accès admin côté client : appels aux fonctions serveur (migration
    20261006090000_admin.sql). Le serveur refuse tout compte absent de la table
    admins ; rien n'est gardé sur le téléphone (ni localStorage, ni cache). */
+import { tr } from "@/lib/i18n";
 import { useEffect, useState } from "react";
 import { sb } from "@/lib/supabase";
 import { nettoieArbre, useRepere, versEtat } from "@/lib/store";
@@ -10,7 +11,7 @@ import type { CompteAdmin, FicheAdmin, StatsAdmin } from "@/lib/logic/admin";
 
 async function appel<T>(nom: string, args?: Record<string, unknown>): Promise<T> {
   const c = await sb();
-  if (!c) throw new Error("Pas de connexion au serveur.");
+  if (!c) throw new Error(tr("Pas de connexion au serveur."));
   const { data, error } = await c.rpc(nom, args);
   if (error) throw new Error(error.message);
   return data as T;
@@ -45,11 +46,11 @@ export function useEstAdmin() {
 /** Supprime un compte (fonction Edge « supprimer » : vérifiée côté serveur, notée au journal). */
 export async function supprimer(id: string): Promise<void> {
   const c = await sb();
-  if (!c) throw new Error("Pas de connexion au serveur.");
+  if (!c) throw new Error(tr("Pas de connexion au serveur."));
   const { data, error } = await c.functions.invoke("supprimer", { body: { user: id } });
   if (error) {
     const corps = await (error as { context?: Response }).context?.json?.().catch(() => null);
     throw new Error(corps?.erreur || error.message);
   }
-  if (!data?.ok) throw new Error(data?.erreur || "Suppression impossible.");
+  if (!data?.ok) throw new Error(data?.erreur || tr("Suppression impossible."));
 }

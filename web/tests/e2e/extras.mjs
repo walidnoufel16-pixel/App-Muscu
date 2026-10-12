@@ -14,7 +14,7 @@ const etat = {
   CARDIO: [{ nom: "Rameur", f: "norvegien", m: "ram", min: 31, effort: 8, ts: new Date(`${mois}-08T18:00`).getTime() }], ts: Date.now(),
 };
 const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
-const ctx = await b.newContext({ viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
+const ctx = await b.newContext({ locale: "fr-FR", viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
 await ctx.addInitScript((s) => { if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); sessionStorage.vu = 1; } }, etat);
 await ctx.route(/supabase\.co/, (r) => r.abort());
 const pg = await ctx.newPage();

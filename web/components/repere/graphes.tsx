@@ -2,10 +2,11 @@
 
 /* Petits graphiques en SVG, sans bibliothèque : une courbe, des barres, un calendrier.
    Le tracé se dessine à l'apparition (keyframe `tracer`) sauf en mouvement réduit. */
+import { loc, tr } from "@/lib/i18n";
 import { useId, useState } from "react";
 import { cn } from "@/lib/utils";
 
-const fmt = (v: number) => (Math.round(v * 10) / 10).toLocaleString("fr-FR");
+const fmt = (v: number) => (Math.round(v * 10) / 10).toLocaleString(loc());
 
 /** Courbe : un point par séance. Toucher le graphique sélectionne le point le plus proche. */
 export function Courbe({ points, unite = "", hauteur = 150, className }: {
@@ -37,7 +38,7 @@ export function Courbe({ points, unite = "", hauteur = 150, className }: {
   const bulleX = Math.min(W - 60, Math.max(60, X(i)));
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className={cn("block w-full touch-pan-y select-none", className)} onPointerDown={toucher} onPointerMove={(e) => e.buttons && toucher(e)} role="img"
-      aria-label={`Courbe : de ${fmt(points[0].y)} à ${fmt(points[points.length - 1].y)} ${unite}`}>
+      aria-label={tr("Courbe : de {a} à {a1} {unite}", { a: fmt(points[0].y), a1: fmt(points[points.length - 1].y), unite })}>
       <defs>
         <linearGradient id={id} x1="0" x2="0" y1="0" y2="1">
           <stop offset="0" stopColor="var(--plate)" stopOpacity=".28" />
@@ -77,7 +78,7 @@ export function Barres({ valeurs, unite = "", hauteur = 120, couleur = "var(--pl
   const W = 320, H = hauteur, bas = 18, haut = 16, n = valeurs.length;
   const max = Math.max(1, ...valeurs.map((v) => v.y)), larg = (W / n) * 0.62;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" role="img" aria-label={`Dernière valeur : ${fmt(valeurs[n - 1]?.y ?? 0)} ${unite}`}>
+    <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" role="img" aria-label={tr("Dernière valeur : {a} {unite}", { a: fmt(valeurs[n - 1]?.y ?? 0), unite })}>
       {valeurs.map((v, i) => {
         const h = (v.y / max) * (H - bas - haut), x = (i + 0.5) * (W / n) - larg / 2, der = i === n - 1;
         return (
@@ -115,9 +116,9 @@ export function Calendrier({ jours, etat, onJour, aujourdhui }: {
             key={j}
             disabled={futur || !e}
             onClick={() => onJour(j)}
-            aria-label={`${j}${e ? (e.muscu ? " · musculation" : "") + (e.cardio ? " · cardio" : "") : ""}`}
+            aria-label={`${j}${e ? (e.muscu ? tr(" · musculation") : "") + (e.cardio ? tr(" · cardio") : "") : ""}`}
             className={cn("aspect-square rounded-[4px] transition-transform active:scale-90", futur && "opacity-0", j === aujourdhui && "ring-2 ring-foreground/50 ring-offset-1 ring-offset-card")}
-            style={{ background: fond, animation: e ? `pop .35s ${Math.min(i * 6, 500)}ms both` : undefined }}
+            style={{ background: fond, animation: e ? tr("pop .35s {a}ms both", { a: Math.min(i * 6, 500) }) : undefined }}
           />
         );
       })}

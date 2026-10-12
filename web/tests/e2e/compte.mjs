@@ -17,7 +17,7 @@ const errs = [];
 async function parcours(confirmer) {
   let user = { id: MOI, aud: "authenticated", role: "authenticated", is_anonymous: true, email: "", app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() };
   const session = () => ({ access_token: jwt, refresh_token: "r", token_type: "bearer", expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, user });
-  const ctx = await b.newContext({ viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
+  const ctx = await b.newContext({ locale: "fr-FR", viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
   await ctx.route(/supabase\.co/, async (r) => {
     const u = new URL(r.request().url()), m = r.request().method(), corps = r.request().postDataJSON?.() || {};
     const json = (body, status = 200) => r.fulfill({ status, contentType: "application/json", body: JSON.stringify(body), headers: { "access-control-allow-origin": "*" } });

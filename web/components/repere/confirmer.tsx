@@ -1,6 +1,7 @@
 "use client";
 
 /* Confirmation façon iOS (feuille d'alerte), promesse : await confirmer({...}). */
+import { tr } from "@/lib/i18n";
 import { create } from "zustand";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -30,9 +31,9 @@ export function Confirmateur() {
               <DialogDescription className="mt-1.5 text-[14px] leading-relaxed [overflow-wrap:anywhere] whitespace-pre-line text-muted-foreground">{q.texte || ""}</DialogDescription>
             </div>
             <div className={q.seulOk ? "p-3 pt-0" : "grid grid-cols-2 gap-2 p-3 pt-0"}>
-              {!q.seulOk && <Button variant="soft" size="lg" className="rounded-xl" onClick={() => fermer(false)}>{q.non || "Annuler"}</Button>}
+              {!q.seulOk && <Button variant="soft" size="lg" className="rounded-xl" onClick={() => fermer(false)}>{q.non || tr("Annuler")}</Button>}
               <Button variant={q.danger ? "destructive" : "default"} size="lg" className="w-full rounded-xl" onClick={() => fermer(true)} autoFocus>
-                {q.ok || "Confirmer"}
+                {q.ok || tr("Confirmer")}
               </Button>
             </div>
           </>

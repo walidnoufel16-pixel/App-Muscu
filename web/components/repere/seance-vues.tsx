@@ -1,5 +1,6 @@
 "use client";
 
+import { pluriel, tr } from "@/lib/i18n";
 import { CarteProteines } from "./proteines";
 import { useState } from "react";
 import { CaretRightIcon, ClockIcon, LightbulbIcon } from "@phosphor-icons/react";
@@ -14,7 +15,7 @@ import { Vignette } from "./exercice-carte";
 export function FriseSemaines({ wk, avancement, onChoisir }: { wk: number; avancement: { faites: number; total: number }[]; onChoisir: (w: number) => void }) {
   const PALIER: Record<number, string> = { 7: "bg-rpe7", 8: "bg-rpe8", 9: "bg-rpe9" };
   return (
-    <div className="no-scrollbar -mx-5 mt-4 flex gap-2 overflow-x-auto px-5 pb-1" role="tablist" aria-label="Semaines du cycle">
+    <div className="no-scrollbar -mx-5 mt-4 flex gap-2 overflow-x-auto px-5 pb-1" role="tablist" aria-label={tr("Semaines du cycle")}>
       {avancement.map(({ faites, total }, i) => {
         const sel = i === wk, plein = total > 0 && faites === total, pct = total ? faites / total : 0;
         return (
@@ -22,7 +23,7 @@ export function FriseSemaines({ wk, avancement, onChoisir }: { wk: number; avanc
             key={i}
             role="tab"
             aria-selected={sel}
-            aria-label={`Semaine ${i + 1}, ${faites} séance${faites > 1 ? "s" : ""} sur ${total}`}
+            aria-label={tr("Semaine {a}, {faites} séance{a1} sur {total}", { a: i + 1, faites, a1: pluriel(faites) ? "s" : "", total })}
             onClick={() => onChoisir(i)}
             className={cn(
               "relative flex w-[54px] shrink-0 flex-col items-center gap-1.5 rounded-2xl border py-2.5 transition-colors",
@@ -56,8 +57,8 @@ export function Echauffement({ type, onFiche }: { type: "haut" | "bas" | "bonus"
     <div className="px-4">
       <div className="mb-3 flex items-center gap-2 rounded-2xl bg-card px-4 py-3 text-[14px]">
         <ClockIcon className="size-4 text-muted-foreground" />
-        <span><b className="font-semibold">Environ {e.d}</b> avant de toucher aux charges</span>
-        <span className="ml-auto text-[12.5px] text-muted-foreground">{e.l.length} étapes</span>
+        <span><b className="font-semibold">{tr("Environ {d}", { d: e.d })}</b>{" "}{tr("avant de toucher aux charges")}</span>
+        <span className="ml-auto text-[12.5px] text-muted-foreground">{tr("{length} étapes", { length: e.l.length })}</span>
       </div>
       <ol className="relative flex flex-col gap-2">
         {e.l.map(([n, d, id, t], k) => (
@@ -73,7 +74,7 @@ export function Echauffement({ type, onFiche }: { type: "haut" | "bas" | "bonus"
                 {id && EX[id] && (
                   <button onClick={() => onFiche(id)} className="mt-2.5 flex w-full items-center gap-3 rounded-xl bg-muted p-1.5 pr-3 text-left active:scale-[.99]">
                     <Vignette id={id} className="size-10 rounded-[10px]" />
-                    <span className="flex-1 text-[13.5px] font-medium">Voir le mouvement</span>
+                    <span className="flex-1 text-[13.5px] font-medium">{tr("Voir le mouvement")}</span>
                     <CaretRightIcon className="size-4 text-muted-foreground" />
                   </button>
                 )}
@@ -130,7 +131,7 @@ export function Collation({ obj, onChanger }: { obj: number; onChanger?: (o: num
         <p className="text-[14px] leading-relaxed">{c.n}</p>
       </div>
       <p className="mt-3 px-1 text-[12px] leading-relaxed text-muted-foreground">
-        Ces repères sont généraux et ne remplacent pas l&apos;avis d&apos;un professionnel. Si tu as un suivi médical ou un rapport compliqué à l&apos;alimentation, parles-en à un médecin ou à un diététicien.
+        {tr("Ces repères sont généraux et ne remplacent pas l'avis d'un professionnel. Si tu as un suivi médical ou un rapport compliqué à l'alimentation, parles-en à un médecin ou à un diététicien.")}
       </p>
     </div>
   );
@@ -157,7 +158,7 @@ export function Remplacer({
           <div className="eyebrow mt-2">{sousTitre}</div>
           <DrawerTitle className="mt-1 mb-1 text-[24px] leading-tight font-bold tracking-[-0.02em]">{titre}</DrawerTitle>
           <DrawerDescription className="mb-3 text-[13.5px] text-muted-foreground">
-            Même muscle, compatible avec ton matériel. Remplacer ne change ni tes séries ni ton effort visé.
+            {tr("Même muscle, compatible avec ton matériel. Remplacer ne change ni tes séries ni ton effort visé.")}
           </DrawerDescription>
           <div className="flex flex-col gap-1.5">
             {liste.map((o) => {
@@ -175,7 +176,7 @@ export function Remplacer({
                       <span className="block truncate text-[12.5px] text-muted-foreground">{EX[o].m}</span>
                     </span>
                     {cur ? (
-                      <span className="rounded-full bg-plate px-2.5 py-1 text-[11.5px] font-semibold text-plate-foreground">En cours</span>
+                      <span className="rounded-full bg-plate px-2.5 py-1 text-[11.5px] font-semibold text-plate-foreground">{tr("En cours")}</span>
                     ) : (
                       <CaretRightIcon className={cn("size-4 text-muted-foreground transition-transform", choisi && "rotate-90")} />
                     )}
@@ -186,9 +187,7 @@ export function Remplacer({
             })}
           </div>
           {pied}
-          <p className="mt-3 text-center text-[11.5px] text-muted-foreground">
-            {liste.length} mouvement{liste.length > 1 ? "s" : ""} · {nomPat(EX[liste[0]]?.pat || "")}
-          </p>
+          <p className="mt-3 text-center text-[11.5px] text-muted-foreground">{tr("{length} mouvement{a} · {a1}", { length: liste.length, a: pluriel(liste.length) ? "s" : "", a1: nomPat(EX[liste[0]]?.pat || "") })}</p>
         </div>
       </DrawerContent>
     </Drawer>

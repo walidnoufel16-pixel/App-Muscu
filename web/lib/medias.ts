@@ -2,6 +2,7 @@
    Le jour où un pack sous licence remplace les démonstrations, il suffit
    d'ajouter sa source ci-dessous et de l'associer aux exercices concernés :
    les écrans n'ont pas à changer. */
+import { tr } from "@/lib/i18n";
 import { EX } from "@/lib/data/exercices";
 
 export type Source = { nom: string; licence: string; lien: string; mention: string };
@@ -9,9 +10,9 @@ export type Source = { nom: string; licence: string; lien: string; mention: stri
 export const SOURCES = {
   fedb: {
     nom: "free-exercise-db",
-    licence: "Domaine public (Unlicense)",
+    licence: tr("Domaine public (Unlicense)"),
     lien: "https://github.com/yuhonas/free-exercise-db",
-    mention: "Illustrations · free-exercise-db · domaine public · retouche Repère",
+    mention: tr("Illustrations · free-exercise-db · domaine public · retouche Repère"),
   },
 } satisfies Record<string, Source>;
 
@@ -26,8 +27,8 @@ export const imgEx = (id: string, n: 0 | 1 = 0) => `/img/${EX[id]?.img}_${n}.avi
 
 /* Tout ce que l'app emprunte, pour la page Compte › Crédits. */
 export const CREDITS: { quoi: string; nom: string; licence: string; lien: string }[] = [
-  ...Object.values(SOURCES).map((s) => ({ quoi: "Photos des exercices", nom: s.nom, licence: s.licence, lien: s.lien })),
-  { quoi: "Schéma du corps", nom: "react-native-body-highlighter, Hicham Elabbassi", licence: "MIT", lien: "https://github.com/HichamELBSI/react-native-body-highlighter" },
-  { quoi: "Icônes", nom: "Phosphor Icons", licence: "MIT", lien: "https://phosphoricons.com" },
-  { quoi: "Polices", nom: "Geist (Vercel) · Barlow Condensed (Jeremy Tribby)", licence: "SIL Open Font License", lien: "https://vercel.com/font" },
+  ...Object.values(SOURCES).map((s) => ({ quoi: tr("Photos des exercices"), nom: s.nom, licence: s.licence, lien: s.lien })),
+  { quoi: tr("Schéma du corps"), nom: tr("react-native-body-highlighter, Hicham Elabbassi"), licence: "MIT", lien: "https://github.com/HichamELBSI/react-native-body-highlighter" },
+  { quoi: tr("Icônes"), nom: tr("Phosphor Icons"), licence: "MIT", lien: "https://phosphoricons.com" },
+  { quoi: tr("Polices"), nom: tr("Geist (Vercel) · Barlow Condensed (Jeremy Tribby)"), licence: tr("SIL Open Font License"), lien: "https://vercel.com/font" },
 ];

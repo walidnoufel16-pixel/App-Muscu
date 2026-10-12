@@ -15,7 +15,7 @@ for (let w = 0; w < 2; w++) for (let i = 0; i < 5; i++) demo.LOG[`${w}|0|${i}`] 
 demo.LOG["2|0|0"] = { done: false, v: 45, reps: 6, feel: null, ex: "dc", ts: 2000, series: [{ v: 45, reps: 6, ok: true }, { v: 45, reps: 6, ok: true }, { v: 45, reps: 6, ok: false }, { v: 45, reps: 6, ok: false }] };
 const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 for (const mode of ["light", "dark"]) {
-  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: mode, serviceWorkers: "block" });
+  const ctx = await b.newContext({ locale: "fr-FR", viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: mode, serviceWorkers: "block" });
   await ctx.addInitScript((s) => { if (!localStorage.getItem("palier.state.v1")) localStorage.setItem("palier.state.v1", JSON.stringify(s)); }, demo);
   await ctx.route(/supabase\.co/, (r) => r.abort());
   const pg = await ctx.newPage();

@@ -1,6 +1,7 @@
 /* Motivation : série de semaines réussies (avec un joker par mois) et badges.
    Tout se calcule depuis l'historique ; seule la date d'obtention des badges
    est enregistrée (A.badges). Logique pure. */
+import { tr } from "@/lib/i18n";
 import { EX } from "@/lib/data/exercices";
 import { decaler, jourDe, lundiDe, records, type LigneHist } from "./historique";
 import type { Etat, HistoCardio, Reponses } from "./types";
@@ -64,37 +65,37 @@ export function stats(E: Etat, auj = jourDe(Date.now())): Stats {
 
 export type Badge = { id: string; nom: string; texte: string; icone: string; famille: string; cible: number; valeur: (s: Stats) => number };
 const B = (famille: string, icone: string) => (id: string, nom: string, texte: string, cible: number, valeur: (s: Stats) => number): Badge => ({ id, nom, texte, icone, famille, cible, valeur });
-const course = B("Course à pied", "course"), premiere = B("Premières fois", "etoile"), regul = B("Régularité", "flamme"), force = B("Force", "haltere"), volume = B("Volume", "poids"), cardio = B("Cardio", "coeur");
+const course = B(tr("Course à pied"), "course"), premiere = B(tr("Premières fois"), "etoile"), regul = B(tr("Régularité"), "flamme"), force = B(tr("Force"), "haltere"), volume = B(tr("Volume"), "poids"), cardio = B(tr("Cardio"), "coeur");
 export const BADGES: Badge[] = [
-  premiere("s1", "Premier pas", "Ta première séance", 1, (s) => s.seances),
-  premiere("c1", "Souffle", "Ta première séance cardio", 1, (s) => s.cardio),
-  premiere("m1", "Deux en un", "Ta première séance combinée", 1, (s) => s.combinees),
-  premiere("r1", "Premier record", "Battre un record pour la première fois", 1, (s) => s.records),
-  premiere("d1", "Défi relevé", "Atteindre l'objectif d'un défi entre amis", 1, (s) => s.defis),
-  regul("s10", "Lancé", "10 séances", 10, (s) => s.seances),
-  regul("s50", "Habitué", "50 séances", 50, (s) => s.seances),
-  regul("s100", "Pilier", "100 séances", 100, (s) => s.seances),
-  regul("w4", "Un mois plein", "4 semaines réussies d'affilée", 4, (s) => s.serie),
-  regul("w12", "Trimestre", "12 semaines réussies d'affilée", 12, (s) => s.serie),
-  regul("w26", "Six mois", "26 semaines réussies d'affilée", 26, (s) => s.serie),
-  force("r10", "Collectionneur", "10 records battus", 10, (s) => s.records),
-  force("r50", "Insatiable", "50 records battus", 50, (s) => s.records),
-  force("dc100", "Club des 100 · couché", "100 kg au développé couché", 100, (s) => s.max.dc || 0),
-  force("sq100", "Club des 100 · squat", "100 kg au squat", 100, (s) => s.max.sq || 0),
-  force("sdt140", "Soulevé lourd", "140 kg au soulevé de terre", 140, (s) => s.max.sdt || 0),
-  force("pdc", "Ton propre poids", "Soulever ton poids du corps sur un exercice", 1, (s) => +s.poidsCorps),
-  volume("t10", "10 tonnes", "10 t soulevées au total", 10, (s) => s.tonnes),
-  volume("t100", "100 tonnes", "100 t soulevées au total", 100, (s) => s.tonnes),
-  volume("t1000", "Mille tonnes", "1 000 t soulevées au total", 1000, (s) => s.tonnes),
-  cardio("h10", "Endurant", "10 heures de cardio", 10, (s) => s.heuresCardio),
-  cardio("h50", "Moteur", "50 heures de cardio", 50, (s) => s.heuresCardio),
-  cardio("tab10", "Tabata ×10", "10 séances de Tabata", 10, (s) => s.tabata),
-  cardio("nor1", "Norvégien", "Un 4×4 norvégien bouclé", 1, (s) => s.norvegien),
-  cardio("c25", "Cardio régulier", "25 séances de cardio", 25, (s) => s.cardio),
-  course("run1", "Premiers kilomètres", "Ta première sortie de course notée", 1, (s) => s.sorties),
-  course("km100", "100 km", "100 km courus au total", 100, (s) => s.km),
-  course("km500", "500 km", "500 km courus au total", 500, (s) => s.km),
-  course("jourj", "Jour J", "Ta course préparée avec Repère, bouclée", 1, (s) => s.courses),
+  premiere("s1", tr("Premier pas"), tr("Ta première séance"), 1, (s) => s.seances),
+  premiere("c1", tr("Souffle"), tr("Ta première séance cardio"), 1, (s) => s.cardio),
+  premiere("m1", tr("Deux en un"), tr("Ta première séance combinée"), 1, (s) => s.combinees),
+  premiere("r1", tr("Premier record"), tr("Battre un record pour la première fois"), 1, (s) => s.records),
+  premiere("d1", tr("Défi relevé"), tr("Atteindre l'objectif d'un défi entre amis"), 1, (s) => s.defis),
+  regul("s10", tr("Lancé"), tr("10 séances"), 10, (s) => s.seances),
+  regul("s50", tr("Habitué"), tr("50 séances"), 50, (s) => s.seances),
+  regul("s100", tr("Pilier"), tr("100 séances"), 100, (s) => s.seances),
+  regul("w4", tr("Un mois plein"), tr("4 semaines réussies d'affilée"), 4, (s) => s.serie),
+  regul("w12", tr("Trimestre"), tr("12 semaines réussies d'affilée"), 12, (s) => s.serie),
+  regul("w26", tr("Six mois"), tr("26 semaines réussies d'affilée"), 26, (s) => s.serie),
+  force("r10", tr("Collectionneur"), tr("10 records battus"), 10, (s) => s.records),
+  force("r50", tr("Insatiable"), tr("50 records battus"), 50, (s) => s.records),
+  force("dc100", tr("Club des 100 · couché"), tr("100 kg au développé couché"), 100, (s) => s.max.dc || 0),
+  force("sq100", tr("Club des 100 · squat"), tr("100 kg au squat"), 100, (s) => s.max.sq || 0),
+  force("sdt140", tr("Soulevé lourd"), tr("140 kg au soulevé de terre"), 140, (s) => s.max.sdt || 0),
+  force("pdc", tr("Ton propre poids"), tr("Soulever ton poids du corps sur un exercice"), 1, (s) => +s.poidsCorps),
+  volume("t10", tr("10 tonnes"), tr("10 t soulevées au total"), 10, (s) => s.tonnes),
+  volume("t100", tr("100 tonnes"), tr("100 t soulevées au total"), 100, (s) => s.tonnes),
+  volume("t1000", tr("Mille tonnes"), tr("1 000 t soulevées au total"), 1000, (s) => s.tonnes),
+  cardio("h10", tr("Endurant"), tr("10 heures de cardio"), 10, (s) => s.heuresCardio),
+  cardio("h50", tr("Moteur"), tr("50 heures de cardio"), 50, (s) => s.heuresCardio),
+  cardio("tab10", tr("Tabata ×10"), tr("10 séances de Tabata"), 10, (s) => s.tabata),
+  cardio("nor1", tr("Norvégien"), tr("Un 4×4 norvégien bouclé"), 1, (s) => s.norvegien),
+  cardio("c25", tr("Cardio régulier"), tr("25 séances de cardio"), 25, (s) => s.cardio),
+  course("run1", tr("Premiers kilomètres"), tr("Ta première sortie de course notée"), 1, (s) => s.sorties),
+  course("km100", tr("100 km"), tr("100 km courus au total"), 100, (s) => s.km),
+  course("km500", tr("500 km"), tr("500 km courus au total"), 500, (s) => s.km),
+  course("jourj", tr("Jour J"), tr("Ta course préparée avec Repère, bouclée"), 1, (s) => s.courses),
 ];
 export const obtenu = (b: Badge, s: Stats) => b.valeur(s) >= b.cible;
 

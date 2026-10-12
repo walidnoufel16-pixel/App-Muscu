@@ -1,5 +1,6 @@
 "use client";
 
+import { pluriel, tr } from "@/lib/i18n";
 import { useMemo } from "react";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
@@ -30,18 +31,18 @@ export function Bibliotheque({
           if (zone && zone.z === r.z && zone.p === cible) setZone(null);
           else setZone({ z: r.z!, p: cible });
         }}
-        legende="Touche une zone"
+        legende={tr("Touche une zone")}
       />
       {zone ? (
         <div>
           <div className="mb-2 flex items-baseline justify-between px-1">
             <h3 className="text-[19px] font-bold">{zone.p ? PATN[zone.p] || nomPat(zone.p) : ZONES[zone.z]}</h3>
-            <span className="text-[12.5px] text-muted-foreground">{l.length} exercice{l.length > 1 ? "s" : ""}</span>
+            <span className="text-[12.5px] text-muted-foreground">{l.length}{" "}{tr("exercice")}{pluriel(l.length) ? "s" : ""}</span>
           </div>
           {pats.length > 1 && (
             <div className="no-scrollbar -mx-4 mb-2 flex gap-1.5 overflow-x-auto px-4">
               <button onClick={() => setZone({ z: zone.z, p: null })} className={cn("h-8 shrink-0 rounded-full border px-3 text-[13px] font-medium", !zone.p ? "border-foreground bg-foreground text-background" : "border-border bg-card")}>
-                Tout
+                {tr("Tout")}
               </button>
               {pats.map((p) => (
                 <button key={p} onClick={() => setZone({ z: zone.z, p })} className={cn("h-8 shrink-0 rounded-full border px-3 text-[13px] font-medium", zone.p === p ? "border-foreground bg-foreground text-background" : "border-border bg-card")}>
@@ -55,7 +56,7 @@ export function Bibliotheque({
           </div>
         </div>
       ) : (
-        <p className="text-center text-[13.5px] text-muted-foreground">Touche une partie du corps pour voir les exercices.</p>
+        <p className="text-center text-[13.5px] text-muted-foreground">{tr("Touche une partie du corps pour voir les exercices.")}</p>
       )}
     </div>
   );
@@ -66,7 +67,7 @@ export function ListeRecherche({ sel, q, setQ, pris, onAjouter, onFiche }: { sel
     const f = sansAccent(q.trim()), g: Record<string, string[]> = {};
     Object.keys(EX).filter((o) => exoFiltre(o, sel)).forEach((o) => {
       if (f && !sansAccent(EX[o].n + " " + EX[o].m).split(/[^a-z0-9]+/).some((m) => m.startsWith(f))) return;
-      const k = PAT2GRP[EX[o].pat] || "Cardio et mobilité";
+      const k = PAT2GRP[EX[o].pat] || tr("Cardio et mobilité");
       (g[k] = g[k] || []).push(o);
     });
     return g;
@@ -75,7 +76,7 @@ export function ListeRecherche({ sel, q, setQ, pris, onAjouter, onFiche }: { sel
     <div className="flex flex-col gap-3">
       <div className="relative">
         <MagnifyingGlassIcon className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un exercice…" className="h-11 rounded-2xl bg-card pl-10 text-[15px]" />
+        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Rechercher un exercice…")} className="h-11 rounded-2xl bg-card pl-10 text-[15px]" />
       </div>
       {Object.keys(groupes).length ? Object.entries(groupes).map(([g, l]) => (
         <div key={g}>
@@ -84,7 +85,7 @@ export function ListeRecherche({ sel, q, setQ, pris, onAjouter, onFiche }: { sel
             {l.map((o) => <LigneExercice key={o} id={o} pris={pris?.(o)} onOuvrir={() => onFiche(o)} onAjouter={onAjouter ? () => onAjouter(o) : undefined} />)}
           </div>
         </div>
-      )) : <p className="text-center text-[13.5px] text-muted-foreground">Aucun exercice ne commence par ça.</p>}
+      )) : <p className="text-center text-[13.5px] text-muted-foreground">{tr("Aucun exercice ne commence par ça.")}</p>}
     </div>
   );
 }

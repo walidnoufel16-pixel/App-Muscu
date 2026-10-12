@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -21,7 +22,7 @@ export default function Racine() {
     if (code) {
       importer(code).then((r) => {
         if (r.erreur) toast.error(r.erreur);
-        else toast.success(`« ${r.nom} » a été ajoutée à tes séances`);
+        else toast.success(tr("« {nom} » a été ajoutée à tes séances", { nom: r.nom }));
         router.replace("/entrainement");
       });
       return;

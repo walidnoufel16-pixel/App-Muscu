@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarbellIcon, ChartLineUpIcon, PersonSimpleIcon, UserCircleIcon } from "@phosphor-icons/react";
@@ -8,10 +9,10 @@ import { cn } from "@/lib/utils";
 
 /* Quatre onglets, un rôle chacun : faire, chercher, mesurer, régler. */
 const ONGLETS = [
-  { href: "/entrainement", nom: "Entraînement", Icone: BarbellIcon },
-  { href: "/exercices", nom: "Exercices", Icone: PersonSimpleIcon },
-  { href: "/progres", nom: "Progrès", Icone: ChartLineUpIcon },
-  { href: "/profil", nom: "Profil", Icone: UserCircleIcon },
+  { href: "/entrainement", nom: tr("Entraînement"), Icone: BarbellIcon },
+  { href: "/exercices", nom: tr("Exercices"), Icone: PersonSimpleIcon },
+  { href: "/progres", nom: tr("Progrès"), Icone: ChartLineUpIcon },
+  { href: "/profil", nom: tr("Profil"), Icone: UserCircleIcon },
 ] as const;
 
 /* Barre d'onglets flottante, translucide, au-dessus de la zone sûre. */
@@ -20,7 +21,7 @@ export function TabBar() {
   const sync = useRepere((s) => s.sync);
   return (
     <nav
-      aria-label="Navigation principale"
+      aria-label={tr("Navigation principale")}
       style={{ viewTransitionName: "onglets" }}
       className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[480px] px-3 pb-[max(env(safe-area-inset-bottom),10px)]"
     >
@@ -42,7 +43,7 @@ export function TabBar() {
                 {href === "/profil" && sync !== null && (
                   <span
                     className={cn("absolute -top-0.5 -right-1 size-2 rounded-full ring-2 ring-card", sync ? "bg-success" : "bg-muted-foreground")}
-                    aria-label={sync ? "Synchronisé" : "Hors ligne"}
+                    aria-label={sync ? tr("Synchronisé") : tr("Hors ligne")}
                   />
                 )}
               </span>

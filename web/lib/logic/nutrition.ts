@@ -1,5 +1,6 @@
 /* Nutrition simple : un objectif de protéines par jour et un suivi en un geste.
    Pas de calories, volontairement. Stocké dans A.prot (30 derniers jours). Logique pure. */
+import { tr } from "@/lib/i18n";
 import type { Reponses } from "./types";
 
 /* g de protéines par kg de poids du corps, selon l'objectif du questionnaire
@@ -19,18 +20,18 @@ export function objectifProteines(A: Reponses): number {
 }
 
 export const ALIMENTS: { n: string; q: string; g: number }[] = [
-  { n: "Œufs", q: "2 œufs", g: 12 },
-  { n: "Skyr ou yaourt grec", q: "150 g", g: 15 },
-  { n: "Fromage blanc", q: "200 g", g: 16 },
-  { n: "Poulet ou dinde", q: "120 g", g: 30 },
-  { n: "Steak haché 5 %", q: "125 g", g: 26 },
-  { n: "Thon en boîte", q: "1 boîte", g: 25 },
-  { n: "Saumon", q: "120 g", g: 24 },
-  { n: "Shaker de whey", q: "30 g", g: 24 },
-  { n: "Lentilles cuites", q: "200 g", g: 18 },
-  { n: "Tofu", q: "150 g", g: 20 },
-  { n: "Lait", q: "1 verre (250 ml)", g: 8 },
-  { n: "Emmental", q: "30 g", g: 8 },
+  { n: "Œufs", q: tr("2 œufs"), g: 12 },
+  { n: tr("Skyr ou yaourt grec"), q: tr("150 g"), g: 15 },
+  { n: tr("Fromage blanc"), q: tr("200 g"), g: 16 },
+  { n: tr("Poulet ou dinde"), q: tr("120 g"), g: 30 },
+  { n: tr("Steak haché 5 %"), q: tr("125 g"), g: 26 },
+  { n: tr("Thon en boîte"), q: tr("1 boîte"), g: 25 },
+  { n: tr("Saumon"), q: tr("120 g"), g: 24 },
+  { n: tr("Shaker de whey"), q: tr("30 g"), g: 24 },
+  { n: tr("Lentilles cuites"), q: tr("200 g"), g: 18 },
+  { n: tr("Tofu"), q: tr("150 g"), g: 20 },
+  { n: tr("Lait"), q: tr("1 verre (250 ml)"), g: 8 },
+  { n: tr("Emmental"), q: tr("30 g"), g: 8 },
 ];
 
 export const protDuJour = (A: Reponses, jour: string) => ((A.prot || {}) as Record<string, number>)[jour] || 0;

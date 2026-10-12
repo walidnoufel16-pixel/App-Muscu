@@ -11,7 +11,7 @@ const etat = {
   wk: 2, day: 0, FINI: true, ts: Date.now(),
 };
 const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
-const ctx = await b.newContext({
+const ctx = await b.newContext({ locale: "fr-FR",
   viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: "dark", serviceWorkers: "block",
   reducedMotion: process.env.REDUIT ? "reduce" : "no-preference",
   ...(process.env.VIDEO ? { recordVideo: { dir: process.env.VIDEO, size: { width: 390, height: 844 } } } : {}),

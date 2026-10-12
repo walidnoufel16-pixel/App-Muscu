@@ -2,7 +2,7 @@ import { chromium } from "@playwright/test";
 import { servir } from "./serveur.mjs";
 const srv = servir(new URL("../../out/", import.meta.url).pathname, 8801);
 const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
-const ctx = await b.newContext();
+const ctx = await b.newContext({ locale: "fr-FR" });
 await ctx.route(/supabase\.co/, (r) => r.abort());
 const pg = await ctx.newPage();
 await pg.goto("http://localhost:8801/entrainement/");

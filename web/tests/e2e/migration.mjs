@@ -9,7 +9,7 @@ const ancien = {
   SEANCES: [{ nom: "Abdos <b>", ex: [{ id: "russ", s: 3, r: 15, p: "60 s" }] }], wk: 1, day: 0, FINI: true, ts: Date.now(),
 };
 const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
-const ctx = await b.newContext({ serviceWorkers: "block" });
+const ctx = await b.newContext({ locale: "fr-FR", serviceWorkers: "block" });
 await ctx.addInitScript((s) => { if (!sessionStorage.x) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); localStorage.setItem("repere-theme", "dark"); sessionStorage.x = 1; } }, ancien);
 await ctx.route(/supabase\.co/, (r) => r.abort());
 const pg = await ctx.newPage();

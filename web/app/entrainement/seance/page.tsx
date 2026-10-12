@@ -2,6 +2,7 @@
 
 /* Une séance, en plein écran : la même pour le plan (semaine et séance en cours
    dans l'état) et pour une séance libre (?l=index). La barre d'onglets s'efface. */
+import { pluriel, tr } from "@/lib/i18n";
 import { Suspense, useMemo, useState, ViewTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckIcon, HeartbeatIcon, InfoIcon, PencilSimpleIcon, PlayIcon, PlusIcon } from "@phosphor-icons/react";
@@ -51,7 +52,7 @@ function Cadre({
       <EnTete surtitre={surtitre} titre={titre} gauche={<Retour repli="/entrainement" />} actions={actions}>
         {entete}
         {total > 0 && (
-          <div className="mt-3 flex items-center gap-3" aria-label={`${faits} exercice${faits > 1 ? "s" : ""} terminé${faits > 1 ? "s" : ""} sur ${total}`}>
+          <div className="mt-3 flex items-center gap-3" aria-label={tr("{faits} exercice{a} terminé{a1} sur {total}", { faits, a: pluriel(faits) ? "s" : "", a1: pluriel(faits) ? "s" : "", total })}>
             <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
               <span className="block h-full rounded-full bg-plate transition-[width] duration-500 ease-out" style={{ width: (faits / total) * 100 + "%" }} />
             </span>
@@ -60,7 +61,7 @@ function Cadre({
         )}
       </EnTete>
       <div className="px-4 pb-3">
-        <Segmente label="Parties de la séance" valeur={sect} onChange={setSect} options={[{ v: 0, n: "Échauffement" }, { v: 1, n: "Séance" }, { v: 2, n: "Collation" }]} />
+        <Segmente label={tr("Parties de la séance")} valeur={sect} onChange={setSect} options={[{ v: 0, n: tr("Échauffement") }, { v: 1, n: tr("Séance") }, { v: 2, n: tr("Collation") }]} />
       </div>
       {children}
     </>
@@ -106,22 +107,22 @@ function SeancePlan() {
   const rempIdx = remp ?? 0, rempOrig = S.x?.[rempIdx]?.[0];
   const rempCur = remp != null && rempOrig ? curId(etat, wk, day, rempIdx, rempOrig, W) : undefined;
   const kRemp = key(wk, day, rempIdx), permRemp = day + "|" + rempIdx;
-  const nom = S.b ? "Bonus" : S.sportOnly ? "Ton sport" : `Séance ${day + 1}`;
+  const nom = S.b ? tr("Bonus") : S.sportOnly ? tr("Ton sport") : tr("Séance {a}", { a: day + 1 });
 
   return (
     <Cadre
-      surtitre={<>{nom} · semaine {wk + 1} · <span className="num text-[13px]">RPE {baseRPE(wk)}</span></>}
-      titre={S.sportOnly ? "Ton sport" : titreSeance(S.t)}
+      surtitre={<>{nom}{" "}{tr("· semaine")}{" "}{wk + 1} · <span className="num text-[13px]">{tr("RPE")}{" "}{baseRPE(wk)}</span></>}
+      titre={S.sportOnly ? tr("Ton sport") : titreSeance(S.t)}
       faits={faits} total={S.sportOnly ? 0 : cles.length}
       sect={sect} setSect={setSect}
-      actions={<Button variant="ghost" size="icon" aria-label="Repères de placement" onClick={() => setReperes(true)}><InfoIcon className="size-5" /></Button>}
+      actions={<Button variant="ghost" size="icon" aria-label={tr("Repères de placement")} onClick={() => setReperes(true)}><InfoIcon className="size-5" /></Button>}
       entete={!S.sportOnly && <Muscles ids={ids} />}
     >
       {S.sportOnly ? (
         <CarteSport />
       ) : (
         <>
-          {sect === 0 && <Echauffement type={typeSeance(S)} onFiche={(id) => setFiche({ id, idx: -1, pres: [1, 10, "—"], libelle: "échauffement" })} />}
+          {sect === 0 && <Echauffement type={typeSeance(S)} onFiche={(id) => setFiche({ id, idx: -1, pres: [1, 10, "—"], libelle: tr("échauffement") })} />}
           {sect === 2 && <Collation obj={etat.A.objectif ?? 0} />}
           {sect === 1 && (
             <div className={cn("flex flex-col gap-2.5 px-4", premiere && "entree")}>
@@ -130,7 +131,7 @@ function SeancePlan() {
                 const c = ctxPlan(etat, i, W)!, x = EX[c.id], k = c.k, L: Journal | undefined = etat.LOG[k];
                 const r = noRPE(c.id) ? 0 : rpeOf(etat.A, wk, c.id, e[4]);
                 const prescr = x.ch === "temps" ? `${e[1]} × ${e[2]}s` : x.ch === "dist" ? `${e[1]} × ${e[2]}m` : `${e[1]} × ${e[2]}`;
-                const badge = etat.SWAP[k] ? "aujourd'hui" : etat.SWAPP[day + "|" + i] ? "remplacé" : undefined;
+                const badge = etat.SWAP[k] ? "aujourd'hui" : etat.SWAPP[day + "|" + i] ? tr("remplacé") : undefined;
                 const fini = () => enchainer({ k, cles, titre: titreSeance(S.t), setOuvert });
                 return (
                   <ExerciceCarte
@@ -147,7 +148,7 @@ function SeancePlan() {
                 );
               })}
               <p className="px-2 pt-1 text-center text-[12.5px] leading-relaxed text-muted-foreground">
-                Effort visé <b className="font-semibold text-foreground">RPE {baseRPE(wk)}</b> : {rirTxt(baseRPE(wk))} à la fin de chaque série.
+                {tr("Effort visé")}{" "}<b className="font-semibold text-foreground">{tr("RPE")}{" "}{baseRPE(wk)}</b> : {rirTxt(baseRPE(wk))}{" "}{tr("à la fin de chaque série.")}
               </p>
             </div>
           )}
@@ -160,20 +161,18 @@ function SeancePlan() {
           ouvert={remp != null}
           onClose={() => setRemp(null)}
           titre={rempCur ? EX[rempCur].n : ""}
-          sousTitre={rempCur ? `Remplacer · ${nomPat(EX[rempCur].pat)}` : ""}
+          sousTitre={rempCur ? tr("Remplacer · {a}", { a: nomPat(EX[rempCur].pat) }) : ""}
           liste={rempCur ? alternativesDe(etat.A, rempCur) : []}
           courant={rempCur}
           actions={(o) => (
             <>
-              <Button variant="soft" onClick={() => { muter((E) => act.swap(E, rempIdx, o, rempOrig, "jour")); setRemp(null); }}>Pour aujourd&apos;hui</Button>
-              <Button onClick={() => { muter((E) => act.swap(E, rempIdx, o, rempOrig, "tjs")); setRemp(null); }}>Pour toujours</Button>
+              <Button variant="soft" onClick={() => { muter((E) => act.swap(E, rempIdx, o, rempOrig, "jour")); setRemp(null); }}>{tr("Pour aujourd'hui")}</Button>
+              <Button onClick={() => { muter((E) => act.swap(E, rempIdx, o, rempOrig, "tjs")); setRemp(null); }}>{tr("Pour toujours")}</Button>
             </>
           )}
           pied={
             etat.SWAP[kRemp] || etat.SWAPP[permRemp] ? (
-              <Button variant="ghost" className="mt-2 w-full" onClick={() => { muter((E) => act.swap(E, rempIdx, rempOrig, rempOrig, "reset")); setRemp(null); }}>
-                Revenir à {EX[rempOrig].n.toLowerCase()}
-              </Button>
+              <Button variant="ghost" className="mt-2 w-full" onClick={() => { muter((E) => act.swap(E, rempIdx, rempOrig, rempOrig, "reset")); setRemp(null); }}>{tr("Revenir à {a}", { a: EX[rempOrig].n.toLowerCase() })}</Button>
             ) : null
           }
         />
@@ -181,12 +180,12 @@ function SeancePlan() {
       <Drawer open={reperes} onOpenChange={setReperes}>
         <DrawerContent>
           <div className="px-5 pb-[max(env(safe-area-inset-bottom),24px)]">
-            <DrawerTitle className="mt-2 text-[22px] font-bold">Repères de placement</DrawerTitle>
-            <DrawerDescription className="sr-only">Quand placer cette séance dans ta semaine</DrawerDescription>
+            <DrawerTitle className="mt-2 text-[22px] font-bold">{tr("Repères de placement")}</DrawerTitle>
+            <DrawerDescription className="sr-only">{tr("Quand placer cette séance dans ta semaine")}</DrawerDescription>
             <div className="mt-4 flex flex-col gap-3">
-              <Repere titre="Quand la placer" texte={espacementDe(W, day)[1]} />
-              {S.b ? <Repere titre="Séance bonus" texte={`Axée sur ${(AXES[etat.A.axe ?? 0] || "").toLowerCase()}. Elle ajoute du volume, mais aucune règle de progression n'en dépend. La sauter ne décale rien.`} /> : null}
-              {S.sport === 1 && sportsChoisis(etat.A).length ? <Repere titre="Tes sports" texte="Séance la plus lourde sur les jambes. Garde au moins un jour plein entre elle et ta pratique." /> : null}
+              <Repere titre={tr("Quand la placer")} texte={espacementDe(W, day)[1]} />
+              {S.b ? <Repere titre={tr("Séance bonus")} texte={tr("Axée sur {a}. Elle ajoute du volume, mais aucune règle de progression n'en dépend. La sauter ne décale rien.", { a: (AXES[etat.A.axe ?? 0] || "").toLowerCase() })} /> : null}
+              {S.sport === 1 && sportsChoisis(etat.A).length ? <Repere titre={tr("Tes sports")} texte={tr("Séance la plus lourde sur les jambes. Garde au moins un jour plein entre elle et ta pratique.")} /> : null}
             </div>
           </div>
         </DrawerContent>
@@ -237,11 +236,11 @@ function SeanceLibre({ i }: { i: number }) {
 
   return (
     <Cadre
-      surtitre={`${blocs.length ? "Séance combinée" : "Séance libre"} · ${S.ex.length} exercice${S.ex.length > 1 ? "s" : ""}${blocs.length ? ` + ${blocs.length} cardio` : ""} · environ ${dureeSeance(S)} min`}
+      surtitre={tr("{a} · {length} exercice{a1}{a2} · environ {a3} min", { a: blocs.length ? tr("Séance combinée") : tr("Séance libre"), length: S.ex.length, a1: pluriel(S.ex.length) ? "s" : "", a2: blocs.length ? tr(" + {length} cardio", { length: blocs.length }) : "", a3: dureeSeance(S) })}
       titre={S.nom}
       faits={faits} total={cles.length + blocs.length}
       sect={sect} setSect={setSect}
-      actions={<Button variant="ghost" size="sm" className="text-[15px] text-plate-ink" onClick={modifier}><PencilSimpleIcon className="size-4" />Modifier</Button>}
+      actions={<Button variant="ghost" size="sm" className="text-[15px] text-plate-ink" onClick={modifier}><PencilSimpleIcon className="size-4" />{tr("Modifier")}</Button>}
       entete={
         <>
           <ViewTransition name={`vignettes-${i}`} share="morph" default="none">
@@ -253,7 +252,7 @@ function SeanceLibre({ i }: { i: number }) {
         </>
       }
     >
-      {sect === 0 && <Echauffement type={typeSeance(faux)} onFiche={(id) => setFiche({ id, idx: -1, pres: [1, 10, "—"], libelle: "échauffement" })} />}
+      {sect === 0 && <Echauffement type={typeSeance(faux)} onFiche={(id) => setFiche({ id, idx: -1, pres: [1, 10, "—"], libelle: tr("échauffement") })} />}
       {sect === 2 && <Collation obj={objCollation(etat.A, S)} onChanger={(o) => muter((E) => { E.SEANCES[i].colObj = o; })} />}
       {sect === 1 && (
         <div className={cn("flex flex-col gap-2.5 px-4", premiere && "entree")}>
@@ -271,7 +270,7 @@ function SeanceLibre({ i }: { i: number }) {
                 key={c.k} ancre={c.k}
                 num={j + 1} id={e.id} prescr={prescr} repos={e.p} rpe={r} L={L} n={e.s} ouvert={ouvert === c.k}
                 onToggle={() => { tactile(5); setOuvert(ouvert === c.k ? null : c.k); }}
-                onFiche={() => setFiche({ id: e.id, idx: -1, pres: [e.s, e.r, e.p], libelle: "séance libre", rpe: r || undefined })}
+                onFiche={() => setFiche({ id: e.id, idx: -1, pres: [e.s, e.r, e.p], libelle: tr("séance libre"), rpe: r || undefined })}
                 onTout={() => { tactile(12); muter((E) => act.toutCocher(E, c)); if (!L?.done && useRepere.getState().etat.LOG[c.k]?.done) fini(); }}
               >
                 <TableauSeries c={c} rpe={r} onReplier={() => setOuvert(null)} onFini={fini} />
@@ -279,16 +278,16 @@ function SeanceLibre({ i }: { i: number }) {
             );
           })}
           <button onClick={() => { tactile(6); setAjout(true); }} className="flex items-center justify-center gap-2 rounded-[18px] border border-dashed border-plate/60 py-3 text-[14.5px] font-semibold text-plate-ink active:scale-[.99]">
-            <PlusIcon className="size-4" weight="bold" />Ajouter un exercice
+            <PlusIcon className="size-4" weight="bold" />{tr("Ajouter un exercice")}
           </button>
           <p className="px-2 pt-1 text-center text-[12.5px] text-muted-foreground">
-            Effort visé <b className="font-semibold text-foreground">RPE 8</b> : {rirTxt(8)} à la fin de chaque série.
+            {tr("Effort visé")}{" "}<b className="font-semibold text-foreground">{tr("RPE 8")}</b> : {rirTxt(8)}{" "}{tr("à la fin de chaque série.")}
           </p>
         </div>
       )}
       <FeuilleAjout
         une ouvert={ajout} onClose={() => setAjout(false)} onAjouter={ajouterExo} pris={(o) => S.ex.some((e) => e.id === o)}
-        onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, "90 s"], libelle: "bibliothèque" })}
+        onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") })}
       />
       <FicheExercice fiche={fiche} onClose={() => setFiche(null)} />
     </Cadre>
@@ -298,8 +297,8 @@ function SeanceLibre({ i }: { i: number }) {
 function Introuvable() {
   return (
     <>
-      <EnTete titre="Séance introuvable" gauche={<Retour repli="/entrainement" />} />
-      <p className="px-5 text-[15px] text-muted-foreground">Cette séance n&apos;existe plus sur ce téléphone.</p>
+      <EnTete titre={tr("Séance introuvable")} gauche={<Retour repli="/entrainement" />} />
+      <p className="px-5 text-[15px] text-muted-foreground">{tr("Cette séance n'existe plus sur ce téléphone.")}</p>
     </>
   );
 }
@@ -324,14 +323,14 @@ function BlocSeance({ b, fait, onLancer }: { b: BlocCardio; fait: boolean; onLan
     <div className={cn("flex items-center gap-3.5 rounded-[20px] border p-3", fait ? "border-plate/60 bg-card" : "border-plate/40 bg-plate-soft")}>
       <span className="grid size-14 shrink-0 place-items-center rounded-[14px] bg-plate text-plate-foreground"><I className="size-7" weight="fill" /></span>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.1em] text-plate-ink uppercase"><HeartbeatIcon className="size-3.5" weight="fill" />Bloc cardio</span>
+        <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.1em] text-plate-ink uppercase"><HeartbeatIcon className="size-3.5" weight="fill" />{tr("Bloc cardio")}</span>
         <span className="truncate text-[16px] font-semibold tracking-[-0.01em]">{FORMATS[b.f].nom}</span>
-        <span className="truncate text-[12.5px] text-muted-foreground">{MACHINES[b.m].nom} · {minutesBloc(b)} min{fait ? " · fait aujourd'hui" : ""}</span>
+        <span className="truncate text-[12.5px] text-muted-foreground">{tr("{nom} · {a} min{a1}", { nom: MACHINES[b.m].nom, a: minutesBloc(b), a1: fait ? tr(" · fait aujourd'hui") : "" })}</span>
       </span>
       {fait ? (
-        <span className="grid size-9 place-items-center rounded-full bg-plate text-plate-foreground" aria-label="Fait aujourd'hui"><CheckIcon className="size-4" weight="bold" /></span>
+        <span className="grid size-9 place-items-center rounded-full bg-plate text-plate-foreground" aria-label={tr("Fait aujourd'hui")}><CheckIcon className="size-4" weight="bold" /></span>
       ) : (
-        <Button variant="plate" size="sm" className="rounded-full px-4" onClick={onLancer}><PlayIcon weight="fill" />Lancer</Button>
+        <Button variant="plate" size="sm" className="rounded-full px-4" onClick={onLancer}><PlayIcon weight="fill" />{tr("Lancer")}</Button>
       )}
     </div>
   );

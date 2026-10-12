@@ -31,7 +31,7 @@ const ok = (c, m) => { console.log(c ? "OK  " : "ÉCHEC", m); if (!c) process.ex
 const errs = [];
 
 async function contexte(admin) {
-  const ctx = await b.newContext({ viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
+  const ctx = await b.newContext({ locale: "fr-FR", viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
   await ctx.addInitScript(([s, sess]) => {
     if (!sessionStorage.vu) {
       localStorage.setItem("palier.state.v1", JSON.stringify(s));

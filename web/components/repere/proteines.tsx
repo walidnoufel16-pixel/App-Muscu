@@ -1,6 +1,7 @@
 "use client";
 
 /* Protéines du jour : un anneau, et une feuille pour ajouter en un geste. */
+import { tr } from "@/lib/i18n";
 import { useState } from "react";
 import { CaretRightIcon, EggIcon, MinusIcon, PlusIcon } from "@phosphor-icons/react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
@@ -26,29 +27,27 @@ export function CarteProteines({ accueil = false }: { accueil?: boolean }) {
         </span>
         <span className="min-w-0 flex-1">
           <span className="block text-[16px] leading-tight font-semibold">
-            <span className="num text-[19px]">{g}</span><span className="text-muted-foreground"> / {obj} g</span> de protéines
+            <span className="num text-[19px]">{g}</span><span className="text-muted-foreground">{" "}{tr("/ {obj} g", { obj })}</span>{" "}{tr("de protéines")}
           </span>
-          <span className="block text-[12.5px] text-muted-foreground">{g >= obj ? "Objectif du jour atteint" : "Touche pour ajouter un repas"}</span>
+          <span className="block text-[12.5px] text-muted-foreground">{g >= obj ? tr("Objectif du jour atteint") : tr("Touche pour ajouter un repas")}</span>
         </span>
         <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" />
       </button>
       <Drawer open={ouvert} onOpenChange={setOuvert}>
         <DrawerContent>
           <div className="max-h-[80vh] overflow-y-auto px-5 pt-2 pb-[max(env(safe-area-inset-bottom),20px)]">
-            <DrawerTitle className="text-[20px] font-bold">Protéines aujourd&apos;hui</DrawerTitle>
-            <DrawerDescription className="mt-0.5 text-[13px] text-muted-foreground">
-              {poidsDe(A) ? `Objectif calculé sur ton poids (${poidsDe(A)} kg) et ton objectif.` : "Note ton poids dans Progrès pour un objectif sur mesure."} Pas de calories à compter.
-            </DrawerDescription>
+            <DrawerTitle className="text-[20px] font-bold">{tr("Protéines aujourd'hui")}</DrawerTitle>
+            <DrawerDescription className="mt-0.5 text-[13px] text-muted-foreground">{tr("{a} Pas de calories à compter.", { a: poidsDe(A) ? tr("Objectif calculé sur ton poids ({a} kg) et ton objectif.", { a: poidsDe(A) }) : tr("Note ton poids dans Progrès pour un objectif sur mesure.") })}</DrawerDescription>
             <div className="mt-4 flex items-center justify-center gap-4">
-              <button aria-label="Retirer 10 g" onClick={() => ajouter(-10)} disabled={!g} className="grid size-11 place-items-center rounded-full bg-muted disabled:opacity-40"><MinusIcon className="size-5" weight="bold" /></button>
+              <button aria-label={tr("Retirer 10 g")} onClick={() => ajouter(-10)} disabled={!g} className="grid size-11 place-items-center rounded-full bg-muted disabled:opacity-40"><MinusIcon className="size-5" weight="bold" /></button>
               <span className="text-center">
-                <span className="num block text-[44px] leading-none font-bold">{g}<span className="text-[20px] text-muted-foreground"> g</span></span>
-                <span className="text-[12.5px] text-muted-foreground">sur {obj} g</span>
+                <span className="num block text-[44px] leading-none font-bold">{g}<span className="text-[20px] text-muted-foreground">{" "}{tr("g")}</span></span>
+                <span className="text-[12.5px] text-muted-foreground">{tr("sur {obj} g", { obj })}</span>
               </span>
-              <button aria-label="Ajouter 10 g" onClick={() => ajouter(10)} className="grid size-11 place-items-center rounded-full bg-success text-white"><PlusIcon className="size-5" weight="bold" /></button>
+              <button aria-label={tr("Ajouter 10 g")} onClick={() => ajouter(10)} className="grid size-11 place-items-center rounded-full bg-success text-white"><PlusIcon className="size-5" weight="bold" /></button>
             </div>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-success transition-[width] duration-300" style={{ width: p * 100 + "%" }} /></div>
-            <h3 className="eyebrow mt-5 mb-2">Ajouter un aliment</h3>
+            <h3 className="eyebrow mt-5 mb-2">{tr("Ajouter un aliment")}</h3>
             <div className="grid grid-cols-2 gap-1.5">
               {ALIMENTS.map((a) => (
                 <button key={a.n} onClick={() => ajouter(a.g)} className="flex items-center justify-between gap-2 rounded-2xl border bg-card px-3 py-2.5 text-left active:scale-[.98]">
@@ -61,15 +60,15 @@ export function CarteProteines({ accueil = false }: { accueil?: boolean }) {
               ))}
             </div>
             <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-muted/60 px-3.5 py-2.5">
-              <span className="text-[13.5px]">Objectif par jour</span>
+              <span className="text-[13.5px]">{tr("Objectif par jour")}</span>
               <span className="flex items-center gap-1">
-                <button aria-label="Objectif : moins" onClick={() => muter((E) => { E.A.protObj = Math.max(40, obj - 5); })} className="grid size-8 place-items-center rounded-full bg-card"><MinusIcon className="size-3.5" weight="bold" /></button>
-                <span className="num w-14 text-center text-[16px] font-bold">{obj} g</span>
-                <button aria-label="Objectif : plus" onClick={() => muter((E) => { E.A.protObj = Math.min(300, obj + 5); })} className="grid size-8 place-items-center rounded-full bg-card"><PlusIcon className="size-3.5" weight="bold" /></button>
+                <button aria-label={tr("Objectif : moins")} onClick={() => muter((E) => { E.A.protObj = Math.max(40, obj - 5); })} className="grid size-8 place-items-center rounded-full bg-card"><MinusIcon className="size-3.5" weight="bold" /></button>
+                <span className="num w-14 text-center text-[16px] font-bold">{obj}{" "}{tr("g")}</span>
+                <button aria-label={tr("Objectif : plus")} onClick={() => muter((E) => { E.A.protObj = Math.min(300, obj + 5); })} className="grid size-8 place-items-center rounded-full bg-card"><PlusIcon className="size-3.5" weight="bold" /></button>
               </span>
             </div>
             <label className="mt-2 flex items-center justify-between gap-3 px-1 py-2 text-[13.5px]">
-              Afficher sur l&apos;écran Entraînement
+              {tr("Afficher sur l'écran Entraînement")}
               <input type="checkbox" checked={!A.protOff} onChange={(e) => muter((E) => { E.A.protOff = !e.target.checked; })} className={cn("size-5 accent-[var(--plate)]")} />
             </label>
           </div>

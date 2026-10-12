@@ -1,5 +1,6 @@
 "use client";
 
+import { tr } from "@/lib/i18n";
 import { useRef, useState } from "react";
 import { TrashIcon } from "@phosphor-icons/react";
 import { tactile } from "@/lib/repos";
@@ -60,11 +61,11 @@ export function LigneBalayable({ children, onSupprimer, label }: { children: Rea
       {(glisse || dx < 0) && (
         <button
           onClick={onSupprimer}
-          aria-label={"Supprimer " + label}
+          aria-label={tr("Supprimer ") + label}
           className={cn("absolute inset-y-0 right-0 flex flex-col items-center justify-center gap-1 text-[12px] font-semibold text-white transition-[width] duration-150", loin ? "w-full" : "w-24")}
         >
           <TrashIcon className="size-5" />
-          Supprimer
+          {tr("Supprimer")}
         </button>
       )}
       <div
