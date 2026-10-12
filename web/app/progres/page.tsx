@@ -10,6 +10,7 @@ import { LogoDisque } from "@/components/repere/logo";
 import { moisPrecedent, recap } from "@/lib/logic/recap";
 import { avecSorties } from "@/lib/logic/course";
 import { AVANT } from "@/lib/nav";
+import { ChoixLangue } from "@/components/repere/choix-langue";
 import { EnTete } from "@/components/repere/en-tete";
 import { Barres, Calendrier, Courbe } from "@/components/repere/graphes";
 import { SchemaCorps } from "@/components/repere/schema-corps";
@@ -49,7 +50,7 @@ function Progres() {
   if (!H.length && !C.length)
     return (
       <>
-        <EnTete surtitre={tr("Ton évolution")} titre={tr("Progrès")} />
+        <EnTete surtitre={tr("Ton évolution")} titre={tr("Progrès")} actions={<ChoixLangue />} />
         <div className={cn("px-4", premiere && "entree")}>
           <div className="rounded-[24px] border border-dashed border-border bg-card p-6 text-center">
             <ChartLineUpIcon className="mx-auto size-10 text-plate" weight="duotone" />
@@ -65,7 +66,7 @@ function Progres() {
 
   return (
     <>
-      <EnTete surtitre={tr("Ton évolution")} titre={tr("Progrès")} />
+      <EnTete surtitre={tr("Ton évolution")} titre={tr("Progrès")} actions={<ChoixLangue />} />
       <div className={cn("flex flex-col gap-6 px-4", premiere && "entree")}>
         <CetteSemaine H={H} C={C} auj={auj} />
         <Bilans auj={auj} />

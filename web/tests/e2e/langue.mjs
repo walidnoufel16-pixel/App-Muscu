@@ -100,6 +100,36 @@ async function ecran(pg, chemin, nom, attendu) {
 }
 
 {
+  /* Drapeaux en haut des quatre onglets : bascule en un geste, dans les deux sens. */
+  const ctx = await b.newContext({ locale: "fr-FR", viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
+  await ctx.addInitScript((s) => { if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); sessionStorage.vu = 1; } }, etat);
+  await ctx.route(/supabase\.co/, (r) => r.abort());
+  const pg = await ctx.newPage();
+  pg.on("pageerror", (e) => errs.push(e.message));
+  let partout = true;
+  for (const c of ["/entrainement/", "/exercices/", "/progres/", "/profil/"]) {
+    await pg.goto(U + c);
+    await pg.waitForTimeout(1000);
+    partout &&= (await pg.getByRole("button", { name: "English" }).count()) === 1 && (await pg.getByRole("button", { name: "Français" }).count()) === 1;
+  }
+  ok(partout, "drapeaux français et britannique sur les quatre onglets");
+  await pg.goto(U + "/progres/");
+  await pg.getByRole("heading", { name: "Progrès" }).waitFor();
+  await pg.waitForTimeout(1200);
+  if (CAP) await pg.screenshot({ path: `${CAP}/drapeaux-fr.png` });
+  await Promise.all([pg.waitForEvent("load"), pg.getByRole("button", { name: "English" }).click()]);
+  await pg.waitForFunction(() => document.documentElement.lang === "en" && document.querySelector("h1")?.textContent === "Progress");
+  ok(await pg.getByRole("button", { name: "English" }).getAttribute("aria-pressed") === "true", "drapeau britannique : l'app passe en anglais");
+  ok(await pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")).A.langue) === "en", "choix noté dans le compte");
+  await pg.waitForTimeout(1200);
+  if (CAP) await pg.screenshot({ path: `${CAP}/drapeaux-en.png` });
+  await Promise.all([pg.waitForEvent("load"), pg.getByRole("button", { name: "Français" }).click()]);
+  await pg.waitForFunction(() => document.documentElement.lang === "fr" && document.querySelector("h1")?.textContent === "Progrès");
+  ok(true, "drapeau français : retour au français");
+  await ctx.close();
+}
+
+{
   /* Téléphone en anglais, aucun choix fait : l'app démarre en anglais. */
   const ctx = await b.newContext({ locale: "en-US", viewport: { width: 393, height: 852 }, serviceWorkers: "block" });
   await ctx.route(/supabase\.co/, (r) => r.abort());

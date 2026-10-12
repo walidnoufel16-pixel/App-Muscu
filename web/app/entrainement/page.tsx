@@ -6,6 +6,7 @@ import { pluriel, tr } from "@/lib/i18n";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRightIcon, CaretRightIcon, CheckIcon, StarIcon, TrophyIcon, PersonSimpleRunIcon } from "@phosphor-icons/react";
+import { ChoixLangue } from "@/components/repere/choix-langue";
 import { EnTete } from "@/components/repere/en-tete";
 import { MesSeances } from "@/components/repere/mes-seances";
 import { CarteRegularite, Reprise } from "@/components/repere/motivation";
@@ -42,6 +43,7 @@ export default function PageEntrainement() {
       <EnTete
         surtitre={plan ? <>{tr("Semaine")}{" "}{wk + 1}{" "}{tr("sur 8 · effort visé")}{" "}<span className="num text-[13px]">{tr("RPE")}{" "}{baseRPE(wk)}</span></> : tr("Séances à la carte")}
         titre={tr("Entraînement")}
+        actions={<ChoixLangue />}
       />
       <div className={cn("flex flex-col gap-6 px-4", premiere && "entree")}>
         {!plan ? (
