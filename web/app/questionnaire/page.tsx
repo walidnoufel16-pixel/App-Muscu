@@ -7,7 +7,7 @@ import { CaretLeftIcon, CheckIcon, MinusIcon, PlusIcon } from "@phosphor-icons/r
 import { Button } from "@/components/ui/button";
 import { confirmer, dire } from "@/components/repere/confirmer";
 import { ACC, MATCATS, SPORTS } from "@/lib/data/referentiels";
-import { accDeclares, freqDe, sportsChoisis, sportsTotal } from "@/lib/logic/core";
+import { accDeclares, freqDe, nb, sportsChoisis, sportsTotal } from "@/lib/logic/core";
 import { buildQ, prioNoms, repondue, sportWarn } from "@/lib/logic/questionnaire";
 import type { Reponses } from "@/lib/logic/types";
 import { useRepere } from "@/lib/store";
@@ -58,7 +58,7 @@ export default function PageQuestionnaire() {
   const choisir = (i: number) => {
     tactile(6);
     if (q.t === "multi") {
-      const s = ((A[q.k] as number[]) || []).slice(), last = q.o!.length - 1, aucun = /Aucun|Rien/.test(q.o![last][0]);
+      const s = ((A[q.k] as number[]) || []).slice(), last = q.o!.length - 1, aucun = /^(Aucun|Rien|Neither|Nothing|None)/.test(q.o![last][0]); // « aucun » dans les deux langues
       if (aucun && i === last) { majA((a) => { (a as Record<string, unknown>)[q.k] = s.includes(last) ? [] : [last]; }); return; }
       const j = s.indexOf(i);
       if (j < 0) { if (q.max && s.filter((x) => x !== last).length >= q.max) return; s.push(i); } else s.splice(j, 1);
@@ -270,7 +270,7 @@ function Profil({ A, majA, loads }: { A: Reponses; majA: Maj; loads: [string, nu
       <div className="mt-2 rounded-[18px] bg-card p-4">
         <div className="flex items-baseline justify-between">
           <span className="text-[14px] font-medium">{tr("Indice de masse corporelle")}</span>
-          <b className="num text-[26px] font-bold">{imc.toFixed(1).replace(".", ",")}</b>
+          <b className="num text-[26px] font-bold">{nb(imc.toFixed(1))}</b>
         </div>
         <div className="relative mt-3 h-2 rounded-full bg-gradient-to-r from-rpe8 via-rpe7 to-rpe9">
           <i className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-card bg-foreground" style={{ left: pos + "%" }} />

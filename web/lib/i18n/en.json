@@ -1563,5 +1563,7 @@
 "Lombaires, bas du dos": "Lower back",
 "Ischio-jambiers, arrière de la cuisse": "Hamstrings, back of the thigh",
 "{n} choix": "{n} picked",
-" et ": " and "
+" et ": " and ",
+"J-{n}": "{n} days to go",
+"J-1": "1 day to go"
 }

@@ -303,7 +303,8 @@ const CIBLE: Record<number, [number, number][]> = {
   /* [reprise, régulier] selon le nombre de séances socle : 2, 3 ou 4 */
   2: [[5, 8], [8, 11]], 3: [[6, 10], [11, 14]], 4: [[7, 11], [12, 16]],
 };
-const SYSTEME = (mat: number, seances: number, reprise: boolean, acc: string[] = []) => { const vol = (CIBLE[seances] || CIBLE[3])[reprise ? 0 : 1]; return `Tu es un préparateur physique qui construit des programmes de musculation en français.
+const SYSTEME = (mat: number, seances: number, reprise: boolean, acc: string[] = [], en = false) => { const vol = (CIBLE[seances] || CIBLE[3])[reprise ? 0 : 1]; return `Tu es un préparateur physique qui construit des programmes de musculation ${en ? "en anglais" : "en français"}.
+${en ? LANGUE_EN : ""}
 
 BIBLIOTHÈQUE AUTORISÉE (aucun autre exercice n'existe) :
 ${LIB.filter((x) => dispo(x, mat, acc)).map((x) => `- ${x.id} : ${x.nom} [${SCHEMAS[x.pat]}, ${x.ch}${x.acc ? ", " + ACC[x.acc] : ""}]`).join("\n")}
@@ -338,8 +339,13 @@ Ta réponse commence par une accolade ouvrante et se termine par une accolade fe
 Clés : t=titre, i=intro, c=choix, x=texte, f=focus, ex=exercices, id, s=séries, r=répétitions, p=repos, o=rôle.
 
 {"plan":{"t":"...","i":"...","c":[{"t":"...","x":"..."},{"t":"...","x":"..."},{"t":"...","x":"..."}]},
-"seances":[{"t":"Haut du corps A","f":"...","ex":[{"id":"dc","s":4,"r":6,"p":"2 min 30","o":1}]}],
+"seances":[{"t":"${en ? "Upper body A" : "Haut du corps A"}","f":"...","ex":[{"id":"dc","s":4,"r":6,"p":"2 min 30","o":1}]}],
 "bonus":{"t":"...","f":"...","ex":[{"id":"cu","s":3,"r":12,"p":"60 s","o":0}]}}`; };
+
+/* Programme demandé en anglais : la consigne reste en français (règles éprouvées),
+   seuls les textes produits changent de langue. */
+const LANGUE_EN = `LANGUE DE SORTIE : ANGLAIS. Tous les textes que tu produis (titre, intro, choix, titres et focus des séances, bonus) sont rédigés en anglais britannique simple, à la deuxième personne ("you"). Les titres de séances suivent ce modèle : "Upper body A", "Lower body B". Quand tu cites un exercice, utilise son nom anglais courant (exemple : "dc" = "barbell bench press"), jamais le nom français de la bibliothèque. Les identifiants (id) et les valeurs de repos ("2 min 30", "90 s") restent inchangés.
+`;
 
 /* ---------- cache : un profil identique ne se régénère jamais deux fois ---------- */
 const SB_URL = Deno.env.get("SUPABASE_URL") ?? "";
@@ -403,6 +409,8 @@ async function signature(A: any) {
     ac: A.actuelNom ?? null, prefs,
     /* absent quand rien n'est déclaré : les signatures existantes ne changent pas */
     k: accDe(A).length ? [...accDe(A)].sort() : undefined,
+    /* langue : absente en français, pour que les signatures existantes ne changent pas */
+    l: A.langue === "en" ? "en" : undefined,
   });
   return empreinte(brut);
 }
@@ -472,6 +480,7 @@ function profil(A: any) {
 
 /* Garde-fou : tout ce qui sort de la bibliothèque ou des bornes est corrigé ici. */
 function valider(plan: any, A: any): any {
+  const en = A.langue === "en";
   const mat = A.materiel ?? 0;
   const nb = 2 + (A.socle ?? 2);
   const refus: string[] = [];
@@ -521,7 +530,7 @@ function valider(plan: any, A: any): any {
       e.reps = bornes(r.ch, r.ch === ex.ch ? e.reps : 0);
     });
     if (x.length < 2) return null;      // une séance d'un seul exercice n'a pas de sens
-    return { titre: coupe(s.t || s.titre || "Séance", 40),
+    return { titre: coupe(s.t || s.titre || (en ? "Workout" : "Séance"), 40),
              focus: coupe(s.f || s.focus, 120), exercices: x };
   };
   /* Tolérance : mieux vaut un cycle légèrement incomplet que le repli sur les règles.
@@ -533,7 +542,11 @@ function valider(plan: any, A: any): any {
 
   const bonus = nettoieSeance(plan?.bonus);   // facultative : l'app s'en passe
 
-  const DEF = [
+  const DEF = en ? [
+    { titre: "Two variations per movement, alternating", texte: "Each main exercise alternates with a close variation from one week to the next: you never repeat the same workout two weeks in a row, and each variation progresses on its own." },
+    { titre: "It's the effort that goes up", texte: "RPE 7 in weeks 1 and 2, RPE 8 up to week five, RPE 9 after that. The number of sets stays the same." },
+    { titre: "You choose your weights", texte: "No weight is imposed on you: you aim for an effort level and adjust the load that gets you there yourself." },
+  ] : [
     { titre: "Deux variantes par mouvement, en alternance", texte: "Chaque exercice principal alterne avec une variante proche d'une semaine sur l'autre : tu ne refais jamais la même séance deux semaines de suite, et chaque variante progresse de son côté." },
     { titre: "C'est l'effort qui monte", texte: "RPE 7 sur les semaines 1 et 2, RPE 8 jusqu'à la cinquième, RPE 9 ensuite. Le nombre de séries, lui, ne bouge pas." },
     { titre: "Tu choisis tes charges", texte: "Aucun kilo ne t'est imposé : tu vises un niveau d'effort et tu ajustes toi-même la charge qui t'y amène." },
@@ -559,7 +572,7 @@ function valider(plan: any, A: any): any {
 
   return { ok: true,
     plan: {
-      titre: coupe(plan?.plan?.t || plan?.plan?.titre || "Ton plan", 40),
+      titre: coupe(plan?.plan?.t || plan?.plan?.titre || (en ? "Your plan" : "Ton plan"), 40),
       intro: coupe(plan?.plan?.i || plan?.plan?.intro, 340),
       choix: c,
     },
@@ -609,7 +622,7 @@ Deno.serve(async (req) => {
   /* Au-delà du cache, chaque génération coûte : elle est décomptée du quota. */
   try {
     if (!(await consommerQuota(uid)))
-      return rep({ erreur: `Limite de ${QUOTA_USER} générations par jour atteinte, réessaie demain.` }, 429);
+      return rep({ erreur: A.langue === "en" ? `Limit of ${QUOTA_USER} generations per day reached, try again tomorrow.` : `Limite de ${QUOTA_USER} générations par jour atteinte, réessaie demain.` }, 429);
   } catch (e) {
     return rep({ erreur: "Génération momentanément indisponible : " + (e as Error).message }, 503);
   }
@@ -625,7 +638,7 @@ Deno.serve(async (req) => {
       const corps: any = {
         model: MODELE,
         max_tokens: plafond,
-        system: SYSTEME(A.materiel ?? 0, 2 + (A.socle ?? 2), (A.regularite ?? 3) <= 1, accDe(A)),
+        system: SYSTEME(A.materiel ?? 0, 2 + (A.socle ?? 2), (A.regularite ?? 3) <= 1, accDe(A), A.langue === "en"),
         messages,
       };
       if (!reflexion) corps.thinking = { type: "disabled" };

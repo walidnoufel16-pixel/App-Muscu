@@ -16,7 +16,7 @@ import {
   tempsPrevu, vdotDe, NOMS_PHASE, type ObjectifCourse, type PlanCourse, type SeanceCourse,
   NOMS_RENFO,
 } from "@/lib/logic/course";
-import { dispoDeclare } from "@/lib/logic/core";
+import { dispoDeclare, nb } from "@/lib/logic/core";
 import { decaler, jourDe, lundiDe } from "@/lib/logic/historique";
 import { Barres } from "./graphes";
 import { useRepere } from "@/lib/store";
@@ -142,7 +142,7 @@ export function CarteCourse() {
         {pause ? <PauseCircleIcon className="size-7" weight="fill" /> : <PersonSimpleRunIcon className="size-7" weight="fill" />}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-[16px] leading-tight font-semibold">{DISTANCES[c.obj].nom} · {J > 0 ? `J-${J}` : J === 0 ? tr("c'est aujourd'hui") : tr("terminé")}</span>
+        <span className="block text-[16px] leading-tight font-semibold">{DISTANCES[c.obj].nom} · {J > 0 ? tr(J === 1 ? "J-1" : "J-{n}", { n: J }) : J === 0 ? tr("c'est aujourd'hui") : tr("terminé")}</span>
         <span className="block truncate text-[12.5px] text-muted-foreground">
           {pause ? tr("Plan en pause") : avant ? tr("Le plan démarre lundi") : tr("Semaine {a}/{length} · {a1}{a2}", { a: k + 1, length: P.length, a1: NOMS_PHASE[S.phase], a2: prochaine >= 0 ? tr(" · prochaine : {a}", { a: S.seances[prochaine].titre.toLowerCase() }) : tr(" · semaine bouclée") })}
         </span>
@@ -185,7 +185,7 @@ export function SaisieSortie({ ouvert, onClose, seance, cle, dureeMin }: {
           { n: tr("km de préparation"), v: Math.round(prepa.reduce((n, x) => n + x.km, 0)), accent: true },
         ],
       });
-    } else toast.success(tr("Sortie notée : {a} km à {a1}", { a: String(Math.round(d * 10) / 10).replace(".", ","), a1: allureTxt(t / d) }), msg ? { description: msg, duration: 6000 } : undefined);
+    } else toast.success(tr("Sortie notée : {a} km à {a1}", { a: nb(Math.round(d * 10) / 10), a1: allureTxt(t / d) }), msg ? { description: msg, duration: 6000 } : undefined);
     onClose();
     if (seance?.type === "course") router.replace("/entrainement/course", ARRIERE);
   };
@@ -233,7 +233,7 @@ export function SectionCourse() {
   const kmR = recentes.reduce((n, x) => n + x.km, 0), secR = recentes.reduce((n, x) => n + x.sec, 0);
   const longue = S.reduce((m, x) => Math.max(m, x.km), 0);
   const est = c ? estimation(c, S, auj) : null;
-  const kmTxt = (v: number) => String(Math.round(v * 10) / 10).replace(".", ",");
+  const kmTxt = (v: number) => nb(Math.round(v * 10) / 10);
   return (
     <section>
       <div className="mb-2 flex items-baseline justify-between px-1">

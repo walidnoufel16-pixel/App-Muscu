@@ -3,6 +3,7 @@
 /* Préparation course : le plan semaine par semaine (sans paramètre), ou une séance
    (?s=semaine|séance) avec son minuteur guidé et la saisie de la sortie. */
 import { loc, tr } from "@/lib/i18n";
+import { nb } from "@/lib/logic/core";
 import { Suspense, useMemo, useState } from "react";
 import type { Route } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -33,7 +34,7 @@ const ICONES: Record<TypeSeance, typeof PersonSimpleRunIcon> = {
   footing: PersonSimpleRunIcon, lignes: PersonSimpleRunIcon, longue: PersonSimpleRunIcon, seuil: TimerIcon, vma: TimerIcon, allure: TimerIcon, course: FlagCheckeredIcon, renfo: BarbellIcon,
 };
 const court = (j: string) => new Date(j + "T12:00").toLocaleDateString(loc(), { day: "numeric", month: "short" }).replace(".", "");
-const kmTxt = (km: number) => String(Math.round(km * 10) / 10).replace(".", ",");
+const kmTxt = (km: number) => nb(Math.round(km * 10) / 10);
 
 export default function PageCourse() {
   return <Suspense><Preparation /></Suspense>;
@@ -101,7 +102,7 @@ function Plan() {
     <>
       <EnTete
         surtitre={`${DISTANCES[c.obj].nom} · ${new Date(c.date + "T12:00").toLocaleDateString(loc(), { weekday: "long", day: "numeric", month: "long" })}`}
-        titre={J > 0 ? `J-${J}` : J === 0 ? tr("C'est aujourd'hui") : tr("Course passée")}
+        titre={J > 0 ? tr(J === 1 ? "J-1" : "J-{n}", { n: J }) : J === 0 ? tr("C'est aujourd'hui") : tr("Course passée")}
         gauche={<Retour repli="/entrainement" />}
       />
       <div className="flex flex-col gap-5 px-4 pb-10">

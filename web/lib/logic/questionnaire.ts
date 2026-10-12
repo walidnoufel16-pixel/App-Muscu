@@ -1,6 +1,6 @@
 /* Questionnaire et génération du cycle : port fidèle de buildQ, payload,
    recap, CHOIX_DEF, txtRefus et volReel de l'ancienne app. */
-import { tp, tr } from "@/lib/i18n";
+import { langue, tp, tr } from "@/lib/i18n";
 import { EX } from "@/lib/data/exercices";
 import { AXES, BLESN, MATN, OBJN, PAT2GRP, REGN, SPORTS } from "@/lib/data/referentiels";
 import { accDeclares, aTrait, freqDe, groupes, sportsChoisis, sportsInfo, sportsTotal, week } from "./core";
@@ -76,6 +76,8 @@ export function payload(A: Reponses, forcer = false) {
     exclus: A.exclus || [],
   };
   if (forcer) p.forcer = true;
+  /* Programme rédigé dans la langue de l'app (absent en français : signatures de cache inchangées). */
+  if (langue() === "en") p.langue = "en";
   if (sportsChoisis(A).length) {
     p.sportNom = sportsChoisis(A).map((i) => SPORTS[i].n + " (" + (freqDe(A, i) + 1) + tr("×/sem)")).join(", ");
     p.sportSeances = sportsTotal(A);
