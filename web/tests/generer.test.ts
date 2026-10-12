@@ -13,7 +13,7 @@ beforeAll(async () => {
   (globalThis as any).Deno = { env: { get: () => undefined }, serve: () => {} };
   const src = readFileSync(new URL("../../supabase/functions/generer/index.ts", import.meta.url), "utf8");
   const f = join(mkdtempSync(join(tmpdir(), "generer-")), "generer.ts");
-  writeFileSync(f, src + "\nexport { valider, prefOk, PARID };\n");
+  writeFileSync(f, src + "\nexport { valider, prefOk, PARID, signature, SYSTEME };\n");
   F = await import(/* @vite-ignore */ f);
 });
 
@@ -47,3 +47,27 @@ describe("generer : préférences de matériel", () => {
     expect(F.prefOk(F.PARID.dc, { prefs: { Pectoraux: [] } })).toBe(true);
   });
 });
+
+describe("generer : langue", () => {
+  const P = { plan: { t: "", i: "", c: [] }, seances: [{ ex: [ex("dc", 1), ex("tr", 1)] }, { ex: [ex("sq", 1), ex("rm", 1)] }] };
+  it("en anglais : textes par défaut en anglais, consigne de sortie en anglais", () => {
+    const v = F.valider(structuredClone(P), { materiel: 0, socle: 0, langue: "en" });
+    expect(v.plan.titre).toBe("Your plan");
+    expect(v.seances[0].titre).toBe("Workout");
+    expect(v.plan.choix.map((c: { titre: string }) => c.titre)).toContain("It's the effort that goes up");
+    expect(F.SYSTEME(0, 3, false, [], true)).toContain("LANGUE DE SORTIE : ANGLAIS");
+    expect(F.SYSTEME(0, 3, false, [], false)).not.toContain("ANGLAIS");
+  });
+  it("en français : rien ne change", () => {
+    const v = F.valider(structuredClone(P), { materiel: 0, socle: 0 });
+    expect(v.plan.titre).toBe("Ton plan");
+    expect(v.seances[0].titre).toBe("Séance");
+  });
+  it("cache : un programme anglais n'est jamais servi en français, signatures françaises inchangées", async () => {
+    const A = { objectif: 0, regularite: 2, socle: 1, axe: 0, materiel: 0, sexe: 0 };
+    const fr = await F.signature(A), en = await F.signature({ ...A, langue: "en" });
+    expect(en).not.toBe(fr);
+    expect(await F.signature({ ...A, langue: "fr" })).toBe(fr);
+  });
+});
+

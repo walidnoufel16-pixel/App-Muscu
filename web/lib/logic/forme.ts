@@ -4,6 +4,7 @@
    - Zones sensibles : les gênes déclarées au questionnaire (A.blessure) et la douleur
      signalée aujourd'hui marquent les exercices à ménager. */
 import { pluriel, tr } from "@/lib/i18n";
+import { nb } from "./core";
 import { EX_FR } from "@/lib/data/exercices";
 import { BLESN } from "@/lib/data/referentiels";
 import type { Exercice } from "@/lib/data/types";
@@ -65,12 +66,12 @@ export function ajuster(x: Exercice, base: Base, pas: number, f: Forme | null, d
   if (moins && charge && base.v > 0) {
     const v = Math.max(0, Math.round((base.v - moins * pas) * 10) / 10);
     const pourquoi = douleurIci && !(n < 0) ? tr("zone douloureuse aujourd'hui") : tr("forme du jour {a}", { a: NOMS_NIVEAU[n] });
-    return { base: { ...base, v }, texte: tr("{a} : −{a1} kg sur la charge prévue.", { a: pourquoi[0].toUpperCase() + pourquoi.slice(1), a1: String(moins * pas).replace(".", ",") }) };
+    return { base: { ...base, v }, texte: tr("{a} : −{a1} kg sur la charge prévue.", { a: pourquoi[0].toUpperCase() + pourquoi.slice(1), a1: nb(moins * pas) }) };
   }
   if (moins && !charge && x.ch === "aucune" && base.v > 2) {
     return { base: { ...base, v: base.v - moins }, texte: tr("Forme du jour {a} : {moins} répétition{a1} de moins.", { a: NOMS_NIVEAU[n], moins, a1: pluriel(moins) ? "s" : "" }) };
   }
-  if (n === 1 && charge) return { base, texte: tr("Grande forme : si la première série sort facile, ajoute {a} kg.", { a: String(pas).replace(".", ",") }) };
+  if (n === 1 && charge) return { base, texte: tr("Grande forme : si la première série sort facile, ajoute {a} kg.", { a: nb(pas) }) };
   if (n < 0) return { base, texte: tr("Forme du jour {a} : garde 2 ou 3 répétitions en réserve.", { a: NOMS_NIVEAU[n] }) };
   return { base };
 }

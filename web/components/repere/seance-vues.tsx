@@ -90,7 +90,7 @@ export function Echauffement({ type, onFiche }: { type: "haut" | "bas" | "bonus"
 /* ---------------- collation ---------------- */
 const ILLU = (n: string) => {
   const t = n.toLowerCase();
-  return /prot/.test(t) ? "🍗" : /légume/.test(t) ? "🥦" : /fruit/.test(t) ? "🍌" : /sel/.test(t) ? "🧂" : /eau/.test(t) ? "💧" : /glucide|féculent/.test(t) ? "🍚" : /repas/.test(t) ? "🍽️" : "🥗";
+  return /prot/.test(t) ? "🍗" : /légume|vegetable/.test(t) ? "🥦" : /fruit/.test(t) ? "🍌" : /\bsel\b|salt/.test(t) ? "🧂" : /\beau\b|water/.test(t) ? "💧" : /glucide|féculent|carb|starch/.test(t) ? "🍚" : /repas|meal/.test(t) ? "🍽️" : "🥗";
 };
 export function Collation({ obj, onChanger }: { obj: number; onChanger?: (o: number) => void }) {
   const c = COLLATION[obj] || COLLATION[0];
