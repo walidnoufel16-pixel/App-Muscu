@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { messageErreur, sb, valideMail } from "@/lib/supabase";
 import { useRepere } from "@/lib/store";
+import { EX } from "@/lib/data/exercices";
 import { AVANT } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 import { SaisieCodeMail } from "@/components/repere/code-mail";
@@ -86,7 +87,7 @@ function Bienvenue() {
                 [CalendarDotsIcon, tr("Un plan sur huit semaines"), tr("Un effort qui monte chaque semaine")],
                 [SparkleIcon, tr("Des séances sur mesure"), tr("Tu choisis les muscles, Repère compose")],
                 [ShareNetworkIcon, tr("Partagées avec tes proches"), tr("Un lien, et ils ont la même séance")],
-                [BarbellIcon, tr("231 exercices illustrés"), tr("Classés par muscle et selon ton matériel")],
+                [BarbellIcon, tr("{n} exercices illustrés", { n: Object.keys(EX).length }), tr("Classés par muscle et selon ton matériel")],
                 [WifiSlashIcon, tr("Fonctionne sans réseau"), tr("Même au sous-sol de ta salle")],
               ].map(([I, t, d]) => {
                 const Icone = I as typeof BarbellIcon;

@@ -120,7 +120,7 @@ ok(fetes.includes("Jour J"), `badges : ${fetes.join(", ")}`);
 
 // carte sur Entraînement
 await pg.goto(U + "/entrainement/");
-await pg.getByText(/Semi-marathon · J-/).waitFor();
+await pg.getByText(/Semi-marathon · (J-|c'est aujourd'hui)/).waitFor(); // dimanche : la course tombe le jour même
 ok(true, "carte de la préparation sur Entraînement");
 await cap("course-entrainement");
 

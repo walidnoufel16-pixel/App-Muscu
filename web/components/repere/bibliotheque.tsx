@@ -67,7 +67,7 @@ export function ListeRecherche({ sel, q, setQ, pris, onAjouter, onFiche }: { sel
     const f = sansAccent(q.trim()), g: Record<string, string[]> = {};
     Object.keys(EX).filter((o) => exoFiltre(o, sel)).forEach((o) => {
       if (f && !sansAccent(EX[o].n + " " + EX[o].m).split(/[^a-z0-9]+/).some((m) => m.startsWith(f))) return;
-      const k = PAT2GRP[EX[o].pat] || tr("Cardio et mobilité");
+      const k = PAT2GRP[EX[o].pat] || (EX[o].pat === "soin" ? tr("Soin & mobilité") : tr("Cardio et mobilité"));
       (g[k] = g[k] || []).push(o);
     });
     return g;

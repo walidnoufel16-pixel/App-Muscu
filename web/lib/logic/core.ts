@@ -105,7 +105,7 @@ export const rirTxt = (r: number) => {
   const n = 10 - r;
   return n === 0 ? tr("aucune répétition en réserve") : n === 1 ? tr("il te reste 1 répétition") : tr("il te reste {n} répétitions", { n });
 };
-export const noRPE = (id: string) => ["temps", "dist"].includes(EX[id].ch) || EX[id].pat === "mo";
+export const noRPE = (id: string) => ["temps", "dist"].includes(EX[id].ch) || EX[id].pat === "mo" || EX[id].pat === "soin";
 
 /* ---------------- variété d'une semaine sur l'autre ----------------
    Principaux : l'exercice du plan les semaines 1, 3, 5, 7 ; sa variante les
@@ -133,7 +133,10 @@ export function remplacant(A: Reponses, id: string, pris: Set<string>) {
   if (!e) return id;
   const v = VARIANTES[id] || [], g = PAT2GRP[e.pat];
   const rang = (o: string) => (EX[o].ch === e.ch ? 0 : EX[o].ch === "lest" ? 101 : 100) + Math.abs(EX[o].eq - e.eq) * 10 + (v.includes(o) ? 0 : 5);
-  const autres = Object.keys(EX).filter((o) => o !== id && !pris.has(o)).sort((a, b) => rang(a) - rang(b) || a.localeCompare(b));
+  /* les exercices de soin ne remplacent qu'un autre exercice de soin */
+  const autres = Object.keys(EX).filter((o) => o !== id && !pris.has(o) && (EX[o].pat !== "soin" || e.pat === "soin"));
+  const R = new Map(autres.map((o) => [o, rang(o)]));
+  autres.sort((a, b) => R.get(a)! - R.get(b)! || a.localeCompare(b));
   const paliers = [
     autres.filter((o) => EX[o].pat === e.pat),
     autres.filter((o) => EX[o].pat2 === e.pat),

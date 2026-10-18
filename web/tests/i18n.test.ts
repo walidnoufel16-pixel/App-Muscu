@@ -11,6 +11,7 @@ import EX_EN from "@/lib/i18n/exercices.en.json";
 import { EX } from "@/lib/data/exercices";
 import { CORPS } from "@/lib/data/corps";
 import * as R from "@/lib/data/referentiels";
+import { AVERTISSEMENT_SOIN, ROUTINES_SOIN, ZONES_SOIN } from "@/lib/data/soin";
 
 const RACINE = path.resolve(__dirname, "..");
 const DICO = EN as Record<string, string>;
@@ -84,6 +85,9 @@ describe("traduction anglaise", () => {
     Object.values(R.ECHAUF).forEach((e) => { l.push(e.d); e.l.forEach((x) => l.push(x[0], x[1], x[3])); });
     Object.values(R.COLLATION).forEach((c) => { l.push(c.t, c.i, c.n); c.l.forEach((x) => l.push(...x)); });
     Object.values(CORPS).forEach((c) => c.forEach((r) => l.push(r.n)));
+    ZONES_SOIN.forEach((z) => l.push(z[1]));
+    ROUTINES_SOIN.forEach((r) => l.push(r.nom, r.but));
+    l.push(AVERTISSEMENT_SOIN);
     expect([...new Set(l.filter((x): x is string => !!x && /[a-z]/i.test(x) && !(x in DICO)))]).toEqual([]);
   });
   it("tr, tp, nb et rang selon la langue", () => {

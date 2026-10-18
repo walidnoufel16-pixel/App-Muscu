@@ -3,6 +3,7 @@
 // anthracite, les autres couleurs sont calmées, puis tout est exporté en AVIF.
 // Source : medias/originaux/*.jpg → public/img/*.avif. À relancer seulement si
 // le traitement change : node scripts/photos.mjs
+// Pour ne traiter que de nouvelles photos : node scripts/photos.mjs Nom_A Nom_B …
 import { readdirSync, mkdirSync, statSync } from "node:fs";
 import sharp from "sharp";
 
@@ -28,7 +29,8 @@ async function studio(fichier) {
 }
 
 let avant = 0, apres = 0;
-const liste = readdirSync(SRC).filter((f) => f.endsWith(".jpg"));
+const seules = process.argv.slice(2);
+const liste = readdirSync(SRC).filter((f) => f.endsWith(".jpg") && (!seules.length || seules.some((n) => f.startsWith(n + "_"))));
 for (const f of liste) {
   const dest = OUT + f.replace(/\.jpg$/, ".avif");
   await (await studio(SRC + f)).avif({ quality: 52, effort: 6 }).toFile(dest);

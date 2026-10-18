@@ -16,6 +16,8 @@ export type Exercice = {
   capDeb?: number; // RPE plafond pour un débutant
   acc?: string; // matériel en plus exigé (kb, el)
   ou?: string; // matériel en plus qui suffit aussi
+  soin?: string; // zone « Soin & mobilité » (épaules, hanches…)
+  pic?: number; // illustré par un pictogramme dessiné plutôt qu'une photo
 };
 
 /* Textes d'une fiche, chargés à part (public/data/fiches.json). */
