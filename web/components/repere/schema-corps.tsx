@@ -2,7 +2,8 @@
 
 import { tr } from "@/lib/i18n";
 import { useState } from "react";
-import { CORPS, CORPS_VB } from "@/lib/data/corps";
+import { CORPS, CORPS_F, CORPS_VB, CORPS_VB_F } from "@/lib/data/corps";
+import { useRepere } from "@/lib/store";
 import { Segmente } from "./segmente";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +20,9 @@ export function SchemaCorps({
   teinte?: (r: { z?: string; p?: string }) => number;
 }) {
   const [cote, setCote] = useState<"front" | "back">("front");
-  const regions = CORPS[cote];
+  /* silhouette féminine si l'utilisatrice l'a choisie (Profil), sinon masculine : mêmes zones */
+  const femme = useRepere((s) => s.etat.A.sexe === 1);
+  const regions = (femme ? CORPS_F : CORPS)[cote];
   return (
     <div className="rounded-[24px] border border-border/80 bg-card p-3">
       <Segmente
@@ -28,7 +31,7 @@ export function SchemaCorps({
         onChange={setCote}
         options={[{ v: "front", n: tr("De face") }, { v: "back", n: tr("De dos") }]}
       />
-      <svg viewBox={CORPS_VB[cote]} className="mx-auto mt-2 block max-h-[58vh] w-full touch-manipulation" role="img" aria-label={tr("Schéma du corps")}>
+      <svg viewBox={(femme ? CORPS_VB_F : CORPS_VB)[cote]} data-silhouette={femme ? "femme" : "homme"} className="mx-auto mt-2 block max-h-[58vh] w-full touch-manipulation" role="img" aria-label={tr("Schéma du corps")}>
         {regions.map((r) => {
           const on = actif(r), sel = on && choisi(r), t = teinte?.(r) ?? 0;
           return (

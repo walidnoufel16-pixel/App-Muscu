@@ -9,7 +9,7 @@ import { _fixerLangue, rang, tp, tr } from "@/lib/i18n";
 import { nb } from "@/lib/logic/core";
 import EX_EN from "@/lib/i18n/exercices.en.json";
 import { EX } from "@/lib/data/exercices";
-import { CORPS } from "@/lib/data/corps";
+import { CORPS, CORPS_F } from "@/lib/data/corps";
 import * as R from "@/lib/data/referentiels";
 import { AVERTISSEMENT_SOIN, ROUTINES_SOIN, ZONES_SOIN } from "@/lib/data/soin";
 
@@ -84,7 +84,7 @@ describe("traduction anglaise", () => {
     [...R.SOCLE, ...R.BONUS].forEach((s) => l.push(s.t, s.f, s.dur, s.sp?.[1]));
     Object.values(R.ECHAUF).forEach((e) => { l.push(e.d); e.l.forEach((x) => l.push(x[0], x[1], x[3])); });
     Object.values(R.COLLATION).forEach((c) => { l.push(c.t, c.i, c.n); c.l.forEach((x) => l.push(...x)); });
-    Object.values(CORPS).forEach((c) => c.forEach((r) => l.push(r.n)));
+    [...Object.values(CORPS), ...Object.values(CORPS_F)].forEach((c) => c.forEach((r) => l.push(r.n)));
     ZONES_SOIN.forEach((z) => l.push(z[1]));
     ROUTINES_SOIN.forEach((r) => l.push(r.nom, r.but));
     l.push(AVERTISSEMENT_SOIN);
