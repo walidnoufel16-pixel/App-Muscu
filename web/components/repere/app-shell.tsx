@@ -13,6 +13,7 @@ import { LogoDisque } from "./logo";
 import { usePile, useSens } from "@/lib/nav";
 import { suivreHistorique } from "@/lib/suivi";
 import { suivreDefis } from "@/lib/defis";
+import { useVerifierAccesProgramme } from "@/lib/fonctionnalites";
 
 /* Démarre l'app une fois (session Supabase, état local) et pose la barre
    d'onglets. Les écrans plein écran (accueil, questionnaire) et les tâches
@@ -27,6 +28,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const sens = useSens((s) => s.sens);
 
   useEffect(() => { suivreHistorique(); suivreDefis(); demarrer(); }, [demarrer]);
+  /* programme sur 8 semaines : ouvert compte par compte par l'admin */
+  useVerifierAccesProgramme();
   /* Pile des écrans (bouton retour) ; le sens d'un retour ne sert qu'une fois. */
   useEffect(() => {
     usePile.getState().noter(chemin + location.search);

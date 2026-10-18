@@ -26,6 +26,9 @@ export const utilisateurs = () => appel<CompteAdmin[]>("admin_utilisateurs")
 export const statsAdmin = () => appel<StatsAdmin>("admin_stats").then(nettoieArbre);
 export const fiche = (id: string) => appel<FicheAdmin | null>("admin_etat", { p_user: id }).then(nettoieArbre);
 
+/** Ouvre ou ferme le programme sur 8 semaines pour un compte (noté au journal admin). */
+export const accesProgramme = (id: string, acces: boolean) => appel<boolean>("admin_acces_programme", { p_user: id, p_acces: acces });
+
 /** null tant qu'on ne sait pas, puis vrai ou faux. Revérifié à chaque changement de compte. */
 export function useEstAdmin() {
   /* On attend que la session soit restaurée : au rechargement d'une page admin,

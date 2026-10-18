@@ -6,7 +6,7 @@ import { loc, pluriel, tr } from "@/lib/i18n";
 import { Component, Suspense, useEffect, useMemo, useState } from "react";
 import { CaretDownIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
-import { TrashIcon } from "@phosphor-icons/react";
+import { CalendarDotsIcon, TrashIcon } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { EnTete } from "@/components/repere/en-tete";
 import { Retour } from "@/components/repere/retour";
@@ -26,11 +26,12 @@ import { jourDe, nomMuscle, records, semaines } from "@/lib/logic/historique";
 import { BADGES, stats } from "@/lib/logic/motivation";
 import { objectifProteines, poidsDe, protDuJour } from "@/lib/logic/nutrition";
 import { recap } from "@/lib/logic/questionnaire";
-import { fiche, supprimer, useEstAdmin } from "@/lib/admin";
+import { accesProgramme, fiche, supprimer, useEstAdmin } from "@/lib/admin";
 import { Button } from "@/components/ui/button";
 import { confirmer } from "@/components/repere/confirmer";
 import { useRepere, versEtat } from "@/lib/store";
 import { ARRIERE } from "@/lib/nav";
+import { cn } from "@/lib/utils";
 
 export default function PageFiche() {
   return <Suspense><Fiche /></Suspense>;
@@ -69,6 +70,7 @@ function Fiche() {
     <>
       <EnTete surtitre={F.email || tr("Sans adresse")} titre={F.pseudo || tr("Sans surnom")} gauche={<Retour repli="/admin" />} />
       <div className="flex flex-col gap-5 px-4 pb-10">
+        <AccesProgramme F={F} onChange={(programme) => setF({ ...F, programme })} />
         <Garde><Contenu F={F} E={E} /></Garde>
         <Suppression F={F} seances={(E.HIST || []).length + (E.CARDIO || []).length + (E.SORTIES || []).length} />
       </div>
@@ -85,6 +87,36 @@ class Garde extends Component<{ children: React.ReactNode }, { e: Error | null }
       ? <p className="text-[13px] text-destructive">{tr("Impossible d'afficher cette partie : {message}", { message: this.state.e.message })}</p>
       : this.props.children;
   }
+}
+
+/* Programme sur 8 semaines : en pause pour tous, ouvert ici compte par compte. */
+function AccesProgramme({ F, onChange }: { F: FicheAdmin; onChange: (v: boolean) => void }) {
+  const [occupe, setOccupe] = useState(false);
+  const on = !!F.programme;
+  const basculer = async () => {
+    setOccupe(true);
+    try {
+      const v = await accesProgramme(F.id, !on);
+      onChange(v);
+      toast.success(v ? tr("Programme ouvert pour ce compte") : tr("Programme fermé pour ce compte"));
+    } catch (e) {
+      toast.error(tr("Changement impossible"), { description: (e as Error).message });
+    }
+    setOccupe(false);
+  };
+  return (
+    <section className="flex items-center gap-3 rounded-[22px] bg-card p-4">
+      <CalendarDotsIcon className="size-5 shrink-0 text-plate" />
+      <span className="min-w-0 flex-1">
+        <span className="block text-[15px] font-semibold">{tr("Programme sur 8 semaines")}</span>
+        <span className="block text-[12.5px] text-muted-foreground">{on ? tr("Ouvert : ce compte voit et suit le programme.") : tr("Fermé : « Bientôt disponible » pour ce compte.")}</span>
+      </span>
+      <button role="switch" aria-checked={on} aria-label={tr("Accès au programme sur 8 semaines")} disabled={occupe} onClick={basculer}
+        className={cn("relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-60", on ? "bg-plate" : "bg-muted-foreground/30")}>
+        <span className={cn("absolute top-0.5 left-0.5 size-6 rounded-full bg-white shadow transition-transform", on && "translate-x-5")} />
+      </button>
+    </section>
+  );
 }
 
 function Suppression({ F, seances }: { F: FicheAdmin; seances: number }) {

@@ -13,13 +13,14 @@ import { AVANT } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 import { SaisieCodeMail } from "@/components/repere/code-mail";
 import { LogoTuile } from "@/components/repere/logo";
-import { programmeActif } from "@/lib/fonctionnalites";
+import { useProgrammeActif } from "@/lib/fonctionnalites";
 import { ProgrammeBientot } from "@/components/repere/bientot";
 
 type Etape = "accueil" | "compte" | "confirmer" | "choix" | "recup" | "code";
 
 function Bienvenue() {
   const router = useRouter();
+  const prog = useProgrammeActif();
   const recup = useSearchParams().get("recup");
   const { user, creerCompte, setUser, apresConnexion } = useRepere();
   const [etape, setEtape] = useState<Etape>(recup ? "recup" : user ? "choix" : "accueil");
@@ -86,7 +87,7 @@ function Bienvenue() {
             <p className="mt-3 mb-8 text-[19px] leading-snug font-medium">{tr("Ton point de repère à la salle.")}</p>
             <ul className="flex flex-col gap-3.5">
               {[
-                programmeActif() ? [CalendarDotsIcon, tr("Un plan sur huit semaines"), tr("Un effort qui monte chaque semaine")]
+                prog ? [CalendarDotsIcon, tr("Un plan sur huit semaines"), tr("Un effort qui monte chaque semaine")]
                   : [PersonSimpleTaiChiIcon, tr("Street workout et mobilité"), tr("Barre de traction, routines prêtes")],
                 [SparkleIcon, tr("Des séances sur mesure"), tr("Tu choisis les muscles, Repère compose")],
                 [ShareNetworkIcon, tr("Partagées avec tes proches"), tr("Un lien, et ils ont la même séance")],
@@ -156,21 +157,21 @@ function Bienvenue() {
       {etape === "choix" && (
         <div className="mt-6 flex flex-1 flex-col">
           <div className="eyebrow">{tr("Par où commencer")}</div>
-          <h1 className="mt-2 text-[34px] leading-[1.05] font-bold tracking-[-0.025em]">{programmeActif() ? tr("Deux façons de t'entraîner") : tr("Tes séances, à ta façon")}</h1>
-          {programmeActif() ? (
+          <h1 className="mt-2 text-[34px] leading-[1.05] font-bold tracking-[-0.025em]">{prog ? tr("Deux façons de t'entraîner") : tr("Tes séances, à ta façon")}</h1>
+          {prog ? (
             <button onClick={() => router.push("/questionnaire", AVANT)} className="mt-6 rounded-[24px] bg-foreground p-5 text-left text-background active:scale-[.99]">
               <span className="flex items-center justify-between"><b className="text-[19px] font-semibold">{tr("Un plan sur huit semaines")}</b><span className="num rounded-full bg-plate px-2.5 py-0.5 text-[15px] font-bold text-plate-foreground">{tr("8 sem.")}</span></span>
               <span className="mt-2 block text-[14px] leading-relaxed text-background/75">{tr("Une douzaine de questions, puis un cycle complet qui suit tes charges et fait monter l'effort semaine après semaine. C'est le mode qui te fait progresser.")}</span>
               <span className="mt-3 block text-[13px] font-medium text-plate">{tr("Compter trois minutes →")}</span>
             </button>
           ) : null}
-          <button onClick={() => router.push("/entrainement", AVANT)} className={cn("mt-3 rounded-[24px] p-5 text-left active:scale-[.99]", programmeActif() ? "border bg-card" : "bg-foreground text-background")}>
+          <button onClick={() => router.push("/entrainement", AVANT)} className={cn("mt-3 rounded-[24px] p-5 text-left active:scale-[.99]", prog ? "border bg-card" : "bg-foreground text-background")}>
             <b className="text-[19px] font-semibold">{tr("Une séance à la carte")}</b>
-            <span className={cn("mt-2 block text-[14px] leading-relaxed", programmeActif() ? "text-muted-foreground" : "text-background/75")}>{tr("Tu choisis les muscles, Repère compose, ou tu choisis tes exercices un par un. Aucune question préalable.")}</span>
-            <span className={cn("mt-3 block text-[13px] font-medium", !programmeActif() && "text-plate")}>{tr("Prêt tout de suite →")}</span>
+            <span className={cn("mt-2 block text-[14px] leading-relaxed", prog ? "text-muted-foreground" : "text-background/75")}>{tr("Tu choisis les muscles, Repère compose, ou tu choisis tes exercices un par un. Aucune question préalable.")}</span>
+            <span className={cn("mt-3 block text-[13px] font-medium", !prog && "text-plate")}>{tr("Prêt tout de suite →")}</span>
           </button>
-          {!programmeActif() && <ProgrammeBientot className="mt-3" />}
-          {programmeActif() && <p className="mt-4 text-center text-[12.5px] leading-relaxed text-muted-foreground">{tr("Tu pourras passer de l'un à l'autre à tout moment.")}</p>}
+          {!prog && <ProgrammeBientot className="mt-3" />}
+          {prog && <p className="mt-4 text-center text-[12.5px] leading-relaxed text-muted-foreground">{tr("Tu pourras passer de l'un à l'autre à tout moment.")}</p>}
         </div>
       )}
     </div>

@@ -13,7 +13,7 @@ import { FriseSemaines } from "@/components/repere/seance-vues";
 import { Synthese, titreProgramme } from "@/components/repere/synthese";
 import { baseRPE, titreSeance, week, wkDone } from "@/lib/logic/core";
 import { useRepere } from "@/lib/store";
-import { programmeActif } from "@/lib/fonctionnalites";
+import { useProgrammeActif } from "@/lib/fonctionnalites";
 import { AVANT } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +21,8 @@ import { cn } from "@/lib/utils";
 export default function PageProgramme() {
   const router = useRouter();
   /* programme sur 8 semaines mis de côté : retour aux séances libres */
-  useEffect(() => { if (!programmeActif()) router.replace("/entrainement"); }, [router]);
+  const prog = useProgrammeActif();
+  useEffect(() => { if (!prog) router.replace("/entrainement"); }, [prog, router]);
   const etat = useRepere((s) => s.etat);
   const muter = useRepere((s) => s.muter);
   const W = useMemo(() => week(etat), [etat]);

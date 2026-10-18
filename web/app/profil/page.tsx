@@ -20,12 +20,13 @@ import { useEstAdmin } from "@/lib/admin";
 import { CREDITS } from "@/lib/medias";
 import { ARRIERE, AVANT } from "@/lib/nav";
 import { recap } from "@/lib/logic/questionnaire";
-import { programmeActif } from "@/lib/fonctionnalites";
+import { useProgrammeActif } from "@/lib/fonctionnalites";
 import { MonMateriel } from "@/components/repere/mon-materiel";
 import { cn } from "@/lib/utils";
 
 export default function PageProfil() {
   const router = useRouter();
+  const prog = useProgrammeActif();
   const { user, pseudo, sync, etat, muter, setUser, pousser, toutEffacer, changerDeCompte } = useRepere();
   const { theme, setTheme } = useTheme();
   const changerLangue = useChangerLangue();
@@ -114,7 +115,7 @@ export default function PageProfil() {
         <section>
           <h2 className="eyebrow mb-2 px-1">{tr("Mon programme")}</h2>
           <div className="overflow-hidden rounded-[22px] bg-card">
-            {plan && programmeActif() && recap(etat).filter(([k]) => [tr("Objectif"), tr("Séances"), tr("Matériel")].includes(k)).map(([k, v]) => (
+            {plan && prog && recap(etat).filter(([k]) => [tr("Objectif"), tr("Séances"), tr("Matériel")].includes(k)).map(([k, v]) => (
               <div key={k} className="flex items-baseline justify-between gap-4 border-b border-border/60 px-4 py-3 text-[14.5px]">
                 <span className="text-muted-foreground">{k}</span>
                 <span className="text-right font-medium">{v}</span>
@@ -124,7 +125,7 @@ export default function PageProfil() {
               <div className="mb-2 text-[14.5px] text-muted-foreground">{tr("Zones à ménager")}</div>
               <ReglageZones />
             </div>
-            {programmeActif() ? (
+            {prog ? (
               <Ligne onClick={() => router.push("/questionnaire", AVANT)}>{plan ? tr("Modifier mes réponses") : tr("Construire mon programme")}</Ligne>
             ) : (
               <div aria-disabled="true" className="flex items-center justify-between gap-3 px-4 py-3.5 text-[15px] text-muted-foreground">
@@ -133,7 +134,7 @@ export default function PageProfil() {
               </div>
             )}
           </div>
-          {plan && programmeActif() && <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{tr("Le détail du programme est dans Entraînement › Programme.")}</p>}
+          {plan && prog && <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{tr("Le détail du programme est dans Entraînement › Programme.")}</p>}
         </section>
 
         {/* adresse e-mail */}

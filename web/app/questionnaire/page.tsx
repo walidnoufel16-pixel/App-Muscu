@@ -11,7 +11,7 @@ import { accDeclares, freqDe, nb, sportsChoisis, sportsTotal } from "@/lib/logic
 import { buildQ, prioNoms, repondue, sportWarn } from "@/lib/logic/questionnaire";
 import type { Reponses } from "@/lib/logic/types";
 import { useRepere } from "@/lib/store";
-import { programmeActif } from "@/lib/fonctionnalites";
+import { useProgrammeActif } from "@/lib/fonctionnalites";
 import { ARRIERE, AVANT } from "@/lib/nav";
 import { genererCycle } from "@/lib/generer";
 import { tactile } from "@/lib/repos";
@@ -21,7 +21,8 @@ export default function PageQuestionnaire() {
   const router = useRouter();
   const { etat, muter } = useRepere();
   /* programme sur 8 semaines mis de côté : retour aux séances libres */
-  useEffect(() => { if (!programmeActif()) router.replace("/entrainement"); }, [router]);
+  const prog = useProgrammeActif();
+  useEffect(() => { if (!prog) router.replace("/entrainement"); }, [prog, router]);
   const A = etat.A;
   const Q = useMemo(() => buildQ(A), [A]);
   const [qi, setQi] = useState(() => Math.min(A.reprise as number || 0, Q.length - 1));

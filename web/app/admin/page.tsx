@@ -171,7 +171,10 @@ function Utilisateurs({ L }: { L: CompteAdmin[] }) {
                 {(c.pseudo || "?").slice(0, 1).toUpperCase()}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[15px] font-semibold">{c.pseudo || tr("Sans surnom")}</span>
+                <span className="flex items-center gap-1.5">
+                  <span className="truncate text-[15px] font-semibold">{c.pseudo || tr("Sans surnom")}</span>
+                  {c.programme && <span className="shrink-0 rounded-full bg-plate-soft px-2 py-0.5 text-[11px] font-semibold text-plate-ink">{tr("8 sem.")}</span>}
+                </span>
                 <span className="block truncate text-[12.5px] text-muted-foreground">{c.email || tr("Sans adresse")}</span>
                 <span className="block truncate text-[12.5px] text-muted-foreground">{tr("{seances} séance{a} · actif {a1}{a2}{a3}", { seances: r.seances, a: pluriel(r.seances) ? "s" : "", a1: ilya(r.derniere), a2: r.plan ? ` · ${r.plan}` : "", a3: r.course ? tr(" · course") : "" })}</span>
               </span>
