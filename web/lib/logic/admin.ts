@@ -9,6 +9,8 @@ import type { Etat } from "./types";
 export type CompteAdmin = {
   id: string; email: string | null; anonyme: boolean; cree: string; connexion: string | null;
   pseudo: string | null; maj: string | null; etat: Partial<Etat>;
+  /* programme sur 8 semaines ouvert pour ce compte */
+  programme?: boolean;
 };
 export type FicheAdmin = CompteAdmin & {
   defis: { code: string; nom: string; type: string; cible: number; debut: string; fin: string; score: number }[];

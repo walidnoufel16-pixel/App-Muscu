@@ -20,7 +20,7 @@ import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
 import { usePremiereVisite } from "@/lib/entree";
 import { cn } from "@/lib/utils";
-import { programmeActif } from "@/lib/fonctionnalites";
+import { useProgrammeActif } from "@/lib/fonctionnalites";
 import { ProgrammeBientot } from "@/components/repere/bientot";
 
 type Jour = SeanceSemaine;
@@ -33,7 +33,7 @@ export default function PageEntrainement() {
   const premiere = usePremiereVisite();
   const W = useMemo(() => week(etat), [etat]);
   /* programme sur 8 semaines mis de côté : séances libres seulement */
-  const prog = programmeActif();
+  const prog = useProgrammeActif();
   const plan = prog && (etat.FINI || !!etat.PLAN);
   const { wk } = etat;
   const socle = W.map((p, j) => (!p.b && !p.sportOnly ? j : -1)).filter((j) => j >= 0);

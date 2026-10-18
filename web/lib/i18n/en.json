@@ -1664,5 +1664,11 @@
 "Les figures : muscle-up, pompes en équilibre, traction à un bras.": "The skills: muscle-up, handstand push-ups, one-arm chin-up.",
 "Tirage et figures": "Pull and skills",
 "Poussée et figures": "Push and skills",
-"Corps": "Body"
+"Corps": "Body",
+"Programme ouvert pour ce compte": "Programme opened for this account",
+"Programme fermé pour ce compte": "Programme closed for this account",
+"Changement impossible": "Change failed",
+"Ouvert : ce compte voit et suit le programme.": "Open: this account can see and follow the programme.",
+"Fermé : « Bientôt disponible » pour ce compte.": "Closed: “Coming soon” for this account.",
+"Accès au programme sur 8 semaines": "Access to the 8-week programme"
 }

@@ -30,7 +30,7 @@ const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" })
 const ok = (c, m) => { console.log(c ? "OK  " : "ÉCHEC", m); if (!c) process.exitCode = 1; };
 const errs = [];
 
-async function contexte(admin) {
+async function contexte(admin, acces = false) {
   const ctx = await b.newContext({ locale: "fr-FR", viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
   await ctx.addInitScript(([s, sess]) => {
     if (!sessionStorage.vu) {
@@ -49,9 +49,15 @@ async function contexte(admin) {
     if (rpc) {
       appels.push(rpc);
       if (rpc === "est_admin") return json(admin);
+      if (rpc === "programme_autorise") return json(admin || acces);
       if (!admin) return json({ code: "42501", message: "Accès refusé" }, 403);
       if (rpc === "admin_utilisateurs") return json(comptes);
       if (rpc === "admin_stats") return json(stats);
+      if (rpc === "admin_acces_programme") {
+        const c = comptes.find((x) => x.id === corps.p_user);
+        if (c) c.programme = corps.p_acces;
+        return json(corps.p_acces);
+      }
       if (rpc === "admin_etat") {
         const c = comptes.find((x) => x.id === corps.p_user);
         return json(c ? { ...c, defis: [{ code: "AMIS2", nom: "Octobre entre potes", type: "seances", cible: 8, debut: hier, fin: auj, score: 5 }], generations: [{ jour: auj, n: 2 }] } : null);
@@ -112,7 +118,36 @@ async function contexte(admin) {
   ok(f.includes("Octobre entre potes") && f.includes("5/8"), "fiche : défis et score");
   ok(f.includes("épaules") || f.includes("Épaules"), "fiche : douleur signalée");
   await cap("admin-fiche-long");
+  /* programme sur 8 semaines : ouvert pour ce compte depuis sa fiche */
+  const inter = pg.getByRole("switch", { name: "Accès au programme sur 8 semaines" });
+  ok(await inter.getAttribute("aria-checked") === "false", "fiche : programme fermé par défaut");
+  await inter.click();
+  await pg.getByText("Ouvert : ce compte voit et suit le programme.").waitFor();
+  ok(await inter.getAttribute("aria-checked") === "true" && comptes[0].programme === true, "fiche : programme ouvert pour Léa");
+  await inter.scrollIntoViewIfNeeded();
+  await cap("admin-programme");
+  await pg.goto(U + "/admin/?v=u");
+  await pg.getByText("8 sem.").first().waitFor({ timeout: 8000 });
+  ok(true, "liste : Léa marquée « 8 sem. »");
   ok(!(await pg.evaluate(() => Object.keys(localStorage).some((k) => /admin/i.test(k)))), "rien d'admin gardé dans le téléphone");
+  await ctx.close();
+}
+
+// compte normal à qui l'admin a ouvert le programme
+{
+  const { ctx, pg, appels } = await contexte(false, true);
+  await pg.goto(U + "/entrainement/");
+  await pg.getByText("Construis ton programme").waitFor({ timeout: 8000 });
+  ok(appels.includes("programme_autorise") && (await pg.getByText("Bientôt disponible").count()) === 0, "accès ouvert : le programme sur 8 semaines est proposé");
+  await ctx.close();
+}
+
+// compte normal sans accès
+{
+  const { ctx, pg } = await contexte(false, false);
+  await pg.goto(U + "/entrainement/");
+  await pg.getByText("Bientôt disponible").first().waitFor({ timeout: 8000 });
+  ok(await pg.getByText("Construis ton programme").count() === 0, "sans accès : programme grisé");
   await ctx.close();
 }
 
