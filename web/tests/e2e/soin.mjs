@@ -68,7 +68,7 @@ const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(1200); await
 
   /* Bibliothèque : onglet Soin & mobilité. */
   await pg.goto(U + "/exercices/");
-  await pg.getByRole("tab", { name: "Soin & mobilité" }).click();
+  await pg.getByRole("tab", { name: "Soin" }).click();
   await pg.getByRole("heading", { name: "Épaules et coiffe des rotateurs" }).waitFor();
   ok(await pg.getByRole("heading", { name: "Nuque et haut du dos" }).count() === 1, "onglet Soin : sept zones");
   ok(await pg.locator('img[src*="/img/picto/"]').count() > 0, "pictogrammes affichés");
@@ -103,7 +103,7 @@ const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(1200); await
   await pg.getByText("For your sensitive area").scrollIntoViewIfNeeded();
   await cap(pg, "soin-en-accueil");
   await pg.goto(U + "/exercices/");
-  await pg.getByRole("tab", { name: "Care & mobility" }).click();
+  await pg.getByRole("tab", { name: "Care" }).click();
   await pg.getByRole("heading", { name: "Shoulders and rotator cuff" }).waitFor();
   const t = await pg.evaluate(() => document.body.innerText);
   const fr = t.split("\n").filter((l) => /[éèàçêûôîœ]/i.test(l.replace(/Repère|REPÈRE|Français/g, "")));

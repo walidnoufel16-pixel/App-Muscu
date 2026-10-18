@@ -8,17 +8,18 @@ import { Bibliotheque, ListeRecherche } from "@/components/repere/bibliotheque";
 import { FicheExercice, type FicheOuverte } from "@/components/repere/fiche-exercice";
 import { FiltreMateriel } from "@/components/repere/filtre-materiel";
 import { Segmente } from "@/components/repere/segmente";
-import { selDeclare } from "@/lib/logic/core";
+import { selDeclare, avecSalle } from "@/lib/logic/core";
 import { useRepere } from "@/lib/store";
 import { EX } from "@/lib/data/exercices";
 import { VueSoin } from "@/components/repere/soin";
+import { VueStreet } from "@/components/repere/street";
 import { useBrouillon } from "@/lib/brouillon";
 
 export default function PageExercices() {
   const A = useRepere((s) => s.etat.A);
   const { sel: selB, setSel } = useBrouillon();
-  const sel = selB ?? selDeclare(A);
-  const [vue, setVue] = useState<"corps" | "liste" | "soin">("corps");
+  const sel = avecSalle(selB ?? selDeclare(A), A);
+  const [vue, setVue] = useState<"corps" | "liste" | "soin" | "street">("corps");
   const [zone, setZone] = useState<{ z: string; p: string | null } | null>(null);
   const [q, setQ] = useState("");
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);
@@ -28,10 +29,11 @@ export default function PageExercices() {
       <EnTete surtitre={tr("Bibliothèque · {n} exercices", { n: Object.keys(EX).length })} titre={tr("Exercices")} actions={<ChoixLangue />} />
       <div className="flex flex-col gap-3 px-4">
         <FiltreMateriel sel={sel} declare={selDeclare(A)} onChange={setSel} />
-        <Segmente label={tr("Affichage")} valeur={vue} onChange={setVue} options={[{ v: "corps", n: tr("Par le corps") }, { v: "liste", n: tr("Liste") }, { v: "soin", n: tr("Soin & mobilité") }]} />
+        <Segmente label={tr("Affichage")} valeur={vue} onChange={setVue} options={[{ v: "corps", n: tr("Corps") }, { v: "liste", n: tr("Liste") }, { v: "soin", n: tr("Soin") }, { v: "street", n: tr("Street") }]} />
         {vue === "corps" ? <Bibliotheque sel={sel} zone={zone} setZone={setZone} onFiche={ouvrir} />
           : vue === "liste" ? <ListeRecherche sel={sel} q={q} setQ={setQ} onFiche={ouvrir} />
-          : <VueSoin onFiche={ouvrir} />}
+          : vue === "soin" ? <VueSoin onFiche={ouvrir} />
+          : <VueStreet onFiche={ouvrir} />}
       </div>
       <FicheExercice fiche={fiche} onClose={() => setFiche(null)} />
     </>

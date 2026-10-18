@@ -16,6 +16,8 @@ export type Exercice = {
   capDeb?: number; // RPE plafond pour un débutant
   acc?: string; // matériel en plus exigé (kb, el)
   ou?: string; // matériel en plus qui suffit aussi
+  bt?: number; // exige une barre de traction
+  horsIA?: number; // pas encore dans la bibliothèque du programme généré (generer)
   soin?: string; // zone « Soin & mobilité » (épaules, hanches…)
   pic?: number; // illustré par un pictogramme dessiné plutôt qu'une photo
 };

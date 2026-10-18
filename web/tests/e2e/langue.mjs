@@ -41,6 +41,8 @@ async function ecran(pg, chemin, nom, attendu) {
 
 {
   const ctx = await b.newContext({ locale: "fr-FR", viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
+  /* le programme sur 8 semaines est en pause dans l'app : on le rallume pour le tester */
+  await ctx.addInitScript(() => localStorage.setItem("repere.programme", "1"));
   await ctx.addInitScript((s) => { if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); sessionStorage.vu = 1; } }, etat);
   await ctx.route(/supabase\.co/, (r) => r.abort());
   const pg = await ctx.newPage();
@@ -102,6 +104,8 @@ async function ecran(pg, chemin, nom, attendu) {
 {
   /* Drapeaux en haut des quatre onglets : bascule en un geste, dans les deux sens. */
   const ctx = await b.newContext({ locale: "fr-FR", viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
+  /* le programme sur 8 semaines est en pause dans l'app : on le rallume pour le tester */
+  await ctx.addInitScript(() => localStorage.setItem("repere.programme", "1"));
   await ctx.addInitScript((s) => { if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); sessionStorage.vu = 1; } }, etat);
   await ctx.route(/supabase\.co/, (r) => r.abort());
   const pg = await ctx.newPage();
@@ -132,6 +136,8 @@ async function ecran(pg, chemin, nom, attendu) {
 {
   /* Téléphone en anglais, aucun choix fait : l'app démarre en anglais. */
   const ctx = await b.newContext({ locale: "en-US", viewport: { width: 393, height: 852 }, serviceWorkers: "block" });
+  /* le programme sur 8 semaines est en pause dans l'app : on le rallume pour le tester */
+  await ctx.addInitScript(() => localStorage.setItem("repere.programme", "1"));
   await ctx.route(/supabase\.co/, (r) => r.abort());
   const pg = await ctx.newPage();
   pg.on("pageerror", (e) => errs.push(e.message));

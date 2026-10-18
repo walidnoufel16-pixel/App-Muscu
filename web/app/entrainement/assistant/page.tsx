@@ -19,7 +19,7 @@ import { FiltreMateriel } from "@/components/repere/filtre-materiel";
 import { Segmente } from "@/components/repere/segmente";
 import { dire } from "@/components/repere/confirmer";
 import { DUREES, FULLBODY, MUSC, OBJS, PAT2MUSC } from "@/lib/data/referentiels";
-import { selDeclare } from "@/lib/logic/core";
+import { avecSalle, selDeclare } from "@/lib/logic/core";
 import { construireSeance, nomSeance } from "@/lib/logic/assistant";
 import { zonesActives, zonesDe } from "@/lib/logic/forme";
 import { useRepere } from "@/lib/store";
@@ -56,7 +56,7 @@ function Assistant() {
     revenirA("/entrainement", () => router.replace("/entrainement", ARRIERE));
   };
   const { sel: selB, setSel, setLibre } = useBrouillon();
-  const sel = selB ?? selDeclare(A);
+  const sel = avecSalle(selB ?? selDeclare(A), A);
   const [m, setM] = useState<string[]>([]);
   const [vue, setVue] = useState<"corps" | "liste">("corps");
   const [d, setD] = useState(45);

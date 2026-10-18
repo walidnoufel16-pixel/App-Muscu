@@ -28,8 +28,9 @@ const EX = objet(readFileSync(DATA + "exercices.ts", "utf8"), "EX");
 const PAT = objet(readFileSync(DATA + "referentiels.ts", "utf8"), "PAT");
 
 const q = (s) => JSON.stringify(s);
-/* Les exercices « Soin & mobilité » (schéma soin) restent hors du programme généré par l'IA. */
-const lib = Object.entries(EX).filter(([, e]) => e.pat !== "soin").map(([id, e]) => {
+/* Les exercices « Soin & mobilité » (schéma soin) et ceux marqués horsIA (street workout ajouté
+   pendant que le programme est en pause) restent hors du programme généré par l'IA. */
+const lib = Object.entries(EX).filter(([, e]) => e.pat !== "soin" && !e.horsIA).map(([id, e]) => {
   for (const champ of ["n", "pat", "eq", "ch"]) if (e[champ] === undefined) throw new Error(`${id} : champ ${champ} manquant`);
   if (!PAT[e.pat]) throw new Error(`${id} : schéma ${e.pat} inconnu`);
   /* acc : matériel en plus exigé (kb, el) · ou : matériel en plus qui suffit aussi */
