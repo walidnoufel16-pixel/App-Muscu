@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 
 export default function PageProfil() {
   const router = useRouter();
-  const { user, pseudo, sync, etat, setUser, pousser, toutEffacer, changerDeCompte } = useRepere();
+  const { user, pseudo, sync, etat, muter, setUser, pousser, toutEffacer, changerDeCompte } = useRepere();
   const { theme, setTheme } = useTheme();
   const changerLangue = useChangerLangue();
   const cycleActif = !!useCycleCharge()?.actif;
@@ -170,6 +170,18 @@ export default function PageProfil() {
             <ReglageCycle />
           </section>
         )}
+
+        {/* silhouette du corps : homme ou femme */}
+        <section>
+          <h2 className="eyebrow mb-2 px-1">{tr("Silhouette")}</h2>
+          <Segmente
+            label={tr("Silhouette")}
+            valeur={etat.A.sexe === 0 || etat.A.sexe === 1 ? etat.A.sexe : -1}
+            onChange={(v) => muter((E) => { E.A.sexe = v; })}
+            options={[{ v: 0, n: tr("Homme") }, { v: 1, n: tr("Femme") }]}
+          />
+          <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{tr("Le schéma du corps prend ta silhouette. Ton choix sert aussi aux prochains programmes.")}</p>
+        </section>
 
         {/* apparence */}
         <section>
