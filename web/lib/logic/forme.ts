@@ -5,7 +5,7 @@
      signalée aujourd'hui marquent les exercices à ménager. */
 import { pluriel, tr } from "@/lib/i18n";
 import { nb } from "./core";
-import { EX_FR } from "@/lib/data/exercices";
+import { EX, EX_FR } from "@/lib/data/exercices";
 import { BLESN } from "@/lib/data/referentiels";
 import type { Exercice } from "@/lib/data/types";
 import type { Reponses } from "./types";
@@ -52,7 +52,8 @@ export function zonesActives(A: Reponses, t = Date.now()): number[] {
   return [...z].sort();
 }
 /** Zones sensibles qu'un exercice sollicite. */
-export const zonesDe = (id: string, zones: number[]) => (EX_FR[id] ? zones.filter((z) => RISQUES[z].test(EX_FR[id].n)) : []);
+/* Les exercices de soin sont faits pour ces zones : jamais signalés « à ménager ». */
+export const zonesDe = (id: string, zones: number[]) => (EX_FR[id] && EX[id]?.pat !== "soin" ? zones.filter((z) => RISQUES[z].test(EX_FR[id].n)) : []);
 
 /* ---------------- ajustement de la charge ---------------- */
 export type Base = { v: number; reps: number };

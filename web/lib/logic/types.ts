@@ -45,6 +45,8 @@ export type SeanceLibre = {
   gen?: { m: string[]; d: number; obj: number };
   /* Blocs cardio d'une séance combinée, placés librement entre les exercices. */
   blocs?: BlocCardio[];
+  /* Routine « Soin & mobilité » : zone concernée. */
+  soin?: string;
 };
 
 /** Bloc cardio : `apres` = nombre d'exercices de musculation placés avant lui. */

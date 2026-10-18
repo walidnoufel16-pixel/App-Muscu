@@ -9,6 +9,7 @@ import { ArrowRightIcon, CaretRightIcon, CheckIcon, StarIcon, TrophyIcon, Person
 import { ChoixLangue } from "@/components/repere/choix-langue";
 import { EnTete } from "@/components/repere/en-tete";
 import { MesSeances } from "@/components/repere/mes-seances";
+import { SectionSoin } from "@/components/repere/soin";
 import { CarteRegularite, Reprise } from "@/components/repere/motivation";
 import { CarteProteines } from "@/components/repere/proteines";
 import { CarteCourse } from "@/components/repere/course";
@@ -84,6 +85,8 @@ export default function PageEntrainement() {
             <CarteProteines accueil />
           </div>
         )}
+
+        <SectionSoin />
 
         <section>
           <h2 className="eyebrow mb-2 px-1">{tr("Mes séances")}</h2>

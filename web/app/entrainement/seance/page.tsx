@@ -252,7 +252,7 @@ function SeanceLibre({ i }: { i: number }) {
         </>
       }
     >
-      {sect === 0 && <Echauffement type={typeSeance(faux)} onFiche={(id) => setFiche({ id, idx: -1, pres: [1, 10, "—"], libelle: tr("échauffement") })} />}
+      {sect === 0 && <Echauffement type={typeSeance(faux)} avecSoin={!S.soin} onFiche={(id) => setFiche({ id, idx: -1, pres: [1, 10, "—"], libelle: tr("échauffement") })} />}
       {sect === 2 && <Collation obj={objCollation(etat.A, S)} onChanger={(o) => muter((E) => { E.SEANCES[i].colObj = o; })} />}
       {sect === 1 && (
         <div className={cn("flex flex-col gap-2.5 px-4", premiere && "entree")}>

@@ -127,7 +127,8 @@ export const PATN: Record<string, string> = {
  "mol": "Mollets",
  "tra": "Trapèzes",
  "avb": "Avant-bras",
- "add": "Adducteurs"
+ "add": "Adducteurs",
+ "soin": "Soin & mobilité"
 };
 export const PAT2GRP: Record<string, string> = {
  "ph": "Pectoraux",

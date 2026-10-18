@@ -190,6 +190,7 @@ export const EX: Record<string, Exercice> = {
   "d": 8
  },
  "fp": {
+  "soin": "epaules",
   "n": "Face pull",
   "m": "Arrière d'épaule, rotateurs",
   "img": "Face_Pull",
@@ -258,6 +259,7 @@ export const EX: Record<string, Exercice> = {
   "d": 250
  },
  "hip": {
+  "soin": "hanches",
   "n": "Étirement des fléchisseurs de hanche",
   "m": "Hanches, psoas",
   "img": "Kneeling_Hip_Flexor",
@@ -267,6 +269,7 @@ export const EX: Record<string, Exercice> = {
   "d": 45
  },
  "tho": {
+  "soin": "dos",
   "n": "Étirement du chat",
   "m": "Haut du dos, mobilité",
   "img": "Cat_Stretch",
@@ -435,6 +438,7 @@ export const EX: Record<string, Exercice> = {
   "d": 20
  },
  "rot": {
+  "soin": "epaules",
   "n": "Rotation externe haltère",
   "m": "Coiffe des rotateurs",
   "img": "External_Rotation",
@@ -551,6 +555,7 @@ export const EX: Record<string, Exercice> = {
   "d": 60
  },
  "enf": {
+  "soin": "dos",
   "n": "Posture de l'enfant",
   "m": "Dos, hanches",
   "img": "Childs_Pose",
@@ -578,6 +583,7 @@ export const EX: Record<string, Exercice> = {
   "d": 40
  },
  "molP": {
+  "soin": "chevilles",
   "n": "Mollets au poids du corps",
   "m": "Mollets",
   "img": "Rocking_Standing_Calf_Raise",
@@ -768,6 +774,7 @@ export const EX: Record<string, Exercice> = {
   "d": 6
  },
  "poiinv": {
+  "soin": "poignets",
   "n": "Curl de poignets inversé haltères",
   "m": "Avant-bras, extenseurs",
   "img": "Palms-Down_Dumbbell_Wrist_Curl_Over_A_Bench",
@@ -1278,6 +1285,7 @@ export const EX: Record<string, Exercice> = {
   "d": 0
  },
  "wgs": {
+  "soin": "hanches",
   "n": "World's greatest stretch",
   "m": "Hanches, dos, épaules",
   "img": "Worlds_Greatest_Stretch",
@@ -1287,6 +1295,7 @@ export const EX: Record<string, Exercice> = {
   "d": 5
  },
  "ischs": {
+  "soin": "hanches",
   "n": "Étirement des ischio-jambiers",
   "m": "Ischio-jambiers",
   "img": "Hamstring_Stretch",
@@ -1406,6 +1415,7 @@ export const EX: Record<string, Exercice> = {
   "d": 12
  },
  "elpa": {
+  "soin": "epaules",
   "n": "Écartés bras tendus à l'élastique",
   "m": "Arrière d'épaule, haut du dos",
   "img": "Band_Pull_Apart",
@@ -1417,6 +1427,7 @@ export const EX: Record<string, Exercice> = {
   "d": 0
  },
  "elrot": {
+  "soin": "epaules",
   "n": "Rotation externe à l'élastique",
   "m": "Coiffe des rotateurs, arrière d'épaule",
   "img": "External_Rotation_with_Band",
@@ -1860,6 +1871,7 @@ export const EX: Record<string, Exercice> = {
   "d": 6
  },
  "cuban": {
+  "soin": "epaules",
   "n": "Cuban press",
   "m": "Coiffe des rotateurs, épaules",
   "img": "Cuban_Press",
@@ -1870,6 +1882,7 @@ export const EX: Record<string, Exercice> = {
   "d": 4
  },
  "rotp": {
+  "soin": "epaules",
   "n": "Rotation externe à la poulie",
   "m": "Coiffe des rotateurs",
   "img": "External_Rotation_with_Cable",
@@ -2259,6 +2272,508 @@ export const EX: Record<string, Exercice> = {
   "eq": 3,
   "ch": "aucune",
   "d": 15
+ },
+ "rintel": {
+  "n": "Rotation interne à l'élastique",
+  "m": "Coiffe des rotateurs, subscapulaire",
+  "img": "Internal_Rotation_with_Band",
+  "pat": "soin",
+  "eq": 3,
+  "acc": "el",
+  "ch": "aucune",
+  "d": 15,
+  "soin": "epaules"
+ },
+ "rintp": {
+  "n": "Rotation interne à la poulie",
+  "m": "Coiffe des rotateurs, subscapulaire",
+  "img": "Cable_Internal_Rotation",
+  "pat": "soin",
+  "eq": 0,
+  "ch": "kg",
+  "d": 4,
+  "soin": "epaules"
+ },
+ "oisrot": {
+  "n": "Oiseau avec rotation externe",
+  "m": "Arrière d'épaule, coiffe des rotateurs",
+  "img": "Reverse_Flyes_With_External_Rotation",
+  "pat": "soin",
+  "eq": 2,
+  "ch": "kg",
+  "d": 2,
+  "soin": "epaules"
+ },
+ "cbras": {
+  "n": "Cercles de bras",
+  "m": "Épaules, mobilité",
+  "img": "Arm_Circles",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 15,
+  "soin": "epaules"
+ },
+ "batep": {
+  "n": "Passage d'épaules au bâton",
+  "m": "Épaules, pectoraux, mobilité",
+  "img": "Chest_And_Front_Of_Shoulder_Stretch",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 10,
+  "soin": "epaules"
+ },
+ "tdm": {
+  "n": "Étirement d'épaules au bâton dans le dos",
+  "m": "Avant d'épaule, pectoraux",
+  "img": "Round_The_World_Shoulder_Stretch",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "temps",
+  "d": 30,
+  "soin": "epaules"
+ },
+ "bcrois": {
+  "n": "Bras croisé devant la poitrine",
+  "m": "Arrière d'épaule",
+  "img": "Side_Wrist_Pull",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "temps",
+  "d": 30,
+  "soin": "epaules"
+ },
+ "wallsl": {
+  "n": "Wall slides",
+  "m": "Trapèzes inférieurs, dentelé, mobilité d'épaule",
+  "img": "wallsl",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 10,
+  "soin": "epaules",
+  "pic": 1
+ },
+ "ytw": {
+  "n": "Y-T-W allongé",
+  "m": "Trapèzes moyens et inférieurs, coiffe",
+  "img": "ytw",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 8,
+  "soin": "epaules",
+  "pic": 1
+ },
+ "sleep": {
+  "n": "Sleeper stretch",
+  "m": "Arrière d'épaule, rotation interne",
+  "img": "sleep",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "temps",
+  "d": 30,
+  "soin": "epaules",
+  "pic": 1
+ },
+ "pscap": {
+  "n": "Pompes scapulaires",
+  "m": "Dentelé antérieur, stabilité d'omoplate",
+  "img": "pscap",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 12,
+  "soin": "epaules",
+  "pic": 1
+ },
+ "chq": {
+  "n": "Cercles de hanche à quatre pattes",
+  "m": "Hanches, fessiers",
+  "img": "Hip_Circles_prone",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 10,
+  "soin": "hanches"
+ },
+ "chd": {
+  "n": "Cercles de hanche debout",
+  "m": "Hanches, mobilité",
+  "img": "Standing_Hip_Circles",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 10,
+  "soin": "hanches"
+ },
+ "groin": {
+  "n": "Groiners",
+  "m": "Adducteurs, fléchisseurs de hanche",
+  "img": "Groiners",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 8,
+  "soin": "hanches"
+ },
+ "fig4": {
+  "n": "Étirement du fessier en figure 4",
+  "m": "Fessiers, piriforme",
+  "img": "Ankle_On_The_Knee",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "temps",
+  "d": 30,
+  "soin": "hanches"
+ },
+ "addet": {
+  "n": "Étirement des adducteurs allongé",
+  "m": "Adducteurs",
+  "img": "Side_Lying_Groin_Stretch",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "temps",
+  "d": 30,
+  "soin": "hanches"
+ },
+ "flexd": {
+  "n": "Étirement des fléchisseurs debout",
+  "m": "Psoas, quadriceps",
+  "img": "Standing_Hip_Flexors",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "temps",
+  "d": 30,
+  "soin": "hanches"
+ },
+ "hext": {
+  "n": "Extension de hanche à l'élastique",
+  "m": "Fessiers",
+  "img": "Hip_Extension_with_Bands",
+  "pat": "soin",
+  "eq": 3,
+  "acc": "el",
+  "ch": "aucune",
+  "d": 12,
+  "soin": "hanches"
+ },
+ "hflex": {
+  "n": "Flexion de hanche à l'élastique",
+  "m": "Psoas, fléchisseurs de hanche",
+  "img": "Hip_Flexion_with_Band",
+  "pat": "soin",
+  "eq": 3,
+  "acc": "el",
+  "ch": "aucune",
+  "d": 12,
+  "soin": "hanches"
+ },
+ "h9090": {
+  "n": "Bascule 90/90 des hanches",
+  "m": "Rotateurs de hanche, mobilité",
+  "img": "h9090",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 8,
+  "soin": "hanches",
+  "pic": 1
+ },
+ "clam": {
+  "n": "Clamshell",
+  "m": "Moyen fessier, rotateurs externes",
+  "img": "clam",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 15,
+  "soin": "hanches",
+  "pic": 1
+ },
+ "copen": {
+  "n": "Gainage Copenhague",
+  "m": "Adducteurs, obliques",
+  "img": "copen",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "temps",
+  "d": 20,
+  "soin": "hanches",
+  "pic": 1
+ },
+ "bascp": {
+  "n": "Bascule du bassin vers le pont",
+  "m": "Lombaires, fessiers, mobilité du bassin",
+  "img": "Pelvic_Tilt_Into_Bridge",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 10,
+  "soin": "dos"
+ },
+ "gpoit": {
+  "n": "Genoux à la poitrine",
+  "m": "Lombaires, fessiers",
+  "img": "Hug_Knees_To_Chest",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "temps",
+  "d": 30,
+  "soin": "dos"
+ },
+ "croix": {
+  "n": "Croix de fer allongée",
+  "m": "Lombaires, hanches, rotation",
+  "img": "Iron_Crosses_stretch",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 8,
+  "soin": "dos"
+ },
+ "torsal": {
+  "n": "Torsion allongée",
+  "m": "Lombaires, fessiers, obliques",
+  "img": "Knee_Across_The_Body",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "temps",
+  "d": 30,
+  "soin": "dos"
+ },
+ "birdd": {
+  "n": "Bird dog",
+  "m": "Lombaires, fessiers, gainage",
+  "img": "birdd",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 8,
+  "soin": "dos",
+  "pic": 1
+ },
+ "mcgill": {
+  "n": "Curl-up de McGill",
+  "m": "Abdominaux, gainage",
+  "img": "mcgill",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "temps",
+  "d": 10,
+  "soin": "dos",
+  "pic": 1
+ },
+ "cgen": {
+  "n": "Cercles de genoux",
+  "m": "Genoux, mobilité",
+  "img": "Knee_Circles",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 10,
+  "soin": "genoux"
+ },
+ "sqas": {
+  "n": "Mini-squat contrôlé",
+  "m": "Quadriceps, genoux",
+  "img": "Sit_Squats",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 12,
+  "soin": "genoux"
+ },
+ "quadet": {
+  "n": "Étirement des quadriceps allongé",
+  "m": "Quadriceps",
+  "img": "On_Your_Side_Quad_Stretch",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "temps",
+  "d": 30,
+  "soin": "genoux"
+ },
+ "spsq": {
+  "n": "Spanish squat",
+  "m": "Quadriceps, tendon rotulien",
+  "img": "spsq",
+  "pat": "soin",
+  "eq": 3,
+  "acc": "el",
+  "ch": "temps",
+  "d": 30,
+  "soin": "genoux",
+  "pic": 1
+ },
+ "tke": {
+  "n": "Extension terminale du genou",
+  "m": "Quadriceps, vaste interne",
+  "img": "tke",
+  "pat": "soin",
+  "eq": 3,
+  "acc": "el",
+  "ch": "aucune",
+  "d": 15,
+  "soin": "genoux",
+  "pic": 1
+ },
+ "stepd": {
+  "n": "Step-down lent",
+  "m": "Quadriceps, contrôle du genou",
+  "img": "stepd",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 8,
+  "soin": "genoux",
+  "pic": 1
+ },
+ "cchev": {
+  "n": "Cercles de chevilles",
+  "m": "Chevilles, mobilité",
+  "img": "Ankle_Circles",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 10,
+  "soin": "chevilles"
+ },
+ "molmur": {
+  "n": "Étirement du mollet au mur",
+  "m": "Mollets, gastrocnémiens",
+  "img": "Calf_Stretch_Hands_Against_Wall",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "temps",
+  "d": 30,
+  "soin": "chevilles"
+ },
+ "sole": {
+  "n": "Étirement du soléaire et du tendon d'Achille",
+  "m": "Soléaire, tendon d'Achille",
+  "img": "Standing_Soleus_And_Achilles_Stretch",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "temps",
+  "d": 30,
+  "soin": "chevilles"
+ },
+ "chevmur": {
+  "n": "Mobilité de cheville au mur",
+  "m": "Chevilles, mollets",
+  "img": "chevmur",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 10,
+  "soin": "chevilles",
+  "pic": 1
+ },
+ "cpoi": {
+  "n": "Cercles de poignets",
+  "m": "Poignets, mobilité",
+  "img": "Wrist_Circles",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 10,
+  "soin": "poignets"
+ },
+ "avbet": {
+  "n": "Étirement des avant-bras à genoux",
+  "m": "Fléchisseurs du poignet",
+  "img": "Kneeling_Forearm_Stretch",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "temps",
+  "d": 30,
+  "soin": "poignets"
+ },
+ "tyler": {
+  "n": "Extension excentrique du poignet",
+  "m": "Extenseurs du poignet, coude externe",
+  "img": "tyler",
+  "pat": "soin",
+  "eq": 2,
+  "ch": "kg",
+  "d": 2,
+  "soin": "poignets",
+  "pic": 1
+ },
+ "flexpoi": {
+  "n": "Étirement des fléchisseurs du poignet",
+  "m": "Fléchisseurs du poignet, coude interne",
+  "img": "flexpoi",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "temps",
+  "d": 30,
+  "soin": "poignets",
+  "pic": 1
+ },
+ "mentp": {
+  "n": "Menton vers la poitrine",
+  "m": "Nuque, haut du dos",
+  "img": "Chin_To_Chest_Stretch",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "temps",
+  "d": 20,
+  "soin": "nuque"
+ },
+ "nuqinc": {
+  "n": "Inclinaison de la nuque",
+  "m": "Trapèzes supérieurs, nuque",
+  "img": "Side_Neck_Stretch",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "temps",
+  "d": 20,
+  "soin": "nuque"
+ },
+ "hdos": {
+  "n": "Étirement du haut du dos",
+  "m": "Haut du dos, rhomboïdes",
+  "img": "Upper_Back_Stretch",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "temps",
+  "d": 30,
+  "soin": "nuque"
+ },
+ "rotbu": {
+  "n": "Rotation du buste debout",
+  "m": "Haut du dos, rotation thoracique",
+  "img": "Middle_Back_Stretch",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 10,
+  "soin": "nuque"
+ },
+ "chin": {
+  "n": "Rentrée du menton",
+  "m": "Fléchisseurs profonds du cou",
+  "img": "chin",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 10,
+  "soin": "nuque",
+  "pic": 1
+ },
+ "openb": {
+  "n": "Open book thoracique",
+  "m": "Haut du dos, rotation thoracique",
+  "img": "openb",
+  "pat": "soin",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 8,
+  "soin": "nuque",
+  "pic": 1
  }
 };
 

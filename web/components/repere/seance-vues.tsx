@@ -10,6 +10,7 @@ import { COLLATION, ECHAUF, OBJS } from "@/lib/data/referentiels";
 import { baseRPE, nomPat } from "@/lib/logic/core";
 import { cn } from "@/lib/utils";
 import { Vignette } from "./exercice-carte";
+import { EchauffementSoin } from "./soin";
 
 /* ---------------- frise des 8 semaines : des disques qui se remplissent ---------------- */
 export function FriseSemaines({ wk, avancement, onChoisir }: { wk: number; avancement: { faites: number; total: number }[]; onChoisir: (w: number) => void }) {
@@ -51,7 +52,7 @@ export function FriseSemaines({ wk, avancement, onChoisir }: { wk: number; avanc
 }
 
 /* ---------------- échauffement ---------------- */
-export function Echauffement({ type, onFiche }: { type: "haut" | "bas" | "bonus"; onFiche: (id: string) => void }) {
+export function Echauffement({ type, onFiche, avecSoin = true }: { type: "haut" | "bas" | "bonus"; onFiche: (id: string) => void; avecSoin?: boolean }) {
   const e = ECHAUF[type] || ECHAUF.haut;
   return (
     <div className="px-4">
@@ -83,6 +84,7 @@ export function Echauffement({ type, onFiche }: { type: "haut" | "bas" | "bonus"
           </li>
         ))}
       </ol>
+      {avecSoin && <div className="mt-3"><EchauffementSoin onFiche={onFiche} /></div>}
     </div>
   );
 }
