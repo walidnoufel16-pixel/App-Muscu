@@ -24,6 +24,8 @@ const etat = {
 };
 const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 const ctx = await b.newContext({ locale: "en-GB", viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
+/* le programme sur 8 semaines est en pause dans l'app : on le rallume pour le tester */
+await ctx.addInitScript(() => localStorage.setItem("repere.programme", "1"));
 await ctx.addInitScript((s) => { localStorage.setItem("repere.langue.v1", "en"); if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); sessionStorage.vu = 1; } }, etat);
 await ctx.route(/supabase\.co/, (r) => r.abort());
 const pg = await ctx.newPage();

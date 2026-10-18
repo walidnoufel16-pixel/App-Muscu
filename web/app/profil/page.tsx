@@ -20,6 +20,8 @@ import { useEstAdmin } from "@/lib/admin";
 import { CREDITS } from "@/lib/medias";
 import { ARRIERE, AVANT } from "@/lib/nav";
 import { recap } from "@/lib/logic/questionnaire";
+import { programmeActif } from "@/lib/fonctionnalites";
+import { MonMateriel } from "@/components/repere/mon-materiel";
 import { cn } from "@/lib/utils";
 
 export default function PageProfil() {
@@ -112,7 +114,7 @@ export default function PageProfil() {
         <section>
           <h2 className="eyebrow mb-2 px-1">{tr("Mon programme")}</h2>
           <div className="overflow-hidden rounded-[22px] bg-card">
-            {plan && recap(etat).filter(([k]) => [tr("Objectif"), tr("Séances"), tr("Matériel")].includes(k)).map(([k, v]) => (
+            {plan && programmeActif() && recap(etat).filter(([k]) => [tr("Objectif"), tr("Séances"), tr("Matériel")].includes(k)).map(([k, v]) => (
               <div key={k} className="flex items-baseline justify-between gap-4 border-b border-border/60 px-4 py-3 text-[14.5px]">
                 <span className="text-muted-foreground">{k}</span>
                 <span className="text-right font-medium">{v}</span>
@@ -122,9 +124,16 @@ export default function PageProfil() {
               <div className="mb-2 text-[14.5px] text-muted-foreground">{tr("Zones à ménager")}</div>
               <ReglageZones />
             </div>
-            <Ligne onClick={() => router.push("/questionnaire", AVANT)}>{plan ? tr("Modifier mes réponses") : tr("Construire mon programme")}</Ligne>
+            {programmeActif() ? (
+              <Ligne onClick={() => router.push("/questionnaire", AVANT)}>{plan ? tr("Modifier mes réponses") : tr("Construire mon programme")}</Ligne>
+            ) : (
+              <div aria-disabled="true" className="flex items-center justify-between gap-3 px-4 py-3.5 text-[15px] text-muted-foreground">
+                {tr("Programme sur 8 semaines")}
+                <span className="rounded-full bg-muted px-2.5 py-1 text-[11.5px] font-semibold">{tr("Bientôt disponible")}</span>
+              </div>
+            )}
           </div>
-          {plan && <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{tr("Le détail du programme est dans Entraînement › Programme.")}</p>}
+          {plan && programmeActif() && <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{tr("Le détail du programme est dans Entraînement › Programme.")}</p>}
         </section>
 
         {/* adresse e-mail */}
@@ -170,6 +179,13 @@ export default function PageProfil() {
             <ReglageCycle />
           </section>
         )}
+
+        {/* matériel : par défaut dans les listes et les séances composées */}
+        <section>
+          <h2 className="eyebrow mb-2 px-1">{tr("Mon matériel")}</h2>
+          <MonMateriel />
+          <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{tr("Sert de point de départ dans Exercices, « Créer une séance pour moi » et le composeur.")}</p>
+        </section>
 
         {/* silhouette du corps : homme ou femme */}
         <section>

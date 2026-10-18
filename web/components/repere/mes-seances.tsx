@@ -3,7 +3,7 @@
 import { pluriel, tr } from "@/lib/i18n";
 import { useState, ViewTransition } from "react";
 import { useRouter } from "next/navigation";
-import { BarbellIcon, StackIcon, CaretDownIcon, CaretRightIcon, CheckIcon, DownloadSimpleIcon, ExportIcon, FirstAidKitIcon, HeartbeatIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
+import { BarbellIcon, StackIcon, CaretDownIcon, CaretRightIcon, CheckIcon, DownloadSimpleIcon, ExportIcon, FirstAidKitIcon, PersonSimpleTaiChiIcon, HeartbeatIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
@@ -30,8 +30,11 @@ export function MesSeances() {
   const { etat, muter, partager, partagerCardio, importer } = useRepere();
   const cardio = etat.SEANCES_CARDIO || [];
   /* index des séances libres, rangées en deux groupes : musculation seule, ou avec des blocs cardio */
-  const muscu = etat.SEANCES.map((_, i) => i).filter((i) => !etat.SEANCES[i].soin && !estCombinee(etat.SEANCES[i]));
-  const combinees = etat.SEANCES.map((_, i) => i).filter((i) => !etat.SEANCES[i].soin && estCombinee(etat.SEANCES[i]));
+  const libre = (i: number) => !etat.SEANCES[i].soin && !etat.SEANCES[i].street;
+  const muscu = etat.SEANCES.map((_, i) => i).filter((i) => libre(i) && !estCombinee(etat.SEANCES[i]));
+  const combinees = etat.SEANCES.map((_, i) => i).filter((i) => libre(i) && estCombinee(etat.SEANCES[i]));
+  /* programmes street workout ajoutés depuis Exercices › Street */
+  const street = etat.SEANCES.map((_, i) => i).filter((i) => etat.SEANCES[i].street);
   /* routines de soin lancées depuis l'accueil ou la bibliothèque */
   const soins = etat.SEANCES.map((_, i) => i).filter((i) => etat.SEANCES[i].soin);
   const setLibre = useBrouillon((s) => s.setLibre);
@@ -116,6 +119,12 @@ export function MesSeances() {
         {combinees.length > 0 && (
           <Groupe cle="combinees" titre={tr("Combinées")} icone={<StackIcon className="size-5" weight="fill" />} noms={combinees.map((i) => etat.SEANCES[i].nom)}>
             {combinees.map((i) => ligneMuscu(i))}
+          </Groupe>
+        )}
+
+        {street.length > 0 && (
+          <Groupe cle="street" titre={tr("Street workout")} icone={<PersonSimpleTaiChiIcon className="size-5" weight="fill" />} noms={street.map((i) => etat.SEANCES[i].nom)}>
+            {street.map((i) => ligneMuscu(i))}
           </Groupe>
         )}
 

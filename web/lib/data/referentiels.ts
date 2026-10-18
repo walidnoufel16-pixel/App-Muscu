@@ -1306,6 +1306,10 @@ export const TYPES: [string, string][] = [
   "Poids du corps"
  ],
  [
+  "bt",
+  "Barre de traction"
+ ],
+ [
   "m2",
   "Haltères"
  ],

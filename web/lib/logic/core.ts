@@ -9,6 +9,7 @@ import {
   ACC, BAS, BONUS, HAUT, MUSCLES, PAT, PAT2GRP, PATN, SOCLE, SPORTS, VARIANTES, GROUPES,
 } from "@/lib/data/referentiels";
 import type { Exercice } from "@/lib/data/types";
+import { POSTE_DE } from "@/lib/data/salle";
 import { ajuster, formeDuJour, zonesDe } from "./forme";
 import type { Etat, Journal, Reponses, SeanceIA, SeanceSemaine, Serie } from "./types";
 
@@ -30,13 +31,24 @@ export function exoDispo(o: string, mat: number, acc: string[]) {
 }
 export const dispoDeclare = (A: Reponses, o: string) => exoDispo(o, A.materiel ?? 0, accDeclares(A));
 
-/* Filtre « Matériel disponible » : m0…m3 = champ eq, kb et el = champ acc. */
+/* Barre de traction : déclarée dans Profil ; sans réponse, présente en salle et en home gym. */
+export const barreDeclaree = (A: Reponses) => A.barre ?? (A.materiel ?? 0) <= 1;
+
+/* Machines et postes absents de la salle (Profil › Mon matériel › Ma salle) : « x:<poste> ». */
+export const sansPostes = (A: Reponses) => (A.sansPostes || []).map((p) => "x:" + p);
+
+/* Filtre « Matériel disponible » : m0…m3 = champ eq, kb et el = champ acc, bt = barre de traction,
+   x:<poste> = machine absente de la salle. */
 export const selDeclare = (A: Reponses) =>
-  [3, 2, 1, 0].filter((v) => v >= (A.materiel ?? 0)).map((v) => "m" + v).concat(accDeclares(A));
+  [3, 2, 1, 0].filter((v) => v >= (A.materiel ?? 0)).map((v) => "m" + v).concat(accDeclares(A), barreDeclaree(A) ? ["bt"] : [], sansPostes(A));
+/* Une sélection de matériel (brouillon d'écran) avec les machines absentes déclarées, toujours à jour. */
+export const avecSalle = (sel: string[], A: Reponses) => sel.filter((t) => !t.startsWith("x:")).concat(sansPostes(A));
 export function exoFiltre(o: string, sel: string[]) {
   const e = EX[o];
   if (!e) return false;
+  if (POSTE_DE[o] && sel.includes("x:" + POSTE_DE[o])) return false;
   if (e.acc) return sel.includes(e.acc);
+  if (e.bt) return sel.includes("bt");
   return sel.includes("m" + e.eq) || (!!e.ou && sel.includes(e.ou));
 }
 

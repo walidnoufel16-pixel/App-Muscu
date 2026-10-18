@@ -86,7 +86,8 @@ export const EX: Record<string, Exercice> = {
   "pat2": "fc",
   "eq": 3,
   "ch": "lest",
-  "d": 5
+  "d": 5,
+  "bt": 1
  },
  "tp": {
   "n": "Tirage vertical à la poulie",
@@ -237,7 +238,8 @@ export const EX: Record<string, Exercice> = {
   "pat2": "ae",
   "eq": 3,
   "ch": "aucune",
-  "d": 10
+  "d": 10,
+  "bt": 1
  },
  "lom": {
   "n": "Extensions lombaires au banc",
@@ -326,7 +328,8 @@ export const EX: Record<string, Exercice> = {
   "pat2": "fc",
   "eq": 3,
   "ch": "lest",
-  "d": 5
+  "d": 5,
+  "bt": 1
  },
  "tpn": {
   "n": "Tirage poulie prise serrée",
@@ -971,7 +974,8 @@ export const EX: Record<string, Exercice> = {
   "pat2": "re",
   "eq": 3,
   "ch": "aucune",
-  "d": 0
+  "d": 0,
+  "bt": 1
  },
  "pompe": {
   "n": "Pompes pieds surélevés",
@@ -2774,6 +2778,118 @@ export const EX: Record<string, Exercice> = {
   "d": 8,
   "soin": "nuque",
   "pic": 1
+ },
+ "trneg": {
+  "n": "Tractions négatives",
+  "m": "Dos, biceps",
+  "img": "Pullups",
+  "pat": "tv",
+  "pat2": "fc",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "bt": 1,
+  "horsIA": 1
+ },
+ "mup": {
+  "n": "Muscle-up",
+  "m": "Dos, triceps, épaules",
+  "img": "Muscle_Up",
+  "pat": "tv",
+  "pat2": "ec",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "bt": 1,
+  "horsIA": 1
+ },
+ "tr1": {
+  "n": "Traction à un bras",
+  "m": "Dos, biceps",
+  "img": "One_Arm_Chin-Up",
+  "pat": "tv",
+  "pat2": "fc",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "bt": 1,
+  "horsIA": 1
+ },
+ "hpike": {
+  "n": "Relevés de jambes jusqu'à la barre",
+  "m": "Abdominaux, fléchisseurs de hanche",
+  "img": "Hanging_Pike",
+  "pat": "ft",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "bt": 1,
+  "horsIA": 1
+ },
+ "pomp1": {
+  "n": "Pompe à un bras",
+  "m": "Pectoraux, triceps, gainage",
+  "img": "Single-Arm_Push-Up",
+  "pat": "ph",
+  "pat2": "ec",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "horsIA": 1
+ },
+ "pompp": {
+  "n": "Pompes plyométriques",
+  "m": "Pectoraux, triceps, explosivité",
+  "img": "Plyo_Push-up",
+  "pat": "ph",
+  "pat2": "ec",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "horsIA": 1
+ },
+ "pompgl": {
+  "n": "Pompe et gainage latéral",
+  "m": "Pectoraux, obliques",
+  "img": "Push_Up_to_Side_Plank",
+  "pat": "ph",
+  "pat2": "ae",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "horsIA": 1
+ },
+ "splsq": {
+  "n": "Split squat au poids du corps",
+  "m": "Quadriceps, fessiers",
+  "img": "Split_Squats",
+  "pat": "eg",
+  "pat2": "fh",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "horsIA": 1
+ },
+ "jsq": {
+  "n": "Squat sauté",
+  "m": "Quadriceps, fessiers, explosivité",
+  "img": "Freehand_Jump_Squat",
+  "pat": "eg",
+  "pat2": "fh",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "horsIA": 1
+ },
+ "ktj": {
+  "n": "Sauts genoux-poitrine",
+  "m": "Jambes, explosivité",
+  "img": "Knee_Tuck_Jump",
+  "pat": "eg",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "horsIA": 1
  }
 };
 

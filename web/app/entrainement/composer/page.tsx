@@ -14,7 +14,7 @@ import { FeuilleAjout } from "@/components/repere/ajout-exercice";
 import { confirmer } from "@/components/repere/confirmer";
 import { EX } from "@/lib/data/exercices";
 import { OBJS, PAS_REPOS } from "@/lib/data/referentiels";
-import { exoFiltre, musclesDe, nomPat, selDeclare } from "@/lib/logic/core";
+import { exoFiltre, musclesDe, nomPat, selDeclare, avecSalle } from "@/lib/logic/core";
 import { construireSeance, exParDefaut } from "@/lib/logic/assistant";
 import { zonesActives, zonesDe } from "@/lib/logic/forme";
 import * as act from "@/lib/logic/actions";
@@ -34,7 +34,7 @@ export default function PageComposer() {
   const router = useRouter();
   const { etat, muter } = useRepere();
   const { libre, majLibre, sel: selB, setSel, setLibre } = useBrouillon();
-  const sel = selB ?? selDeclare(etat.A);
+  const sel = avecSalle(selB ?? selDeclare(etat.A), etat.A);
   const [ouv, setOuv] = useState<string | null>(null);
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);
   const [remp, setRemp] = useState<number | null>(null);

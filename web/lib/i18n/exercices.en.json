@@ -276,4 +276,15 @@
 "hdos":["Upper back stretch","Upper back, rhomboids"],
 "rotbu":["Standing torso rotation","Upper back, thoracic rotation"],
 "chin":["Chin tuck","Deep neck flexors"],
-"openb":["Thoracic open book","Upper back, thoracic rotation"]}
+"openb":["Thoracic open book","Upper back, thoracic rotation"],
+"trneg":["Negative pull-ups","Back, biceps"],
+"mup":["Muscle-up","Back, triceps, shoulders"],
+"tr1":["One-arm chin-up","Back, biceps"],
+"hpike":["Toes to bar","Abs, hip flexors"],
+"pomp1":["One-arm push-up","Chest, triceps, core"],
+"pompp":["Plyometric push-ups","Chest, triceps, power"],
+"pompgl":["Push-up to side plank","Chest, obliques"],
+"splsq":["Bodyweight split squat","Quads, glutes"],
+"jsq":["Jump squat","Quads, glutes, power"],
+"ktj":["Tuck jumps","Legs, power"]
+}

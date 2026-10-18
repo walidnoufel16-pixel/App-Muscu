@@ -47,6 +47,8 @@ export type SeanceLibre = {
   blocs?: BlocCardio[];
   /* Routine « Soin & mobilité » : zone concernée. */
   soin?: string;
+  /* Séance d'un programme street workout : niveau et lettre (« debutant-A »). */
+  street?: string;
 };
 
 /** Bloc cardio : `apres` = nombre d'exercices de musculation placés avant lui. */
@@ -62,6 +64,10 @@ export type Reponses = {
   sportFreq?: Record<number, number>;
   materiel?: number;
   acc?: number[];
+  /* barre de traction (Profil) ; absente = selon le matériel */
+  barre?: boolean;
+  /* machines et postes absents de la salle (lib/data/salle.ts) */
+  sansPostes?: string[];
   blessure?: number[];
   sexe?: number;
   prio?: number[];

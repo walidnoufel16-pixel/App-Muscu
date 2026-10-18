@@ -9,6 +9,10 @@ import { construireSeance, dureeEstimee, objCollation } from "@/lib/logic/assist
 import { EX } from "@/lib/data/exercices";
 import type { Etat } from "@/lib/logic/types";
 
+/* L'ancienne app ne connaissait ni les exercices street workout ajoutés depuis (horsIA) ni la
+   barre de traction : on compare sur la même bibliothèque, barre de traction disponible. */
+for (const o of Object.keys(EX)) if (EX[o].horsIA) delete EX[o];
+
 const lcg = (s: number) => () => ((s = (s * 1103515245 + 12345) % 2147483648) / 2147483648);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const F = fx as any;
@@ -58,7 +62,7 @@ describe("assistant", () => {
   it.each(F.assistant.map((c: unknown, i: number) => [i, c]) as [number, unknown][])("cas %i : même séance à hasard égal", (_i, c) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const C = c as any;
-    const ex = construireSeance(C.m, C.d, C.o, C.sel, lcg(C.seed));
+    const ex = construireSeance(C.m, C.d, C.o, [...C.sel, "bt"], lcg(C.seed));
     expect(ex).toEqual(C.ex);
     expect(dureeEstimee(ex)).toBe(C.duree);
   });

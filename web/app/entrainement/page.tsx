@@ -20,6 +20,8 @@ import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
 import { usePremiereVisite } from "@/lib/entree";
 import { cn } from "@/lib/utils";
+import { programmeActif } from "@/lib/fonctionnalites";
+import { ProgrammeBientot } from "@/components/repere/bientot";
 
 type Jour = SeanceSemaine;
 const nomJour = (p: Jour, i: number) => (p.b ? tr("Bonus") : p.sportOnly ? tr("Ton sport") : tr("Séance {a}", { a: i + 1 }));
@@ -30,7 +32,9 @@ export default function PageEntrainement() {
   const muter = useRepere((s) => s.muter);
   const premiere = usePremiereVisite();
   const W = useMemo(() => week(etat), [etat]);
-  const plan = etat.FINI || !!etat.PLAN;
+  /* programme sur 8 semaines mis de côté : séances libres seulement */
+  const prog = programmeActif();
+  const plan = prog && (etat.FINI || !!etat.PLAN);
   const { wk } = etat;
   const socle = W.map((p, j) => (!p.b && !p.sportOnly ? j : -1)).filter((j) => j >= 0);
   const faites = socle.filter((j) => wkDone(etat, wk, j, W)).length;
@@ -47,7 +51,9 @@ export default function PageEntrainement() {
         actions={<ChoixLangue />}
       />
       <div className={cn("flex flex-col gap-6 px-4", premiere && "entree")}>
-        {!plan ? (
+        {!prog ? (
+          <ProgrammeBientot />
+        ) : !plan ? (
           <Hero
             surtitre={tr("Programme sur 8 semaines")}
             titre={tr("Construis ton programme")}

@@ -12,6 +12,8 @@ import { EX } from "@/lib/data/exercices";
 import { CORPS, CORPS_F } from "@/lib/data/corps";
 import * as R from "@/lib/data/referentiels";
 import { AVERTISSEMENT_SOIN, ROUTINES_SOIN, ZONES_SOIN } from "@/lib/data/soin";
+import { POSTES, ZONES_SALLE } from "@/lib/data/salle";
+import { FAMILLES_STREET, PROGRAMMES_STREET } from "@/lib/data/street";
 
 const RACINE = path.resolve(__dirname, "..");
 const DICO = EN as Record<string, string>;
@@ -88,6 +90,10 @@ describe("traduction anglaise", () => {
     ZONES_SOIN.forEach((z) => l.push(z[1]));
     ROUTINES_SOIN.forEach((r) => l.push(r.nom, r.but));
     l.push(AVERTISSEMENT_SOIN);
+    ZONES_SALLE.forEach((z) => l.push(z.n));
+    POSTES.forEach((p) => l.push(p.n));
+    FAMILLES_STREET.forEach((f) => l.push(f.n));
+    PROGRAMMES_STREET.forEach((p) => { l.push(p.nom, p.but); p.seances.forEach((x) => l.push(x.nom)); });
     expect([...new Set(l.filter((x): x is string => !!x && /[a-z]/i.test(x) && !(x in DICO)))]).toEqual([]);
   });
   it("tr, tp, nb et rang selon la langue", () => {
