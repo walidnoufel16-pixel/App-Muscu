@@ -19,7 +19,6 @@ export type Exercice = {
   bt?: number; // exige une barre de traction
   horsIA?: number; // pas encore dans la bibliothèque du programme généré (generer)
   soin?: string; // zone « Soin & mobilité » (épaules, hanches…)
-  pic?: number; // illustré par un pictogramme dessiné plutôt qu'une photo
 };
 
 /* Textes d'une fiche, chargés à part (public/data/fiches.json). */
