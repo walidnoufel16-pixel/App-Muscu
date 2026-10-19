@@ -1,4 +1,4 @@
-/* Soin & mobilité : onglet de la bibliothèque rangé par zone, pictogrammes,
+/* Soin & mobilité : onglet de la bibliothèque rangé par zone, photos partout,
    routine lancée en un geste et rangée dans Mes séances (groupe Soin),
    carte suggérée quand une gêne d'épaule est déclarée, échauffement facultatif.
    En français puis en anglais. CAPTURES=dossier pour garder des captures. */
@@ -41,7 +41,7 @@ const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(1200); await
 
   await pg.getByText("Ta routine coiffe des rotateurs").click();
   await pg.waitForURL(/seance\/?\?l=1/, { waitUntil: "commit" });
-  await pg.getByText("Wall slides").first().waitFor({ timeout: 8000 });
+  await pg.getByText("Rotation externe à l'élastique").first().waitFor({ timeout: 8000 });
   ok(true, "routine ouverte dans le lecteur de séance");
   await cap(pg, "soin-routine");
   await pg.getByRole("tab", { name: "Échauffement" }).click();
@@ -71,11 +71,11 @@ const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(1200); await
   await pg.getByRole("tab", { name: "Soin" }).click();
   await pg.getByRole("heading", { name: "Épaules et coiffe des rotateurs" }).waitFor();
   ok(await pg.getByRole("heading", { name: "Nuque et haut du dos" }).count() === 1, "onglet Soin : sept zones");
-  ok(await pg.locator('img[src*="/img/picto/"]').count() > 0, "pictogrammes affichés");
+  ok(await pg.locator('img[src*="/img/picto/"]').count() === 0, "aucun pictogramme dessiné");
   const n = await pg.evaluate(() => document.body.innerText.match(/Bibliothèque · (\d+) exercices/i)?.[1]);
   ok(Number(n) > 231, `compteur de la bibliothèque à jour (${n})`);
   await cap(pg, "soin-bibliotheque");
-  await pg.getByText("Sleeper stretch").first().click();
+  await pg.getByText("Bras croisé devant la poitrine").first().click();
   await pg.getByText("Exécution", { exact: false }).first().waitFor({ timeout: 8000 }).catch(() => {});
   await cap(pg, "soin-fiche");
   await ctx.close();

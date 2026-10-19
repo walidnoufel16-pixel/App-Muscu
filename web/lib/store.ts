@@ -17,6 +17,7 @@ import type { Etat, Reponses, SeanceLibre } from "@/lib/logic/types";
 import { decoderCardio, encoderCardio } from "@/lib/logic/cardio";
 import { decoderBlocs, encoderBlocs } from "@/lib/logic/combinee";
 import { MAX_HIST, reconstruire } from "@/lib/logic/historique";
+import { ROUTINES_SOIN } from "@/lib/data/soin";
 
 export const SKEY = "palier.state.v1";
 export const PKEY = "palier.pseudo.v1";
@@ -60,6 +61,20 @@ type Stocke = Partial<Etat> & { ts?: number };
 function lireLocal(): Stocke | null {
   try { return JSON.parse(localStorage.getItem(SKEY) || "null"); } catch { return null; }
 }
+/* Un exercice retiré de la bibliothèque disparaît de Mes séances. Une routine de soin
+   qui en contenait un reprend la composition actuelle de sa zone. */
+function sansExercicesDisparus(L: SeanceLibre[]) {
+  return L.map((s) => {
+    if (!Array.isArray(s?.ex) || s.ex.every((x) => EX[x?.id])) return s;
+    const r = s.soin && ROUTINES_SOIN.find((r) => r.z === s.soin);
+    if (r) return { ...s, ex: r.ex.map((x) => ({ ...x })) };
+    /* les blocs cardio sont placés après le n-ième exercice : on recompte */
+    const gardes = s.ex.map((x) => !!EX[x?.id]);
+    const blocs = s.blocs?.map((b) => ({ ...b, apres: gardes.slice(0, b.apres).filter(Boolean).length }));
+    return { ...s, ex: s.ex.filter((x) => EX[x?.id]), ...(blocs ? { blocs } : {}) };
+  });
+}
+
 export function versEtat(s: Stocke | null): Etat {
   const e = vide();
   if (!s) return e;
@@ -68,7 +83,7 @@ export function versEtat(s: Stocke | null): Etat {
   e.SWAP = { ...(s.SWAP || {}) };
   e.SWAPP = { ...(s.SWAPP || {}) };
   e.PLAN = nettoieArbre(s.PLAN) || null;
-  e.SEANCES = nettoieArbre(s.SEANCES) || [];
+  e.SEANCES = sansExercicesDisparus(nettoieArbre(s.SEANCES) || []);
   e.wk = s.wk || 0;
   e.day = s.day || 0;
   e.FINI = !!s.FINI;

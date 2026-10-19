@@ -2348,50 +2348,6 @@ export const EX: Record<string, Exercice> = {
   "d": 30,
   "soin": "epaules"
  },
- "wallsl": {
-  "n": "Wall slides",
-  "m": "Trapèzes inférieurs, dentelé, mobilité d'épaule",
-  "img": "wallsl",
-  "pat": "soin",
-  "eq": 3,
-  "ch": "aucune",
-  "d": 10,
-  "soin": "epaules",
-  "pic": 1
- },
- "ytw": {
-  "n": "Y-T-W allongé",
-  "m": "Trapèzes moyens et inférieurs, coiffe",
-  "img": "ytw",
-  "pat": "soin",
-  "eq": 3,
-  "ch": "aucune",
-  "d": 8,
-  "soin": "epaules",
-  "pic": 1
- },
- "sleep": {
-  "n": "Sleeper stretch",
-  "m": "Arrière d'épaule, rotation interne",
-  "img": "sleep",
-  "pat": "soin",
-  "eq": 3,
-  "ch": "temps",
-  "d": 30,
-  "soin": "epaules",
-  "pic": 1
- },
- "pscap": {
-  "n": "Pompes scapulaires",
-  "m": "Dentelé antérieur, stabilité d'omoplate",
-  "img": "pscap",
-  "pat": "soin",
-  "eq": 3,
-  "ch": "aucune",
-  "d": 12,
-  "soin": "epaules",
-  "pic": 1
- },
  "chq": {
   "n": "Cercles de hanche à quatre pattes",
   "m": "Hanches, fessiers",
@@ -2474,39 +2430,6 @@ export const EX: Record<string, Exercice> = {
   "d": 12,
   "soin": "hanches"
  },
- "h9090": {
-  "n": "Bascule 90/90 des hanches",
-  "m": "Rotateurs de hanche, mobilité",
-  "img": "h9090",
-  "pat": "soin",
-  "eq": 3,
-  "ch": "aucune",
-  "d": 8,
-  "soin": "hanches",
-  "pic": 1
- },
- "clam": {
-  "n": "Clamshell",
-  "m": "Moyen fessier, rotateurs externes",
-  "img": "clam",
-  "pat": "soin",
-  "eq": 3,
-  "ch": "aucune",
-  "d": 15,
-  "soin": "hanches",
-  "pic": 1
- },
- "copen": {
-  "n": "Gainage Copenhague",
-  "m": "Adducteurs, obliques",
-  "img": "copen",
-  "pat": "soin",
-  "eq": 3,
-  "ch": "temps",
-  "d": 20,
-  "soin": "hanches",
-  "pic": 1
- },
  "bascp": {
   "n": "Bascule du bassin vers le pont",
   "m": "Lombaires, fessiers, mobilité du bassin",
@@ -2547,28 +2470,6 @@ export const EX: Record<string, Exercice> = {
   "d": 30,
   "soin": "dos"
  },
- "birdd": {
-  "n": "Bird dog",
-  "m": "Lombaires, fessiers, gainage",
-  "img": "birdd",
-  "pat": "soin",
-  "eq": 3,
-  "ch": "aucune",
-  "d": 8,
-  "soin": "dos",
-  "pic": 1
- },
- "mcgill": {
-  "n": "Curl-up de McGill",
-  "m": "Abdominaux, gainage",
-  "img": "mcgill",
-  "pat": "soin",
-  "eq": 3,
-  "ch": "temps",
-  "d": 10,
-  "soin": "dos",
-  "pic": 1
- },
  "cgen": {
   "n": "Cercles de genoux",
   "m": "Genoux, mobilité",
@@ -2598,41 +2499,6 @@ export const EX: Record<string, Exercice> = {
   "ch": "temps",
   "d": 30,
   "soin": "genoux"
- },
- "spsq": {
-  "n": "Spanish squat",
-  "m": "Quadriceps, tendon rotulien",
-  "img": "spsq",
-  "pat": "soin",
-  "eq": 3,
-  "acc": "el",
-  "ch": "temps",
-  "d": 30,
-  "soin": "genoux",
-  "pic": 1
- },
- "tke": {
-  "n": "Extension terminale du genou",
-  "m": "Quadriceps, vaste interne",
-  "img": "tke",
-  "pat": "soin",
-  "eq": 3,
-  "acc": "el",
-  "ch": "aucune",
-  "d": 15,
-  "soin": "genoux",
-  "pic": 1
- },
- "stepd": {
-  "n": "Step-down lent",
-  "m": "Quadriceps, contrôle du genou",
-  "img": "stepd",
-  "pat": "soin",
-  "eq": 3,
-  "ch": "aucune",
-  "d": 8,
-  "soin": "genoux",
-  "pic": 1
  },
  "cchev": {
   "n": "Cercles de chevilles",
@@ -2664,17 +2530,6 @@ export const EX: Record<string, Exercice> = {
   "d": 30,
   "soin": "chevilles"
  },
- "chevmur": {
-  "n": "Mobilité de cheville au mur",
-  "m": "Chevilles, mollets",
-  "img": "chevmur",
-  "pat": "soin",
-  "eq": 3,
-  "ch": "aucune",
-  "d": 10,
-  "soin": "chevilles",
-  "pic": 1
- },
  "cpoi": {
   "n": "Cercles de poignets",
   "m": "Poignets, mobilité",
@@ -2694,28 +2549,6 @@ export const EX: Record<string, Exercice> = {
   "ch": "temps",
   "d": 30,
   "soin": "poignets"
- },
- "tyler": {
-  "n": "Extension excentrique du poignet",
-  "m": "Extenseurs du poignet, coude externe",
-  "img": "tyler",
-  "pat": "soin",
-  "eq": 2,
-  "ch": "kg",
-  "d": 2,
-  "soin": "poignets",
-  "pic": 1
- },
- "flexpoi": {
-  "n": "Étirement des fléchisseurs du poignet",
-  "m": "Fléchisseurs du poignet, coude interne",
-  "img": "flexpoi",
-  "pat": "soin",
-  "eq": 3,
-  "ch": "temps",
-  "d": 30,
-  "soin": "poignets",
-  "pic": 1
  },
  "mentp": {
   "n": "Menton vers la poitrine",
@@ -2756,28 +2589,6 @@ export const EX: Record<string, Exercice> = {
   "ch": "aucune",
   "d": 10,
   "soin": "nuque"
- },
- "chin": {
-  "n": "Rentrée du menton",
-  "m": "Fléchisseurs profonds du cou",
-  "img": "chin",
-  "pat": "soin",
-  "eq": 3,
-  "ch": "aucune",
-  "d": 10,
-  "soin": "nuque",
-  "pic": 1
- },
- "openb": {
-  "n": "Open book thoracique",
-  "m": "Haut du dos, rotation thoracique",
-  "img": "openb",
-  "pat": "soin",
-  "eq": 3,
-  "ch": "aucune",
-  "d": 8,
-  "soin": "nuque",
-  "pic": 1
  },
  "trneg": {
   "n": "Tractions négatives",
