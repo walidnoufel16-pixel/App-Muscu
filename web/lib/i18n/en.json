@@ -1378,6 +1378,7 @@
 "faite": "done",
 "facultative": "optional",
 "Langue": "Language",
+"Langue : {nom}": "Language: {nom}",
 "{l} moins": "{l} minus",
 "{l} plus": "{l} plus",
 "exercices": "exercises",
