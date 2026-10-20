@@ -98,7 +98,7 @@ export function SectionSoin() {
           ))}
         </div>
       )}
-      <div className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+      <div className="-mx-4 flex snap-x scroll-px-4 gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
         {ROUTINES_SOIN.filter((r) => !zones.includes(r.z)).map((r) => (
           <div key={r.z} className="w-[80%] shrink-0 snap-start"><CarteRoutine r={r} compacte /></div>
         ))}

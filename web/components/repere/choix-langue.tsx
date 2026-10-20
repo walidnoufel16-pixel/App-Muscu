@@ -3,6 +3,8 @@
 import { changerLangue, langue, tr, type Langue } from "@/lib/i18n";
 import { useRepere } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { useEffect, useRef, useState } from "react";
+import { CaretDownIcon, CheckIcon } from "@phosphor-icons/react";
 
 /** Change la langue : notée dans le compte (envoyée tout de suite, l'app se recharge). */
 export function useChangerLangue() {
@@ -36,23 +38,51 @@ const Drapeau = ({ l }: { l: Langue }) =>
     </svg>
   );
 
-/** Bascule français / anglais, en haut des quatre onglets. */
+const NOMS: Record<Langue, string> = { fr: "Français", en: "English" };
+
+/** Liste déroulante de la langue, en haut des quatre onglets. */
 export function ChoixLangue() {
   const changer = useChangerLangue(), courante = langue();
+  const [ouvert, setOuvert] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!ouvert) return;
+    const dehors = (e: PointerEvent) => { if (!ref.current?.contains(e.target as Node)) setOuvert(false); };
+    const echap = (e: KeyboardEvent) => { if (e.key === "Escape") setOuvert(false); };
+    document.addEventListener("pointerdown", dehors);
+    document.addEventListener("keydown", echap);
+    return () => { document.removeEventListener("pointerdown", dehors); document.removeEventListener("keydown", echap); };
+  }, [ouvert]);
   return (
-    <div role="group" aria-label={tr("Langue")} className="flex items-center gap-0.5 rounded-full bg-muted p-0.5">
-      {(["fr", "en"] as Langue[]).map((l) => (
-        <button
-          key={l}
-          onClick={() => changer(l)}
-          aria-pressed={courante === l}
-          aria-label={l === "fr" ? "Français" : "English"}
-          className={cn("grid h-7 w-9 place-items-center rounded-full transition-[background-color,opacity] active:scale-95",
-            courante === l ? "bg-card shadow-sm" : "opacity-45")}
-        >
-          <Drapeau l={l} />
-        </button>
-      ))}
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOuvert((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={ouvert}
+        aria-label={tr("Langue : {nom}", { nom: NOMS[courante] })}
+        className="flex h-8 items-center gap-1.5 rounded-full bg-muted pr-2 pl-2.5 text-[12.5px] font-semibold active:scale-95"
+      >
+        <Drapeau l={courante} />
+        {courante.toUpperCase()}
+        <CaretDownIcon className={cn("size-3 text-muted-foreground transition-transform", ouvert && "rotate-180")} weight="bold" />
+      </button>
+      {ouvert && (
+        <div role="menu" aria-label={tr("Langue")} className="absolute top-full right-0 z-50 mt-1.5 w-44 origin-top-right animate-[pop_.18s_ease-out] rounded-2xl border border-border/70 bg-card p-1 shadow-[0_12px_32px_-12px_rgba(0,0,0,.35)]">
+          {(["fr", "en"] as Langue[]).map((l) => (
+            <button
+              key={l}
+              role="menuitemradio"
+              aria-checked={courante === l}
+              onClick={() => { setOuvert(false); changer(l); }}
+              className="flex h-10 w-full items-center gap-2.5 rounded-xl px-2.5 text-left text-[14.5px] active:bg-muted"
+            >
+              <Drapeau l={l} />
+              <span className="flex-1">{NOMS[l]}</span>
+              {courante === l && <CheckIcon className="size-4 text-plate" weight="bold" />}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

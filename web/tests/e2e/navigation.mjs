@@ -15,9 +15,9 @@ const pg = await ctx.newPage();
 const errs = []; pg.on("pageerror", (e) => errs.push(e.message));
 let fiches = 0; pg.on("request", (r) => r.url().includes("fiches.json") && fiches++);
 await pg.addInitScript(() => {
-  window.__vt = 0;
+  window.__vt = 0; window.__vtTypes = [];
   const o = document.startViewTransition?.bind(document);
-  if (o) document.startViewTransition = (...a) => { window.__vt++; return o(...a); };
+  if (o) document.startViewTransition = (...a) => { window.__vt++; window.__vtTypes.push(...(a[0]?.types ?? [])); return o(...a); };
 });
 const ok = (c, m) => { console.log(c ? "OK  " : "ÉCHEC", m); if (!c) process.exitCode = 1; };
 const actif = () => pg.locator('nav a[aria-current="page"]').textContent();
@@ -146,6 +146,33 @@ const e9 = await pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state
 ok(e9.SEANCES[0].ex.length === 2 && /^curl|^c/i.test(e9.SEANCES[0].ex[1].id) !== null, "séance libre : exercice ajouté à la fin");
 ok(e9.LOG["L|0|0"]?.series?.[0]?.ok === true, "les séries déjà validées sont conservées");
 ok(await pg.locator('[id="ex-L|0|1"] [aria-expanded="true"]').count() === 1, "le nouvel exercice s'ouvre directement");
+
+// changement d'onglet : l'écran glisse du côté de l'onglet touché
+await pg.goto(U + "/exercices/");
+await pg.waitForTimeout(800);
+await pg.evaluate(() => { window.__vtTypes = []; });
+await pg.locator("nav a", { hasText: "Progrès" }).click();
+await pg.waitForURL(/\/progres\/$/);
+await pg.waitForTimeout(500);
+ok((await pg.evaluate(() => window.__vtTypes)).includes("onglet-droite"), "onglet à droite : glissement vers la gauche");
+await pg.locator("nav a", { hasText: "Entraînement" }).click();
+await pg.waitForURL(/\/entrainement\/$/);
+await pg.waitForTimeout(500);
+ok((await pg.evaluate(() => window.__vtTypes)).includes("onglet-gauche"), "onglet à gauche : glissement vers la droite");
+
+// titre réduit centré sur l'écran, avec la langue à droite ou le retour à gauche
+for (const c of ["/entrainement/", "/exercices/", "/profil/", "/entrainement/seance/?l=0"]) {
+  await pg.goto(U + c);
+  await pg.waitForTimeout(900);
+  await pg.mouse.wheel(0, 700);
+  await pg.waitForTimeout(600);
+  const d = await pg.evaluate(() => {
+    const t = document.querySelector(".sticky .truncate.text-center");
+    const g = document.createRange(); g.selectNodeContents(t); const x = g.getBoundingClientRect();
+    return Math.abs(x.left + x.width / 2 - innerWidth / 2);
+  });
+  ok(d <= 2, `${c} : titre réduit centré (écart ${d.toFixed(1)} px)`);
+}
 
 // changer de compte (mode local : les données du téléphone seront effacées, on le dit)
 await pg.goto(U + "/profil/");

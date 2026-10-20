@@ -19,6 +19,8 @@ const ONGLETS = [
 export function TabBar() {
   const chemin = usePathname().replace(/(.)\/$/, "$1");
   const sync = useRepere((s) => s.sync);
+  const est = (href: string) => chemin === href || chemin.startsWith(href + "/");
+  const courant = ONGLETS.findIndex((o) => est(o.href));
   return (
     <nav
       aria-label={tr("Navigation principale")}
@@ -26,12 +28,14 @@ export function TabBar() {
       className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[480px] px-3 pb-[max(env(safe-area-inset-bottom),10px)]"
     >
       <div className="grid grid-cols-4 rounded-[22px] border border-border/70 bg-card/80 p-1.5 shadow-[0_8px_30px_-12px_rgba(0,0,0,.25)] backdrop-blur-xl backdrop-saturate-150">
-        {ONGLETS.map(({ href, nom, Icone }) => {
-          const actif = chemin === href || chemin.startsWith(href + "/");
+        {ONGLETS.map(({ href, nom, Icone }, i) => {
+          const actif = est(href);
           return (
             <Link
               key={href}
               href={href}
+              /* l'écran glisse du côté de l'onglet touché (app/globals.css) */
+              transitionTypes={actif ? undefined : [i > courant ? "onglet-droite" : "onglet-gauche"]}
               aria-current={actif ? "page" : undefined}
               className={cn(
                 "relative flex flex-col items-center gap-1 rounded-2xl py-2 text-[10.5px] font-medium transition-colors",

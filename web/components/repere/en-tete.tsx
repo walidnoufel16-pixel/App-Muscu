@@ -32,8 +32,8 @@ export function EnTete({
           replie ? "border-border/70 bg-background/90 backdrop-blur-xl" : "border-transparent bg-transparent",
         )}
       >
-        {/* retour à gauche, titre réduit au centre (tronqué plutôt que chevauchant), actions à droite */}
-        <div className="grid h-11 grid-cols-[minmax(0,auto)_minmax(0,1fr)_minmax(0,auto)] items-center gap-2 px-4">
+        {/* retour à gauche, actions à droite, de même largeur : le titre réduit est centré sur l'écran (tronqué plutôt que chevauchant) */}
+        <div className="grid h-11 grid-cols-[minmax(max-content,1fr)_minmax(0,auto)_minmax(max-content,1fr)] items-center gap-2 px-4">
           <div className="flex min-w-0 items-center">{gauche}</div>
           <div
             className={cn(

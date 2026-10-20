@@ -37,6 +37,8 @@ const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(1200); await
   ok(await pg.getByText("Mobilité des hanches").count() > 0, "accueil : les autres routines en dessous");
   ok(await pg.getByText("Ne remplace pas l'avis d'un kiné", { exact: false }).count() > 0, "avertissement kiné visible");
   await pg.getByText("Pour ta zone sensible").scrollIntoViewIfNeeded();
+  const g = await pg.getByText("Mobilité des hanches").first().evaluate((el) => el.closest("button").getBoundingClientRect().left);
+  ok(Math.abs(g - 16) <= 1, `carrousel : première routine alignée sur la page (${g} px)`);
   await cap(pg, "soin-accueil");
 
   await pg.getByText("Ta routine coiffe des rotateurs").click();
