@@ -192,23 +192,6 @@
   --glisse: -60px;
   animation: 210ms ease-out 150ms both vt-fondu, 400ms cubic-bezier(.3, 0, 0, 1) both vt-glisse;
 }
-/* Changement d'onglet : glissement court du côté de l'onglet touché. */
-::view-transition-old(.onglet-droite) {
-  --glisse: -24px;
-  animation: 120ms ease-in both vt-fondu reverse, 280ms cubic-bezier(.3, 0, 0, 1) both vt-glisse reverse;
-}
-::view-transition-new(.onglet-droite) {
-  --glisse: 24px;
-  animation: 200ms ease-out 80ms both vt-fondu, 280ms cubic-bezier(.3, 0, 0, 1) both vt-glisse;
-}
-::view-transition-old(.onglet-gauche) {
-  --glisse: 24px;
-  animation: 120ms ease-in both vt-fondu reverse, 280ms cubic-bezier(.3, 0, 0, 1) both vt-glisse reverse;
-}
-::view-transition-new(.onglet-gauche) {
-  --glisse: -24px;
-  animation: 200ms ease-out 80ms both vt-fondu, 280ms cubic-bezier(.3, 0, 0, 1) both vt-glisse;
-}
 @keyframes vt-fondu {
   from { opacity: 0; filter: blur(3px); }
   to { opacity: 1; filter: blur(0); }

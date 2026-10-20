@@ -79,7 +79,7 @@ await pg.waitForTimeout(600);
 // séances libres : les vignettes deviennent l'en-tête
 await pg.goto("http://localhost:8804/entrainement/");
 await pg.waitForTimeout(900);
-await pg.getByText("Épaules · Triceps", { exact: true }).click();
+await pg.getByRole("button", { name: /^Épaules · Triceps \d/ }).click();
 await pg.waitForTimeout(1200);
 ok(/\/entrainement\/seance\/\?l=0/.test(pg.url()), "séance libre ouverte");
 console.log("erreurs:", JSON.stringify(errs));

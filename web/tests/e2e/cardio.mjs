@@ -17,6 +17,8 @@ await ctx.route(/supabase\.co/, (r) => r.abort());
 const pg = await ctx.newPage();
 const errs = []; pg.on("pageerror", (e) => errs.push(e.message));
 const ok = (c, m) => { console.log(c ? "OK  " : "ÉCHEC", m); if (!c) process.exitCode = 1; };
+/* Nouvelle séance : bouton « Créer » de Mes séances (feuille), ou la liste quand il n'y a encore aucune séance */
+const creer = async (pg, quoi) => { await pg.getByText("Mes séances").first().waitFor(); const b = pg.getByRole("button", { name: "Créer", exact: true }); if (await b.waitFor({ timeout: 3000 }).then(() => true, () => false)) { await b.click(); await pg.getByRole("dialog").getByText(quoi).click(); } else await pg.getByText(quoi).last().click(); };
 const etatLu = () => pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")));
 await pg.clock.install();
 /* fait avancer l'horloge par petits pas, pour que l'écran (et la vidéo) suive */
@@ -28,7 +30,7 @@ ok(await pg.getByRole("heading", { name: "Cardio", exact: true }).count() === 0,
 ok(await pg.getByText("Créer une séance cardio").count() === 0, "Mes séances : pas de raccourci cardio");
 
 // le seul chemin : Créer une séance pour moi › Cardio
-await pg.getByText("Créer une séance pour moi").click();
+await creer(pg, "Créer une séance pour moi");
 await pg.waitForURL(/\/entrainement\/assistant\/$/);
 await pg.getByRole("tab", { name: "Cardio" }).click();
 await pg.getByRole("button", { name: /Rameur/ }).click();

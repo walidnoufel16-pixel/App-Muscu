@@ -61,3 +61,15 @@ export function revenirA(chemin: string, remplacer: () => void) {
   const pas = pile.length - 1 - i;
   requestAnimationFrame(() => history.go(-pas));
 }
+
+/* Position de défilement de la page d'accueil de chaque onglet, le temps de la session :
+   comme sur iOS, on retrouve un onglet là où on l'avait laissé. */
+const positions: Record<string, number> = {};
+export const noterPosition = (chemin: string, y: number) => { positions[chemin] = y; };
+export const oublierPosition = (chemin: string) => { delete positions[chemin]; };
+export const positionDe = (chemin: string): number | undefined => positions[chemin];
+
+/* Affichage choisi dans l'onglet Exercices (Corps, Liste, Soin, Street) : gardé d'un onglet
+   à l'autre, et posé par l'accueil (« Toutes les routines » ouvre Soin). */
+export type VueExercices = "corps" | "liste" | "soin" | "street";
+export const useVueExercices = create<{ vue: VueExercices }>(() => ({ vue: "corps" }));

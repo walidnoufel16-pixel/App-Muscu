@@ -14,12 +14,14 @@ import { EX } from "@/lib/data/exercices";
 import { VueSoin } from "@/components/repere/soin";
 import { VueStreet } from "@/components/repere/street";
 import { useBrouillon } from "@/lib/brouillon";
+import { useVueExercices, type VueExercices } from "@/lib/nav";
 
 export default function PageExercices() {
   const A = useRepere((s) => s.etat.A);
   const { sel: selB, setSel } = useBrouillon();
   const sel = avecSalle(selB ?? selDeclare(A), A);
-  const [vue, setVue] = useState<"corps" | "liste" | "soin" | "street">("corps");
+  const vue = useVueExercices((s) => s.vue);
+  const setVue = (v: VueExercices) => useVueExercices.setState({ vue: v });
   const [zone, setZone] = useState<{ z: string; p: string | null } | null>(null);
   const [q, setQ] = useState("");
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);

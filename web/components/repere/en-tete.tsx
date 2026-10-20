@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
-/* Grand titre façon iOS : il se réduit dans une barre fine et translucide
-   dès qu'il sort de l'écran. */
+/* Grand titre façon iOS : la barre prend un fond translucide dès que la page défile,
+   et le titre s'y réduit quand le grand titre sort de l'écran. */
 export function EnTete({
   surtitre, titre, actions, gauche, children, className,
 }: {
@@ -17,23 +17,36 @@ export function EnTete({
 }) {
   const ref = useRef<HTMLHeadingElement>(null);
   const [replie, setReplie] = useState(false);
+  const [fond, setFond] = useState(false);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const io = new IntersectionObserver(([e]) => setReplie(!e.isIntersecting), { rootMargin: "-44px 0px 0px 0px" });
     io.observe(el);
-    return () => io.disconnect();
+    /* le fond paraît dès que la page défile : rien ne passe sous l'heure sans fond */
+    const defile = () => setFond(window.scrollY > 4);
+    defile();
+    window.addEventListener("scroll", defile, { passive: true });
+    return () => { io.disconnect(); window.removeEventListener("scroll", defile); };
   }, []);
   return (
     <>
-      <div
-        className={cn(
-          "safe-top sticky top-0 z-30 border-b transition-[background-color,border-color] duration-200",
-          replie ? "border-border/70 bg-background/90 backdrop-blur-xl" : "border-transparent bg-transparent",
-        )}
-      >
+      {/* Barre fixe (et non « sticky ») : sur iPhone, le contenu d'une barre sticky est dessiné flou.
+          Une cale de même hauteur garde la place dans la page. */}
+      <div className="safe-top" aria-hidden><div className="h-11" /></div>
+      <div className="safe-top fixed inset-x-0 top-0 z-30 mx-auto max-w-[480px]">
+        {/* Le flou est sur une couche à part, derrière le contenu : sur iPhone, ce qui est
+            à l'intérieur d'un élément flouté (backdrop-filter) est dessiné en basse résolution. */}
+        <div
+          aria-hidden
+          data-fond
+          className={cn(
+            "pointer-events-none absolute inset-0 border-b border-border/70 bg-background/90 backdrop-blur-xl transition-opacity duration-200",
+            fond ? "opacity-100" : "opacity-0",
+          )}
+        />
         {/* retour à gauche, actions à droite, de même largeur : le titre réduit est centré sur l'écran (tronqué plutôt que chevauchant) */}
-        <div className="grid h-11 grid-cols-[minmax(max-content,1fr)_minmax(0,auto)_minmax(max-content,1fr)] items-center gap-2 px-4">
+        <div className="relative grid h-11 grid-cols-[minmax(max-content,1fr)_minmax(0,auto)_minmax(max-content,1fr)] items-center gap-2 px-4">
           <div className="flex min-w-0 items-center">{gauche}</div>
           <div
             className={cn(

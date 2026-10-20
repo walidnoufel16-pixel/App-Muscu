@@ -5,6 +5,7 @@ import { useEffect, ViewTransition } from "react";
 import { usePathname } from "next/navigation";
 import { useRepere } from "@/lib/store";
 import { TabBar } from "./tab-bar";
+import { Installer } from "./installer";
 import { RestTimer } from "./rest-timer";
 import { Confirmateur } from "./confirmer";
 import { Bilan } from "./bilan";
@@ -19,7 +20,7 @@ import { useVerifierAccesProgramme } from "@/lib/fonctionnalites";
    d'onglets. Les écrans plein écran (accueil, questionnaire) et les tâches
    en cours (une séance, l'assistant, le composeur) s'en passent. */
 const SANS_ONGLETS = ["/", "/questionnaire", "/bienvenue", "/entrainement/seance", "/entrainement/assistant", "/entrainement/composer", "/entrainement/cardio", "/entrainement/course", "/progres/bilan", "/admin", "/admin/fiche"];
-const glisse = (sens: string | null) => ({ "nav-forward": "nav-forward", "nav-back": "nav-back", "onglet-droite": "onglet-droite", "onglet-gauche": "onglet-gauche", default: sens ?? "none" });
+const glisse = (sens: string | null) => ({ "nav-forward": "nav-forward", "nav-back": "nav-back", default: sens ?? "none" });
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pret = useRepere((s) => s.pret);
@@ -55,13 +56,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="mx-auto min-h-dvh w-full max-w-[480px]">
       <main className={onglets ? "pb-[calc(env(safe-area-inset-bottom)+96px)]" : ""}>
         {/* Chaque écran entre et sort en glissant selon le sens de la navigation
-            (lib/nav.ts), ou du côté de l'onglet touché ; sans sens donné (bouton retour du système), il change sans animation. */}
+            (lib/nav.ts) ; sans sens donné (onglets, bouton retour du système), il change d'un coup, comme sur iOS. */}
         <ViewTransition key={chemin} enter={glisse(sens)} exit={glisse(sens)} default="none">
           <div>{children}</div>
         </ViewTransition>
       </main>
       <RestTimer avecOnglets={onglets} />
       {onglets && <TabBar />}
+      {onglets && <Installer />}
       <Confirmateur />
       <Bilan />
       <SurveillantBadges />

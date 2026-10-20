@@ -20,13 +20,13 @@ export function useChangerLangue() {
 /* Drapeaux dessinés (les émojis drapeaux ne s'affichent pas partout). */
 const Drapeau = ({ l }: { l: Langue }) =>
   l === "fr" ? (
-    <svg viewBox="0 0 3 2" className="h-[14px] w-[21px] rounded-[3px]" aria-hidden>
+    <svg viewBox="0 0 3 2" className="h-4 w-6 rounded-[3px]" shapeRendering="crispEdges" aria-hidden>
       <rect width="1" height="2" fill="#002654" />
       <rect x="1" width="1" height="2" fill="#fff" />
       <rect x="2" width="1" height="2" fill="#ce1126" />
     </svg>
   ) : (
-    <svg viewBox="0 0 60 40" className="h-[14px] w-[21px] rounded-[3px]" aria-hidden>
+    <svg viewBox="0 0 60 40" className="h-4 w-6 rounded-[3px]" aria-hidden>
       <clipPath id="drapeau-gb"><rect width="60" height="40" /></clipPath>
       <g clipPath="url(#drapeau-gb)">
         <rect width="60" height="40" fill="#012169" />

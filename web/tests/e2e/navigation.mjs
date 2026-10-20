@@ -20,6 +20,8 @@ await pg.addInitScript(() => {
   if (o) document.startViewTransition = (...a) => { window.__vt++; window.__vtTypes.push(...(a[0]?.types ?? [])); return o(...a); };
 });
 const ok = (c, m) => { console.log(c ? "OK  " : "ÉCHEC", m); if (!c) process.exitCode = 1; };
+/* Nouvelle séance : bouton « Créer » de Mes séances (feuille), ou la liste quand il n'y a encore aucune séance */
+const creer = async (pg, quoi) => { await pg.getByText("Mes séances").first().waitFor(); const b = pg.getByRole("button", { name: "Créer", exact: true }); if (await b.waitFor({ timeout: 3000 }).then(() => true, () => false)) { await b.click(); await pg.getByRole("dialog").getByText(quoi).click(); } else await pg.getByText(quoi).last().click(); };
 const actif = () => pg.locator('nav a[aria-current="page"]').textContent();
 
 await pg.goto(U + "/");
@@ -89,7 +91,7 @@ await pg.waitForURL(/\/entrainement\/$/);
 ok(true, "retour de la séance vers Entraînement");
 
 // assistant, puis onglets
-await pg.getByText("Créer une séance pour moi").click();
+await creer(pg, "Créer une séance pour moi");
 await pg.waitForURL(/\/entrainement\/assistant\/$/);
 ok(await pg.getByRole("button", { name: "Entraînement" }).waitFor({ timeout: 3000 }).then(() => true, () => false), "assistant : retour libellé « Entraînement »");
 await pg.getByRole("button", { name: "Entraînement" }).click();
@@ -107,7 +109,7 @@ for (const [de, vers] of [["/seances/seance/?i=0", /\/entrainement\/seance\/\?l=
 
 // créer une séance avec l'assistant : après l'enregistrement, retour à Entraînement (pas à l'assistant)
 await pg.goto(U + "/entrainement/");
-await pg.getByText("Créer une séance pour moi").click();
+await creer(pg, "Créer une séance pour moi");
 await pg.waitForURL(/\/entrainement\/assistant\/$/);
 await pg.getByRole("button", { name: "Full body" }).click();
 await pg.getByRole("button", { name: "Créer ma séance" }).click();
@@ -147,18 +149,29 @@ ok(e9.SEANCES[0].ex.length === 2 && /^curl|^c/i.test(e9.SEANCES[0].ex[1].id) !==
 ok(e9.LOG["L|0|0"]?.series?.[0]?.ok === true, "les séries déjà validées sont conservées");
 ok(await pg.locator('[id="ex-L|0|1"] [aria-expanded="true"]').count() === 1, "le nouvel exercice s'ouvre directement");
 
-// changement d'onglet : l'écran glisse du côté de l'onglet touché
+// onglets façon iOS : contenu instantané, pastille qui glisse, position retenue, onglet ouvert → en haut
+const pastille = () => pg.evaluate(() => { const p = document.querySelector("[data-pastille]").getBoundingClientRect(), a = document.querySelector('nav a[aria-current="page"]').getBoundingClientRect(); return Math.abs(p.left + p.width / 2 - (a.left + a.width / 2)); });
 await pg.goto(U + "/exercices/");
+await pg.getByRole("tab", { name: "Liste" }).click();
 await pg.waitForTimeout(800);
+await pg.mouse.wheel(0, 600);
+await pg.waitForTimeout(500);
+const yAvant = await pg.evaluate(() => scrollY);
 await pg.evaluate(() => { window.__vtTypes = []; });
 await pg.locator("nav a", { hasText: "Progrès" }).click();
 await pg.waitForURL(/\/progres\/$/);
-await pg.waitForTimeout(500);
-ok((await pg.evaluate(() => window.__vtTypes)).includes("onglet-droite"), "onglet à droite : glissement vers la gauche");
-await pg.locator("nav a", { hasText: "Entraînement" }).click();
-await pg.waitForURL(/\/entrainement\/$/);
-await pg.waitForTimeout(500);
-ok((await pg.evaluate(() => window.__vtTypes)).includes("onglet-gauche"), "onglet à gauche : glissement vers la droite");
+await pg.waitForTimeout(700);
+ok(!(await pg.evaluate(() => window.__vtTypes)).some((x) => x.startsWith("onglet")), "changement d'onglet sans animation de page");
+ok(await pastille() < 1, "pastille sous l'onglet Progrès");
+await pg.locator("nav a", { hasText: "Exercices" }).click();
+await pg.waitForURL(/\/exercices\/$/);
+await pg.waitForTimeout(700);
+const yApres = await pg.evaluate(() => scrollY);
+ok(yAvant > 300 && Math.abs(yApres - yAvant) <= 5, `Exercices retrouvé là où on l'avait laissé (${yAvant} → ${yApres})`);
+ok(await pastille() < 1, "pastille revenue sous Exercices");
+await pg.locator("nav a", { hasText: "Exercices" }).click();
+await pg.waitForTimeout(1200);
+ok(await pg.evaluate(() => scrollY) === 0, "onglet ouvert touché : retour en haut");
 
 // titre réduit centré sur l'écran, avec la langue à droite ou le retour à gauche
 for (const c of ["/entrainement/", "/exercices/", "/profil/", "/entrainement/seance/?l=0"]) {
@@ -167,7 +180,7 @@ for (const c of ["/entrainement/", "/exercices/", "/profil/", "/entrainement/sea
   await pg.mouse.wheel(0, 700);
   await pg.waitForTimeout(600);
   const d = await pg.evaluate(() => {
-    const t = document.querySelector(".sticky .truncate.text-center");
+    const t = document.querySelector(".fixed .truncate.text-center");
     const g = document.createRange(); g.selectNodeContents(t); const x = g.getBoundingClientRect();
     return Math.abs(x.left + x.width / 2 - innerWidth / 2);
   });

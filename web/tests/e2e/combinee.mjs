@@ -18,6 +18,8 @@ await ctx.route(/supabase\.co/, (r) => r.abort());
 const pg = await ctx.newPage();
 const errs = []; pg.on("pageerror", (e) => errs.push(e.message));
 const ok = (c, m) => { console.log(c ? "OK  " : "ÉCHEC", m); if (!c) process.exitCode = 1; };
+/* Nouvelle séance : bouton « Créer » de Mes séances (feuille), ou la liste quand il n'y a encore aucune séance */
+const creer = async (pg, quoi) => { await pg.getByText("Mes séances").first().waitFor(); const b = pg.getByRole("button", { name: "Créer", exact: true }); if (await b.waitFor({ timeout: 3000 }).then(() => true, () => false)) { await b.click(); await pg.getByRole("dialog").getByText(quoi).click(); } else await pg.getByText(quoi).last().click(); };
 const etatLu = () => pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")));
 const deborde = () => pg.evaluate(() => document.documentElement.scrollWidth > innerWidth || [...document.querySelectorAll('[role="dialog"] *')].some((el) => el.getBoundingClientRect().right > innerWidth + 1));
 /* l'horloge accélérée n'est posée qu'au moment du minuteur : elle gênerait le glisser-déposer */
@@ -33,7 +35,7 @@ await pg.getByRole("button", { name: "Copier le code" }).click();
 ok(await pg.evaluate(() => navigator.clipboard.readText()) === "AB2CD", "copier le code");
 await pg.keyboard.press("Escape");
 await pg.waitForTimeout(400);
-await pg.getByText("Importer une séance avec un code").click();
+await creer(pg, "Importer une séance avec un code");
 await pg.getByRole("textbox", { name: "Code de la séance" }).waitFor();
 await pg.waitForTimeout(700); // fin de l'animation de la feuille
 const champ = await pg.getByRole("textbox", { name: "Code de la séance" }).boundingBox();
@@ -42,7 +44,7 @@ await pg.keyboard.press("Escape");
 await pg.waitForTimeout(400);
 
 // ---------- séance combinée ----------
-await pg.getByText("Créer une séance pour moi").click();
+await creer(pg, "Créer une séance pour moi");
 await pg.getByRole("tab", { name: "Combinée" }).click();
 await pg.getByRole("tab", { name: "Liste" }).first().click();
 await pg.getByRole("button", { name: "Pectoraux", exact: true }).click();
