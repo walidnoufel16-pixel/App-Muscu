@@ -11,7 +11,7 @@ import { useRepere } from "@/lib/store";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 
-export function CarteProteines({ accueil = false }: { accueil?: boolean }) {
+export function CarteProteines({ accueil = false, tuile = false }: { accueil?: boolean; tuile?: boolean }) {
   const A = useRepere((s) => s.etat.A);
   const muter = useRepere((s) => s.muter);
   const [auj] = useState(() => jourDe(Date.now()));
@@ -21,6 +21,21 @@ export function CarteProteines({ accueil = false }: { accueil?: boolean }) {
   const ajouter = (n: number) => { tactile(n > 0 ? 8 : 5); muter((E) => ajouterProt(E.A, auj, n)); };
   return (
     <>
+      {tuile ? (
+        /* tuile de l'accueil : l'anneau, puis les grammes du jour */
+        <button onClick={() => setOuvert(true)} className="flex min-h-[124px] flex-col justify-between rounded-[22px] bg-card p-3.5 text-left active:scale-[.98]">
+          <span className="flex items-center justify-between">
+            <span className="grid size-8 place-items-center rounded-full" style={{ background: `conic-gradient(var(--success) ${p * 360}deg, var(--muted) 0)` }}>
+              <span className="grid size-6 place-items-center rounded-full bg-card"><EggIcon className="size-3.5 text-success" weight="fill" /></span>
+            </span>
+            <PlusIcon className="size-4 text-muted-foreground" weight="bold" />
+          </span>
+          <span>
+            <span className="num block text-[24px] leading-none font-bold">{g}<span className="text-[16px] text-muted-foreground">/{obj}{" "}{tr("g")}</span></span>
+            <span className="mt-1 block text-[12.5px] leading-snug text-muted-foreground">{g >= obj ? tr("Objectif du jour atteint") : tr("protéines aujourd'hui")}</span>
+          </span>
+        </button>
+      ) : (
       <button onClick={() => setOuvert(true)} className="flex w-full items-center gap-3 rounded-[20px] border border-border/80 bg-card p-3.5 text-left active:bg-muted">
         <span className="relative grid size-12 shrink-0 place-items-center rounded-full" style={{ background: `conic-gradient(var(--success) ${p * 360}deg, var(--muted) 0)` }}>
           <span className="grid size-[38px] place-items-center rounded-full bg-card"><EggIcon className="size-5 text-success" weight="fill" /></span>
@@ -33,6 +48,7 @@ export function CarteProteines({ accueil = false }: { accueil?: boolean }) {
         </span>
         <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" />
       </button>
+      )}
       <Drawer open={ouvert} onOpenChange={setOuvert}>
         <DrawerContent>
           <div className="max-h-[80vh] overflow-y-auto px-5 pt-2 pb-[max(env(safe-area-inset-bottom),20px)]">

@@ -29,7 +29,7 @@ const cap = async (n) => { if (process.env.CAPTURES) await pg.screenshot({ path:
 await pg.goto(U + "/entrainement/");
 await pg.getByText(/semaines d'affilée/).waitFor();
 ok(await pg.getByText("4 semaines d'affilée").isVisible(), "série : 4 semaines d'affilée");
-ok(await pg.getByText("1/2 cette semaine").isVisible(), "1 séance sur 2 cette semaine");
+ok((await pg.locator("button", { hasText: "4 semaines d'affilée" }).textContent()).includes("1/2"), "tuile de l'accueil : 1 séance sur 2 cette semaine");
 await pg.waitForTimeout(600);
 ok(await pg.getByText("Nouveau badge").count() === 0, "premier lancement : pas de fête pour les badges déjà mérités");
 const e0 = await etatLu();
@@ -37,7 +37,7 @@ ok(e0.A.badges?.s1 && e0.A.badges?.w4 && !e0.A.badges?.s10, "badges déjà méri
 await cap("entrainement");
 
 // séance « Push » : tout valider → bilan enrichi
-await pg.getByText("Push", { exact: true }).click();
+await pg.getByRole("button", { name: /^Push \d/ }).click();
 await pg.waitForURL(/seance\/\?l=0/);
 await pg.waitForTimeout(1000);
 await pg.locator('[id="ex-L|0|0"] button[aria-expanded]').first().click();

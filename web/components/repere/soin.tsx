@@ -2,12 +2,12 @@
 
 import { tr } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
-import { FirstAidKitIcon, PlayIcon } from "@phosphor-icons/react";
+import { CaretRightIcon, FirstAidKitIcon, PlayIcon } from "@phosphor-icons/react";
 import { EX } from "@/lib/data/exercices";
 import { AVERTISSEMENT_SOIN, routineDe, ROUTINES_SOIN, SOIN_DE_BLESSURE, ZONES_SOIN, type RoutineSoin, type ZoneSoin } from "@/lib/data/soin";
 import { zonesActives } from "@/lib/logic/forme";
 import { useRepere } from "@/lib/store";
-import { AVANT } from "@/lib/nav";
+import { AVANT, useVueExercices } from "@/lib/nav";
 import { LigneExercice } from "./ligne-exercice";
 import { Vignette } from "./exercice-carte";
 
@@ -80,30 +80,31 @@ export function useZonesASoigner(): ZoneSoin[] {
   return [...new Set(zonesActives(A).map((i) => SOIN_DE_BLESSURE[i]).filter(Boolean))];
 }
 
-/** Accueil : routines suggérées pour les zones sensibles, puis toutes les routines. */
+/** Accueil : la routine de la zone sensible en une carte, le reste dans Exercices › Soin. */
 export function SectionSoin() {
+  const router = useRouter();
   const zones = useZonesASoigner();
+  const routines = () => { useVueExercices.setState({ vue: "soin" }); router.push("/exercices"); };
   return (
     <section>
-      <h2 className="eyebrow mb-2 px-1">{tr("Soin & mobilité")}</h2>
-      {zones.length > 0 && (
-        <div className="mb-2 flex flex-col gap-2">
-          {zones.map((z) => (
-            <div key={z} className="rounded-[22px] bg-plate-soft p-2">
-              <p className="flex items-center gap-1.5 px-2 pt-1 pb-2 text-[13px] font-medium text-plate-ink">
-                <FirstAidKitIcon className="size-4" weight="fill" />{tr("Pour ta zone sensible")}
-              </p>
-              <CarteRoutine r={routineDe(z)} titre={tr("Ta routine {nom}", { nom: routineDe(z).nom.toLowerCase() })} compacte />
-            </div>
-          ))}
-        </div>
-      )}
-      <div className="-mx-4 flex snap-x scroll-px-4 gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
-        {ROUTINES_SOIN.filter((r) => !zones.includes(r.z)).map((r) => (
-          <div key={r.z} className="w-[80%] shrink-0 snap-start"><CarteRoutine r={r} compacte /></div>
-        ))}
+      <div className="mb-2 flex items-baseline justify-between px-1">
+        <h2 className="eyebrow">{zones.length ? tr("Pour ta zone sensible") : tr("Soin & mobilité")}</h2>
+        <button onClick={routines} className="text-[13px] font-medium text-plate-ink">{tr("Toutes les routines")}</button>
       </div>
-      <p className="mt-2 px-1 text-[12px] text-muted-foreground">{tr(AVERTISSEMENT_SOIN)}</p>
+      {zones.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          {zones.map((z) => <CarteRoutine key={z} r={routineDe(z)} titre={tr("Ta routine {nom}", { nom: routineDe(z).nom.toLowerCase() })} compacte />)}
+        </div>
+      ) : (
+        <button onClick={routines} className="flex w-full items-center gap-3 rounded-[20px] bg-card p-3.5 text-left active:scale-[0.99]">
+          <span className="grid size-11 shrink-0 place-items-center rounded-[12px] bg-plate-soft text-plate-ink"><FirstAidKitIcon className="size-6" weight="fill" /></span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[16px] font-semibold">{tr("Soin & mobilité")}</span>
+            <span className="block text-[12.5px] text-muted-foreground">{tr("{n} routines courtes, une par zone du corps", { n: ROUTINES_SOIN.length })}</span>
+          </span>
+          <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" />
+        </button>
+      )}
     </section>
   );
 }

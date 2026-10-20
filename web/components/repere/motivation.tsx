@@ -31,13 +31,29 @@ export function IconeBadge({ b, on, className }: { b: Badge; on: boolean; classN
 
 
 /* Carte « Ma régularité » : la série en cours, les séances de la semaine, le joker. */
-export function CarteRegularite({ lien = false, reglable = false }: { lien?: boolean; reglable?: boolean }) {
+export function CarteRegularite({ lien = false, reglable = false, tuile = false }: { lien?: boolean; reglable?: boolean; tuile?: boolean }) {
   const router = useRouter();
   const etat = useRepere((s) => s.etat);
   const muter = useRepere((s) => s.muter);
   const [auj] = useState(() => jourDe(Date.now()));
   const S = useMemo(() => serie(etat.HIST || [], avecSorties(etat.CARDIO, etat.SORTIES), objectifHebdo(etat.A), auj), [etat.HIST, etat.CARDIO, etat.SORTIES, etat.A, auj]);
   const fait = S.cetteSemaine >= S.objectif;
+  /* tuile de l'accueil : la série en grand, la semaine en dessous */
+  if (tuile)
+    return (
+      <button onClick={() => router.push("/progres", AVANT)} className="flex min-h-[124px] flex-col justify-between rounded-[22px] bg-card p-3.5 text-left active:scale-[.98]">
+        <span className="flex items-center justify-between">
+          <FlameIcon className={cn("size-7", S.semaines ? "text-[#ff7a1a] animate-[battre_2.4s_ease-in-out_infinite] motion-reduce:animate-none" : "text-muted-foreground")} weight={S.semaines ? "fill" : "regular"} />
+          <CaretRightIcon className="size-4 text-muted-foreground" />
+        </span>
+        <span>
+          <span className="num block text-[24px] leading-none font-bold">{S.cetteSemaine}<span className="text-[16px] text-muted-foreground">/{S.objectif}</span></span>
+          <span className="mt-1 block text-[12.5px] leading-snug text-muted-foreground">
+            {S.semaines ? tr("{a} d'affilée", { a: tp(S.semaines, "{n} semaine", "{n} semaines") }) : fait ? tr("objectif atteint") : tr("séances cette semaine")}
+          </span>
+        </span>
+      </button>
+    );
   const contenu = (
     <>
       <span className={cn("grid size-12 shrink-0 place-items-center rounded-2xl", S.semaines ? "bg-[#ff7a1a]/12 text-[#ff7a1a]" : "bg-muted text-muted-foreground")}>

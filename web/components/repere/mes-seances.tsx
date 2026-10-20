@@ -1,7 +1,7 @@
 "use client";
 
 import { pluriel, tr } from "@/lib/i18n";
-import { useState, ViewTransition } from "react";
+import { useEffect, useState, ViewTransition } from "react";
 import { useRouter } from "next/navigation";
 import { BarbellIcon, StackIcon, CaretDownIcon, CaretRightIcon, CheckIcon, DownloadSimpleIcon, ExportIcon, FirstAidKitIcon, PersonSimpleTaiChiIcon, HeartbeatIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
@@ -24,7 +24,12 @@ import { dureeTotale as dureeSeance, estCombinee } from "@/lib/logic/combinee";
 import { ICONE_FORMAT } from "./reglages-cardio";
 import { cn } from "@/lib/utils";
 
-/* Séances libres : la liste (balayer pour supprimer, partager), puis les façons d'en créer une. */
+/* La consigne « fais glisser pour supprimer » : seulement les premières fois. */
+const CLE_ASTUCE = "repere.astuce.balayer";
+const vuesAstuce = () => { try { return +(localStorage.getItem(CLE_ASTUCE) || 0); } catch { return 0; } };
+
+/* Séances libres : titre avec le bouton « Créer » (feuille des trois façons d'en créer une),
+   puis la liste rangée par groupes (balayer pour supprimer, partager). */
 export function MesSeances() {
   const router = useRouter();
   const { etat, muter, partager, partagerCardio, importer } = useRepere();
@@ -39,6 +44,9 @@ export function MesSeances() {
   const soins = etat.SEANCES.map((_, i) => i).filter((i) => etat.SEANCES[i].soin);
   const setLibre = useBrouillon((s) => s.setLibre);
   const [imp, setImp] = useState(false);
+  const [creer, setCreer] = useState(false);
+  const [astuce] = useState(() => vuesAstuce() < 3);
+  useEffect(() => { if (astuce) try { localStorage.setItem(CLE_ASTUCE, String(vuesAstuce() + 1)); } catch {} }, [astuce]);
   const [partage, setPartage] = useState<Partage | null>(null);
   const [code, setCode] = useState("");
 
@@ -71,13 +79,23 @@ export function MesSeances() {
     toast.success(tr("« {nom} » ajoutée à tes séances{a}", { nom: r.nom, a: r.cardio ? " cardio" : "" }));
   };
 
+  const vide = !etat.SEANCES.length && !cardio.length;
+  /* les trois façons de créer une séance : dans la feuille « Créer », ou à la place de la liste vide */
+  const actions = (fermer = () => {}) => (
+    <div className="overflow-hidden rounded-[20px] bg-card">
+      <Action accent icone={<SparkleIcon className="size-5" weight="fill" />} label={tr("Créer une séance pour moi")} onClick={() => { fermer(); router.push("/entrainement/assistant", AVANT); }} />
+      <Action icone={<PlusIcon className="size-5" />} label={tr("Composer exercice par exercice")} onClick={() => { fermer(); setLibre({ nom: tr("Séance libre"), ex: [], idx: null }); router.push("/entrainement/composer", AVANT); }} />
+      <Action icone={<DownloadSimpleIcon className="size-5" />} label={tr("Importer une séance avec un code")} onClick={() => { fermer(); setImp(true); }} />
+    </div>
+  );
+
   /* Ligne d'une séance de musculation ou combinée (index dans SEANCES). */
   const ligneMuscu = (i: number) => {
     const s = etat.SEANCES[i];
     const absents = s.ex.filter((e) => !dispoDeclare(etat.A, e.id)).length;
     return (
       <LigneBalayable key={i + s.nom} label={s.nom} onSupprimer={() => supprimer(i)}>
-        <div className="flex items-stretch rounded-[20px] border border-border/80 bg-card">
+        <div className="flex items-stretch rounded-[20px] bg-card">
           <button onClick={() => router.push(`/entrainement/seance?l=${i}`, AVANT)} className="flex min-w-0 flex-1 items-center gap-3 p-3 text-left">
             {/* même nom que dans l'en-tête de la séance : les vignettes s'y transforment */}
             <ViewTransition name={`vignettes-${i}`} share="morph" default="none">
@@ -102,13 +120,16 @@ export function MesSeances() {
   };
 
   return (
-    <>
-      <div className="flex flex-col gap-2">
-        {!etat.SEANCES.length && !cardio.length && (
-          <div className="rounded-[22px] border border-dashed bg-card/50 p-5 text-center text-[14px] leading-relaxed text-muted-foreground">
-            {tr("Aucune séance enregistrée pour l'instant. Crée la première : elle restera disponible ensuite.")}
-          </div>
+    <section>
+      <div className="mb-2 flex items-center justify-between px-1">
+        <h2 className="eyebrow">{tr("Mes séances")}</h2>
+        {!vide && (
+          <button onClick={() => setCreer(true)} className="flex h-8 items-center gap-1 rounded-full bg-plate-soft px-3 text-[13px] font-semibold text-plate-ink active:scale-95">
+            <PlusIcon className="size-3.5" weight="bold" />{tr("Créer")}
+          </button>
         )}
+      </div>
+      <div className="flex flex-col gap-2">
 
         {muscu.length > 0 && (
           <Groupe cle="muscu" titre={tr("Musculation")} icone={<BarbellIcon className="size-5" weight="fill" />} noms={muscu.map((i) => etat.SEANCES[i].nom)}>
@@ -140,7 +161,7 @@ export function MesSeances() {
               const I = ICONE_FORMAT[c.f];
               return (
                 <LigneBalayable key={"c" + i + c.nom} label={c.nom} onSupprimer={() => supprimerCardio(i)}>
-                  <div className="flex items-stretch rounded-[20px] border border-border/80 bg-card">
+                  <div className="flex items-stretch rounded-[20px] bg-card">
                     <button onClick={() => router.push(`/entrainement/cardio?s=${i}` as Route, AVANT)} className="flex min-w-0 flex-1 items-center gap-3 p-3 text-left">
                       <span className="grid size-11 shrink-0 place-items-center rounded-[12px] bg-plate-soft text-plate-ink"><I className="size-6" weight="fill" /></span>
                       <span className="min-w-0 flex-1">
@@ -157,14 +178,20 @@ export function MesSeances() {
             })}
           </Groupe>
         )}
-        {etat.SEANCES.length + cardio.length > 0 && <p className="px-2 text-center text-[11.5px] text-muted-foreground">{tr("Fais glisser une séance vers la gauche pour la supprimer.")}</p>}
+        {!vide && astuce && <p className="px-2 text-center text-[11.5px] text-muted-foreground">{tr("Fais glisser une séance vers la gauche pour la supprimer.")}</p>}
 
-        <div className="mt-1 overflow-hidden rounded-[20px] border border-border/80 bg-card">
-          <Action accent icone={<SparkleIcon className="size-5" weight="fill" />} label={tr("Créer une séance pour moi")} onClick={() => router.push("/entrainement/assistant", AVANT)} />
-          <Action icone={<PlusIcon className="size-5" />} label={tr("Composer exercice par exercice")} onClick={() => { setLibre({ nom: tr("Séance libre"), ex: [], idx: null }); router.push("/entrainement/composer", AVANT); }} />
-          <Action icone={<DownloadSimpleIcon className="size-5" />} label={tr("Importer une séance avec un code")} onClick={() => setImp(true)} />
-        </div>
+        {vide && actions()}
       </div>
+
+      <Drawer open={creer} onOpenChange={setCreer}>
+        <DrawerContent>
+          <div className="px-4 pt-2 pb-[max(env(safe-area-inset-bottom),20px)]">
+            <DrawerTitle className="px-1 text-[20px] font-bold">{tr("Nouvelle séance")}</DrawerTitle>
+            <DrawerDescription className="mt-0.5 mb-3 px-1 text-[13px] text-muted-foreground">{tr("Elle sera rangée dans Mes séances.")}</DrawerDescription>
+            {actions(() => setCreer(false))}
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       <FeuillePartage partage={partage} onClose={() => setPartage(null)} />
 
@@ -189,7 +216,7 @@ export function MesSeances() {
           </div>
         </DrawerContent>
       </Drawer>
-    </>
+    </section>
   );
 }
 
@@ -222,7 +249,7 @@ function Groupe({ cle, titre, icone, noms, children }: { cle: string; titre: str
       <button
         onClick={basculer}
         aria-expanded={ouvert}
-        className="flex items-center gap-3 rounded-[20px] border border-border/80 bg-card px-3.5 py-3 text-left active:scale-[.99]"
+        className="flex items-center gap-3 rounded-[20px] bg-card px-3.5 py-3 text-left active:scale-[.99]"
       >
         <span className="grid size-9 shrink-0 place-items-center rounded-[11px] bg-plate-soft text-plate-ink">{icone}</span>
         <span className="min-w-0 flex-1">

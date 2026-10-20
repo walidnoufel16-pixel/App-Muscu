@@ -24,16 +24,17 @@ const cap = async (n) => { if (process.env.CAPTURES) await pg.screenshot({ path:
 
 // protéines
 await pg.goto(U + "/entrainement/");
-await pg.getByText(/de protéines/).waitFor();
-ok(await pg.getByText("/ 125 g").isVisible(), "objectif protéines : 70 kg × 1,8 ≈ 125 g");
-await pg.getByText(/de protéines/).click();
+const tuile = pg.locator("button", { hasText: "protéines aujourd'hui" });
+await tuile.waitFor();
+ok((await tuile.textContent()).includes("/125 g"), "objectif protéines : 70 kg × 1,8 ≈ 125 g");
+await tuile.click();
 await pg.getByRole("button", { name: /Poulet ou dinde/ }).click();
 await pg.getByRole("button", { name: /Œufs/ }).click();
 await pg.waitForTimeout(300);
 await cap("proteines");
 await pg.keyboard.press("Escape");
 await pg.waitForTimeout(400);
-ok(await pg.getByText("42", { exact: true }).isVisible(), "42 g notés (poulet + œufs)");
+ok((await tuile.textContent()).startsWith("42/"), "42 g notés (poulet + œufs)");
 
 // bilan du mois
 await pg.locator("nav a", { hasText: "Progrès" }).click();

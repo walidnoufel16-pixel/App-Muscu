@@ -34,12 +34,14 @@ const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(1200); await
   await pg.goto(U + "/entrainement/");
   await pg.getByText("Pour ta zone sensible").waitFor({ timeout: 8000 });
   ok(await pg.getByText("Ta routine coiffe des rotateurs").count() === 1, "accueil : routine coiffe suggérée pour l'épaule");
-  ok(await pg.getByText("Mobilité des hanches").count() > 0, "accueil : les autres routines en dessous");
-  ok(await pg.getByText("Ne remplace pas l'avis d'un kiné", { exact: false }).count() > 0, "avertissement kiné visible");
+  ok(await pg.getByText("Mobilité des hanches").count() === 0, "accueil allégé : seulement la routine de la zone sensible");
   await pg.getByText("Pour ta zone sensible").scrollIntoViewIfNeeded();
-  const g = await pg.getByText("Mobilité des hanches").first().evaluate((el) => el.closest("button").getBoundingClientRect().left);
-  ok(Math.abs(g - 16) <= 1, `carrousel : première routine alignée sur la page (${g} px)`);
   await cap(pg, "soin-accueil");
+  await pg.getByRole("button", { name: "Toutes les routines" }).click();
+  await pg.waitForURL(/\/exercices\/?$/);
+  await pg.getByRole("heading", { name: "Hanches" }).waitFor({ timeout: 8000 });
+  ok(await pg.getByText("Ne remplace pas l'avis d'un kiné", { exact: false }).count() > 0, "« Toutes les routines » ouvre Exercices › Soin, avec l'avertissement kiné");
+  await pg.goto(U + "/entrainement/");
 
   await pg.getByText("Ta routine coiffe des rotateurs").click();
   await pg.waitForURL(/seance\/?\?l=1/, { waitUntil: "commit" });
