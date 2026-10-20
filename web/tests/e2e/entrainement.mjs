@@ -1,5 +1,5 @@
-/* Accueil Entraînement : sélecteur Séances libres / Programme, une carte d'action en haut,
-   deux tuiles, Mes séances avec « Créer », le soin de la zone sensible ; carte « Installer l'app » ; barre du haut nette.
+/* Accueil Entraînement : sélecteur Séances libres / Programme ; en séances libres, les trois
+   façons de créer une séance, deux tuiles, Mes séances, le soin de la zone sensible ; carte « Installer l'app » ; barre du haut nette.
    CAPTURES=dossier pour garder des captures. */
 import { chromium } from "@playwright/test";
 import { servir } from "./serveur.mjs";
@@ -36,7 +36,8 @@ const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(1000); await
   await pg.goto(U + "/entrainement/");
   await pg.getByRole("tab", { name: "Séances libres" }).waitFor({ timeout: 8000 });
   ok(await pg.getByRole("tab", { name: "Séances libres" }).getAttribute("aria-selected") === "true", "vue Séances libres par défaut");
-  ok(await pg.getByText(/^Séance du jour/).count() === 0 && await pg.getByText(/^Ta prochaine séance/).count() === 1, "séances libres : pas de séance du programme, la prochaine séance libre");
+  ok(await pg.getByText(/^Séance du jour/).count() === 0 && await pg.locator("h2.text-\\[26px\\]").count() === 0, "séances libres : aucune grande carte bleue");
+  ok(await pg.getByText("Créer une séance pour moi").count() === 1 && await pg.getByText("Composer exercice par exercice").count() === 1 && await pg.getByText("Importer une séance avec un code").count() === 1, "séances libres : les trois façons de créer une séance, visibles directement");
   ok(await pg.locator("button", { hasText: "séances cette semaine" }).count() === 1 && await pg.locator("button", { hasText: "protéines aujourd'hui" }).count() === 1, "deux tuiles : régularité et protéines");
   await cap(pg, "entrainement-libres");
   await pg.getByRole("tab", { name: "Programme" }).click();
@@ -50,44 +51,30 @@ const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(1000); await
   await pg.getByText(/^Séance du jour/).waitFor({ timeout: 8000 });
   ok(true, "retour : la vue Programme est gardée");
   await pg.getByRole("tab", { name: "Séances libres" }).click();
-  await pg.goto(U + "/entrainement/");
-  ok(await pg.getByText("Composer exercice par exercice").count() === 0, "les trois façons de créer ne sont plus en liste");
-  await pg.getByRole("button", { name: "Créer", exact: true }).click();
-  const feuille = pg.getByRole("dialog");
-  await feuille.getByText("Nouvelle séance").waitFor();
-  ok(await feuille.getByText("Créer une séance pour moi").count() === 1 && await feuille.getByText("Composer exercice par exercice").count() === 1 && await feuille.getByText("Importer une séance avec un code").count() === 1, "« Créer » : feuille avec les trois choix");
-  await cap(pg, "entrainement-creer");
-  await feuille.getByText("Composer exercice par exercice").click();
+  await pg.getByText("Composer exercice par exercice").click();
   await pg.waitForURL(/\/entrainement\/composer\/?$/);
-  ok(true, "composer depuis la feuille");
+  ok(true, "« Composer exercice par exercice » ouvre le composeur");
   await ctx.close();
 }
 
 {
-  /* Sans programme : la prochaine séance libre, celle qui suit la dernière faite. */
-  const hier = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
-  const [ctx, pg] = await contexte(etat([PUSH, PULL], [{ d: hier, s: "L|0", nom: "Push", vol: 2000, ser: 6, ex: {} }]));
+  /* Sans accès au programme : « Bientôt disponible » dans la vue Programme seulement. */
+  const [ctx, pg] = await contexte(etat([PUSH, PULL]));
   await pg.goto(U + "/entrainement/");
-  await pg.getByText(/^Ta prochaine séance/).waitFor({ timeout: 8000 });
-  ok(await pg.getByRole("heading", { name: "Pull" }).count() === 1, "après Push, la prochaine est Pull");
+  await pg.getByText("Mes séances").first().waitFor({ timeout: 8000 });
   ok(await pg.getByText("Bientôt disponible").count() === 0, "séances libres : rien sur le programme");
   await pg.getByRole("tab", { name: "Programme" }).click();
   await pg.getByText("Bientôt disponible").waitFor();
   ok(await pg.getByText(/^Un cycle complet/).count() === 1, "vue Programme sans accès : « Bientôt disponible »");
-  await pg.getByRole("tab", { name: "Séances libres" }).click();
-  await cap(pg, "entrainement-libre");
-  await pg.getByRole("button", { name: /^Commencer/ }).click();
-  await pg.waitForURL(/seance\/?\?l=1/, { waitUntil: "commit" });
-  ok(true, "« Commencer » ouvre Pull");
   await ctx.close();
 }
 
 {
-  /* Aucune séance : de quoi créer la première. */
+  /* Aucune séance : le message d'accueil de Mes séances. */
   const [ctx, pg] = await contexte(etat([]));
   await pg.goto(U + "/entrainement/");
-  await pg.getByRole("heading", { name: "Crée ta première séance" }).waitFor({ timeout: 8000 });
-  ok(await pg.getByText("Importer une séance avec un code").count() === 1, "sans séance : les façons d'en créer sont visibles");
+  await pg.getByText(/^Aucune séance enregistrée/).waitFor({ timeout: 8000 });
+  ok(await pg.getByText("Importer une séance avec un code").count() === 1, "sans séance : les façons d'en créer sont visibles une seule fois");
   await ctx.close();
 }
 
@@ -128,6 +115,7 @@ const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(1000); await
   });
   ok(structure.fixe && structure.horsDuFlou, "barre du haut fixe, langue hors de la couche floutée");
   ok(structure.opacite === "0", "en haut de page : pas de fond");
+  await pg.setViewportSize({ width: 393, height: 500 }); // de quoi faire défiler
   await pg.evaluate(() => window.scrollTo(0, 30));
   await pg.waitForTimeout(500);
   const [y, op] = await pg.evaluate(() => [scrollY, getComputedStyle(document.querySelector("[data-fond]")).opacity]);
@@ -139,7 +127,7 @@ const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(1000); await
   /* En anglais : l'accueil sans français. */
   const [ctx, pg] = await contexte(etat([PUSH, PULL]), { langue: "en" });
   await pg.goto(U + "/entrainement/");
-  await pg.getByText(/^Your next workout/).waitFor({ timeout: 8000 });
+  await pg.getByText("My workouts").first().waitFor({ timeout: 8000 });
   const t = await pg.evaluate(() => document.body.innerText);
   const fr = t.split("\n").filter((l) => /[éèàçêûôîœ]/i.test(l.replace(/Repère|REPÈRE|Français/g, "")));
   ok(!fr.length, `EN : accueil sans français${fr.length ? " → " + fr.slice(0, 5).join(" | ") : ""}`);
