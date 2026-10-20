@@ -1,11 +1,12 @@
 "use client";
 
-/* Entraînement : la réponse à « qu'est-ce que je fais aujourd'hui ? » en une carte,
-   deux tuiles (régularité, protéines), Mes séances, puis le soin de la zone sensible. */
-import { tp, tr } from "@/lib/i18n";
+/* Entraînement, en deux vues :
+   - Séances libres (par défaut) : la prochaine séance, deux tuiles, Mes séances, le soin ;
+   - Programme : la séance du jour du programme sur 8 semaines et la semaine en cours. */
+import { pluriel, tp, tr } from "@/lib/i18n";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRightIcon, ChartLineUpIcon, SparkleIcon, StarIcon, TrophyIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, CaretRightIcon, ChartLineUpIcon, CheckIcon, PersonSimpleRunIcon, SparkleIcon, StarIcon, TrophyIcon } from "@phosphor-icons/react";
 import { ChoixLangue } from "@/components/repere/choix-langue";
 import { EnTete } from "@/components/repere/en-tete";
 import { MesSeances } from "@/components/repere/mes-seances";
@@ -17,7 +18,8 @@ import { LogoDisque } from "@/components/repere/logo";
 import { baseRPE, curId, musclesDe, titreSeance, week, wkDone } from "@/lib/logic/core";
 import type { SeanceSemaine } from "@/lib/logic/types";
 import { useRepere } from "@/lib/store";
-import { AVANT } from "@/lib/nav";
+import { AVANT, useVueEntrainement } from "@/lib/nav";
+import { Segmente } from "@/components/repere/segmente";
 import { usePremiereVisite } from "@/lib/entree";
 import { cn } from "@/lib/utils";
 import { useProgrammeActif } from "@/lib/fonctionnalites";
@@ -43,18 +45,37 @@ export default function PageEntrainement() {
 
   const ouvrir = (d: number) => { muter((E) => { E.day = d; }); router.push("/entrainement/seance", AVANT); };
 
+  const vue = useVueEntrainement((s) => s.vue);
+  const tuiles = (plan || !!etat.HIST?.length || !!etat.CARDIO?.length || !!etat.COURSE) && (
+    <>
+      <div className="grid grid-cols-2 gap-3">
+        <CarteRegularite tuile />
+        {etat.A.protOff ? <TuileVide /> : <CarteProteines tuile />}
+      </div>
+      <CarteCourse />
+    </>
+  );
+
   return (
     <>
       <EnTete
-        surtitre={plan ? <>{tr("Semaine")}{" "}{wk + 1}{" "}{tr("sur 8 · effort visé")}{" "}<span className="num text-[13px]">{tr("RPE")}{" "}{baseRPE(wk)}</span></> : tr("Séances à la carte")}
+        surtitre={vue === "programme" && plan ? <>{tr("Semaine")}{" "}{wk + 1}{" "}{tr("sur 8 · effort visé")}{" "}<span className="num text-[13px]">{tr("RPE")}{" "}{baseRPE(wk)}</span></> : tr("Séances à la carte")}
         titre={tr("Entraînement")}
         actions={<ChoixLangue />}
       />
-      {/* Une seule chose importante en haut, puis des blocs compacts. */}
+      {/* Deux façons de s'entraîner, chacune sa vue : les séances libres d'abord, le programme à côté. */}
       <div className={cn("flex flex-col gap-7 px-4", premiere && "entree")}>
         <div className="flex flex-col gap-3">
-          {!prog ? (
+          <Segmente
+            label={tr("Façon de s'entraîner")}
+            valeur={vue}
+            onChange={(v) => useVueEntrainement.setState({ vue: v })}
+            options={[{ v: "libres", n: tr("Séances libres") }, { v: "programme", n: tr("Programme") }]}
+          />
+          {vue === "libres" ? (
             <HeroLibre />
+          ) : !prog ? (
+            <ProgrammeBientot />
           ) : !plan ? (
             <Hero
               surtitre={tr("Programme sur 8 semaines")}
@@ -64,7 +85,7 @@ export default function PageEntrainement() {
               onClick={() => router.push("/questionnaire", AVANT)}
             />
           ) : jour != null ? (
-            <HeroSeance etatJour={jour} W={W} onClick={() => ouvrir(jour)} semaine={<PointsSemaine W={W} jour={jour} />} />
+            <HeroSeance etatJour={jour} W={W} onClick={() => ouvrir(jour)} />
           ) : wk < 7 ? (
             <Hero
               surtitre={tr("Semaine {a} terminée", { a: wk + 1 })}
@@ -85,24 +106,60 @@ export default function PageEntrainement() {
             />
           )}
           <Reprise />
-          {(plan || !!etat.HIST?.length || !!etat.CARDIO?.length || !!etat.COURSE) && (
-            <>
-              <div className="grid grid-cols-2 gap-3">
-                <CarteRegularite tuile />
-                {etat.A.protOff ? <TuileVide /> : <CarteProteines tuile />}
-              </div>
-              <CarteCourse />
-            </>
-          )}
+          {tuiles}
         </div>
 
-        <MesSeances />
-
-        <SectionSoin />
-
-        {!prog && <ProgrammeBientot ligne />}
+        {vue === "libres" ? (
+          <>
+            <MesSeances />
+            <SectionSoin />
+          </>
+        ) : (
+          plan && <MaSemaine W={W} jour={jour} ouvrir={ouvrir} />
+        )}
       </div>
     </>
+  );
+}
+
+/* Vue Programme : la semaine en cours, séance par séance. */
+function MaSemaine({ W, jour, ouvrir }: { W: Jour[]; jour: number | null; ouvrir: (d: number) => void }) {
+  const router = useRouter();
+  const etat = useRepere((s) => s.etat);
+  const { wk } = etat;
+  const socle = W.map((p, j) => (!p.b && !p.sportOnly ? j : -1)).filter((j) => j >= 0);
+  const faites = socle.filter((j) => wkDone(etat, wk, j, W)).length;
+  return (
+    <section>
+      <h2 className="eyebrow mb-2 px-1">{tr("Ma semaine")}</h2>
+      <div className="overflow-hidden rounded-[20px] bg-card">
+        <button onClick={() => router.push("/entrainement/programme", AVANT)} className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-muted">
+          <span className="grid size-9 shrink-0 place-items-center rounded-full" style={{ background: `conic-gradient(var(--plate) ${(socle.length ? faites / socle.length : 0) * 360}deg, var(--muted) 0)` }}>
+            <span className="num grid size-[27px] place-items-center rounded-full bg-card text-[16px] font-bold">{wk + 1}</span>
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[15px] font-semibold">{tr("Semaine {a} sur 8", { a: wk + 1 })}</span>
+            <span className="block text-[12.5px] text-muted-foreground">{tr("{faites} séance{a} sur {length} · voir le programme complet", { faites, a: pluriel(faites) ? "s" : "", length: socle.length })}</span>
+          </span>
+          <CaretRightIcon className="size-4 text-muted-foreground" />
+        </button>
+        {W.map((p, i) => {
+          const fait = wkDone(etat, wk, i, W);
+          return (
+            <button key={i} onClick={() => ouvrir(i)} className="flex w-full items-center gap-3 border-t border-border/70 px-4 py-2.5 text-left active:bg-muted">
+              <span className={cn("num grid size-8 shrink-0 place-items-center rounded-[10px] text-[15px] font-bold", fait ? "bg-plate text-plate-foreground" : "bg-muted text-muted-foreground")}>
+                {fait ? <CheckIcon className="size-4" weight="bold" /> : p.b ? <StarIcon className="size-4" /> : p.sportOnly ? <PersonSimpleRunIcon className="size-4" /> : i + 1}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[14.5px] font-medium">{nomJour(p, i)}{!p.sportOnly && <span className="text-muted-foreground"> · {titreSeance(p.t)}</span>}</span>
+                <span className="block text-[12px] text-muted-foreground">{fait ? tr("faite") : p.b ? tr("facultative") : p.sportOnly ? tr("ta pratique") : i === jour ? tr("la prochaine") : tr("à faire")}</span>
+              </span>
+              <CaretRightIcon className="size-4 text-muted-foreground" />
+            </button>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -113,24 +170,6 @@ function TuileVide() {
     <button onClick={() => router.push("/progres", AVANT)} className="flex min-h-[124px] flex-col justify-between rounded-[22px] bg-card p-3.5 text-left active:scale-[.98]">
       <ChartLineUpIcon className="size-7 text-plate" />
       <span className="text-[13px] leading-snug font-medium">{tr("Tes records et ton volume")}</span>
-    </button>
-  );
-}
-
-/* La semaine du programme en points, dans la carte du jour : faite, prochaine, à faire, bonus. */
-function PointsSemaine({ W, jour }: { W: Jour[]; jour: number }) {
-  const router = useRouter();
-  const etat = useRepere((s) => s.etat);
-  return (
-    <button onClick={() => router.push("/entrainement/programme", AVANT)} aria-label={tr("Voir le programme de la semaine")} className="flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-2 active:scale-95">
-      {W.map((p, i) => {
-        const fait = wkDone(etat, etat.wk, i, W);
-        return p.b ? (
-          <StarIcon key={i} className={cn("size-3.5", fait ? "text-white" : "text-white/55")} weight={fait ? "fill" : "bold"} />
-        ) : (
-          <i key={i} className={cn("size-2.5 rounded-full", fait ? "bg-white" : i === jour ? "bg-white/70 ring-2 ring-white/40" : "bg-white/30")} />
-        );
-      })}
     </button>
   );
 }
@@ -166,24 +205,21 @@ function HeroLibre() {
 }
 
 /* Grande carte cobalt : l'action du moment. Le disque du logo en filigrane. */
-function Hero({ surtitre, titre, texte, bouton, onClick, icone, semaine }: { surtitre: string; titre: string; texte: string; bouton: string; onClick: () => void; icone?: React.ReactNode; semaine?: React.ReactNode }) {
+function Hero({ surtitre, titre, texte, bouton, onClick, icone }: { surtitre: string; titre: string; texte: string; bouton: string; onClick: () => void; icone?: React.ReactNode }) {
   return (
     <div className="relative isolate overflow-hidden rounded-[26px] bg-plate p-5 text-plate-foreground shadow-[0_18px_40px_-22px_var(--plate)]">
       <LogoDisque className="pointer-events-none absolute -right-10 -bottom-12 -z-10 size-52 text-white/[.13]" />
       <div className="flex items-center gap-2 text-[11.5px] font-semibold tracking-[0.12em] uppercase opacity-80">{icone}{surtitre}</div>
       <h2 className="mt-2 text-[26px] leading-[1.1] font-bold tracking-[-0.02em] text-balance">{titre}</h2>
       <p className="mt-2 max-w-[34ch] text-[14px] leading-relaxed opacity-85">{texte}</p>
-      <div className="mt-4 flex items-center justify-between gap-3">
-        <button onClick={onClick} className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[15px] font-semibold text-[#2346c4] shadow-sm active:scale-[.97]">
-          {bouton}<ArrowRightIcon className="size-4" weight="bold" />
-        </button>
-        {semaine}
-      </div>
+      <button onClick={onClick} className="mt-4 inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[15px] font-semibold text-[#2346c4] shadow-sm active:scale-[.97]">
+        {bouton}<ArrowRightIcon className="size-4" weight="bold" />
+      </button>
     </div>
   );
 }
 
-function HeroSeance({ etatJour: d, W, onClick, semaine }: { etatJour: number; W: Jour[]; onClick: () => void; semaine?: React.ReactNode }) {
+function HeroSeance({ etatJour: d, W, onClick }: { etatJour: number; W: Jour[]; onClick: () => void }) {
   const etat = useRepere((s) => s.etat);
   const S = W[d], ids = (S.x || []).map((e, i) => curId(etat, etat.wk, d, i, e[0], W));
   const entamee = ids.some((_, i) => etat.LOG[`${etat.wk}|${d}|${i}`]?.series?.some((s) => s.ok));
@@ -194,7 +230,6 @@ function HeroSeance({ etatJour: d, W, onClick, semaine }: { etatJour: number; W:
       texte={tr("{a} · {length} exercices", { a: musclesDe(ids).slice(0, 4).join(", "), length: ids.length })}
       bouton={entamee ? tr("Reprendre") : tr("Commencer")}
       onClick={onClick}
-      semaine={semaine}
     />
   );
 }

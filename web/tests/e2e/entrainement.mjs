@@ -1,5 +1,5 @@
-/* Accueil Entraînement allégé : une carte d'action en haut, deux tuiles, Mes séances avec
-   « Créer », le soin de la zone sensible ; carte « Installer l'app » ; barre du haut nette.
+/* Accueil Entraînement : sélecteur Séances libres / Programme, une carte d'action en haut,
+   deux tuiles, Mes séances avec « Créer », le soin de la zone sensible ; carte « Installer l'app » ; barre du haut nette.
    CAPTURES=dossier pour garder des captures. */
 import { chromium } from "@playwright/test";
 import { servir } from "./serveur.mjs";
@@ -31,17 +31,25 @@ async function contexte(e, { prog = false, langue, ua, installee = false } = {})
 const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(1000); await pg.screenshot({ path: `${CAP}/${nom}.png` }); } };
 
 {
-  /* Avec le programme : séance du jour et ses points de semaine, deux tuiles, « Créer ». */
+  /* Avec le programme : séances libres par défaut, le programme dans sa propre vue. */
   const [ctx, pg] = await contexte(etat([PUSH, PULL]), { prog: true });
   await pg.goto(U + "/entrainement/");
-  await pg.getByText(/^Séance du jour/).waitFor({ timeout: 8000 });
-  ok(await pg.getByRole("button", { name: "Voir le programme de la semaine" }).count() === 1, "programme : la semaine en points dans la carte du jour");
-  ok(await pg.getByText("Ma semaine", { exact: true }).count() === 0, "plus de liste « Ma semaine » en 5 lignes");
+  await pg.getByRole("tab", { name: "Séances libres" }).waitFor({ timeout: 8000 });
+  ok(await pg.getByRole("tab", { name: "Séances libres" }).getAttribute("aria-selected") === "true", "vue Séances libres par défaut");
+  ok(await pg.getByText(/^Séance du jour/).count() === 0 && await pg.getByText(/^Ta prochaine séance/).count() === 1, "séances libres : pas de séance du programme, la prochaine séance libre");
   ok(await pg.locator("button", { hasText: "séances cette semaine" }).count() === 1 && await pg.locator("button", { hasText: "protéines aujourd'hui" }).count() === 1, "deux tuiles : régularité et protéines");
+  await cap(pg, "entrainement-libres");
+  await pg.getByRole("tab", { name: "Programme" }).click();
+  await pg.getByText(/^Séance du jour/).waitFor();
+  ok(await pg.getByText("Ma semaine", { exact: true }).count() === 1 && await pg.getByText("Mes séances").count() === 0, "vue Programme : séance du jour et semaine, sans Mes séances");
   await cap(pg, "entrainement-programme");
-  await pg.getByRole("button", { name: "Voir le programme de la semaine" }).click();
+  await pg.getByText("Semaine 1 sur 8", { exact: true }).click();
   await pg.waitForURL(/\/entrainement\/programme\/?$/);
-  ok(true, "les points ouvrent le programme");
+  ok(true, "la semaine ouvre le programme complet");
+  await pg.goBack();
+  await pg.getByText(/^Séance du jour/).waitFor({ timeout: 8000 });
+  ok(true, "retour : la vue Programme est gardée");
+  await pg.getByRole("tab", { name: "Séances libres" }).click();
   await pg.goto(U + "/entrainement/");
   ok(await pg.getByText("Composer exercice par exercice").count() === 0, "les trois façons de créer ne sont plus en liste");
   await pg.getByRole("button", { name: "Créer", exact: true }).click();
@@ -62,7 +70,11 @@ const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(1000); await
   await pg.goto(U + "/entrainement/");
   await pg.getByText(/^Ta prochaine séance/).waitFor({ timeout: 8000 });
   ok(await pg.getByRole("heading", { name: "Pull" }).count() === 1, "après Push, la prochaine est Pull");
-  ok(await pg.getByText("Bientôt disponible").count() === 1 && await pg.getByText(/^Un cycle complet/).count() === 0, "programme : une ligne discrète en bas");
+  ok(await pg.getByText("Bientôt disponible").count() === 0, "séances libres : rien sur le programme");
+  await pg.getByRole("tab", { name: "Programme" }).click();
+  await pg.getByText("Bientôt disponible").waitFor();
+  ok(await pg.getByText(/^Un cycle complet/).count() === 1, "vue Programme sans accès : « Bientôt disponible »");
+  await pg.getByRole("tab", { name: "Séances libres" }).click();
   await cap(pg, "entrainement-libre");
   await pg.getByRole("button", { name: /^Commencer/ }).click();
   await pg.waitForURL(/seance\/?\?l=1/, { waitUntil: "commit" });

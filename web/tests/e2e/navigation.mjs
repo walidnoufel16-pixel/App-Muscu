@@ -28,7 +28,9 @@ await pg.goto(U + "/");
 await pg.waitForURL(/\/entrainement\/$/);
 ok(await actif() === "Entraînement", "accueil : onglet Entraînement actif");
 ok(await pg.locator("nav a").count() === 4, "quatre onglets");
-ok(await pg.getByText("Construis ton programme").isVisible(), "sans programme : la carte propose de le construire");
+await pg.getByRole("tab", { name: "Programme" }).click();
+ok(await pg.getByText("Construis ton programme").isVisible(), "vue Programme sans programme : la carte propose de le construire");
+await pg.getByRole("tab", { name: "Séances libres" }).click();
 
 // Mes séances : groupe Musculation repliable, choix mémorisé
 const groupe = pg.getByRole("button", { name: /^Musculation/ });
@@ -43,7 +45,7 @@ await pg.getByRole("button", { name: /^Musculation/ }).click();
 await pg.waitForTimeout(400);
 
 // séance libre en plein écran
-await pg.getByText("Test", { exact: true }).click();
+await pg.getByRole("button", { name: /^Test \d/ }).click();
 await pg.waitForURL(/\/entrainement\/seance\/\?l=0/);
 ok(await pg.locator('nav[aria-label="Navigation principale"]').count() === 0, "séance : barre d'onglets masquée");
 ok((await pg.evaluate(() => window.__vt)) >= 1, "transition de page déclenchée");

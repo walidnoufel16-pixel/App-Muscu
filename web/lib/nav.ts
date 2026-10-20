@@ -73,3 +73,6 @@ export const positionDe = (chemin: string): number | undefined => positions[chem
    à l'autre, et posé par l'accueil (« Toutes les routines » ouvre Soin). */
 export type VueExercices = "corps" | "liste" | "soin" | "street";
 export const useVueExercices = create<{ vue: VueExercices }>(() => ({ vue: "corps" }));
+
+/* Vue de l'onglet Entraînement : séances libres (par défaut) ou programme sur 8 semaines. */
+export const useVueEntrainement = create<{ vue: "libres" | "programme" }>(() => ({ vue: "libres" }));
