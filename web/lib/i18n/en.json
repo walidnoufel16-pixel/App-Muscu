@@ -1670,7 +1670,6 @@
 "Fermé : « Bientôt disponible » pour ce compte.": "Closed: “Coming soon” for this account.",
 "Accès au programme sur 8 semaines": "Access to the 8-week programme",
 "Tes records et ton volume": "Your records and volume",
-"Voir le programme de la semaine": "See this week's programme",
 "Pour commencer": "To get started",
 "Crée ta première séance": "Create your first workout",
 "Choisis les muscles et la durée : Repère compose la séance avec ton matériel.": "Pick the muscles and the duration: Repère builds the workout with your equipment.",
@@ -1692,5 +1691,7 @@
 "Toutes les routines": "All routines",
 "{n} routines courtes, une par zone du corps": "{n} short routines, one per body area",
 "{n} exercice": "{n} exercise",
-"{n} exercices": "{n} exercises"
+"{n} exercices": "{n} exercises",
+"Façon de s'entraîner": "Way to train",
+"Séances libres": "Free workouts"
 }

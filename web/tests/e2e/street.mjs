@@ -30,6 +30,7 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
   /* Salle complète : programme grisé, Ma salle, Street. */
   const [ctx, pg] = await contexte(etat(0));
   await pg.goto(U + "/entrainement/");
+  await pg.getByRole("tab", { name: "Programme" }).click();
   await pg.getByText("Bientôt disponible").first().waitFor({ timeout: 8000 });
   ok(await pg.getByText("Programme sur 8 semaines").count() > 0, "Entraînement : programme sur 8 semaines grisé");
   ok(await pg.getByText("Commencer le questionnaire").count() === 0, "Entraînement : plus de bouton vers le questionnaire");

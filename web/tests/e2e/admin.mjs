@@ -137,6 +137,7 @@ async function contexte(admin, acces = false) {
 {
   const { ctx, pg, appels } = await contexte(false, true);
   await pg.goto(U + "/entrainement/");
+  await pg.getByRole("tab", { name: "Programme" }).click();
   await pg.getByText("Construis ton programme").waitFor({ timeout: 8000 });
   ok(appels.includes("programme_autorise") && (await pg.getByText("Bientôt disponible").count()) === 0, "accès ouvert : le programme sur 8 semaines est proposé");
   await ctx.close();
@@ -146,6 +147,7 @@ async function contexte(admin, acces = false) {
 {
   const { ctx, pg } = await contexte(false, false);
   await pg.goto(U + "/entrainement/");
+  await pg.getByRole("tab", { name: "Programme" }).click();
   await pg.getByText("Bientôt disponible").first().waitFor({ timeout: 8000 });
   ok(await pg.getByText("Construis ton programme").count() === 0, "sans accès : programme grisé");
   await ctx.close();
