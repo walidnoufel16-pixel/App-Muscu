@@ -78,6 +78,7 @@ async function ecran(pg, chemin, nom, attendu) {
 
   /* La séance du jour : ouverte depuis l'accueil. */
   await pg.goto(U + "/entrainement/");
+  await pg.getByRole("tab", { name: /^Program/ }).click();
   await pg.waitForTimeout(1200);
   const seance = pg.getByRole("link", { name: /Get started/ }).or(pg.getByRole("button", { name: /Get started/ })).first();
   ok(await seance.count() > 0, "séance du jour : bouton « Get started »");

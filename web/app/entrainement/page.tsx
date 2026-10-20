@@ -1,15 +1,15 @@
 "use client";
 
 /* Entraînement, en deux vues :
-   - Séances libres (par défaut) : la prochaine séance, deux tuiles, Mes séances, le soin ;
+   - Séances libres (par défaut) : les façons de créer une séance, deux tuiles, Mes séances, le soin ;
    - Programme : la séance du jour du programme sur 8 semaines et la semaine en cours. */
-import { pluriel, tp, tr } from "@/lib/i18n";
+import { pluriel, tr } from "@/lib/i18n";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRightIcon, CaretRightIcon, ChartLineUpIcon, CheckIcon, PersonSimpleRunIcon, SparkleIcon, StarIcon, TrophyIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, CaretRightIcon, ChartLineUpIcon, CheckIcon, PersonSimpleRunIcon, StarIcon, TrophyIcon } from "@phosphor-icons/react";
 import { ChoixLangue } from "@/components/repere/choix-langue";
 import { EnTete } from "@/components/repere/en-tete";
-import { MesSeances } from "@/components/repere/mes-seances";
+import { CreerSeance, MesSeances } from "@/components/repere/mes-seances";
 import { SectionSoin } from "@/components/repere/soin";
 import { CarteRegularite, Reprise } from "@/components/repere/motivation";
 import { CarteProteines } from "@/components/repere/proteines";
@@ -24,7 +24,6 @@ import { usePremiereVisite } from "@/lib/entree";
 import { cn } from "@/lib/utils";
 import { useProgrammeActif } from "@/lib/fonctionnalites";
 import { ProgrammeBientot } from "@/components/repere/bientot";
-import { dureeTotale as dureeSeance } from "@/lib/logic/combinee";
 
 type Jour = SeanceSemaine;
 const nomJour = (p: Jour, i: number) => (p.b ? tr("Bonus") : p.sportOnly ? tr("Ton sport") : tr("Séance {a}", { a: i + 1 }));
@@ -73,7 +72,7 @@ export default function PageEntrainement() {
             options={[{ v: "libres", n: tr("Séances libres") }, { v: "programme", n: tr("Programme") }]}
           />
           {vue === "libres" ? (
-            <HeroLibre />
+            <CreerSeance />
           ) : !prog ? (
             <ProgrammeBientot />
           ) : !plan ? (
@@ -171,36 +170,6 @@ function TuileVide() {
       <ChartLineUpIcon className="size-7 text-plate" />
       <span className="text-[13px] leading-snug font-medium">{tr("Tes records et ton volume")}</span>
     </button>
-  );
-}
-
-/* Sans programme : la prochaine séance libre (celle qui suit la dernière faite), ou de quoi créer la première. */
-function HeroLibre() {
-  const router = useRouter();
-  const etat = useRepere((s) => s.etat);
-  const libres = etat.SEANCES.map((_, i) => i).filter((i) => !etat.SEANCES[i].soin && etat.SEANCES[i].ex.length);
-  if (!libres.length)
-    return (
-      <Hero
-        surtitre={tr("Pour commencer")}
-        titre={tr("Crée ta première séance")}
-        texte={tr("Choisis les muscles et la durée : Repère compose la séance avec ton matériel.")}
-        bouton={tr("Créer une séance pour moi")}
-        icone={<SparkleIcon className="size-4" weight="fill" />}
-        onClick={() => router.push("/entrainement/assistant", AVANT)}
-      />
-    );
-  const derniere = [...(etat.HIST || [])].reverse().find((h) => h.s.startsWith("L|") && libres.includes(+h.s.slice(2)));
-  const k = derniere ? libres.indexOf(+derniere.s.slice(2)) : -1;
-  const i = libres[(k + 1) % libres.length], S = etat.SEANCES[i];
-  return (
-    <Hero
-      surtitre={tr("Ta prochaine séance · environ {m} min", { m: dureeSeance(S) })}
-      titre={S.nom}
-      texte={`${musclesDe(S.ex.map((e) => e.id)).slice(0, 4).join(", ")} · ${tp(S.ex.length, "{n} exercice", "{n} exercices")}`}
-      bouton={tr("Commencer")}
-      onClick={() => router.push(`/entrainement/seance?l=${i}`, AVANT)}
-    />
   );
 }
 

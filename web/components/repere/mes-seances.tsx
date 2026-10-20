@@ -28,11 +28,10 @@ import { cn } from "@/lib/utils";
 const CLE_ASTUCE = "repere.astuce.balayer";
 const vuesAstuce = () => { try { return +(localStorage.getItem(CLE_ASTUCE) || 0); } catch { return 0; } };
 
-/* Séances libres : titre avec le bouton « Créer » (feuille des trois façons d'en créer une),
-   puis la liste rangée par groupes (balayer pour supprimer, partager). */
+/* Séances libres : la liste rangée par groupes (balayer pour supprimer, partager). */
 export function MesSeances() {
   const router = useRouter();
-  const { etat, muter, partager, partagerCardio, importer } = useRepere();
+  const { etat, muter, partager, partagerCardio } = useRepere();
   const cardio = etat.SEANCES_CARDIO || [];
   /* index des séances libres, rangées en deux groupes : musculation seule, ou avec des blocs cardio */
   const libre = (i: number) => !etat.SEANCES[i].soin && !etat.SEANCES[i].street;
@@ -42,13 +41,9 @@ export function MesSeances() {
   const street = etat.SEANCES.map((_, i) => i).filter((i) => etat.SEANCES[i].street);
   /* routines de soin lancées depuis l'accueil ou la bibliothèque */
   const soins = etat.SEANCES.map((_, i) => i).filter((i) => etat.SEANCES[i].soin);
-  const setLibre = useBrouillon((s) => s.setLibre);
-  const [imp, setImp] = useState(false);
-  const [creer, setCreer] = useState(false);
   const [astuce] = useState(() => vuesAstuce() < 3);
   useEffect(() => { if (astuce) try { localStorage.setItem(CLE_ASTUCE, String(vuesAstuce() + 1)); } catch {} }, [astuce]);
   const [partage, setPartage] = useState<Partage | null>(null);
-  const [code, setCode] = useState("");
 
   const supprimer = async (i: number) => {
     const ok = await confirmer({
@@ -72,23 +67,7 @@ export function MesSeances() {
     setPartage({ nom: estCardio ? cardio[i].nom : etat.SEANCES[i].nom, code: r.code });
   };
 
-  const lancerImport = async () => {
-    const r = await importer(code);
-    if (r.erreur) { dire(tr("Import impossible"), r.erreur); return; }
-    setImp(false); setCode("");
-    toast.success(tr("« {nom} » ajoutée à tes séances{a}", { nom: r.nom, a: r.cardio ? " cardio" : "" }));
-  };
-
   const vide = !etat.SEANCES.length && !cardio.length;
-  /* les trois façons de créer une séance : dans la feuille « Créer », ou à la place de la liste vide */
-  const actions = (fermer = () => {}) => (
-    <div className="overflow-hidden rounded-[20px] bg-card">
-      <Action accent icone={<SparkleIcon className="size-5" weight="fill" />} label={tr("Créer une séance pour moi")} onClick={() => { fermer(); router.push("/entrainement/assistant", AVANT); }} />
-      <Action icone={<PlusIcon className="size-5" />} label={tr("Composer exercice par exercice")} onClick={() => { fermer(); setLibre({ nom: tr("Séance libre"), ex: [], idx: null }); router.push("/entrainement/composer", AVANT); }} />
-      <Action icone={<DownloadSimpleIcon className="size-5" />} label={tr("Importer une séance avec un code")} onClick={() => { fermer(); setImp(true); }} />
-    </div>
-  );
-
   /* Ligne d'une séance de musculation ou combinée (index dans SEANCES). */
   const ligneMuscu = (i: number) => {
     const s = etat.SEANCES[i];
@@ -121,15 +100,13 @@ export function MesSeances() {
 
   return (
     <section>
-      <div className="mb-2 flex items-center justify-between px-1">
-        <h2 className="eyebrow">{tr("Mes séances")}</h2>
-        {!vide && (
-          <button onClick={() => setCreer(true)} className="flex h-8 items-center gap-1 rounded-full bg-plate-soft px-3 text-[13px] font-semibold text-plate-ink active:scale-95">
-            <PlusIcon className="size-3.5" weight="bold" />{tr("Créer")}
-          </button>
-        )}
-      </div>
+      <h2 className="eyebrow mb-2 px-1">{tr("Mes séances")}</h2>
       <div className="flex flex-col gap-2">
+        {vide && (
+          <div className="rounded-[22px] border border-dashed bg-card/50 p-5 text-center text-[14px] leading-relaxed text-muted-foreground">
+            {tr("Aucune séance enregistrée pour l'instant. Crée la première : elle restera disponible ensuite.")}
+          </div>
+        )}
 
         {muscu.length > 0 && (
           <Groupe cle="muscu" titre={tr("Musculation")} icone={<BarbellIcon className="size-5" weight="fill" />} noms={muscu.map((i) => etat.SEANCES[i].nom)}>
@@ -180,20 +157,36 @@ export function MesSeances() {
         )}
         {!vide && astuce && <p className="px-2 text-center text-[11.5px] text-muted-foreground">{tr("Fais glisser une séance vers la gauche pour la supprimer.")}</p>}
 
-        {vide && actions()}
       </div>
 
-      <Drawer open={creer} onOpenChange={setCreer}>
-        <DrawerContent>
-          <div className="px-4 pt-2 pb-[max(env(safe-area-inset-bottom),20px)]">
-            <DrawerTitle className="px-1 text-[20px] font-bold">{tr("Nouvelle séance")}</DrawerTitle>
-            <DrawerDescription className="mt-0.5 mb-3 px-1 text-[13px] text-muted-foreground">{tr("Elle sera rangée dans Mes séances.")}</DrawerDescription>
-            {actions(() => setCreer(false))}
-          </div>
-        </DrawerContent>
-      </Drawer>
-
       <FeuillePartage partage={partage} onClose={() => setPartage(null)} />
+
+    </section>
+  );
+}
+
+/* Les trois façons de créer une séance, en tête des séances libres. */
+export function CreerSeance() {
+  const router = useRouter();
+  const importer = useRepere((s) => s.importer);
+  const setLibre = useBrouillon((s) => s.setLibre);
+  const [imp, setImp] = useState(false);
+  const [code, setCode] = useState("");
+
+  const lancerImport = async () => {
+    const r = await importer(code);
+    if (r.erreur) { dire(tr("Import impossible"), r.erreur); return; }
+    setImp(false); setCode("");
+    toast.success(tr("« {nom} » ajoutée à tes séances{a}", { nom: r.nom, a: r.cardio ? " cardio" : "" }));
+  };
+
+  return (
+    <>
+      <div className="overflow-hidden rounded-[20px] bg-card">
+        <Action accent icone={<SparkleIcon className="size-5" weight="fill" />} label={tr("Créer une séance pour moi")} onClick={() => router.push("/entrainement/assistant", AVANT)} />
+        <Action icone={<PlusIcon className="size-5" />} label={tr("Composer exercice par exercice")} onClick={() => { setLibre({ nom: tr("Séance libre"), ex: [], idx: null }); router.push("/entrainement/composer", AVANT); }} />
+        <Action icone={<DownloadSimpleIcon className="size-5" />} label={tr("Importer une séance avec un code")} onClick={() => setImp(true)} />
+      </div>
 
       {/* import : une feuille qui remonte du bas et reste au-dessus du clavier */}
       <Drawer open={imp} onOpenChange={setImp} repositionInputs>
@@ -216,7 +209,7 @@ export function MesSeances() {
           </div>
         </DrawerContent>
       </Drawer>
-    </section>
+    </>
   );
 }
 
