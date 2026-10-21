@@ -16,7 +16,7 @@ import { sb, SB_KEY, SB_URL } from "@/lib/supabase";
 import type { Etat, Reponses, SeanceLibre } from "@/lib/logic/types";
 import { decoderCardio, encoderCardio } from "@/lib/logic/cardio";
 import { decoderBlocs, encoderBlocs } from "@/lib/logic/combinee";
-import { MAX_HIST, reconstruire } from "@/lib/logic/historique";
+import { MAX_HIST, reconstruire, redater } from "@/lib/logic/historique";
 import { ROUTINES_SOIN } from "@/lib/data/soin";
 import { rattacherJournaux } from "@/lib/logic/actions";
 
@@ -96,6 +96,8 @@ export function versEtat(s: Stocke | null): Etat {
   e.SORTIES = Array.isArray(s.SORTIES) ? nettoieArbre(s.SORTIES).slice(-500) : [];
   /* séries restées à la position d'un autre exercice (séance modifiée avant la correction) */
   rattacherJournaux(e);
+  /* séance complétée après minuit, notée comme une séance du lendemain : remise sur son jour */
+  e.HIST = redater(e);
   return e;
 }
 const instantane = (e: Etat) => ({ ...e, ts: Date.now() });

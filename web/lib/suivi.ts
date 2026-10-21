@@ -7,7 +7,7 @@
 import { useRepere } from "@/lib/store";
 import { useCelebrer, seanceDe } from "@/lib/celebrer";
 import { okDe } from "@/lib/logic/core";
-import { inscrire, jourDe, ligneDe } from "@/lib/logic/historique";
+import { inscrire, jourDe, joursSeance, ligneDe } from "@/lib/logic/historique";
 import { formeDuJour, niveau } from "@/lib/logic/forme";
 import type { Journal } from "@/lib/logic/types";
 
@@ -22,9 +22,10 @@ export function suivreHistorique() {
     if (LOG === LOG0 || !st.pret || !avant.pret) return;
     /* état remplacé en entier (chargement, compte synchronisé, changement de compte) : rien à noter */
     if (st.etat.HIST !== avant.etat.HIST) return;
-    const auj = jourDe(Date.now()), touchees = new Set<string>();
-    for (const k in LOG) if (LOG[k] !== LOG0[k] && valides(LOG[k]) !== valides(LOG0[k]) && jourDe(LOG[k]?.ts || 0) === auj) touchees.add(seanceDe(k));
-    for (const k in LOG0) if (!(k in LOG) && jourDe(LOG0[k]?.ts || 0) === auj) touchees.add(seanceDe(k));
+    const auj = jourDe(Date.now()), touchees = new Map<string, string>();
+    /* le jour de la séance, pas forcément aujourd'hui : une séance finie après minuit garde son jour */
+    for (const k in LOG) if (LOG[k] !== LOG0[k] && valides(LOG[k]) !== valides(LOG0[k]) && jourDe(LOG[k]?.ts || 0) === auj) touchees.set(seanceDe(k), joursSeance(st.etat, seanceDe(k))[k] || auj);
+    for (const k in LOG0) if (!(k in LOG) && jourDe(LOG0[k]?.ts || 0) === auj && !touchees.has(seanceDe(k))) touchees.set(seanceDe(k), joursSeance(avant.etat, seanceDe(k))[k] || auj);
     if (!touchees.size) return;
     /* après la mutation en cours (et le record éventuellement compté juste après) */
     queueMicrotask(() => {
@@ -32,12 +33,15 @@ export function suivreHistorique() {
       useRepere.getState().muter((E) => {
         let H = E.HIST || [];
         const f = formeDuJour(E.A);
-        for (const s of touchees) {
-          const debut = c.debut[s];
-          H = inscrire(H, auj, s, ligneDe(E, s, auj, {
-            ...(c.records[s] ? { rec: c.records[s] } : {}),
-            ...(f ? { fo: niveau(f) } : {}),
-            ...(debut ? { min: Math.max(1, Math.round((Date.now() - debut) / 60000)) } : {}),
+        for (const [s, d] of touchees) {
+          const debut = c.debut[s], ancienne = H.find((l) => l.d === d && l.s === s);
+          /* une séance reprise plus tard (après minuit) garde sa durée et sa forme du jour */
+          const min = d !== auj ? ancienne?.min : debut ? Math.max(1, Math.round((Date.now() - debut) / 60000)) : undefined;
+          const fo = d !== auj ? ancienne?.fo : f ? niveau(f) : undefined;
+          H = inscrire(H, d, s, ligneDe(E, s, d, {
+            ...(c.records[s] ? { rec: c.records[s] } : ancienne?.rec ? { rec: ancienne.rec } : {}),
+            ...(fo != null ? { fo } : {}),
+            ...(min ? { min } : {}),
           }));
         }
         E.HIST = H;

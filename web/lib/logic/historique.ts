@@ -72,7 +72,45 @@ export function nomSeance(E: Etat, s: string) {
     (les séries mises de côté, « aN », à la fin). */
 export function journauxDuJour(E: Etat, s: string, d: string) {
   const rang = (k: string) => { const c = k.slice(s.length + 1); return /^\d+$/.test(c) ? +c : 1e6 + (parseInt(c.replace(/\D/g, "")) || 0); };
-  return Object.keys(E.LOG).filter((k) => k.startsWith(s + "|") && E.LOG[k] && jourDe(E.LOG[k].ts || 0) === d).sort((a, b) => rang(a) - rang(b));
+  const jours = joursSeance(E, s);
+  return Object.keys(jours).filter((k) => jours[k] === d).sort((a, b) => rang(a) - rang(b));
+}
+
+/** Écart au-delà duquel deux séries d'une même séance appartiennent à deux séances distinctes. */
+export const ECART_SEANCE = 6 * 3600e3;
+
+/** Jour de séance de chaque journal d'une séance : les séries validées à moins de 6 h
+    d'intervalle forment une même séance, datée du jour de sa première série
+    (une séance finie après minuit, ou complétée un peu plus tard, reste sur son jour). */
+export function joursSeance(E: Etat, s: string): Record<string, string> {
+  const ks = Object.keys(E.LOG).filter((k) => k.startsWith(s + "|") && E.LOG[k]?.ts).sort((a, b) => E.LOG[a].ts - E.LOG[b].ts);
+  const r: Record<string, string> = {};
+  let jour = "", avant = -Infinity;
+  for (const k of ks) {
+    const ts = E.LOG[k].ts;
+    if (ts - avant >= ECART_SEANCE) jour = jourDe(ts);
+    r[k] = jour;
+    avant = ts;
+  }
+  return r;
+}
+
+/** Réparation : lignes d'historique écrites au jour de validation au lieu du jour de la séance
+    (séance complétée après minuit). Les deux jours concernés sont recalculés. */
+export function redater(E: Etat): LigneHist[] {
+  let H = E.HIST || [];
+  const seances = new Set(Object.keys(E.LOG).map((k) => k.split("|").slice(0, 2).join("|")));
+  for (const s of seances) {
+    const jours = joursSeance(E, s), aRefaire = new Set<string>();
+    /* seulement s'il existe encore une ligne au jour de validation : une fois réparé, on ne recalcule plus */
+    for (const k in jours) { const d = jourDe(E.LOG[k].ts); if (d !== jours[k] && H.some((l) => l.d === d && l.s === s)) { aRefaire.add(d); aRefaire.add(jours[k]); } }
+    for (const d of aRefaire) {
+      const ancienne = H.find((l) => l.d === d && l.s === s);
+      const garde = ancienne ? { ...(ancienne.min ? { min: ancienne.min } : {}), ...(ancienne.rec ? { rec: ancienne.rec } : {}), ...(ancienne.fo != null ? { fo: ancienne.fo } : {}) } : {};
+      H = inscrire(H, d, s, ligneDe(E, s, d, garde));
+    }
+  }
+  return H;
 }
 
 /** Détail d'une séance passée, pour la relire : ce qui a été enregistré ce jour-là
@@ -127,7 +165,8 @@ export function reconstruire(E: Etat): LigneHist[] {
   for (const k in E.LOG) {
     const L = E.LOG[k];
     if (!L?.ts || !(L.series || []).some((x) => okDe(L, x))) continue;
-    paires.add(k.split("|").slice(0, 2).join("|") + "#" + jourDe(L.ts));
+    const s = k.split("|").slice(0, 2).join("|");
+    paires.add(s + "#" + joursSeance(E, s)[k]);
   }
   let H: LigneHist[] = [];
   for (const p of paires) {
