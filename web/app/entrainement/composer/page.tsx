@@ -19,7 +19,8 @@ import { construireSeance, exParDefaut } from "@/lib/logic/assistant";
 import { zonesActives, zonesDe } from "@/lib/logic/forme";
 import * as act from "@/lib/logic/actions";
 import type { BlocCardio, ExLibre } from "@/lib/logic/types";
-import { deplacer as deplacerElement, dureeTotale as dureeSeance, minutesBloc, nouveauBloc, ordre } from "@/lib/logic/combinee";
+import { deplacer as deplacerElement, deplacerPartie, dureeTotale as dureeSeance, minutesBloc, nouveauBloc, ranger, sections, type Partie } from "@/lib/logic/combinee";
+import { TitrePartie } from "@/components/repere/parties";
 import { FORMATS, MACHINES, niveauDe } from "@/lib/logic/cardio";
 import { ICONE_FORMAT, ReglagesCardio } from "@/components/repere/reglages-cardio";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
@@ -29,6 +30,9 @@ import { Retour, useRetour } from "@/components/repere/retour";
 import { useBrouillon } from "@/lib/brouillon";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
+
+/* Range le brouillon par parties (soin & mobilité, musculation, cardio), dans leur ordre actuel. */
+const rangerLibre = (l: { ex: ExLibre[]; blocs?: BlocCardio[] }) => { const r = ranger(l); l.ex = r.ex; if (l.blocs) l.blocs = r.blocs; };
 
 export default function PageComposer() {
   const router = useRouter();
@@ -50,11 +54,12 @@ export default function PageComposer() {
   if (!libre) return null;
   const L = libre;
 
-  const ajouter = (o: string) => { tactile(8); majLibre((l) => { l.ex.push(exParDefaut(o)); }); };
+  /* chaque exercice rejoint sa partie (soin & mobilité, musculation, cardio) ; une nouvelle partie se place à la suite */
+  const ajouter = (o: string) => { tactile(8); majLibre((l) => { l.ex.push(exParDefaut(o)); rangerLibre(l); }); };
   const pris = (o: string) => L.ex.some((e) => e.id === o);
   const regl = (i: number, c: "s" | "r", d: number) => majLibre((l) => { const e = l.ex[i]; e[c] = Math.min(c === "s" ? 6 : 600, Math.max(1, e[c] + d)); });
   const reglRepos = (i: number, d: number) => majLibre((l) => { const e = l.ex[i]; let k = PAS_REPOS.indexOf(e.p); if (k < 0) k = 3; e.p = PAS_REPOS[Math.min(PAS_REPOS.length - 1, Math.max(0, k + d))]; });
-  const deplacer = (i: number, d: number) => majLibre((l) => { const j = i + d; if (j < 0 || j >= l.ex.length) return; [l.ex[i], l.ex[j]] = [l.ex[j], l.ex[i]]; });
+  const deplacer = (i: number, d: number) => majLibre((l) => { const j = i + d; if (j < 0 || j >= l.ex.length) return; [l.ex[i], l.ex[j]] = [l.ex[j], l.ex[i]]; rangerLibre(l); });
   const retirer = (i: number) => { setOuv(null); majLibre((l) => { l.ex.splice(i, 1); }); };
 
   /* Glisser-déposer à la poignée : on échange avec la voisine dès que le doigt
@@ -66,8 +71,10 @@ export default function PageComposer() {
     const bouge = (e: PointerEvent) => {
       const cartes = [...(liste.current?.querySelectorAll<HTMLElement>("[data-carte]") || [])];
       const pos = cartes.findIndex((c) => c.dataset.carte === id);
+      const partie = (c: HTMLElement) => c.closest<HTMLElement>("[data-partie]")?.dataset.partie;
       for (let j = 0; j < cartes.length; j++) {
-        if (j === pos) continue;
+        /* on reste dans sa partie */
+        if (j === pos || partie(cartes[j]) !== partie(cartes[pos])) continue;
         const r = cartes[j].getBoundingClientRect(), mid = r.top + r.height / 2;
         if ((j < pos && e.clientY < mid) || (j > pos && e.clientY > mid)) {
           useBrouillon.getState().majLibre((l) => { const r = deplacerElement(l, pos, j); l.ex = r.ex; l.blocs = r.blocs; });
@@ -87,9 +94,10 @@ export default function PageComposer() {
     tactile(8);
     const derniere = etat.CARDIO?.at(-1)?.m;
     const b = nouveauBloc(L.ex.length, "fractionne", derniere && derniere !== "pdc" ? derniere : "tapis", niveauDe(etat.A.regularite));
-    majLibre((l) => { (l.blocs ??= []).push(b); });
+    majLibre((l) => { (l.blocs ??= []).push(b); rangerLibre(l); });
     setBlocOuvert(b.id);
   };
+  const bougerPartie = (p: Partie, sens: -1 | 1) => { tactile(8); majLibre((l) => { const r = deplacerPartie(l, p, sens); l.ex = r.ex; l.blocs = r.blocs; }); };
   const blocActif = L.blocs?.find((b) => b.id === blocOuvert);
   const majBloc = (id: string, c: Partial<BlocCardio>) => majLibre((l) => { const b = l.blocs?.find((x) => x.id === id); if (b) Object.assign(b, c); });
   const retirerBloc = (id: string) => { majLibre((l) => { l.blocs = (l.blocs || []).filter((x) => x.id !== id); }); setBlocOuvert(null); };
@@ -142,7 +150,7 @@ export default function PageComposer() {
         {L.gen && (
           <div className="flex items-center gap-3 rounded-[20px] bg-plate-soft p-3.5">
             <p className="flex-1 text-[13.5px] leading-snug">{tr("Proposition de départ : réordonne, remplace ou ajoute ce que tu veux.")}</p>
-            <Button variant="outline" size="sm" className="rounded-full bg-card" onClick={() => { tactile(10); majLibre((l) => { const zones = zonesActives(etat.A), ex = construireSeance(l.gen!.m, l.gen!.d, l.gen!.obj, sel, Math.random, (o) => zonesDe(o, zones).length > 0); if (ex.length) l.ex = ex; }); setOuv(null); }}>
+            <Button variant="outline" size="sm" className="rounded-full bg-card" onClick={() => { tactile(10); majLibre((l) => { const zones = zonesActives(etat.A), ex = construireSeance(l.gen!.m, l.gen!.d, l.gen!.obj, sel, Math.random, (o) => zonesDe(o, zones).length > 0); if (ex.length) { l.ex = ex; rangerLibre(l); } }); setOuv(null); }}>
               <ArrowsClockwiseIcon />{tr("Autre")}
             </Button>
           </div>
@@ -151,21 +159,28 @@ export default function PageComposer() {
         <section>
           <div className="eyebrow mb-2 px-1">{tr("Ta séance · {length} exercice{a} {a1} {a2}", { length: L.ex.length, a: pluriel(L.ex.length) ? "s" : "", a1: L.blocs?.length ? tr(" + {length} bloc{a} cardio", { length: L.blocs.length, a: pluriel(L.blocs.length) ? "s" : "" }) : "", a2: L.ex.length ? tr(" · environ {a} min", { a: dureeSeance(L) }) : "" })}</div>
           <div ref={liste} className="flex flex-col gap-2">
-            {L.ex.length || L.blocs?.length ? ordre(L).map((x) => x.t === "ex" ? (
-              <CarteCompo
-                key={x.e.id}
-                e={x.e} i={x.i} n={L.ex.length}
-                ouvert={ouv === x.e.id}
-                glisse={glisse === x.e.id}
-                onToggle={() => setOuv(ouv === x.e.id ? null : x.e.id)}
-                onSaisir={(ev) => saisir(ev, x.e.id)}
-                regl={regl} reglRepos={reglRepos} deplacer={deplacer}
-                onFiche={() => setFiche({ id: x.e.id, idx: -1, pres: [x.e.s, x.e.r, x.e.p], libelle: tr("séance libre") })}
-                onRemplacer={() => setRemp(x.i)}
-                onRetirer={() => retirer(x.i)}
-              />
-            ) : (
-              <CarteBloc key={x.b.id} b={x.b} glisse={glisse === "bloc-" + x.b.id} onSaisir={(ev) => saisir(ev, "bloc-" + x.b.id)} onOuvrir={() => setBlocOuvert(x.b.id)} />
+            {L.ex.length || L.blocs?.length ? sections(L).map((sec, k, tout) => (
+              <div key={sec.p + k} data-partie={sec.p} className="flex flex-col gap-2">
+                {tout.length > 1 && (
+                  <TitrePartie p={sec.p} n={sec.el.length} haut={k > 0 ? () => bougerPartie(sec.p, -1) : undefined} bas={k < tout.length - 1 ? () => bougerPartie(sec.p, 1) : undefined} />
+                )}
+                {sec.el.map((x) => x.t === "ex" ? (
+                  <CarteCompo
+                    key={x.e.id}
+                    e={x.e} i={x.i} n={L.ex.length}
+                    ouvert={ouv === x.e.id}
+                    glisse={glisse === x.e.id}
+                    onToggle={() => setOuv(ouv === x.e.id ? null : x.e.id)}
+                    onSaisir={(ev) => saisir(ev, x.e.id)}
+                    regl={regl} reglRepos={reglRepos} deplacer={deplacer}
+                    onFiche={() => setFiche({ id: x.e.id, idx: -1, pres: [x.e.s, x.e.r, x.e.p], libelle: tr("séance libre") })}
+                    onRemplacer={() => setRemp(x.i)}
+                    onRetirer={() => retirer(x.i)}
+                  />
+                ) : (
+                  <CarteBloc key={x.b.id} b={x.b} glisse={glisse === "bloc-" + x.b.id} onSaisir={(ev) => saisir(ev, "bloc-" + x.b.id)} onOuvrir={() => setBlocOuvert(x.b.id)} />
+                ))}
+              </div>
             )) : (
               <button onClick={() => setAjout(true)} className="flex flex-col items-center gap-1.5 rounded-[20px] border border-dashed border-plate/60 bg-card/50 p-6 text-[15px] font-semibold text-plate-ink active:scale-[.99]">
                 <PlusIcon className="size-6" weight="bold" />{tr("Ajouter un exercice")}

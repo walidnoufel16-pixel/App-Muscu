@@ -55,26 +55,18 @@ const cartes = pg.locator("[data-carte]");
 const n = await cartes.count();
 ok(await cartes.last().getAttribute("data-carte").then((x) => x.startsWith("bloc-")), "composeur : bloc cardio placé à la fin");
 
-// glisser le bloc au-dessus du 3e exercice (la liste d'abord à l'écran)
-await cartes.nth(1).evaluate((el) => el.scrollIntoView({ block: "start" }));
-await pg.waitForFunction(() => !document.getAnimations().some((a) => a.playState === "running" && a.effect?.getComputedTiming().iterations !== Infinity), null, { timeout: 5000 }).catch(() => {});
-await pg.waitForTimeout(300);
-const poignee = cartes.last().getByRole("button", { name: "Glisser pour déplacer" });
-const cible = await cartes.nth(2).boundingBox();
-const p = await poignee.boundingBox();
-await pg.mouse.move(p.x + p.width / 2, p.y + p.height / 2);
-await pg.mouse.down();
-for (let k = 1; k <= 12; k++) { await pg.mouse.move(p.x + p.width / 2, p.y + (cible.y + 5 - p.y) * (k / 12)); await pg.waitForTimeout(30); }
-await pg.mouse.up();
+// la séance est rangée en parties : le cardio se remonte avant la musculation par sa flèche
+ok(await pg.locator("[data-titre-partie]").evaluateAll((l) => l.map((x) => x.dataset.titrePartie).join(",")) === "muscu,cardio", "composeur : parties Musculation puis Cardio");
+await pg.getByRole("button", { name: "Monter la partie Cardio" }).click();
 await pg.waitForTimeout(300);
 const ordreCartes = await cartes.evaluateAll((l) => l.map((c) => c.dataset.carte.startsWith("bloc-") ? "bloc" : "ex"));
-ok(ordreCartes.indexOf("bloc") > 0 && ordreCartes.indexOf("bloc") < n - 1, `bloc déplacé entre deux exercices (${ordreCartes.join(" ")})`);
+ok(ordreCartes[0] === "bloc" && ordreCartes.length === n, `partie Cardio remontée en tête (${ordreCartes.join(" ")})`);
 await pg.getByRole("button", { name: "Enregistrer la séance" }).click();
 await pg.waitForURL(/\/entrainement\/$/);
 await pg.waitForTimeout(300);
 const e1 = await etatLu();
 const comb = e1.SEANCES.at(-1);
-ok(comb.blocs?.length === 1 && comb.blocs[0].apres > 0 && comb.blocs[0].apres < comb.ex.length, "séance combinée enregistrée, bloc à sa place");
+ok(comb.blocs?.length === 1 && comb.blocs[0].apres === 0, "séance combinée enregistrée, cardio en premier");
 ok(await pg.getByRole("button", { name: /^Combinées 1/ }).isVisible(), "Mes séances : groupe Combinées");
 
 // la séance : le bloc à sa place, on le lance

@@ -1687,5 +1687,8 @@
 "{n} exercice": "{n} exercise",
 "{n} exercices": "{n} exercises",
 "Façon de s'entraîner": "Way to train",
-"Séances libres": "Free workouts"
+"Séances libres": "Free workouts",
+"Aucun exercice avec ce matériel.": "No exercise with this equipment.",
+"Monter la partie {nom}": "Move {nom} up",
+"Descendre la partie {nom}": "Move {nom} down"
 }

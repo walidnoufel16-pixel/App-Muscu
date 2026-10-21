@@ -1,7 +1,7 @@
 "use client";
 
-/* Feuille « Ajouter un exercice » : la bibliothèque (sur le corps ou en liste, avec
-   le filtre matériel) dans une feuille. Chaque exercice touché s'ajoute ; « Terminé » referme.
+/* Feuille « Ajouter un exercice » : la bibliothèque (sur le corps d'abord, avec la musculation
+   et le soin & mobilité de la zone touchée, ou en liste ; filtre matériel) dans une feuille. Chaque exercice touché s'ajoute ; « Terminé » referme.
    Utilisée par le composeur et pendant une séance libre. */
 import { tr } from "@/lib/i18n";
 import { useState } from "react";
@@ -32,7 +32,7 @@ export function FeuilleAjout({
   const [selL, setSelL] = useState<string[] | null>(null);
   const sel = selP ?? selL ?? selDeclare(A);
   const setSel = onSel ?? setSelL;
-  const [vue, setVue] = useState<"corps" | "liste">("liste");
+  const [vue, setVue] = useState<"corps" | "liste">("corps");
   const [zone, setZone] = useState<{ z: string; p: string | null } | null>(null);
   const [q, setQ] = useState("");
   const [n, setN] = useState(0);
@@ -53,7 +53,7 @@ export function FeuilleAjout({
         </div>
         <div className="mt-3 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),20px)]">
           <FiltreMateriel sel={sel} declare={selDeclare(A)} onChange={setSel} />
-          <Segmente label={tr("Affichage de la bibliothèque")} valeur={vue} onChange={setVue} options={[{ v: "liste", n: tr("Liste") }, { v: "corps", n: tr("Sur le corps") }]} />
+          <Segmente label={tr("Affichage de la bibliothèque")} valeur={vue} onChange={setVue} options={[{ v: "corps", n: tr("Corps") }, { v: "liste", n: tr("Liste") }]} />
           {vue === "corps"
             ? <Bibliotheque sel={sel} zone={zone} setZone={setZone} pris={pris} onAjouter={ajouter} onFiche={onFiche} />
             : <ListeRecherche sel={sel} q={q} setQ={setQ} pris={pris} onAjouter={ajouter} onFiche={onFiche} />}

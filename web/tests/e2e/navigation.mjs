@@ -120,6 +120,7 @@ await pg.waitForURL(/\/entrainement\/composer\/$/);
 const nbAvant = +(await pg.getByText(/^Ta séance · \d+ exercice/).textContent()).match(/(\d+) exercice/)[1];
 await pg.getByRole("button", { name: "Exercice", exact: true }).click();
 await pg.getByRole("heading", { name: "Ajouter un exercice" }).waitFor();
+await pg.getByRole("dialog").getByRole("tab", { name: "Liste" }).click(); // la feuille s'ouvre sur le corps
 await pg.getByPlaceholder(/Rechercher/).fill("curl");
 await pg.getByRole("button", { name: /^Ajouter Curl/ }).first().click();
 await pg.getByPlaceholder(/Rechercher/).fill("gainage");
@@ -143,6 +144,7 @@ await pg.locator('[id="ex-L|0|0"] button[aria-expanded]').first().click();
 await pg.getByRole("button", { name: /^Valider la série/ }).first().click();
 await pg.waitForTimeout(300);
 await pg.getByRole("button", { name: "Ajouter un exercice" }).click();
+await pg.getByRole("dialog").getByRole("tab", { name: "Liste" }).click(); // la feuille s'ouvre sur le corps
 await pg.getByPlaceholder(/Rechercher/).fill("curl");
 await pg.getByRole("button", { name: /^Ajouter Curl/ }).first().click();
 await pg.waitForTimeout(900);

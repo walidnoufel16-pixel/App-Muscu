@@ -3,6 +3,8 @@
 import { construireSeance, dureeTotale as dureeCardio, ORDRE_FORMATS, ORDRE_MACHINES, reglagesDe, type Niveau } from "./cardio";
 import { dureeEstimee } from "./assistant";
 import type { BlocCardio, ExLibre, SeanceLibre } from "./types";
+import { EX } from "@/lib/data/exercices";
+import { estSoin } from "@/lib/data/soin";
 
 export type Element = { t: "ex"; i: number; e: ExLibre } | { t: "bloc"; b: BlocCardio };
 
@@ -27,6 +29,50 @@ export function recomposer(L: Element[]): { ex: ExLibre[]; blocs: BlocCardio[] }
     else blocs.push({ ...x.b, apres: ex.length });
   }
   return { ex, blocs };
+}
+
+/* Parties d'une séance libre : soin & mobilité, musculation, cardio. Leur ordre est celui
+   que l'utilisateur choisit (la première apparition, puis les flèches du composeur). */
+export type Partie = "soin" | "muscu" | "cardio";
+export const PARTIES: Partie[] = ["soin", "muscu", "cardio"];
+
+export function partieDe(x: Element): Partie {
+  if (x.t === "bloc") return "cardio";
+  if (estSoin(x.e.id)) return "soin";
+  return EX[x.e.id]?.pat === "ca" ? "cardio" : "muscu";
+}
+
+/** Parties présentes, dans l'ordre où elles apparaissent. */
+export function partiesDe(s: Pick<SeanceLibre, "ex" | "blocs">): Partie[] {
+  const l: Partie[] = [];
+  for (const x of ordre(s)) { const p = partieDe(x); if (!l.includes(p)) l.push(p); }
+  return l;
+}
+
+/** Remet exercices et blocs dans l'ordre des parties, chacun gardant sa place dans sa partie.
+    `ordreParties` : l'ordre voulu (les parties absentes de cette liste suivent dans leur ordre actuel). */
+export function ranger(s: Pick<SeanceLibre, "ex" | "blocs">, ordreParties: Partie[] = partiesDe(s)) {
+  const L = ordre(s), presentes = partiesDe(s);
+  const rang = [...ordreParties.filter((p) => presentes.includes(p)), ...presentes.filter((p) => !ordreParties.includes(p))];
+  return recomposer(rang.flatMap((p) => L.filter((x) => partieDe(x) === p)));
+}
+
+/** Monte (-1) ou descend (+1) une partie entière. */
+export function deplacerPartie(s: Pick<SeanceLibre, "ex" | "blocs">, p: Partie, sens: -1 | 1) {
+  const o = partiesDe(s), k = o.indexOf(p), j = k + sens;
+  if (k < 0 || j < 0 || j >= o.length) return ranger(s, o);
+  [o[k], o[j]] = [o[j], o[k]];
+  return ranger(s, o);
+}
+
+/** Liste unifiée découpée en parties consécutives (pour l'affichage). */
+export function sections(s: Pick<SeanceLibre, "ex" | "blocs">): { p: Partie; el: Element[]; debut: number }[] {
+  const out: { p: Partie; el: Element[]; debut: number }[] = [];
+  ordre(s).forEach((x, k) => {
+    const p = partieDe(x), d = out[out.length - 1];
+    if (d && d.p === p) d.el.push(x); else out.push({ p, el: [x], debut: k });
+  });
+  return out;
 }
 
 /** Déplace l'élément de la position `de` à la position `vers` (indices de la liste unifiée). */

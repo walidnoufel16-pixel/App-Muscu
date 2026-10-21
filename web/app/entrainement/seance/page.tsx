@@ -3,7 +3,7 @@
 /* Une séance, en plein écran : la même pour le plan (semaine et séance en cours
    dans l'état) et pour une séance libre (?l=index). La barre d'onglets s'efface. */
 import { pluriel, tr } from "@/lib/i18n";
-import { Suspense, useMemo, useState, ViewTransition } from "react";
+import { Fragment, Suspense, useMemo, useState, ViewTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckIcon, HeartbeatIcon, InfoIcon, PencilSimpleIcon, PlayIcon, PlusIcon } from "@phosphor-icons/react";
 import { FeuilleAjout } from "@/components/repere/ajout-exercice";
@@ -27,7 +27,8 @@ import { exParDefaut, objCollation } from "@/lib/logic/assistant";
 import * as act from "@/lib/logic/actions";
 import type { BlocCardio, Journal } from "@/lib/logic/types";
 import type { Route } from "next";
-import { dureeTotale as dureeSeance, minutesBloc, ordre } from "@/lib/logic/combinee";
+import { dureeTotale as dureeSeance, minutesBloc, ordre, sections, type Element } from "@/lib/logic/combinee";
+import { TitrePartie } from "@/components/repere/parties";
 import { FORMATS, MACHINES } from "@/lib/logic/cardio";
 import { ICONE_FORMAT } from "@/components/repere/reglages-cardio";
 import { useRepere } from "@/lib/store";
@@ -234,6 +235,29 @@ function SeanceLibre({ i }: { i: number }) {
     setTimeout(() => document.getElementById("ex-" + kLibre(i, j))?.scrollIntoView({ behavior: "smooth", block: "start" }), 450);
   };
 
+  /* Carte d'un élément de la séance : bloc cardio ou exercice avec son tableau de séries. */
+  const carteSeance = (el: Element) => {
+    if (el.t === "bloc") return <BlocSeance key={el.b.id} b={el.b} fait={blocFait(el.b.id)} onLancer={() => router.push(`/entrainement/cardio?l=${i}&b=${el.b.id}` as Route, AVANT)} />;
+    const e = el.e, j = el.i;
+    const c = ctxLibre(etat, i, j);
+    if (!c) return null;
+    const x = EX[e.id], L = etat.LOG[c.k], r = noRPE(e.id) ? 0 : 8;
+    const fini = () => enchainer({ k: c.k, cles, titre: S.nom, setOuvert });
+    const prescr = x.ch === "temps" ? `${e.s} × ${e.r}s` : x.ch === "dist" ? `${e.s} × ${e.r}m` : `${e.s} × ${e.r}`;
+    return (
+      <ExerciceCarte
+        key={c.k} ancre={c.k}
+        num={j + 1} id={e.id} prescr={prescr} repos={e.p} rpe={r} L={L} n={e.s} ouvert={ouvert === c.k}
+        onToggle={() => { tactile(5); setOuvert(ouvert === c.k ? null : c.k); }}
+        onFiche={() => setFiche({ id: e.id, idx: -1, pres: [e.s, e.r, e.p], libelle: tr("séance libre"), rpe: r || undefined })}
+        onTout={() => { tactile(12); muter((E) => act.toutCocher(E, c)); if (!L?.done && useRepere.getState().etat.LOG[c.k]?.done) fini(); }}
+      >
+        <TableauSeries c={c} rpe={r} onReplier={() => setOuvert(null)} onFini={fini} />
+      </ExerciceCarte>
+    );
+  };
+  const parts = sections(S);
+
   return (
     <Cadre
       surtitre={tr("{a} · {length} exercice{a1}{a2} · environ {a3} min", { a: blocs.length ? tr("Séance combinée") : tr("Séance libre"), length: S.ex.length, a1: pluriel(S.ex.length) ? "s" : "", a2: blocs.length ? tr(" + {length} cardio", { length: blocs.length }) : "", a3: dureeSeance(S) })}
@@ -257,25 +281,11 @@ function SeanceLibre({ i }: { i: number }) {
       {sect === 1 && (
         <div className={cn("flex flex-col gap-2.5 px-4", premiere && "entree")}>
           <FormeDuJour cles={cles} />
-          {ordre(S).map((el) => {
-            if (el.t === "bloc") return <BlocSeance key={el.b.id} b={el.b} fait={blocFait(el.b.id)} onLancer={() => router.push(`/entrainement/cardio?l=${i}&b=${el.b.id}` as Route, AVANT)} />;
-            const e = el.e, j = el.i;
-            const c = ctxLibre(etat, i, j);
-            if (!c) return null;
-            const x = EX[e.id], L = etat.LOG[c.k], r = noRPE(e.id) ? 0 : 8;
-            const fini = () => enchainer({ k: c.k, cles, titre: S.nom, setOuvert });
-            const prescr = x.ch === "temps" ? `${e.s} × ${e.r}s` : x.ch === "dist" ? `${e.s} × ${e.r}m` : `${e.s} × ${e.r}`;
-            return (
-              <ExerciceCarte
-                key={c.k} ancre={c.k}
-                num={j + 1} id={e.id} prescr={prescr} repos={e.p} rpe={r} L={L} n={e.s} ouvert={ouvert === c.k}
-                onToggle={() => { tactile(5); setOuvert(ouvert === c.k ? null : c.k); }}
-                onFiche={() => setFiche({ id: e.id, idx: -1, pres: [e.s, e.r, e.p], libelle: tr("séance libre"), rpe: r || undefined })}
-                onTout={() => { tactile(12); muter((E) => act.toutCocher(E, c)); if (!L?.done && useRepere.getState().etat.LOG[c.k]?.done) fini(); }}
-              >
-                <TableauSeries c={c} rpe={r} onReplier={() => setOuvert(null)} onFini={fini} />
-              </ExerciceCarte>
-            );
+          {ordre(S).map((el, k) => {
+            /* titre de partie (soin & mobilité, musculation, cardio) quand la séance en a plusieurs */
+            const titre = parts.length > 1 && parts.find((x) => x.debut === k);
+            const carte = carteSeance(el);
+            return titre ? <Fragment key={"t" + k}><TitrePartie p={titre.p} />{carte}</Fragment> : carte;
           })}
           <button onClick={() => { tactile(6); setAjout(true); }} className="flex items-center justify-center gap-2 rounded-[18px] border border-dashed border-plate/60 py-3 text-[14.5px] font-semibold text-plate-ink active:scale-[.99]">
             <PlusIcon className="size-4" weight="bold" />{tr("Ajouter un exercice")}
