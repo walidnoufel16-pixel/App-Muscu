@@ -42,19 +42,18 @@ export function serie(H: LigneHist[], C: HistoCardio[], objectif: number, auj = 
 
 /* ---------------- badges ---------------- */
 export type Stats = {
-  seances: number; muscu: number; cardio: number; combinees: number; records: number; tonnes: number; heuresCardio: number;
+  seances: number; muscu: number; cardio: number; combinees: number; records: number; heuresCardio: number;
   tabata: number; norvegien: number; serie: number; max: Record<string, number>; poidsCorps: boolean; defis: number; km: number; sorties: number; courses: number;
 };
 export function stats(E: Etat, auj = jourDe(Date.now())): Stats {
   const H = E.HIST || [], C = avecSorties(E.CARDIO, E.SORTIES);
   const max: Record<string, number> = {};
-  let vol = 0;
-  for (const l of H) { vol += l.vol; for (const id in l.ex) if (EX[id]?.ch === "kg") max[id] = Math.max(max[id] || 0, l.ex[id][2]); }
+  for (const l of H) { for (const id in l.ex) if (EX[id]?.ch === "kg") max[id] = Math.max(max[id] || 0, l.ex[id][2]); }
   const poids = (Array.isArray(E.A.poids) ? (E.A.poids as [string, number][]).at(-1)?.[1] : undefined) ?? E.A.profil?.["Poids"];
   const seul = C.filter((c) => !c.ref);
   return {
     seances: H.length + seul.length, muscu: H.length, cardio: seul.length, combinees: new Set(C.filter((c) => c.ref).map((c) => jourDe(c.ts) + c.ref!.split("|")[0])).size,
-    records: records(H).length, tonnes: vol / 1000, heuresCardio: C.reduce((n, c) => n + c.min, 0) / 60,
+    records: records(H).length, heuresCardio: C.reduce((n, c) => n + c.min, 0) / 60,
     tabata: C.filter((c) => c.f === "tabata").length, norvegien: C.filter((c) => c.f === "norvegien").length,
     serie: serie(H, C, objectifHebdo(E.A), auj).record, max,
     poidsCorps: !!poids && Object.values(max).some((v) => v >= poids),
@@ -65,7 +64,7 @@ export function stats(E: Etat, auj = jourDe(Date.now())): Stats {
 
 export type Badge = { id: string; nom: string; texte: string; icone: string; famille: string; cible: number; valeur: (s: Stats) => number };
 const B = (famille: string, icone: string) => (id: string, nom: string, texte: string, cible: number, valeur: (s: Stats) => number): Badge => ({ id, nom, texte, icone, famille, cible, valeur });
-const course = B(tr("Course à pied"), "course"), premiere = B(tr("Premières fois"), "etoile"), regul = B(tr("Régularité"), "flamme"), force = B(tr("Force"), "haltere"), volume = B(tr("Volume"), "poids"), cardio = B(tr("Cardio"), "coeur");
+const course = B(tr("Course à pied"), "course"), premiere = B(tr("Premières fois"), "etoile"), regul = B(tr("Régularité"), "flamme"), force = B(tr("Force"), "haltere"), cardio = B(tr("Cardio"), "coeur");
 export const BADGES: Badge[] = [
   premiere("s1", tr("Premier pas"), tr("Ta première séance"), 1, (s) => s.seances),
   premiere("c1", tr("Souffle"), tr("Ta première séance cardio"), 1, (s) => s.cardio),
@@ -84,9 +83,6 @@ export const BADGES: Badge[] = [
   force("sq100", tr("Club des 100 · squat"), tr("100 kg au squat"), 100, (s) => s.max.sq || 0),
   force("sdt140", tr("Soulevé lourd"), tr("140 kg au soulevé de terre"), 140, (s) => s.max.sdt || 0),
   force("pdc", tr("Ton propre poids"), tr("Soulever ton poids du corps sur un exercice"), 1, (s) => +s.poidsCorps),
-  volume("t10", tr("10 tonnes"), tr("10 t soulevées au total"), 10, (s) => s.tonnes),
-  volume("t100", tr("100 tonnes"), tr("100 t soulevées au total"), 100, (s) => s.tonnes),
-  volume("t1000", tr("Mille tonnes"), tr("1 000 t soulevées au total"), 1000, (s) => s.tonnes),
   cardio("h10", tr("Endurant"), tr("10 heures de cardio"), 10, (s) => s.heuresCardio),
   cardio("h50", tr("Moteur"), tr("50 heures de cardio"), 50, (s) => s.heuresCardio),
   cardio("tab10", tr("Tabata ×10"), tr("10 séances de Tabata"), 10, (s) => s.tabata),

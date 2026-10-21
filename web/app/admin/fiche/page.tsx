@@ -38,7 +38,6 @@ export default function PageFiche() {
 }
 
 const date = (t: string | null) => { const v = instant(t); return v == null ? "—" : court(jourDe(v)) + " " + new Date(v).getFullYear(); };
-const kg = (v: number) => (v >= 10000 ? (Math.round(v / 100) / 10).toLocaleString(loc()) + " t" : Math.round(v).toLocaleString(loc()) + " kg");
 
 function Fiche() {
   const router = useRouter();
@@ -253,7 +252,7 @@ function Contenu({ F, E }: { F: FicheAdmin; E: ReturnType<typeof versEtat> }) {
 
         <Bloc titre={tr("Activité")}>
           <div className="grid grid-cols-3 gap-2 text-center">
-            {[[s.seances, tr("séances")], [s.records, "records"], [s.serie, tr("sem. d'affilée (record)")], [kg(s.tonnes * 1000), tr("soulevés")], [(Math.round(s.heuresCardio * 10) / 10).toLocaleString(loc()) + " h", tr("de cardio")], [Math.round(s.km) + " km", "courus"]].map(([v, n]) => (
+            {[[s.seances, tr("séances")], [s.records, "records"], [s.serie, tr("sem. d'affilée (record)")], [(Math.round(s.heuresCardio * 10) / 10).toLocaleString(loc()) + " h", tr("de cardio")], [Math.round(s.km) + " km", "courus"]].map(([v, n]) => (
               <div key={n as string} className="rounded-2xl bg-muted/60 px-2 py-2.5">
                 <div className="num text-[18px] font-bold">{v}</div>
                 <div className="text-[11.5px] leading-tight text-muted-foreground">{n}</div>
@@ -290,7 +289,7 @@ function Contenu({ F, E }: { F: FicheAdmin; E: ReturnType<typeof versEtat> }) {
             <div key={i} className="flex items-baseline justify-between gap-3 border-t border-border/60 py-1.5 first:border-t-0">
               <span className="min-w-0"><span className="block truncate font-medium">{l.nom}</span>
                 <span className="text-[12px] text-muted-foreground">{tr("{length} exercices · {ser} séries{a}", { length: Object.keys(l.ex).length, ser: l.ser, a: l.rec ? tr(" · {rec} record{a}", { rec: l.rec, a: pluriel(l.rec) ? "s" : "" }) : "" })}</span></span>
-              <span className="shrink-0 text-right text-[12.5px] text-muted-foreground">{court(l.d)}<span className="block num">{kg(l.vol)}</span></span>
+              <span className="shrink-0 text-right text-[12.5px] text-muted-foreground">{court(l.d)}</span>
             </div>
           )) : <Vide t={tr("Aucune séance.")} />}
         </Bloc>

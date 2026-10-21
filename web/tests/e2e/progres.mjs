@@ -64,6 +64,10 @@ await cap("progres");
 await pg.locator("#par-exercice").click();
 await pg.getByRole("dialog").getByText("Développé couché barre").click();
 await pg.waitForTimeout(400);
+{
+  const txt = await pg.evaluate(() => document.body.innerText), m = txt.match(/.{0,40}(soulevé|\d t\b|tonne).{0,20}/);
+  ok(!m, "Progrès : aucun total en kilos ou en tonnes" + (m ? " → " + m[0] : ""));
+}
 ok(await pg.locator("#par-exercice").textContent().then((t) => t.includes("Développé couché barre")), "courbe : exercice choisi");
 ok(await pg.getByText("1RM estimé (formule d'Epley)").isVisible(), "courbe en 1RM estimé");
 
