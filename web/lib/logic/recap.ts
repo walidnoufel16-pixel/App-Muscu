@@ -31,21 +31,11 @@ export function moisPrecedent(j: string) {
 }
 
 export type Recap = {
-  p: Periode; km: number; seances: number; muscu: number; cardio: number; tonnes: number; series: number; minutesCardio: number;
+  p: Periode; km: number; seances: number; muscu: number; cardio: number; series: number; minutesCardio: number;
   jours: number; jourFavori: string | null; exFavori: { n: string; fois: number } | null; formatFavori: string | null;
   record: { n: string; avant: number; apres: number; unite: string } | null; nbRecords: number; serie: number; badges: string[];
-  comparaison: string;
 };
 const JOURS = Array.from({ length: 7 }, (_, i) => new Date(2026, 9, 4 + i).toLocaleDateString(loc(), { weekday: "long" })); // 4 octobre 2026 : un dimanche
-
-/** Image parlante pour un tonnage. */
-export function comparer(t: number) {
-  if (t >= 150) return tr("le poids d'une baleine bleue{a}", { a: t >= 300 ? ` × ${Math.round(t / 150)}` : "" });
-  if (t >= 12) return tr("{a} éléphants d'Afrique", { a: Math.round(t / 6) });
-  if (t >= 1.2) return tr("{a} voiture{a1} citadine{a2}", { a: Math.max(1, Math.round(t / 1.2)), a1: t >= 2.4 ? "s" : "", a2: t >= 2.4 ? "s" : "" });
-  if (t > 0) return tr("{a} sacs de ciment", { a: Math.max(1, Math.round((t * 1000) / 80)) });
-  return "";
-}
 
 export function recap(E: Etat, id: string): Recap | null {
   const p = periode(id);
@@ -54,7 +44,6 @@ export function recap(E: Etat, id: string): Recap | null {
   const H = (E.HIST || []).filter((l) => dans(l.d));
   const C = avecSorties(E.CARDIO, E.SORTIES).filter((c) => dans(jourDe(c.ts)));
   const cardioSeul = C.filter((c) => !c.ref);
-  const vol = H.reduce((n, l) => n + l.vol, 0);
   const jours = new Set([...H.map((l) => l.d), ...C.map((c) => jourDe(c.ts))]);
   const parJour = new Array(7).fill(0);
   for (const d of jours) parJour[dateDe(d).getDay()]++;
@@ -79,15 +68,14 @@ export function recap(E: Etat, id: string): Recap | null {
   })() : null;
   const notes = (E.A.badges || {}) as Record<string, string>;
   const badges = BADGES.filter((b) => notes[b.id] && dans(notes[b.id])).map((b) => b.nom);
-  const t = vol / 1000;
   return {
-    p, km: Math.round((E.SORTIES || []).filter((s) => dans(s.d)).reduce((n, s) => n + s.km, 0)), seances: H.length + cardioSeul.length, muscu: H.length, cardio: cardioSeul.length, tonnes: t,
+    p, km: Math.round((E.SORTIES || []).filter((s) => dans(s.d)).reduce((n, s) => n + s.km, 0)), seances: H.length + cardioSeul.length, muscu: H.length, cardio: cardioSeul.length,
     series: H.reduce((n, l) => n + l.ser, 0), minutesCardio: Math.round(C.reduce((n, c) => n + c.min, 0)),
     jours: jours.size, jourFavori: jours.size >= 3 ? JOURS[jf] : null,
     exFavori: ef ? { n: EX[ef[0]]?.n || ef[0], fois: ef[1] } : null,
     formatFavori: ff ? FORMATS[ff[0] as keyof typeof FORMATS]?.nom || null : null,
     record, nbRecords: R.length,
     serie: serie(E.HIST || [], E.CARDIO || [], objectifHebdo(E.A), p.fin).record,
-    badges, comparaison: comparer(t),
+    badges,
   };
 }

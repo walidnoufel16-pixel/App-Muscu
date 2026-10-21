@@ -79,6 +79,7 @@ await pg.goto(U + "/progres/");
 await pg.getByRole("button", { name: "Créer un défi" }).waitFor({ timeout: 8000 });
 await pg.getByRole("button", { name: "Créer un défi" }).click();
 await pg.getByRole("tab", { name: "Séances" }).waitFor();
+ok(await pg.getByRole("tab", { name: "Poids soulevé" }).count() === 0, "défis : plus de défi en tonnes");
 await pg.getByRole("button", { name: "4", exact: true }).click();
 await pg.getByRole("tab", { name: "1 sem." }).click();
 await cap("defi-creation");

@@ -158,7 +158,7 @@ function Creation({ onCree }: { onCree: (code: string) => void }) {
       <DrawerTitle className="text-[20px] font-bold">{tr("Nouveau défi")}</DrawerTitle>
       <DrawerDescription className="mt-0.5 text-[13px] text-muted-foreground">{tr("Tu recevras un code à envoyer à tes amis.")}</DrawerDescription>
       <div className="mt-4 flex flex-col gap-3">
-        <Segmente label={tr("Type de défi")} valeur={type} onChange={choisirType} options={(Object.keys(TYPES_DEFI) as TypeDefi[]).map((t) => ({ v: t, n: TYPES_DEFI[t].nom }))} />
+        <Segmente label={tr("Type de défi")} valeur={type} onChange={choisirType} options={(Object.keys(TYPES_DEFI) as TypeDefi[]).filter((t) => t !== "tonnage").map((t) => ({ v: t, n: TYPES_DEFI[t].nom }))} />
         <p className="-mt-1 px-1 text-[12.5px] leading-snug text-muted-foreground">{T.aide}</p>
         <div>
           <div className="mb-1 text-[12.5px] font-medium text-muted-foreground">{tr("Objectif")}</div>

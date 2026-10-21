@@ -44,10 +44,11 @@ await pg.waitForURL(/\/progres\/bilan\/\?p=/);
 await pg.getByText(/^Ton mois de/).waitFor();
 ok(await pg.locator('nav[aria-label="Navigation principale"]').count() === 0, "bilan en plein écran");
 ok(await pg.getByRole("heading", { name: "8 séances" }).isVisible(), "écran 1 : 8 séances");
+ok(await pg.getByText(/séries validées/).isVisible(), "écran 1 : séries validées");
 await cap("bilan-1");
 await pg.getByRole("button", { name: "Suivant" }).click();
 await pg.waitForTimeout(700);
-ok(await pg.getByText("Tu as soulevé").isVisible() && await pg.getByText(/éléphants|voitures|baleine/).isVisible(), "écran 2 : tonnage et comparaison");
+ok(await pg.getByText("Tu as soulevé").count() === 0 && await pg.getByText(/éléphants|voitures|baleine|tonnes?\b| t$/).count() === 0, "plus d'écran en tonnes");
 await cap("bilan-2");
 for (let i = 0; i < 6 && !(await pg.getByText("À partager").isVisible().catch(() => false)); i++) { await pg.getByRole("button", { name: "Suivant" }).click(); await pg.waitForTimeout(400); }
 await pg.getByAltText("Ton bilan en image").waitFor({ timeout: 5000 });

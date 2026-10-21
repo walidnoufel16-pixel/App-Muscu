@@ -22,8 +22,8 @@ function ecrans(r: Recap): Ecran[] {
     sur: r.p.annee ? tr("Ton année {nom}", { nom: r.p.nom }) : tr("Ton mois de {a}", { a: r.p.nom.split(" ")[0] }),
     grand: tr("{seances} séance{a}", { seances: r.seances, a: pluriel(r.seances) ? "s" : "" }),
     sous: tr("{jours} jour{a} d'entraînement{a1}.", { jours: r.jours, a: pluriel(r.jours) ? "s" : "", a1: r.jourFavori ? tr(", surtout le {jourFavori}", { jourFavori: r.jourFavori }) : "" }),
+    detail: r.series ? [tr("{a} séries validées", { a: fr(r.series) })] : undefined,
   }];
-  if (r.tonnes > 0) l.push({ sur: tr("Tu as soulevé"), grand: r.tonnes >= 1 ? `${fr(r.tonnes, 1)} t` : `${fr(r.tonnes * 1000)} kg`, sous: r.comparaison ? tr("Soit {comparaison}.", { comparaison: r.comparaison }) : undefined, detail: [tr("{a} séries validées", { a: fr(r.series) })] });
   if (r.km > 0) l.push({ sur: tr("Tu as couru"), grand: `${r.km} km`, sous: r.km >= 42 ? tr("Soit {a} et quelques.", { a: Math.floor(r.km / 42.195) > 1 ? Math.floor(r.km / 42.195) + " marathons" : tr("un marathon") }) : undefined });
   if (r.record) l.push({ sur: tr("Ton plus beau record"), grand: r.record.n, sous: `${fr(r.record.avant)} → ${fr(r.record.apres)} ${r.record.unite}`, detail: r.nbRecords > 1 ? [tr("et {a} autre{a1} record{a2}", { a: r.nbRecords - 1, a1: r.nbRecords > 2 ? "s" : "", a2: r.nbRecords > 2 ? "s" : "" })] : undefined });
   const fav: string[] = [];
@@ -61,7 +61,7 @@ async function image(r: Recap): Promise<Blob | null> {
   texte(r.p.annee ? tr("Mon année {nom}", { nom: r.p.nom }) : tr("Mon mois de {a}", { a: r.p.nom.split(" ")[0] }), 90, 330, 76, 800);
   const lignes: [string, string][] = [
     [String(r.seances), tr(pluriel(r.seances) ? "séances" : "séance")],
-    ...(r.tonnes > 0 ? [[r.tonnes >= 1 ? `${fr(r.tonnes, 1)} t` : `${fr(r.tonnes * 1000)} kg`, tr("soulevés")] as [string, string]] : []),
+    ...(r.series ? [[fr(r.series), tr(pluriel(r.series) ? "séries" : "série")] as [string, string]] : []),
     ...(r.km ? [[`${r.km} km`, "courus"] as [string, string]] : []),
     ...(r.minutesCardio ? [[fr(r.minutesCardio), tr("min de cardio")] as [string, string]] : []),
     ...(r.nbRecords ? [[String(r.nbRecords), tr(pluriel(r.nbRecords) ? "records battus" : "record battu")] as [string, string]] : []),

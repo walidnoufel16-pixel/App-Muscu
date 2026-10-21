@@ -38,10 +38,11 @@ describe("série de semaines", () => {
 
 describe("badges", () => {
   const E = (H: LigneHist[], A = {}): Etat => ({ A, LOG: {}, SWAP: {}, SWAPP: {}, PLAN: null, SEANCES: [], wk: 0, day: 0, FINI: false, HIST: H }) as Etat;
-  it("première séance, 100 kg au couché, poids du corps, tonnage", () => {
+  it("première séance, 100 kg au couché, poids du corps ; plus de badge en tonnes", () => {
     const s = stats(E([L("2026-09-01", { dc: [110, 2000, 100, 3, 3] }, 12000)], { poids: [["2026-09-01", 80]] }), "2026-10-07");
     const ids = BADGES.filter((b) => b.valeur(s) >= b.cible).map((b) => b.id);
-    expect(ids).toEqual(expect.arrayContaining(["s1", "dc100", "pdc", "t10"]));
+    expect(ids).toEqual(expect.arrayContaining(["s1", "dc100", "pdc"]));
+    expect(BADGES.some((b) => /^t\d/.test(b.id))).toBe(false);
     expect(ids).not.toContain("sq100");
     expect(nouveaux(s, { s1: "2026-09-01" }).map((b) => b.id)).not.toContain("s1");
   });

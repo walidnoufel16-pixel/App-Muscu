@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ajouterProt, objectifProteines, protDuJour } from "@/lib/logic/nutrition";
-import { comparer, moisPrecedent, periode, recap } from "@/lib/logic/recap";
+import { moisPrecedent, periode, recap } from "@/lib/logic/recap";
 import { phaseDe } from "@/lib/cycle";
 import type { Etat, Reponses } from "@/lib/logic/types";
 
@@ -28,10 +28,6 @@ describe("bilan de période", () => {
     expect(periode("2026-13")).toBeNull();
     expect(moisPrecedent("2026-01-15")).toBe("2025-12");
   });
-  it("comparaisons", () => {
-    expect(comparer(24)).toBe("4 éléphants d'Afrique");
-    expect(comparer(0)).toBe("");
-  });
   it("chiffres du mois", () => {
     const E = {
       A: {}, LOG: {}, SWAP: {}, SWAPP: {}, PLAN: null, SEANCES: [], wk: 0, day: 0, FINI: false,
@@ -43,7 +39,8 @@ describe("bilan de période", () => {
       CARDIO: [{ nom: "", f: "tabata", m: "ram", min: 20, effort: 8, ts: new Date("2026-09-05T10:00").getTime() }],
     } as unknown as Etat;
     const r = recap(E, "2026-09")!;
-    expect([r.seances, r.muscu, r.cardio, r.tonnes, r.minutesCardio, r.jours, r.nbRecords]).toEqual([3, 2, 1, 9, 20, 3, 2]);
+    expect([r.seances, r.muscu, r.cardio, r.series, r.minutesCardio, r.jours, r.nbRecords]).toEqual([3, 2, 1, 18, 20, 3, 2]);
+    expect(Object.keys(r)).not.toContain("tonnes");
     expect(r.exFavori).toEqual({ n: "Développé couché barre", fois: 2 });
     expect(r.record).toMatchObject({ n: "Développé couché barre", avant: 70, apres: 80 });
   });

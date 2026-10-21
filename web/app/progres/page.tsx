@@ -32,7 +32,6 @@ import { cn } from "@/lib/utils";
 
 const court = (j: string) => dateDe(j).toLocaleDateString(loc(), { day: "numeric", month: "short" }).replace(".", "");
 const long = (j: string) => dateDe(j).toLocaleDateString(loc(), { weekday: "long", day: "numeric", month: "long" });
-const kg = (v: number) => (v >= 10000 ? nb(Math.round(v / 100) / 10) + " t" : Math.round(v).toLocaleString(loc()) + " kg");
 
 export default function PageProgres() {
   return <Suspense><Progres /></Suspense>;
@@ -131,7 +130,6 @@ function CetteSemaine({ H, C, auj }: { H: LigneHist[]; C: NonNullable<ReturnType
   const [a, b] = semaines(H, C, 2, auj);
   const cases = [
     { n: tr(pluriel(b.seances) ? "séances" : "séance"), v: b.seances, a: a.seances, f: (x: number) => String(x) },
-    { n: tr("soulevés"), v: b.vol, a: a.vol, f: kg },
     { n: tr(pluriel(b.ser) ? "séries" : "série"), v: b.ser, a: a.ser, f: (x: number) => String(x) },
     { n: tr("min de cardio"), v: b.cardio, a: a.cardio, f: (x: number) => String(Math.round(x)) },
   ];
@@ -360,7 +358,7 @@ function DetailJour({ jour, onClose, H, C }: { jour: string | null; onClose: () 
               <div key={l.s} className="mt-3 rounded-2xl border bg-card p-3.5">
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="truncate text-[16px] font-semibold">{l.nom}</span>
-                  <span className="shrink-0 text-[12.5px] text-muted-foreground">{tr("{ser} séries{a}{a1}", { ser: l.ser, a: l.vol ? " · " + kg(l.vol) : "", a1: l.min ? tr(" · {min} min", { min: l.min }) : "" })}</span>
+                  <span className="shrink-0 text-[12.5px] text-muted-foreground">{tr("{ser} séries{a}{a1}", { ser: l.ser, a: "", a1: l.min ? tr(" · {min} min", { min: l.min }) : "" })}</span>
                 </div>
                 <ul className="mt-2 flex flex-col gap-1">
                   {Object.entries(l.ex).map(([id, p]) => {
@@ -404,7 +402,7 @@ function Bilans({ auj }: { auj: string }) {
           <SparkleIcon className="size-7 shrink-0" weight="fill" />
           <span className="min-w-0 flex-1">
             <span className="block text-[17px] font-bold first-letter:uppercase">{r.p.annee ? tr("Ton année {nom}", { nom: r.p.nom }) : tr("Ton bilan de {a}", { a: r.p.nom.split(" ")[0] })}</span>
-            <span className="block text-[13px] opacity-85">{tr("{seances} séances{a} · à partager", { seances: r.seances, a: r.tonnes >= 1 ? tr(" · {a} t soulevées", { a: nb(Math.round(r.tonnes * 10) / 10) }) : "" })}</span>
+            <span className="block text-[13px] opacity-85">{tr("{seances} séances{a} · à partager", { seances: r.seances, a: r.series ? tr(" · {a} séries", { a: r.series }) : "" })}</span>
           </span>
           <CaretRightIcon className="size-4 shrink-0 opacity-80" />
         </button>
