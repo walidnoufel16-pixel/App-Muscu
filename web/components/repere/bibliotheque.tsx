@@ -1,8 +1,9 @@
 "use client";
 
-import { pluriel, tr } from "@/lib/i18n";
+import { tr } from "@/lib/i18n";
 import { useMemo } from "react";
-import { MagnifyingGlassIcon } from "@phosphor-icons/react";
+import { BarbellIcon, FirstAidKitIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
+import { estSoin, SOIN_DE_ZONE, type ZoneSoin } from "@/lib/data/soin";
 import { Input } from "@/components/ui/input";
 import { SchemaCorps } from "./schema-corps";
 import { LigneExercice } from "./ligne-exercice";
@@ -12,15 +13,18 @@ import { exoFiltre, nomPat } from "@/lib/logic/core";
 import { exosDe, exosZone, patsZone, sansAccent } from "@/lib/logic/assistant";
 import { cn } from "@/lib/utils";
 
-/* Bibliothèque par le corps : un toucher choisit un muscle, la pastille « Tout » élargit au groupe. */
+/* Bibliothèque par le corps : un toucher choisit un muscle, la pastille « Tout » élargit au groupe ;
+   en dessous, les exercices de soin & mobilité de la zone. */
 export function Bibliotheque({
   sel, zone, setZone, pris, onAjouter, onFiche,
 }: {
   sel: string[]; zone: { z: string; p: string | null } | null; setZone: (z: { z: string; p: string | null } | null) => void;
   pris?: (o: string) => boolean; onAjouter?: (o: string) => void; onFiche: (o: string) => void;
 }) {
-  const l = zone ? (zone.p ? exosDe(zone.p, sel) : exosZone(zone.z, sel)) : [];
-  const pats = zone ? patsZone(zone.z, sel) : [];
+  /* deux catégories : musculation, puis soin & mobilité de la zone touchée */
+  const l = (zone ? (zone.p ? exosDe(zone.p, sel) : exosZone(zone.z, sel)) : []).filter((o) => !estSoin(o));
+  const soins = zone ? Object.keys(EX).filter((o) => estSoin(o) && (SOIN_DE_ZONE[zone.z] || []).includes(EX[o].soin as ZoneSoin) && exoFiltre(o, sel)) : [];
+  const pats = zone ? patsZone(zone.z, sel).filter((p) => exosDe(p, sel).some((o) => !estSoin(o))) : [];
   return (
     <div className="flex flex-col gap-3">
       <SchemaCorps
@@ -34,26 +38,40 @@ export function Bibliotheque({
         legende={tr("Touche une zone")}
       />
       {zone ? (
-        <div>
-          <div className="mb-2 flex items-baseline justify-between px-1">
-            <h3 className="text-[19px] font-bold">{zone.p ? PATN[zone.p] || nomPat(zone.p) : ZONES[zone.z]}</h3>
-            <span className="text-[12.5px] text-muted-foreground">{l.length}{" "}{tr("exercice")}{pluriel(l.length) ? "s" : ""}</span>
-          </div>
-          {pats.length > 1 && (
-            <div className="no-scrollbar -mx-4 mb-2 flex gap-1.5 overflow-x-auto px-4">
-              <button onClick={() => setZone({ z: zone.z, p: null })} className={cn("h-8 shrink-0 rounded-full border px-3 text-[13px] font-medium", !zone.p ? "border-foreground bg-foreground text-background" : "border-border bg-card")}>
-                {tr("Tout")}
-              </button>
-              {pats.map((p) => (
-                <button key={p} onClick={() => setZone({ z: zone.z, p })} className={cn("h-8 shrink-0 rounded-full border px-3 text-[13px] font-medium", zone.p === p ? "border-foreground bg-foreground text-background" : "border-border bg-card")}>
-                  {nomPat(p)}
-                </button>
-              ))}
+        <div className="flex flex-col gap-5">
+          <section aria-label={tr("Musculation")}>
+            <div className="mb-2 flex items-baseline justify-between px-1">
+              <h3 className="flex items-center gap-2 text-[19px] font-bold"><BarbellIcon className="size-5 text-plate" weight="fill" />{tr("Musculation")}</h3>
+              <span className="text-[12.5px] text-muted-foreground">{zone.p ? PATN[zone.p] || nomPat(zone.p) : ZONES[zone.z]} · {l.length}</span>
             </div>
+            {pats.length > 1 && (
+              <div className="no-scrollbar -mx-4 mb-2 flex gap-1.5 overflow-x-auto px-4">
+                <button onClick={() => setZone({ z: zone.z, p: null })} className={cn("h-8 shrink-0 rounded-full border px-3 text-[13px] font-medium", !zone.p ? "border-foreground bg-foreground text-background" : "border-border bg-card")}>
+                  {tr("Tout")}
+                </button>
+                {pats.map((p) => (
+                  <button key={p} onClick={() => setZone({ z: zone.z, p })} className={cn("h-8 shrink-0 rounded-full border px-3 text-[13px] font-medium", zone.p === p ? "border-foreground bg-foreground text-background" : "border-border bg-card")}>
+                    {nomPat(p)}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="flex flex-col gap-1.5">
+              {l.map((o) => <LigneExercice key={o} id={o} pris={pris?.(o)} onOuvrir={() => onFiche(o)} onAjouter={onAjouter ? () => onAjouter(o) : undefined} />)}
+              {!l.length && <p className="px-1 text-[13.5px] text-muted-foreground">{tr("Aucun exercice avec ce matériel.")}</p>}
+            </div>
+          </section>
+          {soins.length > 0 && (
+            <section aria-label={tr("Soin & mobilité")}>
+              <div className="mb-2 flex items-baseline justify-between px-1">
+                <h3 className="flex items-center gap-2 text-[19px] font-bold"><FirstAidKitIcon className="size-5 text-plate" weight="fill" />{tr("Soin & mobilité")}</h3>
+                <span className="text-[12.5px] text-muted-foreground">{soins.length}</span>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                {soins.map((o) => <LigneExercice key={o} id={o} pris={pris?.(o)} onOuvrir={() => onFiche(o)} onAjouter={onAjouter ? () => onAjouter(o) : undefined} />)}
+              </div>
+            </section>
           )}
-          <div className="flex flex-col gap-1.5">
-            {l.map((o) => <LigneExercice key={o} id={o} pris={pris?.(o)} onOuvrir={() => onFiche(o)} onAjouter={onAjouter ? () => onAjouter(o) : undefined} />)}
-          </div>
         </div>
       ) : (
         <p className="text-center text-[13.5px] text-muted-foreground">{tr("Touche une partie du corps pour voir les exercices.")}</p>

@@ -2,6 +2,7 @@
    mobilité). Les exercices eux-mêmes sont dans EX, avec leur zone dans `soin`. */
 import { langue, tr } from "@/lib/i18n";
 import type { ExLibre } from "@/lib/logic/types";
+import { EX } from "@/lib/data/exercices";
 
 export type ZoneSoin = "epaules" | "hanches" | "dos" | "genoux" | "chevilles" | "poignets" | "nuque";
 
@@ -44,6 +45,20 @@ export const ROUTINES_SOIN: RoutineSoin[] = [
 
 /** Zone de soin de chaque gêne du questionnaire (index de BLESN : épaules, bas du dos, genoux, coudes ou poignets). */
 export const SOIN_DE_BLESSURE: ZoneSoin[] = ["epaules", "dos", "genoux", "poignets"];
+
+/** Exercice de la bibliothèque Soin & mobilité (rangé par zone, ou de motif « soin »). */
+export const estSoin = (id: string) => !!EX[id]?.soin || EX[id]?.pat === "soin";
+
+/** Zones de soin montrées quand on touche une zone du schéma du corps (clés de ZONES). */
+export const SOIN_DE_ZONE: Record<string, ZoneSoin[]> = {
+  epaules: ["epaules", "nuque"],
+  pectoraux: ["epaules"],
+  dos: ["dos", "nuque"],
+  bras: ["poignets"],
+  tronc: ["dos"],
+  fessiers: ["hanches"],
+  jambes: ["hanches", "genoux", "chevilles"],
+};
 
 export const AVERTISSEMENT_SOIN = "Ne remplace pas l'avis d'un kiné. Une douleur vive ou qui augmente : on arrête.";
 
