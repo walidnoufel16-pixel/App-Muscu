@@ -20,6 +20,8 @@ export type LigneHist = {
   min?: number; // durée
   fo?: number; // forme du jour (−2 à +1)
   ex: Record<string, PerfEx>;
+  /* le détail, dans l'ordre de la séance : séries validées [valeur, répétitions, lest] et ressenti */
+  det?: { id: string; s: [number, number, number?][]; f?: number | null }[];
 };
 
 export const MAX_HIST = 400;
@@ -66,23 +68,45 @@ export function nomSeance(E: Etat, s: string) {
   return S ? titreSeance(S.t) : tr("Séance");
 }
 
+/** Clés du journal d'une séance modifiées un jour donné, dans l'ordre de la séance
+    (les séries mises de côté, « aN », à la fin). */
+export function journauxDuJour(E: Etat, s: string, d: string) {
+  const rang = (k: string) => { const c = k.slice(s.length + 1); return /^\d+$/.test(c) ? +c : 1e6 + (parseInt(c.replace(/\D/g, "")) || 0); };
+  return Object.keys(E.LOG).filter((k) => k.startsWith(s + "|") && E.LOG[k] && jourDe(E.LOG[k].ts || 0) === d).sort((a, b) => rang(a) - rang(b));
+}
+
+/** Détail d'une séance passée, pour la relire : ce qui a été enregistré ce jour-là
+    (le détail gardé dans l'historique, sinon le journal s'il n'a pas été réécrit depuis,
+    sinon le résumé par exercice). */
+export function detailDe(E: Etat, l: LigneHist): { id: string; L: Journal }[] {
+  const lu = (id: string, s: [number, number, number?][], f?: number | null): Journal =>
+    ({ ex: id, done: true, nb: s.length, feel: f ?? null, ts: 0, lest: s.some((x) => x[2]), series: s.map(([v, reps, lest]) => ({ v, reps, ok: true, ...(lest ? { lest } : {}) })) }) as unknown as Journal;
+  if (l.det?.length) return l.det.filter((x) => EX[x.id]).map((x) => ({ id: x.id, L: lu(x.id, x.s, x.f) }));
+  const ks = journauxDuJour(E, l.s, l.d).filter((k) => EX[E.LOG[k].ex] && perfDe(E.LOG[k]));
+  if (ks.length) return ks.map((k) => ({ id: E.LOG[k].ex, L: lu(E.LOG[k].ex, (E.LOG[k].series || []).filter((x) => okDe(E.LOG[k], x)).map((x) => [x.v, x.reps, +(x.lest ?? 0) || undefined]), E.LOG[k].feel) }));
+  return Object.entries(l.ex).filter(([id]) => EX[id]).map(([id, p]) => {
+    /* poids du corps : la valeur est le nombre de répétitions, le meilleur lest à part */
+    const ch = EX[id].ch, val: [number, number, number?] = ch === "aucune" ? [p[3], 0, p[2] || undefined] : [p[2], p[3]];
+    return { id, L: lu(id, Array.from({ length: p[4] }, () => val)) };
+  });
+}
+
 /** Ligne d'historique d'une séance pour un jour : les lignes du journal de la séance modifiées ce jour-là. */
 export function ligneDe(E: Etat, s: string, d: string, extra: Partial<LigneHist> = {}): LigneHist | null {
   const ex: Record<string, PerfEx> = {};
+  const det: NonNullable<LigneHist["det"]> = [];
   let vol = 0, ser = 0;
-  for (const k in E.LOG) {
-    if (!k.startsWith(s + "|")) continue;
-    const L = E.LOG[k];
-    if (!L || jourDe(L.ts || 0) !== d) continue;
-    const p = perfDe(L);
+  for (const k of journauxDuJour(E, s, d)) {
+    const L = E.LOG[k], p = perfDe(L);
     if (!p) continue;
+    det.push({ id: L.ex, s: (L.series || []).filter((x) => okDe(L, x)).map((x) => (+(x.lest ?? 0) > 0 ? [x.v, x.reps, +x.lest!] : [x.v, x.reps])), ...(L.feel != null ? { f: L.feel } : {}) });
     const a = ex[L.ex];
     /* le même exercice deux fois dans la séance : on additionne volume et séries, on garde le meilleur */
     ex[L.ex] = a ? [Math.max(a[0], p[0]), a[1] + p[1], Math.max(a[2], p[2]), p[2] > a[2] ? p[3] : a[3], a[4] + p[4]] : p;
     vol += p[1]; ser += p[4];
   }
   if (!ser) return null;
-  return { d, s, nom: nomSeance(E, s), vol, ser, ex, ...extra };
+  return { d, s, nom: nomSeance(E, s), vol, ser, ex, det, ...extra };
 }
 
 /** Insère ou remplace la ligne (même jour, même séance), ou la retire si elle est vide. Trié, borné. */
