@@ -104,8 +104,9 @@ export default function PageComposer() {
 
   const enregistrer = () => {
     const nom = L.nom.trim() || tr("Séance libre");
-    const s = { nom, ex: L.ex, ...(L.blocs?.length ? { blocs: L.blocs } : {}), ...(L.obj != null ? { obj: L.obj } : {}), ...(L.colObj != null ? { colObj: L.colObj } : {}), ...(L.gen ? { gen: L.gen } : {}), ...(L.code ? { code: L.code } : {}) };
-    muter((E) => { if (L.idx != null) E.SEANCES[L.idx] = s; else E.SEANCES.push(s); });
+    const s = { nom, ex: L.ex.map((e) => { const c = { ...e }; delete c.o; return c; }), ...(L.blocs?.length ? { blocs: L.blocs } : {}), ...(L.obj != null ? { obj: L.obj } : {}), ...(L.colObj != null ? { colObj: L.colObj } : {}), ...(L.gen ? { gen: L.gen } : {}), ...(L.code ? { code: L.code } : {}) };
+    /* modification : les séries déjà notées suivent leur exercice */
+    muter((E) => { if (L.idx != null) { act.reattacherJournaux(E, L.idx, L.ex.map((e) => e.o)); E.SEANCES[L.idx] = s; } else E.SEANCES.push(s); });
     part.current = true;
     setLibre(null);
     /* modification : retour à la séance ; création : retour à Entraînement, où elle apparaît */
@@ -234,6 +235,7 @@ export default function PageComposer() {
             const e = l.ex[remp!], x = EX[o], old = EX[e.id];
             if (x.ch !== old.ch) e.r = x.ch === "temps" ? 45 : x.ch === "dist" ? 250 : 10;
             e.id = o;
+            delete e.o; // un autre exercice : il ne reprend pas les séries du précédent
           });
           setOuv(o);
           setRemp(null);

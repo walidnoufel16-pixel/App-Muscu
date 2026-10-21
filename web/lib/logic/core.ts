@@ -358,9 +358,23 @@ export function ctxLibre(E: Etat, idx: number, j: number): Ctx | null {
   };
 }
 
+/* Journal mis de côté : il garde sa place dans l'historique (la clé commence toujours par
+   « L|i| »), mais ne s'affiche plus sous un exercice de la séance. Vide, il est simplement retiré. */
+export function archiver(LOG: Record<string, Journal>, k: string) {
+  const L = LOG[k];
+  delete LOG[k];
+  if (!L || !(L.series || []).some((s) => okDe(L, s))) return;
+  const [a, b, c] = k.split("|");
+  let n = `${a}|${b}|a${c.replace(/^a/, "")}`;
+  while (LOG[n]) n += "+";
+  LOG[n] = L;
+}
+
 /* Journal de l'exercice, créé au premier geste. Mute LOG (appelé dans le store). */
 import { LESTABLE } from "@/lib/data/referentiels";
 export function journal(LOG: Record<string, Journal>, c: Ctx): Journal {
+  /* un journal laissé là par un autre exercice (séance modifiée) n'est pas le sien */
+  if (LOG[c.k] && LOG[c.k].ex !== c.id) archiver(LOG, c.k);
   let L = LOG[c.k];
   if (!L) {
     L = LOG[c.k] = {

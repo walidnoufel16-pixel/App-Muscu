@@ -97,6 +97,37 @@ const titres = (pg) => pg.locator("[data-titre-partie]").evaluateAll((l) => l.ma
   await ctx.close();
 }
 
+{
+  /* Séance entamée puis modifiée : chaque exercice garde ses propres séries. */
+  const auj = Date.now();
+  const J = (ex, v) => ({ v, ex, nb: 3, ts: auj, done: true, feel: null, reps: 10, series: [0, 1, 2].map(() => ({ v, reps: 10, ok: true })) });
+  const s = { nom: "Bras", ex: [{ id: "cuban", s: 3, r: 10, p: "90 s" }, { id: "tricor", s: 3, r: 10, p: "90 s" }, { id: "dipt", s: 3, r: 10, p: "90 s" }] };
+  const e = { ...etat([s]), LOG: { "L|0|0": J("cuban", 4), "L|0|1": J("tricor", 9) } };
+  const [ctx, pg] = await contexte(e);
+  await pg.goto(U + "/entrainement/seance?l=0");
+  await pg.getByRole("button", { name: "Modifier" }).click();
+  await pg.waitForURL(/composer/);
+  /* retirer le 1er exercice, ajouter un exercice de soin et remonter sa partie en tête */
+  await pg.locator('[data-carte="cuban"] button[aria-expanded]').first().click();
+  await pg.getByRole("button", { name: "Retirer" }).first().click();
+  await pg.getByRole("button", { name: "Exercice", exact: true }).click();
+  await pg.waitForTimeout(800);
+  await pg.getByRole("dialog").locator("path", { has: pg.locator("title", { hasText: "Épaule avant" }) }).first().click({ force: true });
+  await pg.getByRole("dialog").getByRole("region", { name: "Soin & mobilité" }).getByRole("button", { name: /^Ajouter Cercles de bras/ }).click();
+  await pg.getByRole("dialog").getByRole("button", { name: /^Terminé/ }).click();
+  await pg.waitForTimeout(400);
+  await pg.getByRole("button", { name: "Monter la partie Soin & mobilité" }).click();
+  await pg.getByRole("button", { name: "Enregistrer la séance" }).click();
+  await pg.waitForURL(/seance/);
+  const st = await pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")));
+  const ids = st.SEANCES[0].ex.map((x) => x.id), L = st.LOG;
+  ok(ids.join(",") === "cbras,tricor,dipt", `séance modifiée : ${ids}`);
+  ok(!L["L|0|0"] && L["L|0|1"]?.ex === "tricor" && L["L|0|1"].series[0].v === 9 && !L["L|0|2"], "les séries du triceps l'ont suivi, les dips et le soin sont vierges");
+  ok(L["L|0|a0"]?.ex === "cuban", "le cuban press retiré : séries mises de côté, pas effacées");
+  ok(st.SEANCES[0].ex.every((x) => x.o === undefined), "rien de temporaire enregistré");
+  await ctx.close();
+}
+
 ok(!errs.length, "aucune erreur JS" + (errs.length ? " : " + errs.join(" / ") : ""));
 await b.close();
 srv.close();

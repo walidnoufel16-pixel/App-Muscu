@@ -35,7 +35,8 @@ export type PlanIA = {
   [k: string]: unknown;
 };
 
-export type ExLibre = { id: string; s: number; r: number; p: string };
+/* o : position d'origine pendant une modification dans le composeur (jamais enregistrée). */
+export type ExLibre = { id: string; s: number; r: number; p: string; o?: number };
 export type SeanceLibre = {
   nom: string;
   ex: ExLibre[];

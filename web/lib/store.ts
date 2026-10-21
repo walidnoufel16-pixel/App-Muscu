@@ -18,6 +18,7 @@ import { decoderCardio, encoderCardio } from "@/lib/logic/cardio";
 import { decoderBlocs, encoderBlocs } from "@/lib/logic/combinee";
 import { MAX_HIST, reconstruire } from "@/lib/logic/historique";
 import { ROUTINES_SOIN } from "@/lib/data/soin";
+import { rattacherJournaux } from "@/lib/logic/actions";
 
 export const SKEY = "palier.state.v1";
 export const PKEY = "palier.pseudo.v1";
@@ -93,6 +94,8 @@ export function versEtat(s: Stocke | null): Etat {
   e.HIST = Array.isArray(s.HIST) ? nettoieArbre(s.HIST).slice(-MAX_HIST) : reconstruire(e);
   e.COURSE = s.COURSE && typeof s.COURSE === "object" ? nettoieArbre(s.COURSE) : null;
   e.SORTIES = Array.isArray(s.SORTIES) ? nettoieArbre(s.SORTIES).slice(-500) : [];
+  /* séries restées à la position d'un autre exercice (séance modifiée avant la correction) */
+  rattacherJournaux(e);
   return e;
 }
 const instantane = (e: Etat) => ({ ...e, ts: Date.now() });
