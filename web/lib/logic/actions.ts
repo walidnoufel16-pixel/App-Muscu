@@ -1,6 +1,6 @@
 /* Actions sur l'état : elles reçoivent un brouillon (immer) et le modifient.
    Port fidèle de serVal, serOk, toutCocher, setFeel, ajouterLest, swap… */
-import { journal, key, majJournal, type Ctx } from "./core";
+import { archiver, journal, key, majJournal, type Ctx } from "./core";
 import type { Etat } from "./types";
 
 export type Champ = "v" | "reps" | "lest";
@@ -66,6 +66,35 @@ export function swap(E: Etat, idx: number, newId: string, orig: string, portee: 
   else if (portee === "tjs") { E.SWAPP[perm] = newId; delete E.SWAP[k]; }
   else E.SWAP[k] = newId;
   delete E.LOG[k];
+}
+
+/* Séance libre modifiée dans le composeur : chaque journal suit son exercice.
+   origines[n] : position d'avant pour l'exercice désormais en n (absente s'il est nouveau ou remplacé).
+   Les journaux qui ne retrouvent pas leur exercice sont mis de côté. */
+export function reattacherJournaux(E: Etat, i: number, origines: (number | undefined)[]) {
+  const re = new RegExp(`^L\\|${i}\\|(\\d+)$`), avant: Record<number, Etat["LOG"][string]> = {};
+  for (const k of Object.keys(E.LOG)) { const m = re.exec(k); if (m) { avant[+m[1]] = E.LOG[k]; delete E.LOG[k]; } }
+  origines.forEach((o, n) => { if (o != null && avant[o]) { E.LOG[`L|${i}|${n}`] = avant[o]; delete avant[o]; } });
+  for (const o in avant) { E.LOG[`L|${i}|${o}`] = avant[o]; archiver(E.LOG, `L|${i}|${o}`); }
+}
+
+/* Réparation (au chargement) : un journal posé à une position où se trouve maintenant un autre
+   exercice rejoint une position libre du même exercice, sinon il est mis de côté. */
+export function rattacherJournaux(E: Etat) {
+  E.SEANCES.forEach((S, i) => {
+    const re = new RegExp(`^L\\|${i}\\|(\\d+)$`), libres = new Set(S.ex.map((_, n) => n)), egares: [number, string][] = [];
+    for (const k of Object.keys(E.LOG)) {
+      const m = re.exec(k);
+      if (!m) continue;
+      const j = +m[1];
+      if (S.ex[j] && E.LOG[k]?.ex === S.ex[j].id) libres.delete(j); else egares.push([j, k]);
+    }
+    for (const [, k] of egares.sort((a, b) => a[0] - b[0])) {
+      const L = E.LOG[k], n = [...libres].find((x) => S.ex[x].id === L?.ex);
+      if (n != null && !E.LOG[`L|${i}|${n}`]) { delete E.LOG[k]; E.LOG[`L|${i}|${n}`] = L; libres.delete(n); }
+      else archiver(E.LOG, k);
+    }
+  });
 }
 
 /* Suppression d'une séance libre : l'historique des suivantes est recalé. */

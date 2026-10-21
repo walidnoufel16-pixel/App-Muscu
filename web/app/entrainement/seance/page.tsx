@@ -224,8 +224,9 @@ function SeanceLibre({ i }: { i: number }) {
   /* un bloc cardio est fait s'il a été joué aujourd'hui */
   const blocFait = (id: string) => (etat.CARDIO || []).some((h) => h.ref === id && new Date(h.ts).toDateString() === new Date(maintenant).toDateString());
   const blocs = S.blocs || [];
-  const faits = cles.filter((k) => etat.LOG[k]?.done).length + blocs.filter((b) => blocFait(b.id)).length;
-  const modifier = () => { setLibre({ ...structuredClone(S), idx: i }); router.push("/entrainement/composer", AVANT); };
+  const faits = S.ex.filter((e, m) => etat.LOG[kLibre(i, m)]?.ex === e.id && etat.LOG[kLibre(i, m)]?.done).length + blocs.filter((b) => blocFait(b.id)).length;
+  /* chaque exercice garde sa position d'origine : ses séries le suivront (reattacherJournaux) */
+  const modifier = () => { setLibre({ ...structuredClone(S), ex: S.ex.map((e, o) => ({ ...e, o })), idx: i }); router.push("/entrainement/composer", AVANT); };
   /* ajout en cours de séance : à la fin, ouvert tout de suite (les clés des exercices existants ne bougent pas) */
   const ajouterExo = (id: string) => {
     const j = S.ex.length;
@@ -241,7 +242,8 @@ function SeanceLibre({ i }: { i: number }) {
     const e = el.e, j = el.i;
     const c = ctxLibre(etat, i, j);
     if (!c) return null;
-    const x = EX[e.id], L = etat.LOG[c.k], r = noRPE(e.id) ? 0 : 8;
+    /* un journal laissé là par un autre exercice n'est pas le sien */
+    const x = EX[e.id], L = etat.LOG[c.k]?.ex === e.id ? etat.LOG[c.k] : undefined, r = noRPE(e.id) ? 0 : 8;
     const fini = () => enchainer({ k: c.k, cles, titre: S.nom, setOuvert });
     const prescr = x.ch === "temps" ? `${e.s} × ${e.r}s` : x.ch === "dist" ? `${e.s} × ${e.r}m` : `${e.s} × ${e.r}`;
     return (
