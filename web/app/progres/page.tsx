@@ -19,6 +19,7 @@ import { SectionDefis } from "@/components/repere/defis";
 import { SectionCourse } from "@/components/repere/course";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
+import { dureeCardio, SeanceLue } from "@/components/repere/seance-lue";
 import { EX } from "@/lib/data/exercices";
 import { PAT2MUSC } from "@/lib/data/referentiels";
 import { FORMATS } from "@/lib/logic/cardio";
@@ -345,38 +346,24 @@ function Cardio({ H, C, auj }: { H: LigneHist[]; C: Parameters<typeof semaines>[
 }
 
 function DetailJour({ jour, onClose, H, C }: { jour: string | null; onClose: () => void; H: LigneHist[]; C: Parameters<typeof activite>[1] }) {
+  const SEANCES = useRepere((s) => s.etat.SEANCES);
   const lignes = jour ? H.filter((l) => l.d === jour) : [];
+  /* blocs cardio d'une séance libre : leur cardio du jour s'affiche dans la séance */
+  const blocsDe = (l: LigneHist) => (l.s.startsWith("L|") ? (SEANCES[+l.s.slice(2)]?.blocs || []).map((b) => b.id) : []);
   const cardio = jour ? C.filter((c) => jourDe(c.ts) === jour) : [];
   return (
     <Drawer open={!!jour} onOpenChange={(o) => !o && onClose()}>
       <DrawerContent>
         {jour && (
-          <div className="max-h-[75vh] overflow-y-auto px-5 pt-2 pb-[max(env(safe-area-inset-bottom),20px)]">
-            <DrawerTitle className="text-[20px] font-bold first-letter:uppercase">{long(jour)}</DrawerTitle>
+          <div className="max-h-[85vh] overflow-y-auto px-4 pt-2 pb-[max(env(safe-area-inset-bottom),20px)]">
+            <DrawerTitle className="px-1 text-[20px] font-bold first-letter:uppercase">{long(jour)}</DrawerTitle>
             <DrawerDescription className="sr-only">{tr("Séances de ce jour")}</DrawerDescription>
-            {lignes.map((l) => (
-              <div key={l.s} className="mt-3 rounded-2xl border bg-card p-3.5">
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="truncate text-[16px] font-semibold">{l.nom}</span>
-                  <span className="shrink-0 text-[12.5px] text-muted-foreground">{tr("{ser} séries{a}{a1}", { ser: l.ser, a: "", a1: l.min ? tr(" · {min} min", { min: l.min }) : "" })}</span>
-                </div>
-                <ul className="mt-2 flex flex-col gap-1">
-                  {Object.entries(l.ex).map(([id, p]) => {
-                    const x = EX[id];
-                    return (
-                      <li key={id} className="flex justify-between gap-2 text-[13.5px]">
-                        <span className="truncate">{x?.n || id}</span>
-                        <span className="num shrink-0 text-[14px] text-muted-foreground">{tr("{a} × {a1}", { a: p[4], a1: x?.ch === "kg" ? `${nb(p[2])} kg × ${p[3]}` : x?.ch === "temps" ? `${p[2]} s` : x?.ch === "dist" ? `${p[2]} m` : `${p[3]} reps${p[2] ? ` +${nb(p[2])} kg` : ""}` })}</span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ))}
-            {cardio.map((c, i) => (
-              <div key={i} className="mt-3 flex items-center justify-between rounded-2xl border bg-card p-3.5">
+            {/* chaque séance relue comme pendant l'entraînement, son cardio à sa place */}
+            {lignes.map((l) => <SeanceLue key={l.s} l={l} cardio={cardio.filter((c) => blocsDe(l).includes(c.ref || ""))} />)}
+            {cardio.filter((c) => !lignes.some((l) => blocsDe(l).includes(c.ref || ""))).map((c, i) => (
+              <div key={i} className="mt-3 flex items-center justify-between gap-3 rounded-2xl border bg-card p-3.5">
                 <span className="truncate text-[15px] font-semibold">{c.nom}</span>
-                <span className="text-[12.5px] text-muted-foreground">{tr("{a} min · RPE {effort}", { a: Math.round(c.min), effort: c.effort })}</span>
+                <span className="shrink-0 text-[12.5px] text-muted-foreground">{dureeCardio(c)}</span>
               </div>
             ))}
           </div>

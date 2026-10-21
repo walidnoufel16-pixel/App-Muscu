@@ -491,7 +491,6 @@
 "séries": "sets",
 "{a} kg × {a1}": "{a} kg × {a1}",
 "{a} kg × {reps}": "{a} kg × {reps}",
-"{a} min · RPE {effort}": "{a} min · RPE {effort}",
 "{a} · {length} séance{a1}": "{a} · {length} workout{a1}",
 "{n} séance{a} · dernière le {a1}": "{n} workout{a} · last on {a1}",
 "{seances} séances{a} · à partager": "{seances} workouts{a} · to share",
@@ -1673,5 +1672,10 @@
 "Aucun exercice avec ce matériel.": "No exercise with this equipment.",
 "Monter la partie {nom}": "Move {nom} up",
 "Descendre la partie {nom}": "Move {nom} down",
-" · {a} séries": " · {a} sets"
+" · {a} séries": " · {a} sets",
+"Séries de {n}": "Sets of {n}",
+"validée": "done",
+"{n} répétitions": "{n} reps",
+"{a} min, dont {b} min d'effort": "{a} min, {b} min of work",
+"{a} min": "{a} min"
 }

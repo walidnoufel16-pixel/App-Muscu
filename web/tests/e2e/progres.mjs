@@ -26,6 +26,10 @@ for (let w = 9; w >= 0; w--) {
   }
 }
 HIST.sort((a, b) => (a.d < b.d ? -1 : 1));
+/* la dernière séance de musculation garde le détail de ses séries */
+const derniere = HIST.at(-1);
+derniere.det = Object.keys(derniere.ex).map((id) => ({ id, s: id === "dc" ? [[60, 8], [62.5, 8], [65, 6]] : [[derniere.ex[id][2], derniere.ex[id][3]], [derniere.ex[id][2], derniere.ex[id][3]], [derniere.ex[id][2], derniere.ex[id][3]]] }));
+if (!derniere.ex.dc) derniere.det.unshift({ id: "dc", s: [[60, 8], [62.5, 8], [65, 6]] });
 const CARDIO = [3, 10, 12, 20, 26, 40].map((d, i) => ({ nom: "Rameur", f: i % 2 ? "tabata" : "norvegien", m: "ram", min: 20 + i * 3, effort: 7, ts: maint - d * J }));
 const etat = {
   A: { objectif: 0, materiel: 0, acc: [], profil: { Poids: 80 }, poids: [[jour(maint - 50 * J), 81.4], [jour(maint - 30 * J), 80.6], [jour(maint - 9 * J), 79.9]] },
@@ -74,7 +78,17 @@ ok(await pg.getByText("1RM estimé (formule d'Epley)").isVisible(), "courbe en 1
 // détail d'un jour
 await pg.locator('button[aria-label*="musculation"]').last().click();
 await pg.getByRole("dialog").waitFor();
-ok(await pg.getByRole("dialog").getByText(/séries/).first().isVisible(), "détail du jour");
+{
+  const dlg = pg.getByRole("dialog");
+  ok(await dlg.getByText(/séries/).first().isVisible(), "détail du jour");
+  ok(await dlg.locator("img").count() >= 2, "séance relue avec les photos des exercices");
+  ok(await dlg.getByRole("textbox").count() === 0 && await dlg.getByText(/Tout valider|Remplacer/).count() === 0, "rien de modifiable");
+  await dlg.getByRole("button", { name: /Développé couché barre/ }).first().click();
+  await dlg.getByText("62,5 kg × 8", { exact: true }).waitFor({ timeout: 3000 });
+  ok(await dlg.getByLabel("Séries de Développé couché barre").getByRole("listitem").count() === 3, "séries une à une, dans l'ordre (60, 62,5, 65 kg)");
+  ok(await dlg.getByText(/RPE \d{2,}/).count() === 0, "cardio : plus de « RPE 600 »");
+  if (process.env.CAPTURES) await pg.screenshot({ path: `${process.env.CAPTURES}/progres-jour.png` });
+}
 await pg.keyboard.press("Escape");
 await pg.waitForTimeout(400);
 
