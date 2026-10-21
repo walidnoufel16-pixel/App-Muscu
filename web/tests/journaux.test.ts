@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rattacherJournaux, reattacherJournaux } from "@/lib/logic/actions";
+import { reattacherJournaux } from "@/lib/logic/actions";
 import { ctxLibre, journal } from "@/lib/logic/core";
 import { ligneDe } from "@/lib/logic/historique";
 import { versEtat } from "@/lib/store";
