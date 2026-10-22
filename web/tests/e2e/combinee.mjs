@@ -49,6 +49,7 @@ await pg.getByRole("tab", { name: "Combinée" }).click();
 await pg.getByRole("tab", { name: "Liste" }).first().click();
 await pg.getByRole("button", { name: "Pectoraux", exact: true }).click();
 await pg.getByRole("button", { name: /^30\/30/ }).click();
+await pg.getByRole("button", { name: "Mon matériel déclaré" }).first().click(); // rien n'est coché au départ
 await pg.getByRole("button", { name: "Créer ma séance" }).click();
 await pg.waitForURL(/\/entrainement\/composer\//);
 const cartes = pg.locator("[data-carte]");

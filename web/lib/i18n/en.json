@@ -1677,5 +1677,22 @@
 "validée": "done",
 "{n} répétitions": "{n} reps",
 "{a} min, dont {b} min d'effort": "{a} min, {b} min of work",
-"{a} min": "{a} min"
+"{a} min": "{a} min",
+"Rubrique": "Section",
+"En endurance, à une allure où tu peux parler. La base de 80 % de ton plan.": "Easy running, at a pace where you can still talk. 80% of your plan.",
+"Lignes droites": "Strides",
+"Quelques accélérations de 20 s après un footing, pour courir vite sans te fatiguer.": "A few 20 s accelerations after an easy run, to run fast without getting tired.",
+"Des blocs de quelques minutes à une allure soutenue mais tenable.": "Blocks of a few minutes at a hard but sustainable pace.",
+"Des efforts courts et rapides, pour faire monter ta vitesse.": "Short, fast efforts to raise your top speed.",
+"La plus longue de la semaine, en douceur. Elle augmente de 10 % au plus d'une semaine à l'autre.": "The longest run of the week, at an easy pace. It grows by 10% at most from one week to the next.",
+"Des blocs à ton allure du jour J, pour qu'elle devienne naturelle.": "Blocks at your race-day pace, so it becomes second nature.",
+"25 minutes de renforcement pour courir mieux et éviter les blessures.": "25 minutes of strength work to run better and avoid injuries.",
+"Prépare une course": "Train for a race",
+"10 km, semi-marathon ou marathon : un plan jusqu'au jour J, avec tes allures calculées sur ton niveau.": "10K, half marathon or marathon: a plan all the way to race day, with paces set for your level.",
+"Les séances du plan": "Workouts in the plan",
+"Voir la séance {k} · {nom}": "See workout {k} · {nom}",
+"Programme {nom}": "{nom} program",
+"Séance {k} · {nom}": "Workout {k} · {nom}",
+"Exercices de la séance {k}": "Exercises in workout {k}",
+"Ajouter le programme à mes séances": "Add the program to my workouts"
 }

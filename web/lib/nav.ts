@@ -69,9 +69,9 @@ export const noterPosition = (chemin: string, y: number) => { positions[chemin] 
 export const oublierPosition = (chemin: string) => { delete positions[chemin]; };
 export const positionDe = (chemin: string): number | undefined => positions[chemin];
 
-/* Affichage choisi dans l'onglet Exercices (Corps, Liste, Soin, Street) : gardé d'un onglet
-   à l'autre, et posé par l'accueil (« Toutes les routines » ouvre Soin). */
-export type VueExercices = "corps" | "liste" | "soin" | "street";
+/* Rubrique choisie dans l'onglet Exercices (Corps, Street, Course, Soin) : gardée d'un onglet
+   à l'autre, et posée par l'accueil (« Toutes les routines » ouvre Soin). */
+export type VueExercices = "corps" | "street" | "course" | "soin";
 export const useVueExercices = create<{ vue: VueExercices }>(() => ({ vue: "corps" }));
 
 /* Vue de l'onglet Entraînement : séances libres (par défaut) ou programme sur 8 semaines. */

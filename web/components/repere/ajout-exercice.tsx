@@ -30,7 +30,7 @@ export function FeuilleAjout({
 }) {
   const A = useRepere((s) => s.etat.A);
   const [selL, setSelL] = useState<string[] | null>(null);
-  const sel = selP ?? selL ?? selDeclare(A);
+  const sel = selP ?? selL ?? [];
   const setSel = onSel ?? setSelL;
   const [vue, setVue] = useState<"corps" | "liste">("corps");
   const [zone, setZone] = useState<{ z: string; p: string | null } | null>(null);

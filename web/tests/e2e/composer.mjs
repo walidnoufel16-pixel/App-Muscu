@@ -41,6 +41,7 @@ const titres = (pg) => pg.locator("[data-titre-partie]").evaluateAll((l) => l.ma
 
   /* épaules : musculation, puis soin & mobilité */
   await pg.waitForTimeout(800); // fin de l'animation de la feuille
+  { const m = feuille.getByRole("button", { name: "Mon matériel déclaré" }); if (await m.count()) await m.click(); } // rien n'est coché au départ
   await feuille.locator("path", { has: pg.locator("title", { hasText: "Épaule avant" }) }).first().click({ force: true });
   const muscu = feuille.getByRole("region", { name: "Musculation" }), soin = feuille.getByRole("region", { name: "Soin & mobilité" });
   await soin.waitFor();
@@ -112,6 +113,7 @@ const titres = (pg) => pg.locator("[data-titre-partie]").evaluateAll((l) => l.ma
   await pg.getByRole("button", { name: "Retirer" }).first().click();
   await pg.getByRole("button", { name: "Exercice", exact: true }).click();
   await pg.waitForTimeout(800);
+  { const m = pg.getByRole("dialog").getByRole("button", { name: "Mon matériel déclaré" }); if (await m.count()) await m.click(); }
   await pg.getByRole("dialog").locator("path", { has: pg.locator("title", { hasText: "Épaule avant" }) }).first().click({ force: true });
   await pg.getByRole("dialog").getByRole("region", { name: "Soin & mobilité" }).getByRole("button", { name: /^Ajouter Cercles de bras/ }).click();
   await pg.getByRole("dialog").getByRole("button", { name: /^Terminé/ }).click();

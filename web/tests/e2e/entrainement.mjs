@@ -135,6 +135,31 @@ const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(1000); await
   await ctx.close();
 }
 
+{
+  /* Rubrique Course de l'onglet Exercices : sans plan, de quoi en préparer un ; avec un plan, sa carte. */
+  const [ctx, pg] = await contexte(etat([PUSH]));
+  await pg.goto(U + "/exercices/");
+  await pg.getByRole("tab", { name: "Course" }).click();
+  await pg.getByRole("heading", { name: "Prépare une course" }).waitFor({ timeout: 8000 });
+  ok(await pg.getByText("Sortie longue").count() === 1, "Course : les séances du plan expliquées");
+  await cap(pg, "exercices-course");
+  await pg.getByRole("button", { name: /Créer mon plan/ }).click();
+  await pg.waitForURL(/assistant/);
+  ok(await pg.getByRole("tab", { name: "Course", selected: true }).count() === 1, "« Créer mon plan » ouvre le questionnaire course");
+  await ctx.close();
+}
+
+{
+  const auj = new Date(), d = (n) => new Date(auj.getTime() + n * 864e5).toISOString().slice(0, 10);
+  const e = { ...etat([PUSH]), COURSE: { obj: "10k", date: d(56), debut: d(-3), jours: 3, renfo: 0, ref: null, pauses: [], ajust: {}, cree: d(-3) } };
+  const [ctx, pg] = await contexte(e);
+  await pg.goto(U + "/exercices/");
+  await pg.getByRole("tab", { name: "Course" }).click();
+  await pg.getByRole("heading", { name: "Ton plan" }).waitFor({ timeout: 8000 });
+  ok(await pg.getByText(/10 km · J-/).count() === 1, "Course avec un plan : la carte du plan");
+  await ctx.close();
+}
+
 ok(!errs.length, "aucune erreur JS" + (errs.length ? " : " + errs.join(" / ") : ""));
 await b.close();
 srv.close();

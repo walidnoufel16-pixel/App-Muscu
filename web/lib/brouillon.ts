@@ -9,7 +9,7 @@ export type Brouillon = SeanceLibre & { idx: number | null };
 
 type B = {
   libre: Brouillon | null;
-  sel: string[] | null; // null : matériel déclaré
+  sel: string[] | null; // null : rien de coché au départ, l'utilisateur choisit
   setLibre: (l: Brouillon | null) => void;
   majLibre: (fn: (l: Brouillon) => void) => void;
   setSel: (s: string[] | null) => void;

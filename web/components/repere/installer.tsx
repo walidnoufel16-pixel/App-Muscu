@@ -1,13 +1,14 @@
 "use client";
 
 /* Pastille « Installer l'app » : seulement dans le navigateur, tant que l'app n'est pas
-   sur l'écran d'accueil. Sur iPhone, une feuille montre les trois gestes dans Safari ;
+   sur l'écran d'accueil (l'admin la voit toujours, pour contrôle). Sur iPhone, une feuille montre les trois gestes dans Safari ;
    sur Android, c'est la fenêtre d'installation du système. « Plus tard » la cache 14 jours. */
 import { tr } from "@/lib/i18n";
 import { useEffect, useState } from "react";
 import { DownloadSimpleIcon, ExportIcon, PlusSquareIcon, XIcon } from "@phosphor-icons/react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
+import { useEstAdmin } from "@/lib/admin";
 
 const CLE = "repere.installer.plus-tard";
 const DELAI = 14 * 864e5;
@@ -22,6 +23,9 @@ const repousse = () => { try { return Date.now() - +(localStorage.getItem(CLE) |
 export function Installer() {
   /* le composant n'est rendu qu'au téléphone (après le démarrage de l'app) : lecture directe */
   const [visible, setVisible] = useState(() => !installee() && !repousse() && iphone());
+  /* l'admin la voit partout, même app installée, pour la voir comme ses utilisateurs */
+  const admin = useEstAdmin() === true;
+  const [ferme, setFerme] = useState(false);
   const [invite, setInvite] = useState<Invite | null>(null);
   const [feuille, setFeuille] = useState(false);
 
@@ -33,8 +37,8 @@ export function Installer() {
     return () => { window.removeEventListener("beforeinstallprompt", capter); window.removeEventListener("appinstalled", finie); };
   }, []);
 
-  if (!visible) return null;
-  const plusTard = () => { try { localStorage.setItem(CLE, String(Date.now())); } catch {} setVisible(false); };
+  if (!(visible || (admin && !ferme && !repousse()))) return null;
+  const plusTard = () => { try { localStorage.setItem(CLE, String(Date.now())); } catch {} setVisible(false); setFerme(true); };
   const ouvrir = async () => {
     if (invite) { await invite.prompt(); const r = await invite.userChoice; if (r.outcome === "accepted") setVisible(false); return; }
     setFeuille(true);

@@ -80,7 +80,7 @@ export function Bibliotheque({
   );
 }
 
-export function ListeRecherche({ sel, q, setQ, pris, onAjouter, onFiche }: { sel: string[]; q: string; setQ: (s: string) => void; pris?: (o: string) => boolean; onAjouter?: (o: string) => void; onFiche: (o: string) => void }) {
+export function ListeRecherche({ sel, q, setQ, pris, onAjouter, onFiche, sansChamp = false }: { sel: string[]; q: string; setQ: (s: string) => void; pris?: (o: string) => boolean; onAjouter?: (o: string) => void; onFiche: (o: string) => void; sansChamp?: boolean }) {
   const groupes = useMemo(() => {
     const f = sansAccent(q.trim()), g: Record<string, string[]> = {};
     Object.keys(EX).filter((o) => exoFiltre(o, sel)).forEach((o) => {
@@ -92,10 +92,12 @@ export function ListeRecherche({ sel, q, setQ, pris, onAjouter, onFiche }: { sel
   }, [q, sel]);
   return (
     <div className="flex flex-col gap-3">
-      <div className="relative">
-        <MagnifyingGlassIcon className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Rechercher un exercice…")} className="h-11 rounded-2xl bg-card pl-10 text-[15px]" />
-      </div>
+      {!sansChamp && (
+        <div className="relative">
+          <MagnifyingGlassIcon className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Rechercher un exercice…")} className="h-11 rounded-2xl bg-card pl-10 text-[15px]" />
+        </div>
+      )}
       {Object.keys(groupes).length ? Object.entries(groupes).map(([g, l]) => (
         <div key={g}>
           <div className="eyebrow mb-1.5 px-1">{tr(g)}</div>

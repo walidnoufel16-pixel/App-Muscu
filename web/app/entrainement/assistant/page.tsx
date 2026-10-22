@@ -56,7 +56,7 @@ function Assistant() {
     revenirA("/entrainement", () => router.replace("/entrainement", ARRIERE));
   };
   const { sel: selB, setSel, setLibre } = useBrouillon();
-  const sel = avecSalle(selB ?? selDeclare(A), A);
+  const sel = avecSalle(selB ?? [], A);
   const [m, setM] = useState<string[]>([]);
   const [vue, setVue] = useState<"corps" | "liste">("corps");
   const [d, setD] = useState(45);
@@ -65,7 +65,7 @@ function Assistant() {
   const bascule = (k: string) => { tactile(6); setM((l) => (l.includes(k) ? l.filter((x) => x !== k) : [...l, k])); };
   const noms = m.map((k) => MUSC.find((g) => g.k === k)!.n);
   const budget = Math.round((DUREES.find((x) => x[0] === d) || DUREES[1])[1] / 3);
-  const peut = m.length > 0 && obj != null && sel.length > 0;
+  const peut = m.length > 0 && obj != null && sel.some((t) => !t.startsWith("x:"));
 
   const creer = () => {
     if (obj == null) return;
