@@ -206,5 +206,25 @@ async function contexte(admin, acces = false) {
   await ctx.close();
 }
 
+/* Carte « Installe Repère » : l'admin la voit même app installée, et la croix la masque ;
+   un compte normal, app installée, ne la voit pas. */
+for (const admin of [true, false]) {
+  const { ctx, pg } = await contexte(admin);
+  await pg.addInitScript(() => { const m = window.matchMedia.bind(window); window.matchMedia = (q) => (q.includes("standalone") ? { matches: true, media: q, addEventListener() {}, removeEventListener() {} } : m(q)); });
+  await pg.goto(U + "/entrainement/");
+  await pg.getByText("Mes séances").first().waitFor({ timeout: 8000 });
+  const carte = pg.getByRole("button", { name: /Installe Repère/ });
+  if (admin) {
+    await carte.waitFor({ timeout: 8000 }).catch(() => {});
+    ok(await carte.count() === 1, "admin, app installée : carte d'installation visible");
+    await pg.getByRole("button", { name: "Plus tard" }).click();
+    ok(await carte.count() === 0, "admin : la croix la masque");
+  } else {
+    await pg.waitForTimeout(2500);
+    ok(await carte.count() === 0, "compte normal, app installée : pas de carte");
+  }
+  await ctx.close();
+}
+
 console.log("erreurs:", JSON.stringify(errs));
 await b.close(); srv.close();

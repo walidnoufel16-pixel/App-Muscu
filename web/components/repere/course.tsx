@@ -1,10 +1,11 @@
 "use client";
 
 /* Préparation course à pied : questionnaire (dans « Créer une séance pour moi »),
-   carte sur Entraînement, et feuille de saisie d'une sortie. */
+   carte sur Entraînement, rubrique Course de l'onglet Exercices, et feuille de saisie d'une sortie. */
 import { loc, tr } from "@/lib/i18n";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { Route } from "next";
 import { ArrowRightIcon, CaretRightIcon, PauseCircleIcon, PersonSimpleRunIcon, WarningIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -149,6 +150,58 @@ export function CarteCourse() {
       </span>
       <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" />
     </button>
+  );
+}
+
+/* ---------------- rubrique Course de l'onglet Exercices ---------------- */
+const SORTIES_PLAN: [string, string][] = [
+  [tr("Footing"), tr("En endurance, à une allure où tu peux parler. La base de 80 % de ton plan.")],
+  [tr("Lignes droites"), tr("Quelques accélérations de 20 s après un footing, pour courir vite sans te fatiguer.")],
+  [tr("Seuil"), tr("Des blocs de quelques minutes à une allure soutenue mais tenable.")],
+  [tr("Fractionné"), tr("Des efforts courts et rapides, pour faire monter ta vitesse.")],
+  [tr("Sortie longue"), tr("La plus longue de la semaine, en douceur. Elle augmente de 10 % au plus d'une semaine à l'autre.")],
+  [tr("Allure spécifique"), tr("Des blocs à ton allure du jour J, pour qu'elle devienne naturelle.")],
+  [tr("Renfo du coureur"), tr("25 minutes de renforcement pour courir mieux et éviter les blessures.")],
+];
+
+/** Rubrique Course : ton plan s'il y en a un, sinon de quoi en préparer un ; les séances qu'il contient. */
+export function VueCourse() {
+  const router = useRouter();
+  const etat = useRepere((s) => s.etat);
+  const [auj] = useState(() => jourDe(Date.now()));
+  const enCours = !!etat.COURSE && joursAvantCourse(etat.COURSE, auj) >= -7;
+  return (
+    <div className="flex flex-col gap-5">
+      {enCours ? (
+        <section className="flex flex-col gap-2">
+          <h3 className="px-1 text-[19px] font-bold">{tr("Ton plan")}</h3>
+          <CarteCourse />
+        </section>
+      ) : (
+        <div className="rounded-[22px] bg-plate p-5 text-plate-foreground">
+          <PersonSimpleRunIcon className="size-8" weight="fill" />
+          <h3 className="mt-2 text-[22px] leading-tight font-bold">{tr("Prépare une course")}</h3>
+          <p className="mt-1.5 text-[14px] leading-relaxed opacity-90">{tr("10 km, semi-marathon ou marathon : un plan jusqu'au jour J, avec tes allures calculées sur ton niveau.")}</p>
+          <button onClick={() => router.push("/entrainement/assistant?type=course" as Route, AVANT)} className="mt-4 inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[15px] font-semibold text-[#2346c4] active:scale-[.97]">
+            {tr("Créer mon plan")}<ArrowRightIcon className="size-4" weight="bold" />
+          </button>
+        </div>
+      )}
+      <section>
+        <h3 className="mb-2 px-1 text-[19px] font-bold">{tr("Les séances du plan")}</h3>
+        <ul className="flex flex-col gap-1.5">
+          {SORTIES_PLAN.map(([n, d]) => (
+            <li key={n} className="flex items-start gap-3 rounded-[18px] bg-card p-3">
+              <span className="grid size-9 shrink-0 place-items-center rounded-[11px] bg-plate-soft text-plate-ink"><PersonSimpleRunIcon className="size-5" weight="fill" /></span>
+              <span className="min-w-0">
+                <span className="block text-[15px] font-semibold">{n}</span>
+                <span className="block text-[12.5px] leading-snug text-muted-foreground">{d}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
   );
 }
 

@@ -41,9 +41,15 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
 
   /* Ma salle : la presse disparaît quand on dit qu'on ne l'a pas */
   await pg.goto(U + "/exercices/");
-  await pg.getByRole("tab", { name: "Liste" }).click();
+  /* rien n'est coché au départ : aucun exercice tant qu'on n'a pas choisi son matériel */
+  ok(await pg.getByRole("button", { pressed: true }).filter({ hasText: /^(Poids du corps|Haltères|Barre|Machines)$/ }).count() === 0, "matériel : rien de coché au départ");
+  ok(await pg.getByText("Sélectionne au moins un matériel pour voir des exercices.").isVisible(), "matériel : message pour choisir");
+  ok((await pg.getByRole("tablist", { name: "Rubrique" }).getByRole("tab").allTextContents()).join(",") === "Corps,Street,Course,Soin", "rubriques : Corps, Street, Course, Soin");
+  await pg.getByRole("button", { name: "Haltères", exact: true }).click();
   await pg.getByPlaceholder("Rechercher un exercice…").fill("presse");
-  ok(await pg.getByText("Presse à cuisses").count() > 0, "Liste : presse à cuisses visible");
+  ok(await pg.getByText("Presse à cuisses").count() === 0, "haltères seuls : pas de presse");
+  await pg.getByRole("button", { name: "Mon matériel déclaré" }).click();
+  ok(await pg.getByText("Presse à cuisses").count() > 0, "loupe : presse à cuisses trouvée avec la salle");
   await pg.getByRole("button", { name: /Ma salle/ }).click();
   await pg.getByRole("heading", { name: "Ma salle" }).or(pg.getByText("Ma salle").nth(1)).first().waitFor();
   await pg.waitForTimeout(600);
@@ -60,6 +66,19 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
   await pg.getByRole("heading", { name: "Programmes" }).waitFor();
   ok(await pg.getByText("Muscle-up").count() > 0, "Street : les figures (muscle-up)");
   await cap(pg, "street-onglet");
+  /* aperçu : voir les séances sans les ajouter */
+  await pg.getByRole("button", { name: /^Voir la séance A/ }).first().click();
+  const apercu = pg.getByRole("dialog");
+  await apercu.getByText("Tractions scapulaires").first().waitFor();
+  ok(await apercu.locator("img").count() >= 3, "aperçu de la séance A : exercices avec photos");
+  const exA = await apercu.getByRole("list").first().innerText();
+  await apercu.getByRole("tab", { name: "B" }).click();
+  await pg.waitForTimeout(300);
+  ok(await apercu.getByRole("list").first().innerText() !== exA, "séance B : d'autres exercices");
+  await cap(pg, "street-apercu");
+  ok((await etatLu(pg)).SEANCES.filter((s) => s.street).length === 0, "rien n'est ajouté à Mes séances en regardant");
+  await pg.keyboard.press("Escape");
+  await pg.waitForTimeout(500);
   await pg.getByRole("button", { name: "Ajouter à mes séances" }).first().click();
   await pg.waitForURL(/seance\/?\?l=0/, { waitUntil: "commit" });
   await pg.getByText("Tractions scapulaires").first().waitFor({ timeout: 8000 });
@@ -85,7 +104,7 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
   /* Poids du corps seul : pas de tractions sans barre, puis avec. */
   const [ctx, pg] = await contexte(etat(3));
   await pg.goto(U + "/exercices/");
-  await pg.getByRole("tab", { name: "Liste" }).click();
+  await pg.getByRole("button", { name: "Mon matériel déclaré" }).click();
   await pg.getByPlaceholder("Rechercher un exercice…").fill("tractions");
   await pg.waitForTimeout(500);
   ok(await pg.getByText("Tractions pronation").count() === 0, "sans barre de traction : pas de tractions");

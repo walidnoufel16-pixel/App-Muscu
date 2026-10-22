@@ -22,6 +22,7 @@ const silhouette = () => pg.locator("svg[data-silhouette]").first().getAttribute
 const cap = async (nom) => { if (CAP) { await pg.waitForTimeout(1200); await pg.screenshot({ path: `${CAP}/${nom}.png` }); } };
 
 await pg.goto(U + "/exercices/");
+{ const m = pg.getByRole("button", { name: "Mon matériel déclaré" }); await m.waitFor({ timeout: 8000 }).catch(() => {}); if (await m.count()) await m.click(); } // rien n'est coché au départ
 await pg.locator("svg[data-silhouette]").first().waitFor({ timeout: 8000 });
 ok(await silhouette() === "homme", "homme : schéma masculin");
 const zonesH = await pg.locator("svg[data-silhouette] path.cursor-pointer").count();
@@ -36,6 +37,7 @@ await pg.getByRole("heading", { name: "Silhouette" }).scrollIntoViewIfNeeded();
 await cap("silhouette-profil");
 
 await pg.goto(U + "/exercices/");
+{ const m = pg.getByRole("button", { name: "Mon matériel déclaré" }); await m.waitFor({ timeout: 8000 }).catch(() => {}); if (await m.count()) await m.click(); } // rien n'est coché au départ
 await pg.locator("svg[data-silhouette]").first().waitFor();
 ok(await silhouette() === "femme", "femme : schéma féminin");
 const zonesF = await pg.locator("svg[data-silhouette] path.cursor-pointer").count();

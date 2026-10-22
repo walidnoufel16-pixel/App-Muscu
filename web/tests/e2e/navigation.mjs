@@ -114,6 +114,8 @@ await pg.goto(U + "/entrainement/");
 await creer(pg, "Créer une séance pour moi");
 await pg.waitForURL(/\/entrainement\/assistant\/$/);
 await pg.getByRole("button", { name: "Full body" }).click();
+ok(await pg.getByRole("button", { name: "Créer ma séance" }).isDisabled(), "assistant : rien de coché, pas de séance possible");
+await pg.getByRole("button", { name: "Mon matériel déclaré" }).first().click(); // rien n'est coché au départ
 await pg.getByRole("button", { name: "Créer ma séance" }).click();
 await pg.waitForURL(/\/entrainement\/composer\/$/);
 // ajouter des exercices à la séance générée : bouton « + Exercice », feuille de la bibliothèque
@@ -121,6 +123,7 @@ const nbAvant = +(await pg.getByText(/^Ta séance · \d+ exercice/).textContent(
 await pg.getByRole("button", { name: "Exercice", exact: true }).click();
 await pg.getByRole("heading", { name: "Ajouter un exercice" }).waitFor();
 await pg.getByRole("dialog").getByRole("tab", { name: "Liste" }).click(); // la feuille s'ouvre sur le corps
+{ const m = pg.getByRole("dialog").getByRole("button", { name: "Mon matériel déclaré" }); if (await m.count()) await m.click(); }
 await pg.getByPlaceholder(/Rechercher/).fill("curl");
 await pg.getByRole("button", { name: /^Ajouter Curl/ }).first().click();
 await pg.getByPlaceholder(/Rechercher/).fill("gainage");
@@ -145,6 +148,7 @@ await pg.getByRole("button", { name: /^Valider la série/ }).first().click();
 await pg.waitForTimeout(300);
 await pg.getByRole("button", { name: "Ajouter un exercice" }).click();
 await pg.getByRole("dialog").getByRole("tab", { name: "Liste" }).click(); // la feuille s'ouvre sur le corps
+{ const m = pg.getByRole("dialog").getByRole("button", { name: "Mon matériel déclaré" }); if (await m.count()) await m.click(); }
 await pg.getByPlaceholder(/Rechercher/).fill("curl");
 await pg.getByRole("button", { name: /^Ajouter Curl/ }).first().click();
 await pg.waitForTimeout(900);
@@ -156,7 +160,7 @@ ok(await pg.locator('[id="ex-L|0|1"] [aria-expanded="true"]').count() === 1, "le
 // onglets façon iOS : contenu instantané, pastille qui glisse, position retenue, onglet ouvert → en haut
 const pastille = () => pg.evaluate(() => { const p = document.querySelector("[data-pastille]").getBoundingClientRect(), a = document.querySelector('nav a[aria-current="page"]').getBoundingClientRect(); return Math.abs(p.left + p.width / 2 - (a.left + a.width / 2)); });
 await pg.goto(U + "/exercices/");
-await pg.getByRole("tab", { name: "Liste" }).click();
+await pg.getByRole("tab", { name: "Street" }).click();
 await pg.waitForTimeout(800);
 await pg.mouse.wheel(0, 600);
 await pg.waitForTimeout(500);

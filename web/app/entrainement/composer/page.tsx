@@ -38,7 +38,9 @@ export default function PageComposer() {
   const router = useRouter();
   const { etat, muter } = useRepere();
   const { libre, majLibre, sel: selB, setSel, setLibre } = useBrouillon();
-  const sel = avecSalle(selB ?? selDeclare(etat.A), etat.A);
+  /* la feuille d'ajout part sans matériel coché ; remplacements et « Autre » suivent le matériel coché, sinon celui du Profil */
+  const selFeuille = avecSalle(selB ?? [], etat.A);
+  const sel = selFeuille.some((t) => !t.startsWith("x:")) ? selFeuille : avecSalle(selDeclare(etat.A), etat.A);
   const [ouv, setOuv] = useState<string | null>(null);
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);
   const [remp, setRemp] = useState<number | null>(null);
@@ -200,7 +202,7 @@ export default function PageComposer() {
       </div>
 
       <FeuilleAjout
-        ouvert={ajout} onClose={() => setAjout(false)} onAjouter={ajouter} pris={pris} sel={sel} onSel={setSel}
+        ouvert={ajout} onClose={() => setAjout(false)} onAjouter={ajouter} pris={pris} sel={selFeuille} onSel={setSel}
         onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") })}
       />
       <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
