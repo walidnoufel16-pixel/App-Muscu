@@ -2,7 +2,10 @@
 
 import { loc, pluriel, tr } from "@/lib/i18n";
 import { useCallback, useState } from "react";
-import { FlameIcon, TrophyIcon } from "@phosphor-icons/react";
+import { useRouter } from "next/navigation";
+import { ChartLineUpIcon, FlameIcon, TrophyIcon } from "@phosphor-icons/react";
+import { ajouterAuSuivi } from "@/lib/suivi";
+import { tactile } from "@/lib/repos";
 import { useRepere } from "@/lib/store";
 import { jourDe } from "@/lib/logic/historique";
 import { objectifHebdo, serie } from "@/lib/logic/motivation";
@@ -33,6 +36,10 @@ function Compteur({ valeur, delai = 0 }: { valeur: number; delai?: number }) {
 export function Bilan() {
   const bilan = useCelebrer((s) => s.bilan);
   const fermer = useCelebrer((s) => s.fermerBilan);
+  const router = useRouter();
+  /* séance libre : on la range dans le suivi, elle repart vierge */
+  const libre = bilan?.s?.startsWith("L|") ? +bilan.s.slice(2) : null;
+  const suivre = () => { tactile(12); ajouterAuSuivi(libre!); fermer(); router.push("/progres"); };
   const stats = !bilan ? [] : bilan.cases ? bilan.cases : [
         { n: tr("exercices"), v: bilan.exercices },
         { n: tr("séries validées"), v: bilan.series },
@@ -63,7 +70,13 @@ export function Bilan() {
               ))}
             </div>
             <Suite />
-            <Button variant="plate" size="xl" className="mt-6 w-full" onClick={fermer}>{tr("Terminer")}</Button>
+            {libre != null ? (
+              <>
+                <Button variant="plate" size="xl" className="mt-6 w-full" onClick={suivre}><ChartLineUpIcon weight="bold" />{tr("Ajouter à mon suivi")}</Button>
+                <p className="mt-2 text-[12.5px] text-muted-foreground">{tr("Elle s'enregistre dans Progrès et repart à zéro pour la prochaine fois.")}</p>
+                <button onClick={fermer} className="mt-2 w-full py-2 text-[14px] font-medium text-muted-foreground">{tr("Plus tard")}</button>
+              </>
+            ) : <Button variant="plate" size="xl" className="mt-6 w-full" onClick={fermer}>{tr("Terminer")}</Button>}
           </div>
         )}
       </DrawerContent>

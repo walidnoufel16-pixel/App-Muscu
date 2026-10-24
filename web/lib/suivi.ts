@@ -9,6 +9,7 @@ import { useCelebrer, seanceDe } from "@/lib/celebrer";
 import { okDe } from "@/lib/logic/core";
 import { inscrire, jourDe, joursSeance, ligneDe } from "@/lib/logic/historique";
 import { formeDuJour, niveau } from "@/lib/logic/forme";
+import { cloturerSeance } from "@/lib/logic/actions";
 import type { Journal } from "@/lib/logic/types";
 
 const valides = (L?: Journal) => (L?.series || []).filter((s) => okDe(L!, s)).length + (L?.done ? 0.5 : 0);
@@ -48,4 +49,10 @@ export function suivreHistorique() {
       });
     });
   });
+}
+
+/* « Ajouter à mon suivi » : la séance libre i est rangée dans Progrès et repart vierge. */
+export function ajouterAuSuivi(i: number) {
+  useRepere.getState().muter((E) => cloturerSeance(E, i));
+  useCelebrer.getState().oublier("L|" + i);
 }

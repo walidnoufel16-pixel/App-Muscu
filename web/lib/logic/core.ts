@@ -12,6 +12,7 @@ import type { Exercice } from "@/lib/data/types";
 import { POSTE_DE } from "@/lib/data/salle";
 import { ajuster, formeDuJour, zonesDe } from "./forme";
 import type { Etat, Journal, Reponses, SeanceIA, SeanceSemaine, Serie } from "./types";
+import type { LigneHist } from "./historique";
 
 /* ---------------- petits utilitaires ---------------- */
 export const nb = (v: number | string) => (langue() === "en" ? String(v) : String(v).replace(".", ","));
@@ -285,6 +286,28 @@ export function precedentDe(LOG: Record<string, Journal>, id: string, sauf?: str
   return best;
 }
 
+/* Dernière fois que l'exercice figure dans Progrès : les séries validées de la ligne d'historique
+   la plus récente qui le contient, quelle que soit la séance. La séance en cours ne compte pas
+   (sa ligne du jour, tant que son journal a des séries validées). */
+const jourLocal = (ts: number) => { const d = new Date(ts), z = (n: number) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`; };
+export function precedentHist(E: Etat, id: string, k: string): Journal | null {
+  const s = k.split("|").slice(0, 2).join("|"), cur = E.LOG[k];
+  const auj = cur?.ts && (cur.series || []).some((x) => okDe(cur, x)) ? jourLocal(cur.ts) : null;
+  const H: LigneHist[] = E.HIST || [];
+  for (let i = H.length - 1; i >= 0; i--) {
+    const l = H[i];
+    if (l.s === s && l.d === auj) continue;
+    const det = (l.det || []).filter((x) => x.id === id && x.s.length).at(-1);
+    if (!det) continue;
+    const series: Serie[] = det.s.map(([v, reps, lest]) => ({ v, reps, ok: true, ...(lest ? { lest } : {}) }));
+    const [a, m, j] = l.d.split("-").map(Number);
+    return { ex: id, done: true, nb: series.length, feel: det.f ?? null, ts: new Date(a, m - 1, j, 12).getTime(), series, v: Math.max(...series.map((x) => x.v)), reps: series.at(-1)!.reps, lest: series.some((x) => +(x.lest ?? 0) > 0) };
+  }
+  return null;
+}
+/** Le précédent d'un exercice : d'abord ce que montre Progrès, sinon le journal. */
+export const precedent = (E: Etat, id: string, k: string) => precedentHist(E, id, k) ?? precedentDe(E.LOG, id, k);
+
 /* ---------------- suggestion de charge ---------------- */
 const PAS_LOURD = new Set(["eg", "fh"]), PAS_MOYEN = new Set(["ph", "pv", "tv", "th"]);
 export function pasDe(x: Exercice) {
@@ -337,7 +360,7 @@ export function ctxPlan(E: Etat, i: number, W = week(E)): Ctx | null {
     k, id, n: e[1],
     base: aj.base,
     why: joindre(g ? g.t : undefined, aj.texte), repos: e[3],
-    prev: prev || precedentDe(E.LOG, id, k),
+    prev: precedentHist(E, id, k) || prev || precedentDe(E.LOG, id, k),
   };
 }
 export const kLibre = (idx: number, j: number) => `L|${idx}|${j}`;
@@ -350,7 +373,7 @@ const joindre = (...t: (string | undefined)[]) => t.filter(Boolean).join(" ") ||
 export function ctxLibre(E: Etat, idx: number, j: number): Ctx | null {
   const S = E.SEANCES[idx], e = S?.ex[j];
   if (!e || !EX[e.id]) return null;
-  const x = EX[e.id], k = kLibre(idx, j), d = precedentDe(E.LOG, e.id, k);
+  const x = EX[e.id], k = kLibre(idx, j), d = precedent(E, e.id, k);
   const aj = selonForme(E.A, x, e.id, d ? { v: maxV(d), reps: d.reps ?? e.r } : { v: x.d, reps: e.r });
   return {
     k, id: e.id, n: e.s,

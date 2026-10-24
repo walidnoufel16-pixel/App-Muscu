@@ -1759,5 +1759,10 @@
 "{n} marches de {e} jusqu'au sommet, puis on redescend": "{n} steps of {e} up to the peak, then back down",
 "{n} sprints de {e}, récupération en marchant": "{n} sprints of {e}, walking recovery",
 "{n} paliers de plus en plus rapides sur {d} min": "{n} faster and faster stages over {d} min",
-"{d} min en continu, sans t'essouffler": "{d} min non-stop, without getting out of breath"
+"{d} min en continu, sans t'essouffler": "{d} min non-stop, without getting out of breath",
+"Ajouter à mon suivi": "Add to my log",
+"Elle s'enregistre dans Progrès et repart à zéro pour la prochaine fois.": "It's saved in Progress and starts fresh next time.",
+"Ajouter à mon suivi ?": "Add to my log?",
+"{n} exercices ne sont pas terminés : seules les séries validées comptent.": "{n} exercises aren't finished: only completed sets count.",
+"{n} exercice n'est pas terminé : seules les séries validées comptent.": "{n} exercise isn't finished: only completed sets count."
 }

@@ -49,7 +49,7 @@ ok(await pg.getByText("exercices", { exact: true }).isVisible() && await pg.getB
 ok(await pg.getByText("Objectif de la semaine atteint").isVisible(), "bilan : objectif de la semaine atteint");
 ok(await pg.getByText("Nouveau badge").count() === 0, "le badge attend la fin du bilan");
 await cap("bilan");
-await pg.getByRole("button", { name: "Terminer" }).click();
+await pg.getByRole("button", { name: "Plus tard" }).click(); // séance libre : « Ajouter à mon suivi » ou « Plus tard »
 await pg.getByText("Nouveau badge").waitFor({ timeout: 4000 }).catch(() => {});
 await pg.waitForTimeout(900);
 await cap("badge");
