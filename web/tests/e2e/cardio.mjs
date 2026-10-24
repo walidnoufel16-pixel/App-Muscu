@@ -34,6 +34,7 @@ await creer(pg, "Créer une séance pour moi");
 await pg.waitForURL(/\/entrainement\/assistant\/$/);
 await pg.getByRole("tab", { name: "Cardio" }).click();
 await pg.getByRole("button", { name: /Rameur/ }).click();
+await pg.getByRole("button", { name: "Ajuster les durées en détail" }).click(); // les compteurs sont repliés
 for (let i = 0; i < 5; i++) await pg.getByRole("button", { name: "Échauffement : moins" }).click();
 for (let i = 0; i < 3; i++) await pg.getByRole("button", { name: "Retour au calme : moins" }).click();
 while (!(await pg.getByRole("button", { name: "Tours : moins" }).isDisabled())) await pg.getByRole("button", { name: "Tours : moins" }).click();

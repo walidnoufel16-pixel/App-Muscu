@@ -118,7 +118,6 @@ ok((await etatLu()).HIST.find((x) => x.d === jour(Date.now()) && x.s === "L|0").
 // fiche : lien vers la progression
 await pg.goto(U + "/exercices/");
 await pg.getByRole("button", { name: "Mon matériel déclaré" }).click(); // rien n'est coché au départ
-await pg.getByPlaceholder(/Rechercher/).fill("couché");
 await pg.getByText("Développé couché barre", { exact: true }).first().click();
 await pg.getByRole("button", { name: /Ma progression sur/ }).click();
 await pg.waitForURL(/\/progres\/\?ex=dc/);

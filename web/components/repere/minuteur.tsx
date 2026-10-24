@@ -36,8 +36,12 @@ function bipsDe(P: Phase[], ecoule: number): Bip[] {
   return b;
 }
 
-/* `onFin(e)` : appelé à la fin (ou à l'arrêt) avec le temps écoulé en secondes, s'il dépasse une minute. */
-export function Minuteur({ phases, titre, course, setCourse, onFin }: { phases: Phase[]; titre: string; course: Course; setCourse: (c: Course | null) => void; onFin: (e: number) => void }) {
+/* `onFin(e)` : appelé à la fin (ou à l'arrêt) avec le temps écoulé en secondes, s'il atteint `seuil`
+   (une minute pour une séance cardio) ; `arret` : textes de la confirmation d'arrêt. */
+export function Minuteur({ phases, titre, course, setCourse, onFin, seuil = 60, arret }: {
+  phases: Phase[]; titre: string; course: Course; setCourse: (c: Course | null) => void; onFin: (e: number) => void;
+  seuil?: number; arret?: { titre: string; texte: string };
+}) {
   const [maintenant, setMaintenant] = useState(course.debut);
   const termine = useRef(false);
   const verrou = useRef<{ release: () => Promise<void> } | null>(null);
@@ -52,7 +56,7 @@ export function Minuteur({ phases, titre, course, setCourse, onFin }: { phases: 
     couper("cardio");
     const e = Math.min(total, Math.max(0, ecouleDe(course, fin)));
     setCourse(null);
-    if (e < 60) return;
+    if (e < seuil) return;
     try { navigator.vibrate?.([180, 90, 180]); } catch {}
     onFin(e);
   };
@@ -109,7 +113,7 @@ export function Minuteur({ phases, titre, course, setCourse, onFin }: { phases: 
   const arreter = async () => {
     const t = Date.now(), avant = course;
     if (!avant.pause) setCourse({ ...avant, pause: t });
-    const ok = await confirmer({ titre: tr("Arrêter la séance ?"), texte: ecoule >= 60 ? tr("Ce que tu as fait jusqu'ici est enregistré.") : tr("Moins d'une minute : rien ne sera enregistré."), ok: tr("Arrêter") });
+    const ok = await confirmer({ titre: arret?.titre ?? tr("Arrêter la séance ?"), texte: arret?.texte ?? (ecoule >= 60 ? tr("Ce que tu as fait jusqu'ici est enregistré.") : tr("Moins d'une minute : rien ne sera enregistré.")), ok: tr("Arrêter") });
     if (ok) finir(avant.pause ?? t);
     else setCourse(avant.pause ? avant : { ...avant, cumulPause: avant.cumulPause + (Date.now() - t) });
   };
@@ -147,7 +151,7 @@ export function Minuteur({ phases, titre, course, setCourse, onFin }: { phases: 
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
             <span key={o.i} className="animate-[pop_.45s_cubic-bezier(.3,1.6,.5,1)] text-[22px] font-bold tracking-[-0.01em]">{p ? p.titre ?? NOM_PHASE[p.type] : tr("Terminé")}</span>
             <span className={cn("num text-[78px] leading-none font-bold", !effort && o.reste <= 3 && "text-plate")}>{mmss(Math.ceil(o.reste))}</span>
-            {p && <span className={cn("mt-1 rounded-full px-2.5 py-0.5 text-[12.5px] font-semibold", effort ? "bg-white/15" : "bg-muted text-muted-foreground")}>{p.rpe}</span>}
+            {p?.rpe && <span className={cn("mt-1 rounded-full px-2.5 py-0.5 text-[12.5px] font-semibold", effort ? "bg-white/15" : "bg-muted text-muted-foreground")}>{p.rpe}</span>}
           </div>
         </div>
         {p?.consigne && <p className={cn("max-w-[30ch] text-center text-[17px] leading-snug font-medium", !effort && "text-foreground/85")}>{p.consigne}</p>}

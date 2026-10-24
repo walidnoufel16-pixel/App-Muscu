@@ -2,8 +2,11 @@
 
 import { tr } from "@/lib/i18n";
 import { ConseilZone } from "./forme";
-import { useCallback, useState } from "react";
-import { CheckIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
+import { useCallback, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { CheckIcon, PlayIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
+import { departCourse, Minuteur, preparer, type Course } from "./minuteur";
+import type { Phase } from "@/lib/logic/cardio";
 import { EX } from "@/lib/data/exercices";
 import { LESTABLE } from "@/lib/data/referentiels";
 import { fmtSerie, maxV, nb, okDe, secondesDe, seriesDe, type Ctx } from "@/lib/logic/core";
@@ -47,7 +50,14 @@ function Champ({ valeur, onValide, label, mode, depuis }: { valeur: string; onVa
   );
 }
 
-/* Tableau des séries façon Hevy / Strong : # · précédent · valeurs · ✓. */
+/* Exercice tenu en durée : 10 s pour se mettre en place, puis la durée de la série. */
+const PREPA = 10;
+const phasesChrono = (nom: string, cible: number): Phase[] => [
+  { type: "pause", titre: tr("Prépare-toi"), duree: PREPA, rpe: "", consigne: tr("Mets-toi en position : {nom}", { nom }) },
+  { type: "effort", titre: tr("Tiens"), duree: cible, rpe: "", consigne: nom },
+];
+
+/* Tableau des séries façon Hevy / Strong : # · précédent · valeurs · (chrono) · ✓. */
 export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: number; onReplier: () => void; onFini?: () => void }) {
   const L: Journal | undefined = useRepere((s) => s.etat.LOG[c.k]);
   const muter = useRepere((s) => s.muter);
@@ -55,6 +65,8 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
   const [depuis] = useState(() => performance.now());
   const [vient, setVient] = useState<number | null>(null); // série qui vient d'être validée
   const [records, setRecords] = useState<number[]>([]);
+  const [chrono, setChrono] = useState<{ n: number; s: Serie; course: Course } | null>(null);
+  const boutons = useRef<Record<number, HTMLElement | null>>({});
 
   const valider = (n: number, s: Serie, bouton: HTMLElement) => {
     const avant = useRepere.getState().etat.LOG;
@@ -84,7 +96,17 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
   const tete = { kg: "kg", lest: "lest", aucune: tr("réps"), temps: "sec", dist: "m" }[x.ch];
   const P2 = c.prev?.series?.length ? c.prev.series : c.prev ? [{ v: maxV(c.prev), reps: c.prev.reps ?? 0 }] : [];
   const why = L ? L.why : c.why, done = !!L?.done;
-  const cols = dbl || avecLest ? "grid-cols-[22px_minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,1fr)_40px]" : "grid-cols-[22px_minmax(0,1.25fr)_minmax(0,1.4fr)_40px]";
+  const temps = x.ch === "temps";
+  const cols = dbl || avecLest
+    ? (temps ? "grid-cols-[22px_minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,1fr)_40px_40px]" : "grid-cols-[22px_minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,1fr)_40px]")
+    : (temps ? "grid-cols-[22px_minmax(0,1.25fr)_minmax(0,1.4fr)_40px_40px]" : "grid-cols-[22px_minmax(0,1.25fr)_minmax(0,1.4fr)_40px]");
+  /* fin du chrono : le temps tenu est inscrit dans la série, qui est validée */
+  const finChrono = (n: number, s: Serie, e: number) => {
+    const tenu = Math.max(1, Math.round(Math.min(s.v, e - PREPA)));
+    muter((E) => act.serVal(E, c, n, "v", String(tenu)));
+    const el = boutons.current[n];
+    if (el) valider(n, { ...s, v: tenu }, el);
+  };
 
   return (
     <div className="px-3 pb-3">
@@ -95,6 +117,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
         <span>{tr("Précédent")}</span>
         <span className="text-center">{tete}</span>
         {(dbl || avecLest) && <span className="text-center">{dbl ? tr("réps") : tr("+ kg")}</span>}
+        {temps && <span />}
         <span />
       </div>
       <div className="flex flex-col gap-1">
@@ -115,7 +138,17 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
               <Champ depuis={depuis} key={"v" + s.v} valeur={nb(s.v)} mode="decimal" label={tr("{tete} série {a}", { tete, a: n + 1 })} onValide={(v) => muter((E) => act.serVal(E, c, n, "v", v))} />
               {dbl && <Champ depuis={depuis} key={"r" + s.reps} valeur={String(s.reps)} mode="numeric" label={tr("répétitions série {a}", { a: n + 1 })} onValide={(v) => muter((E) => act.serVal(E, c, n, "reps", v))} />}
               {!dbl && avecLest && <Champ depuis={depuis} key={"l" + s.lest} valeur={nb(+(s.lest ?? 0) || 0)} mode="decimal" label={tr("lest série {a}", { a: n + 1 })} onValide={(v) => muter((E) => act.serVal(E, c, n, "lest", v))} />}
+              {temps && (ok ? <span /> : (
+                <button
+                  onClick={() => { preparer(); setChrono({ n, s: { ...s, v: +s.v > 0 ? +s.v : 30 }, course: departCourse() }); }}
+                  aria-label={tr("Lancer le chrono de la série {a}", { a: n + 1 })}
+                  className="grid size-10 place-items-center rounded-full bg-plate-soft text-plate-ink active:scale-90"
+                >
+                  <PlayIcon className="size-[17px]" weight="fill" />
+                </button>
+              ))}
               <button
+                ref={(el) => { boutons.current[n] = el; }}
                 onClick={(e) => valider(n, s, e.currentTarget)}
                 aria-label={tr("{a} la série {a1}", { a: ok ? tr("Décocher") : tr("Valider"), a1: n + 1 })}
                 aria-pressed={ok}
@@ -173,6 +206,15 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
             {tr("Replier")}
           </button>
         </div>
+      )}
+      {chrono && createPortal(
+        <Minuteur
+          phases={phasesChrono(x.n, chrono.s.v)} titre={tr("Série {a}", { a: chrono.n + 1 })}
+          course={chrono.course} setCourse={(co) => setChrono((ch) => (co && ch ? { ...ch, course: co } : null))}
+          seuil={PREPA + 1} arret={{ titre: tr("Arrêter le chrono ?"), texte: tr("Le temps tenu est inscrit dans la série.") }}
+          onFin={(e) => finChrono(chrono.n, chrono.s, e)}
+        />,
+        document.body,
       )}
     </div>
   );

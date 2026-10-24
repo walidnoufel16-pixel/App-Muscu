@@ -21,7 +21,7 @@ import { CarteSport } from "@/components/repere/carte-sport";
 import { EX } from "@/lib/data/exercices";
 import { AXES } from "@/lib/data/referentiels";
 import {
-  alternativesDe, baseRPE, ctxLibre, ctxPlan, kLibre, curId, espacementDe, key, musclesDe, nomPat, noRPE, rirTxt, rpeOf, sportsChoisis, titreSeance, typeSeance, week,
+  alternativesDe, baseRPE, ctxLibre, ctxPlan, kLibre, curId, espacementDe, key, musclesDe, nomPat, noRPE, rirTxt, rpeOf, sportsChoisis, titreSeance, week,
 } from "@/lib/logic/core";
 import { exParDefaut, objCollation } from "@/lib/logic/assistant";
 import * as act from "@/lib/logic/actions";
@@ -123,7 +123,7 @@ function SeancePlan() {
         <CarteSport />
       ) : (
         <>
-          {sect === 0 && <Echauffement type={typeSeance(S)} onFiche={(id) => setFiche({ id, idx: -1, pres: [1, 10, "—"], libelle: tr("échauffement") })} />}
+          {sect === 0 && <Echauffement ids={ids} bonus={!!S.b} onFiche={(id) => setFiche({ id, idx: -1, pres: [1, 10, "—"], libelle: tr("échauffement") })} />}
           {sect === 2 && <Collation obj={etat.A.objectif ?? 0} />}
           {sect === 1 && (
             <div className={cn("flex flex-col gap-2.5 px-4", premiere && "entree")}>
@@ -219,7 +219,6 @@ function SeanceLibre({ i }: { i: number }) {
   const S = etat.SEANCES[i];
   if (!S) return <Introuvable />;
 
-  const faux = { t: S.nom, x: S.ex.map((e) => [e.id, e.s, e.r, e.p, 0] as [string, number, number, string, number]) };
   const cles = S.ex.map((_, m) => ctxLibre(etat, i, m)?.k).filter((q): q is string => !!q);
   /* un bloc cardio est fait s'il a été joué aujourd'hui */
   const blocFait = (id: string) => (etat.CARDIO || []).some((h) => h.ref === id && new Date(h.ts).toDateString() === new Date(maintenant).toDateString());
@@ -278,7 +277,7 @@ function SeanceLibre({ i }: { i: number }) {
         </>
       }
     >
-      {sect === 0 && <Echauffement type={typeSeance(faux)} avecSoin={!S.soin} onFiche={(id) => setFiche({ id, idx: -1, pres: [1, 10, "—"], libelle: tr("échauffement") })} />}
+      {sect === 0 && <Echauffement ids={S.ex.map((e) => e.id)} avecSoin={!S.soin} onFiche={(id) => setFiche({ id, idx: -1, pres: [1, 10, "—"], libelle: tr("échauffement") })} />}
       {sect === 2 && <Collation obj={objCollation(etat.A, S)} onChanger={(o) => muter((E) => { E.SEANCES[i].colObj = o; })} />}
       {sect === 1 && (
         <div className={cn("flex flex-col gap-2.5 px-4", premiere && "entree")}>
