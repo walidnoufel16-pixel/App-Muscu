@@ -29,7 +29,9 @@ export function exoDispo(o: string, mat: number, acc: string[]) {
   if (e.acc) return acc.includes(e.acc);
   return e.eq >= mat || (!!e.ou && acc.includes(e.ou));
 }
-export const dispoDeclare = (A: Reponses, o: string) => exoDispo(o, A.materiel ?? 0, accDeclares(A));
+/* Avec les sangles TRX, déclarées à part (Profil) : elles ne passent pas par le questionnaire ni l'IA. */
+const enPlus = (A: Reponses) => accDeclares(A).concat(A.trx ? ["trx"] : []);
+export const dispoDeclare = (A: Reponses, o: string) => exoDispo(o, A.materiel ?? 0, enPlus(A));
 
 /* Barre de traction : déclarée dans Profil ; sans réponse, présente en salle et en home gym. */
 export const barreDeclaree = (A: Reponses) => A.barre ?? (A.materiel ?? 0) <= 1;
@@ -37,10 +39,10 @@ export const barreDeclaree = (A: Reponses) => A.barre ?? (A.materiel ?? 0) <= 1;
 /* Machines et postes absents de la salle (Profil › Mon matériel › Ma salle) : « x:<poste> ». */
 export const sansPostes = (A: Reponses) => (A.sansPostes || []).map((p) => "x:" + p);
 
-/* Filtre « Matériel disponible » : m0…m3 = champ eq, kb et el = champ acc, bt = barre de traction,
+/* Filtre « Matériel disponible » : m0…m3 = champ eq, kb, el et trx = champ acc, bt = barre de traction,
    x:<poste> = machine absente de la salle. */
 export const selDeclare = (A: Reponses) =>
-  [3, 2, 1, 0].filter((v) => v >= (A.materiel ?? 0)).map((v) => "m" + v).concat(accDeclares(A), barreDeclaree(A) ? ["bt"] : [], sansPostes(A));
+  [3, 2, 1, 0].filter((v) => v >= (A.materiel ?? 0)).map((v) => "m" + v).concat(enPlus(A), barreDeclaree(A) ? ["bt"] : [], sansPostes(A));
 /* Une sélection de matériel (brouillon d'écran) avec les machines absentes déclarées, toujours à jour. */
 export const avecSalle = (sel: string[], A: Reponses) => sel.filter((t) => !t.startsWith("x:")).concat(sansPostes(A));
 export function exoFiltre(o: string, sel: string[]) {
@@ -125,7 +127,7 @@ export const noRPE = (id: string) => ["temps", "dist"].includes(EX[id].ch) || EX
    schéma moteur. Jamais deux fois le même exercice dans une séance. */
 /* Préférences de matériel par groupe (questionnaire) : catégories 0 machines,
    1 barre, 2 haltères, 3 poids du corps, 4 kettlebell, 5 élastiques. */
-const CAT_ACC: Record<string, number> = { kb: 4, el: 5 };
+const CAT_ACC: Record<string, number> = { kb: 4, el: 5, trx: 3 }; // TRX : rangé avec le poids du corps
 export function prefOk(A: Reponses, id: string) {
   const e = EX[id];
   const p = e && (A.prefs || {})[PAT2GRP[e.pat]];

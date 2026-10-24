@@ -1328,6 +1328,10 @@ export const TYPES: [string, string][] = [
  [
   "el",
   "Élastiques"
+ ],
+ [
+  "trx",
+  "TRX"
  ]
 ];
 

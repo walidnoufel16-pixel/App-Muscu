@@ -67,6 +67,8 @@ export type Reponses = {
   acc?: number[];
   /* barre de traction (Profil) ; absente = selon le matériel */
   barre?: boolean;
+  /* sangles de suspension (Profil) */
+  trx?: boolean;
   /* machines et postes absents de la salle (lib/data/salle.ts) */
   sansPostes?: string[];
   blessure?: number[];

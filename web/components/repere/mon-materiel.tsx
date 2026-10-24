@@ -28,6 +28,7 @@ export function MonMateriel() {
         <div className="mb-2 text-[14.5px] text-muted-foreground">{tr("En plus")}</div>
         <div className="flex flex-wrap gap-1.5">
           <button aria-pressed={barreDeclaree(A)} onClick={() => muter((E) => { E.A.barre = !barreDeclaree(E.A); })} className={puce(barreDeclaree(A))}>{tr("Barre de traction")}</button>
+          <button aria-pressed={!!A.trx} onClick={() => muter((E) => { E.A.trx = !E.A.trx; })} className={puce(!!A.trx)}>TRX</button>
           {ACC.map(([k, n], i) => {
             const on = (A.acc || []).includes(i);
             return (

@@ -1694,5 +1694,6 @@
 "Programme {nom}": "{nom} program",
 "Séance {k} · {nom}": "Workout {k} · {nom}",
 "Exercices de la séance {k}": "Exercises in workout {k}",
-"Ajouter le programme à mes séances": "Add the program to my workouts"
+"Ajouter le programme à mes séances": "Add the program to my workouts",
+"TRX": "TRX"
 }

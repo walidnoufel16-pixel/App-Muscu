@@ -14,7 +14,7 @@ export type Exercice = {
   d: number; // charge de départ suggérée
   cap?: number; // RPE plafond
   capDeb?: number; // RPE plafond pour un débutant
-  acc?: string; // matériel en plus exigé (kb, el)
+  acc?: string; // matériel en plus exigé (kb, el, trx)
   ou?: string; // matériel en plus qui suffit aussi
   bt?: number; // exige une barre de traction
   horsIA?: number; // pas encore dans la bibliothèque du programme généré (generer)
