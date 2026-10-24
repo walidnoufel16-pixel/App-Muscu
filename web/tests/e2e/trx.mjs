@@ -35,24 +35,19 @@ const pecs = (pg, l = pg) => l.locator("path", { has: pg.locator("title", { hasT
   await puce.waitFor({ timeout: 8000 });
   await pg.getByRole("button", { name: "Mon matériel déclaré" }).click();
   ok(await puce.getAttribute("aria-pressed") === "false", "matériel déclaré sans TRX : puce TRX décochée");
-  await pg.getByPlaceholder("Rechercher un exercice…").fill("TRX");
   await pg.waitForTimeout(300);
   ok(await pg.getByText("Tirage TRX").count() === 0, "sans les sangles : aucun exercice TRX");
 
   /* la puce TRX seule : seulement les exercices aux sangles */
-  await pg.getByPlaceholder("Rechercher un exercice…").fill("");
   const cochee = pg.getByRole("button", { pressed: true, name: /^(Poids du corps|Barre de traction|Haltères|Barre|Machines|Kettlebell|Élastiques)$/ });
   while (await cochee.count()) await cochee.first().click();
   await puce.click();
-  await pg.getByPlaceholder("Rechercher un exercice…").fill("pompes");
   await pg.getByText("Pompes TRX").first().waitFor();
-  ok(await pg.getByText("Pompes", { exact: true }).count() === 0, "TRX seul, « pompes » : les pompes TRX, pas les pompes au sol");
-  await pg.getByPlaceholder("Rechercher un exercice…").fill("tirage");
-  ok(await pg.getByText("Tirage TRX").count() > 0, "TRX seul, « tirage » : tirage TRX");
+  ok(await pg.getByText("Pompes", { exact: true }).count() === 0, "TRX seul : les pompes TRX, pas les pompes au sol");
+  ok(await pg.getByText("Tirage TRX").count() > 0, "TRX seul : tirage TRX");
   await cap(pg, "trx-recherche");
 
   /* le schéma du corps : pectoraux → pompes et écarté TRX */
-  await pg.getByPlaceholder("Rechercher un exercice…").fill("");
   await pg.waitForTimeout(400);
   await pecs(pg).click({ force: true });
   await pg.getByText("Écarté TRX").first().waitFor();
@@ -100,7 +95,6 @@ const pecs = (pg, l = pg) => l.locator("path", { has: pg.locator("title", { hasT
   const [ctx, pg] = await contexte(etat({ trx: true }), "en");
   await pg.goto(U + "/exercices/");
   await pg.getByRole("button", { name: "My declared equipment" }).click();
-  await pg.getByPlaceholder(/Search/).fill("TRX");
   await pg.getByText("TRX row", { exact: true }).first().waitFor({ timeout: 8000 });
   const t = await pg.evaluate(() => document.body.innerText);
   ok(!/Tirage TRX|Pompes TRX|Écarté|Gainage TRX/.test(t), "EN : exercices TRX en anglais");

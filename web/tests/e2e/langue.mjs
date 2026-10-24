@@ -68,7 +68,6 @@ async function ecran(pg, chemin, nom, attendu) {
   /* Bibliothèque : recherche en anglais et fiche détaillée. */
   await pg.goto(U + "/exercices/");
   await pg.getByRole("button", { name: "My declared equipment" }).click(); // rien n'est coché au départ
-  await pg.getByPlaceholder("Search for an exercise…").fill("bench");
   await pg.getByText("Barbell bench press").first().click();
   await pg.getByText("Lie on the bench", { exact: false }).first().waitFor({ timeout: 8000 });
   await pg.waitForTimeout(800);

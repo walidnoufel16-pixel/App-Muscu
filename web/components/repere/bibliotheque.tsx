@@ -13,8 +13,9 @@ import { exoFiltre, nomPat } from "@/lib/logic/core";
 import { exosDe, exosZone, patsZone, sansAccent } from "@/lib/logic/assistant";
 import { cn } from "@/lib/utils";
 
-/* Bibliothèque par le corps : un toucher choisit un muscle, la pastille « Tout » élargit au groupe ;
-   en dessous, les exercices de soin & mobilité de la zone. */
+/* Bibliothèque par le corps : sous le schéma, tous les exercices du matériel coché, par groupe ;
+   un toucher réduit la liste à un muscle (la pastille « Tout » élargit au groupe), avec en
+   dessous les exercices de soin & mobilité de la zone. */
 export function Bibliotheque({
   sel, zone, setZone, pris, onAjouter, onFiche,
 }: {
@@ -35,7 +36,7 @@ export function Bibliotheque({
           if (zone && zone.z === r.z && zone.p === cible) setZone(null);
           else setZone({ z: r.z!, p: cible });
         }}
-        legende={tr("Touche une zone")}
+        legende={tr("Touche un muscle pour filtrer")}
       />
       {zone ? (
         <div className="flex flex-col gap-5">
@@ -74,38 +75,51 @@ export function Bibliotheque({
           )}
         </div>
       ) : (
-        <p className="text-center text-[13.5px] text-muted-foreground">{tr("Touche une partie du corps pour voir les exercices.")}</p>
+        <ListeGroupes groupes={groupesDe(sel, "")} pris={pris} onAjouter={onAjouter} onFiche={onFiche} />
       )}
     </div>
   );
 }
 
-export function ListeRecherche({ sel, q, setQ, pris, onAjouter, onFiche, sansChamp = false }: { sel: string[]; q: string; setQ: (s: string) => void; pris?: (o: string) => boolean; onAjouter?: (o: string) => void; onFiche: (o: string) => void; sansChamp?: boolean }) {
-  const groupes = useMemo(() => {
-    const f = sansAccent(q.trim()), g: Record<string, string[]> = {};
-    Object.keys(EX).filter((o) => exoFiltre(o, sel)).forEach((o) => {
-      if (f && !sansAccent(EX[o].n + " " + EX[o].m).split(/[^a-z0-9]+/).some((m) => m.startsWith(f))) return;
-      const k = PAT2GRP[EX[o].pat] || (EX[o].pat === "soin" ? tr("Soin & mobilité") : tr("Cardio et mobilité"));
-      (g[k] = g[k] || []).push(o);
-    });
-    return g;
-  }, [q, sel]);
+/* Les exercices du matériel coché dont un mot commence par `q`, par groupe musculaire. */
+function groupesDe(sel: string[], q: string) {
+  const f = sansAccent(q.trim()), g: Record<string, string[]> = {};
+  Object.keys(EX).filter((o) => exoFiltre(o, sel)).forEach((o) => {
+    if (f && !sansAccent(EX[o].n + " " + EX[o].m).split(/[^a-z0-9]+/).some((m) => m.startsWith(f))) return;
+    const k = PAT2GRP[EX[o].pat] || (EX[o].pat === "soin" ? tr("Soin & mobilité") : tr("Cardio et mobilité"));
+    (g[k] = g[k] || []).push(o);
+  });
+  return g;
+}
+
+function ListeGroupes({ groupes, pris, onAjouter, onFiche }: { groupes: Record<string, string[]>; pris?: (o: string) => boolean; onAjouter?: (o: string) => void; onFiche: (o: string) => void }) {
   return (
-    <div className="flex flex-col gap-3">
-      {!sansChamp && (
-        <div className="relative">
-          <MagnifyingGlassIcon className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Rechercher un exercice…")} className="h-11 rounded-2xl bg-card pl-10 text-[15px]" />
-        </div>
-      )}
-      {Object.keys(groupes).length ? Object.entries(groupes).map(([g, l]) => (
-        <div key={g}>
-          <div className="eyebrow mb-1.5 px-1">{tr(g)}</div>
+    <div className="flex flex-col gap-4">
+      {Object.entries(groupes).map(([g, l]) => (
+        <section key={g} aria-label={tr(g)}>
+          <div className="mb-1.5 flex items-baseline justify-between px-1">
+            <h3 className="eyebrow">{tr(g)}</h3>
+            <span className="text-[12.5px] text-muted-foreground">{l.length}</span>
+          </div>
           <div className="flex flex-col gap-1.5">
             {l.map((o) => <LigneExercice key={o} id={o} pris={pris?.(o)} onOuvrir={() => onFiche(o)} onAjouter={onAjouter ? () => onAjouter(o) : undefined} />)}
           </div>
-        </div>
-      )) : <p className="text-center text-[13.5px] text-muted-foreground">{tr("Aucun exercice ne commence par ça.")}</p>}
+        </section>
+      ))}
+    </div>
+  );
+}
+
+export function ListeRecherche({ sel, q, setQ, pris, onAjouter, onFiche }: { sel: string[]; q: string; setQ: (s: string) => void; pris?: (o: string) => boolean; onAjouter?: (o: string) => void; onFiche: (o: string) => void }) {
+  const groupes = useMemo(() => groupesDe(sel, q), [q, sel]);
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="relative">
+        <MagnifyingGlassIcon className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Rechercher un exercice…")} className="h-11 rounded-2xl bg-card pl-10 text-[15px]" />
+      </div>
+      {Object.keys(groupes).length ? <ListeGroupes groupes={groupes} pris={pris} onAjouter={onAjouter} onFiche={onFiche} />
+        : <p className="text-center text-[13.5px] text-muted-foreground">{tr("Aucun exercice ne commence par ça.")}</p>}
     </div>
   );
 }

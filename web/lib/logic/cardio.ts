@@ -83,6 +83,37 @@ export const niveauDe = (regularite?: number): Niveau => (regularite == null ? 1
 export const machinesDe = (f: FormatCardio): Machine[] =>
   f === "emom" ? ["pdc", "corde"] : f === "cote" ? ["tapis", "velo", "stair"] : ORDRE_MACHINES;
 
+/* Le réglage qui fait varier la durée d'un format : [clé, pas, min, max]. */
+const LEVIER: Record<FormatCardio, [keyof Reglages, number, number, number]> = {
+  fractionne: ["tours", 1, 2, 20], tabata: ["blocs", 1, 1, 6], emom: ["tours", 1, 4, 30], endurance: ["duree", 5, 10, 90],
+  norvegien: ["tours", 1, 2, 6], trente: ["tours", 1, 4, 20], pyramide: ["tours", 1, 2, 6], cote: ["tours", 1, 3, 15], paliers: ["duree", 3, 12, 90],
+};
+
+/** Réglages d'un format au niveau donné, ajustés pour durer au plus près de `minutes` (mise en route comprise). */
+export function reglagesPour(f: FormatCardio, n: Niveau, minutes: number, depart?: Reglages): Reglages {
+  const r = { ...(depart ?? reglagesDe(f, n)) }, [k, pas, min, max] = LEVIER[f];
+  let meilleur = r[k], ecart = Infinity;
+  for (let v = min; v <= max; v += pas) {
+    const d = Math.abs(dureeTotale(construireSeance(f, "velo", { ...r, [k]: v })) - minutes * 60);
+    if (d < ecart) { ecart = d; meilleur = v; }
+  }
+  r[k] = meilleur;
+  return r;
+}
+
+/** La séance en une phrase : « 6 × 1 min fort, 1 min 30 tranquille ». */
+export function resumeCardio(f: FormatCardio, r: Reglages) {
+  const d = (s: number) => (s < 60 ? `${s} s` : s % 60 ? `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, "0")}` : `${s / 60} min`);
+  if (f === "fractionne" || f === "norvegien") return tr("{n} × {e} fort, {r} tranquille", { n: r.tours, e: d(r.effort), r: d(r.recup) });
+  if (f === "tabata") return tr("{n} blocs de 8 × 20 s à fond", { n: r.blocs });
+  if (f === "emom") return tr("{n} minutes, {reps} répétitions au début de chacune", { n: r.tours, reps: r.reps });
+  if (f === "trente") return tr("{b} × {n} fois 30 s d'effort, 30 s de repos", { b: r.blocs, n: r.tours });
+  if (f === "pyramide") return tr("{n} marches de {e} jusqu'au sommet, puis on redescend", { n: r.tours, e: d(r.effort) });
+  if (f === "cote") return tr("{n} sprints de {e}, récupération en marchant", { n: r.tours, e: d(r.effort) });
+  if (f === "paliers") return tr("{n} paliers de plus en plus rapides sur {d} min", { n: r.tours, d: r.duree });
+  return tr("{d} min en continu, sans t'essouffler", { d: r.duree });
+}
+
 /** Suite complète des phases d'une séance. */
 export function construireSeance(f: FormatCardio, m: Machine, r: Reglages): Phase[] {
   const P: Phase[] = [];

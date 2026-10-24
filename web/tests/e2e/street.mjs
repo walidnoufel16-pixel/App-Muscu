@@ -46,10 +46,9 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
   ok(await pg.getByText("Sélectionne au moins un matériel pour voir des exercices.").isVisible(), "matériel : message pour choisir");
   ok((await pg.getByRole("tablist", { name: "Rubrique" }).getByRole("tab").allTextContents()).join(",") === "Corps,Street,Course,Soin", "rubriques : Corps, Street, Course, Soin");
   await pg.getByRole("button", { name: "Haltères", exact: true }).click();
-  await pg.getByPlaceholder("Rechercher un exercice…").fill("presse");
   ok(await pg.getByText("Presse à cuisses").count() === 0, "haltères seuls : pas de presse");
   await pg.getByRole("button", { name: "Mon matériel déclaré" }).click();
-  ok(await pg.getByText("Presse à cuisses").count() > 0, "loupe : presse à cuisses trouvée avec la salle");
+  ok(await pg.getByText("Presse à cuisses").count() > 0, "liste complète : presse à cuisses avec la salle");
   await pg.getByRole("button", { name: /Ma salle/ }).click();
   await pg.getByRole("heading", { name: "Ma salle" }).or(pg.getByText("Ma salle").nth(1)).first().waitFor();
   await pg.waitForTimeout(600);
@@ -105,7 +104,6 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
   const [ctx, pg] = await contexte(etat(3));
   await pg.goto(U + "/exercices/");
   await pg.getByRole("button", { name: "Mon matériel déclaré" }).click();
-  await pg.getByPlaceholder("Rechercher un exercice…").fill("tractions");
   await pg.waitForTimeout(500);
   ok(await pg.getByText("Tractions pronation").count() === 0, "sans barre de traction : pas de tractions");
   await pg.getByRole("button", { name: "Barre de traction", exact: true }).click();

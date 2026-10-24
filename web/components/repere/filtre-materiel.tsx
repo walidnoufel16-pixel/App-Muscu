@@ -2,6 +2,7 @@
 
 import { tr } from "@/lib/i18n";
 import { TYPES } from "@/lib/data/referentiels";
+import { HandPointingIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { LienSalle } from "./ma-salle";
 
@@ -40,7 +41,11 @@ export function FiltreMateriel({ sel, onChange, declare }: { sel: string[]; onCh
       </div>
       {/* machines ou barre cochées : on précise ce que la salle propose */}
       {(sel.includes("m0") || sel.includes("m1")) && <LienSalle className="mt-2" types={["m0", "m1"].filter((t) => sel.includes(t))} />}
-      {!sel.some((t) => !t.startsWith("x:")) && <p className="mt-2 text-[12.5px] text-muted-foreground">{tr("Sélectionne au moins un matériel pour voir des exercices.")}</p>}
+      {!sel.some((t) => !t.startsWith("x:")) && (
+        <p role="status" className="mt-2.5 flex animate-[eclat_1.1s_ease-out_2] items-center gap-2 rounded-2xl bg-plate-soft px-3.5 py-3 text-[14px] font-semibold text-plate-ink">
+          <HandPointingIcon className="size-5 shrink-0 -rotate-12" weight="fill" />{tr("Sélectionne au moins un matériel pour voir des exercices.")}
+        </p>
+      )}
     </div>
   );
 }

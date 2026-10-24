@@ -8,6 +8,7 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/compone
 import { EX } from "@/lib/data/exercices";
 import { COLLATION, ECHAUF, OBJS } from "@/lib/data/referentiels";
 import { baseRPE, nomPat } from "@/lib/logic/core";
+import { echauffementDe } from "@/lib/logic/echauffement";
 import { cn } from "@/lib/utils";
 import { Vignette } from "./exercice-carte";
 import { EchauffementSoin } from "./soin";
@@ -52,8 +53,9 @@ export function FriseSemaines({ wk, avancement, onChoisir }: { wk: number; avanc
 }
 
 /* ---------------- échauffement ---------------- */
-export function Echauffement({ type, onFiche, avecSoin = true }: { type: "haut" | "bas" | "bonus"; onFiche: (id: string) => void; avecSoin?: boolean }) {
-  const e = ECHAUF[type] || ECHAUF.haut;
+/* Construit à partir des exercices de la séance ; la séance bonus du programme garde le sien. */
+export function Echauffement({ ids, bonus = false, onFiche, avecSoin = true }: { ids: string[]; bonus?: boolean; onFiche: (id: string) => void; avecSoin?: boolean }) {
+  const e = bonus ? ECHAUF.bonus : (({ min, l }) => ({ d: tr("{n} minutes", { n: min }), l }))(echauffementDe(ids));
   return (
     <div className="px-4">
       <div className="mb-3 flex items-center gap-2 rounded-2xl bg-card px-4 py-3 text-[14px]">
