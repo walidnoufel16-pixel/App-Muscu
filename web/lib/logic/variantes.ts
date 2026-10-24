@@ -6,7 +6,7 @@ import { dispoDeclare } from "./core";
 import type { Reponses } from "./types";
 
 const EQ = [tr("Machine"), tr("Barre"), tr("Haltères"), tr("Poids du corps")];
-const ACC: Record<string, string> = { kb: tr("Kettlebell"), el: tr("Élastique") };
+const ACC: Record<string, string> = { kb: tr("Kettlebell"), el: tr("Élastique"), trx: "TRX" };
 
 /** Matériel d'un exercice, en clair. */
 export const materielDe = (id: string) => {

@@ -65,6 +65,23 @@ describe("barre de traction", () => {
   });
 });
 
+describe("TRX", () => {
+  const trx = Object.keys(EX).filter((o) => EX[o].acc === "trx");
+  it("19 exercices TRX, hors du programme généré, visibles seulement avec les sangles", () => {
+    expect(trx.length).toBe(19);
+    for (const o of trx) {
+      expect(EX[o].horsIA, o).toBe(1);
+      expect(exoFiltre(o, ["trx"]), o).toBe(true);
+      expect(exoFiltre(o, ["m3", "m2", "m1", "m0", "kb", "el", "bt"]), o).toBe(false);
+    }
+  });
+  it("déclaré à part dans le Profil : « Aucun des deux » ne coche pas le TRX", () => {
+    expect(selDeclare({ materiel: 0, trx: true })).toContain("trx");
+    expect(selDeclare({ materiel: 0, acc: [2] })).not.toContain("trx");
+    expect(selDeclare({ materiel: 0, acc: [0, 1] })).not.toContain("trx");
+  });
+});
+
 describe("street workout", () => {
   it("familles et programmes ne citent que des exercices existants", () => {
     for (const f of FAMILLES_STREET) for (const o of f.ex) expect(EX[o], `${f.k} : ${o}`).toBeTruthy();
