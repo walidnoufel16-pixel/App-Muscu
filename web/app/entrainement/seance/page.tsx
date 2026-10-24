@@ -5,7 +5,7 @@
 import { pluriel, tr } from "@/lib/i18n";
 import { Fragment, Suspense, useMemo, useState, ViewTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CheckIcon, HeartbeatIcon, InfoIcon, PencilSimpleIcon, PlayIcon, PlusIcon } from "@phosphor-icons/react";
+import { ChartLineUpIcon, CheckIcon, HeartbeatIcon, InfoIcon, PencilSimpleIcon, PlayIcon, PlusIcon } from "@phosphor-icons/react";
 import { FeuilleAjout } from "@/components/repere/ajout-exercice";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
@@ -21,7 +21,7 @@ import { CarteSport } from "@/components/repere/carte-sport";
 import { EX } from "@/lib/data/exercices";
 import { AXES } from "@/lib/data/referentiels";
 import {
-  alternativesDe, baseRPE, ctxLibre, ctxPlan, kLibre, curId, espacementDe, key, musclesDe, nomPat, noRPE, rirTxt, rpeOf, sportsChoisis, titreSeance, week,
+  alternativesDe, baseRPE, ctxLibre, ctxPlan, kLibre, curId, espacementDe, key, musclesDe, nomPat, noRPE, okDe, rirTxt, rpeOf, sportsChoisis, titreSeance, week,
 } from "@/lib/logic/core";
 import { exParDefaut, objCollation } from "@/lib/logic/assistant";
 import * as act from "@/lib/logic/actions";
@@ -36,6 +36,8 @@ import { AVANT } from "@/lib/nav";
 import { useBrouillon } from "@/lib/brouillon";
 import { tactile } from "@/lib/repos";
 import { enchainer } from "@/lib/enchainement";
+import { ajouterAuSuivi } from "@/lib/suivi";
+import { confirmer } from "@/components/repere/confirmer";
 import { usePremiereVisite } from "@/lib/entree";
 import { cn } from "@/lib/utils";
 
@@ -224,6 +226,15 @@ function SeanceLibre({ i }: { i: number }) {
   const blocFait = (id: string) => (etat.CARDIO || []).some((h) => h.ref === id && new Date(h.ts).toDateString() === new Date(maintenant).toDateString());
   const blocs = S.blocs || [];
   const faits = S.ex.filter((e, m) => etat.LOG[kLibre(i, m)]?.ex === e.id && etat.LOG[kLibre(i, m)]?.done).length + blocs.filter((b) => blocFait(b.id)).length;
+  /* « Ajouter à mon suivi » : dès qu'une série est validée ; les exercices pas finis sont signalés */
+  const entamee = S.ex.some((_, m) => { const L = etat.LOG[kLibre(i, m)]; return !!L && (L.series || []).some((x) => okDe(L, x)); });
+  const suivre = async () => {
+    const restants = S.ex.filter((e, m) => !(etat.LOG[kLibre(i, m)]?.ex === e.id && etat.LOG[kLibre(i, m)]?.done)).length;
+    if (restants && !(await confirmer({ titre: tr("Ajouter à mon suivi ?"), texte: tr(pluriel(restants) ? "{n} exercices ne sont pas terminés : seules les séries validées comptent." : "{n} exercice n'est pas terminé : seules les séries validées comptent.", { n: restants }), ok: tr("Ajouter") }))) return;
+    tactile(12);
+    ajouterAuSuivi(i);
+    router.push("/progres");
+  };
   /* chaque exercice garde sa position d'origine : ses séries le suivront (reattacherJournaux) */
   const modifier = () => { setLibre({ ...structuredClone(S), ex: S.ex.map((e, o) => ({ ...e, o })), idx: i }); router.push("/entrainement/composer", AVANT); };
   /* ajout en cours de séance : à la fin, ouvert tout de suite (les clés des exercices existants ne bougent pas) */
@@ -294,6 +305,12 @@ function SeanceLibre({ i }: { i: number }) {
           <p className="px-2 pt-1 text-center text-[12.5px] text-muted-foreground">
             {tr("Effort visé")}{" "}<b className="font-semibold text-foreground">{tr("RPE 8")}</b> : {rirTxt(8)}{" "}{tr("à la fin de chaque série.")}
           </p>
+          {entamee && (
+            <section className="mt-2 mb-24 rounded-[22px] bg-card p-4 text-center" aria-label={tr("Ajouter à mon suivi")}>
+              <Button variant="plate" size="lg" className="w-full rounded-2xl" onClick={suivre}><ChartLineUpIcon weight="bold" />{tr("Ajouter à mon suivi")}</Button>
+              <p className="mt-2 text-[12.5px] text-muted-foreground">{tr("Elle s'enregistre dans Progrès et repart à zéro pour la prochaine fois.")}</p>
+            </section>
+          )}
         </div>
       )}
       <FeuilleAjout

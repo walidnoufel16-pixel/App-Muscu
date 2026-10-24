@@ -22,6 +22,7 @@ type Celebrer = {
   terminer: (k: string) => void;
   montrerBilan: (b: BilanAffiche) => void;
   fermerBilan: () => void;
+  oublier: (seance: string) => void;
 };
 
 export const useCelebrer = create<Celebrer>((set, get) => ({
@@ -37,6 +38,12 @@ export const useCelebrer = create<Celebrer>((set, get) => ({
   },
   montrerBilan(b) { set({ bilan: b }); },
   fermerBilan() { set({ bilan: null }); },
+  /* séance rangée dans le suivi : la prochaine fois repart de zéro (durée, records) */
+  oublier(s) {
+    const debut = { ...get().debut }, records = { ...get().records };
+    delete debut[s]; delete records[s];
+    set({ debut, records });
+  },
 }));
 
 export const mouvementReduit = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;

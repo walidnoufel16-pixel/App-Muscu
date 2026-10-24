@@ -97,6 +97,14 @@ export function rattacherJournaux(E: Etat) {
   });
 }
 
+/* « Ajouter à mon suivi » : la séance libre est rangée dans Progrès et repart vierge. Ses journaux
+   sont mis de côté (« L|i|aN ») : la ligne d'historique du jour reste la même, et la prochaine fois
+   reprend leurs charges ; les journaux sans série validée sont simplement retirés. */
+export function cloturerSeance(E: Etat, i: number) {
+  const re = new RegExp(`^L\\|${i}\\|\\d+$`);
+  for (const k of Object.keys(E.LOG)) if (re.test(k)) archiver(E.LOG, k);
+}
+
 /* Suppression d'une séance libre : l'historique des suivantes est recalé. */
 export function supprimerSeance(E: Etat, i: number) {
   Object.keys(E.LOG).filter((k) => k.startsWith("L|" + i + "|")).forEach((k) => delete E.LOG[k]);
