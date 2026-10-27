@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { messageErreur, sb, valideMail } from "@/lib/supabase";
 import { useRepere } from "@/lib/store";
+import { toast } from "sonner";
 import { EX } from "@/lib/data/exercices";
 import { AVANT } from "@/lib/nav";
 import { cn } from "@/lib/utils";
@@ -38,7 +39,7 @@ function Bienvenue() {
     try {
       const r = await creerCompte(p, m || undefined);
       if (!r.ok) setErr(messageErreur({ message: r.message }, "connexion") + tr(" Tes données resteront sur ce téléphone."));
-      else if (r.message) { setErr(r.message); setEtape("choix"); }
+      else if (r.message) { toast(r.message, { duration: 8000 }); setEtape("choix"); }
       /* Le code part tout de suite : on le fait saisir ici, pas dans Profil. */
       else setEtape(m && useRepere.getState().user?.new_email ? "confirmer" : "choix");
     } catch (e) { setErr(messageErreur(e, "connexion")); }

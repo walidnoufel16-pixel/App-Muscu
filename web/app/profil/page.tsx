@@ -5,6 +5,9 @@ import { ReglageCycle, useCycleCharge } from "@/components/repere/cycle";
 import { ReglageZones } from "@/components/repere/forme";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import type { Route } from "next";
+import { prefsDe } from "@/lib/logic/repas";
+import { resumePrefs } from "@/components/repere/repas";
 import { useTheme } from "next-themes";
 import { ArrowsLeftRightIcon, CaretRightIcon, ChartBarIcon, CheckCircleIcon, CloudSlashIcon, EnvelopeIcon, ShieldWarningIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
@@ -94,7 +97,7 @@ export default function PageProfil() {
 
   return (
     <>
-      <EnTete titre={tr("Profil")} actions={<ChoixLangue />} />
+      <EnTete surtitre={tr("Profil")} titre={tr("Compte et réglages")} actions={<ChoixLangue />} />
       <div className="flex flex-col gap-6 px-4">
         {/* identité */}
         <div className="flex items-center gap-4 rounded-[22px] bg-card p-4">
@@ -138,7 +141,7 @@ export default function PageProfil() {
         </section>
 
         {/* adresse e-mail */}
-        <section>
+        <section id="compte" className="scroll-mt-20">
           <h2 className="eyebrow mb-2 px-1">{tr("Compte")}</h2>
           <div className="rounded-[22px] bg-card p-4">
             {attente && (
@@ -175,21 +178,33 @@ export default function PageProfil() {
 
         {/* cycle menstruel (facultatif, données locales) */}
         {(etat.A.sexe === 1 || cycleActif) && (
-          <section>
+          <section id="cycle" className="scroll-mt-20">
             <h2 className="eyebrow mb-2 px-1">{tr("Cycle menstruel")}</h2>
             <ReglageCycle />
           </section>
         )}
 
         {/* matériel : par défaut dans les listes et les séances composées */}
-        <section>
+        <section id="materiel" className="scroll-mt-20">
           <h2 className="eyebrow mb-2 px-1">{tr("Mon matériel")}</h2>
           <MonMateriel />
           <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{tr("Sert de point de départ dans Exercices, « Créer une séance pour moi » et le composeur.")}</p>
         </section>
 
-        {/* silhouette du corps : homme ou femme */}
+        {/* repas : régime, allergies… ; rouvre le questionnaire de l'onglet Repas */}
         <section>
+          <h2 className="eyebrow mb-2 px-1">{tr("Repas")}</h2>
+          <button onClick={() => router.push((prefsDe(etat.A).fait ? "/repas?prefs=1" : "/repas") as Route)} className="flex w-full items-center gap-3 rounded-[18px] bg-card px-4 py-3.5 text-left active:opacity-80">
+            <span className="min-w-0 flex-1">
+              <span className="block text-[15px] font-medium">{tr("Préférences repas")}</span>
+              <span className="block truncate text-[12.5px] text-muted-foreground">{prefsDe(etat.A).fait ? resumePrefs(prefsDe(etat.A)) : tr("À régler dans l'onglet Repas")}</span>
+            </span>
+            <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" />
+          </button>
+        </section>
+
+        {/* silhouette du corps : homme ou femme */}
+        <section id="reglages" className="scroll-mt-20">
           <h2 className="eyebrow mb-2 px-1">{tr("Silhouette")}</h2>
           <Segmente
             label={tr("Silhouette")}
@@ -224,7 +239,7 @@ export default function PageProfil() {
         </section>
 
         {/* confidentialité */}
-        <section>
+        <section id="confidentialite" className="scroll-mt-20">
           <h2 className="eyebrow mb-2 px-1">{tr("Confidentialité")}</h2>
           <div className="rounded-[22px] bg-card p-4 text-[13.5px] leading-relaxed text-muted-foreground">
             <p>
@@ -237,7 +252,7 @@ export default function PageProfil() {
         </section>
 
         {/* crédits */}
-        <section>
+        <section id="credits" className="scroll-mt-20">
           <h2 className="eyebrow mb-2 px-1">{tr("Crédits")}</h2>
           <div className="overflow-hidden rounded-[22px] border border-border/80 bg-card">
             {CREDITS.map((c) => (

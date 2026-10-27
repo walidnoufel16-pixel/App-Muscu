@@ -54,7 +54,7 @@ ok(await pg.getByRole("button", { name: "Entraînement" }).isVisible(), "retour 
 // modifier → composeur → retour : on revient sur la séance
 await pg.getByRole("button", { name: "Modifier" }).click();
 await pg.waitForURL(/\/entrainement\/composer\//);
-ok(await pg.getByRole("button", { name: "Séance", exact: true }).isVisible(), "composeur : retour libellé « Séance »");
+ok(await pg.getByRole("button", { name: "Séance", exact: true }).waitFor({ timeout: 4000 }).then(() => true, () => false), "composeur : retour libellé « Séance »");
 await pg.getByRole("button", { name: "Séance", exact: true }).click();
 await pg.waitForURL(/\/entrainement\/seance\/\?l=0/);
 ok(true, "retour du composeur vers la séance");

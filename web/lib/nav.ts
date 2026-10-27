@@ -76,3 +76,10 @@ export const useVueExercices = create<{ vue: VueExercices }>(() => ({ vue: "corp
 
 /* Vue de l'onglet Entraînement : séances libres (par défaut) ou programme sur 8 semaines. */
 export const useVueEntrainement = create<{ vue: "libres" | "programme" }>(() => ({ vue: "libres" }));
+
+/* Vue de l'onglet Repas : aujourd'hui (par défaut), recettes, courses. */
+export type VueRepas = "jour" | "recettes" | "courses";
+export const useVueRepas = create<{ vue: VueRepas }>(() => ({ vue: "jour" }));
+
+/* Menu latéral (☰) et les feuilles qu'il ouvre ailleurs : import d'une séance, installation de l'app. */
+export const useMenu = create<{ ouvert: boolean; importer: boolean; installer: boolean }>(() => ({ ouvert: false, importer: false, installer: false }));

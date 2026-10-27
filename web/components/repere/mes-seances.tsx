@@ -16,7 +16,7 @@ import { EX } from "@/lib/data/exercices";
 import { dispoDeclare, musclesDe } from "@/lib/logic/core";
 import * as act from "@/lib/logic/actions";
 import { useRepere } from "@/lib/store";
-import { AVANT } from "@/lib/nav";
+import { AVANT, useMenu } from "@/lib/nav";
 import { useBrouillon } from "@/lib/brouillon";
 import type { Route } from "next";
 import { construireSeance, dureeTotale, FORMATS, MACHINES } from "@/lib/logic/cardio";
@@ -170,7 +170,8 @@ export function CreerSeance() {
   const router = useRouter();
   const importer = useRepere((s) => s.importer);
   const setLibre = useBrouillon((s) => s.setLibre);
-  const [imp, setImp] = useState(false);
+  /* la feuille d'import s'ouvre aussi depuis le menu (☰ › Importer une séance) */
+  const imp = useMenu((s) => s.importer), setImp = (v: boolean) => useMenu.setState({ importer: v });
   const [code, setCode] = useState("");
 
   const lancerImport = async () => {

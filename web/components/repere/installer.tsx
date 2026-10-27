@@ -9,6 +9,10 @@ import { DownloadSimpleIcon, ExportIcon, PlusSquareIcon, XIcon } from "@phosphor
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { useEstAdmin } from "@/lib/admin";
+import { useMenu } from "@/lib/nav";
+
+/** L'app est-elle déjà sur l'écran d'accueil ? (le menu cache alors « Installer l'app ») */
+export const appInstallee = () => typeof window !== "undefined" && installee();
 
 const CLE = "repere.installer.plus-tard";
 const DELAI = 14 * 864e5;
@@ -27,7 +31,8 @@ export function Installer() {
   const admin = useEstAdmin() === true;
   const [ferme, setFerme] = useState(false);
   const [invite, setInvite] = useState<Invite | null>(null);
-  const [feuille, setFeuille] = useState(false);
+  /* la feuille s'ouvre aussi depuis le menu (☰ › Installer l'app) */
+  const feuille = useMenu((s) => s.installer), setFeuille = (v: boolean) => useMenu.setState({ installer: v });
 
   useEffect(() => {
     const capter = (e: Event) => { e.preventDefault(); setInvite(e as Invite); if (!installee() && !repousse()) setVisible(true); };
@@ -37,7 +42,7 @@ export function Installer() {
     return () => { window.removeEventListener("beforeinstallprompt", capter); window.removeEventListener("appinstalled", finie); };
   }, []);
 
-  if (!(visible || (admin && !ferme && !repousse()))) return null;
+  const carte = visible || (admin && !ferme && !repousse());
   const plusTard = () => { try { localStorage.setItem(CLE, String(Date.now())); } catch {} setVisible(false); setFerme(true); };
   const ouvrir = async () => {
     if (invite) { await invite.prompt(); const r = await invite.userChoice; if (r.outcome === "accepted") setVisible(false); return; }
@@ -47,7 +52,7 @@ export function Installer() {
   return (
     <>
       {/* carte flottante juste au-dessus de la barre d'onglets */}
-      <div className="fixed inset-x-0 bottom-[calc(max(env(safe-area-inset-bottom),10px)+78px)] z-40 mx-auto max-w-[480px] px-3">
+      {carte && <div className="fixed inset-x-0 bottom-[calc(max(env(safe-area-inset-bottom),10px)+78px)] z-40 mx-auto max-w-[480px] px-3">
         <div className="flex animate-[monter_.4s_cubic-bezier(.3,1.2,.5,1)_both] items-center gap-3 rounded-[20px] border border-border/70 bg-card/95 p-2.5 pr-1.5 shadow-[0_12px_32px_-14px_rgba(0,0,0,.45)] backdrop-blur-xl">
           <span className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-plate-soft text-plate"><DownloadSimpleIcon className="size-6" weight="bold" /></span>
           <button onClick={ouvrir} className="min-w-0 flex-1 text-left text-[14px] leading-snug text-muted-foreground">
@@ -55,7 +60,7 @@ export function Installer() {
           </button>
           <button onClick={plusTard} aria-label={tr("Plus tard")} className="grid size-9 shrink-0 place-items-center rounded-full text-muted-foreground active:bg-muted"><XIcon className="size-4" weight="bold" /></button>
         </div>
-      </div>
+      </div>}
       <Drawer open={feuille} onOpenChange={setFeuille}>
         <DrawerContent>
           <div className="px-5 pt-2 pb-[max(env(safe-area-inset-bottom),20px)]">

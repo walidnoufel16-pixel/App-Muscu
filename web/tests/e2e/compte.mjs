@@ -74,5 +74,29 @@ async function parcours(confirmer) {
 
 await parcours(true);
 await parcours(false);
+
+/* Le serveur refuse les comptes anonymes (base de test mal réglée) : on continue sur ce téléphone. */
+{
+  const ctx = await b.newContext({ locale: "fr-FR", viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
+  await ctx.route(/supabase\.co/, (r) => {
+    if (r.request().method() === "OPTIONS") return r.fulfill({ status: 200, headers: { "access-control-allow-origin": "*", "access-control-allow-headers": "*", "access-control-allow-methods": "*" } });
+    if (r.request().url().includes("/auth/v1/signup")) return r.fulfill({ status: 422, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify({ code: 422, error_code: "anonymous_provider_disabled", msg: "Anonymous sign-ins are disabled" }) });
+    return r.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: "{}" });
+  });
+  const pg = await ctx.newPage();
+  pg.on("pageerror", (e) => errs.push(e.message));
+  await pg.goto(U + "/bienvenue/");
+  await pg.getByRole("button", { name: "Commencer" }).click();
+  await pg.getByPlaceholder("Ton surnom").fill("Test");
+  await pg.getByRole("button", { name: "Créer mon compte" }).click();
+  await pg.getByText("Par où commencer").waitFor({ timeout: 8000 });
+  ok(await pg.getByText(/Le serveur n'accepte pas de compte pour l'instant/).count() === 1, "comptes refusés par le serveur : message, puis la suite sur ce téléphone");
+  await pg.getByRole("button", { name: /Une séance à la carte/ }).click();
+  await pg.waitForURL(/\/entrainement\/?$/);
+  await pg.locator("nav a", { hasText: "Repas" }).click();
+  await pg.getByText("Des repas pensés pour ton entraînement").waitFor({ timeout: 8000 });
+  ok(true, "l'app reste utilisable (onglet Repas)");
+  await ctx.close();
+}
 console.log("erreurs:", JSON.stringify(errs));
 await b.close(); srv.close();

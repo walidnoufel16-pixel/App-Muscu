@@ -5,8 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import type { Route } from "next";
-import { BarbellIcon, ChartLineUpIcon, PersonSimpleIcon, UserCircleIcon } from "@phosphor-icons/react";
-import { useRepere } from "@/lib/store";
+import { BarbellIcon, ChartLineUpIcon, ForkKnifeIcon, PersonSimpleIcon } from "@phosphor-icons/react";
 import { noterPosition, oublierPosition, positionDe } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
@@ -14,8 +13,8 @@ import { cn } from "@/lib/utils";
 const ONGLETS = [
   { href: "/entrainement", nom: tr("Entraînement"), Icone: BarbellIcon },
   { href: "/exercices", nom: tr("Exercices"), Icone: PersonSimpleIcon },
+  { href: "/repas", nom: tr("Repas"), Icone: ForkKnifeIcon },
   { href: "/progres", nom: tr("Progrès"), Icone: ChartLineUpIcon },
-  { href: "/profil", nom: tr("Profil"), Icone: UserCircleIcon },
 ] as const;
 
 /* Barre d'onglets flottante, translucide, au-dessus de la zone sûre.
@@ -23,7 +22,6 @@ const ONGLETS = [
 export function TabBar() {
   const chemin = usePathname().replace(/(.)\/$/, "$1");
   const router = useRouter();
-  const sync = useRepere((s) => s.sync);
   const est = (href: string) => chemin === href || chemin.startsWith(href + "/");
   const courant = ONGLETS.findIndex((o) => est(o.href));
 
@@ -56,7 +54,7 @@ export function TabBar() {
         <span
           aria-hidden
           data-pastille
-          className={cn("pointer-events-none absolute top-1.5 bottom-1.5 left-1.5 w-[calc((100%-12px)/4)] rounded-2xl bg-foreground/[.06] transition-transform duration-[420ms] ease-[cubic-bezier(.3,1.3,.5,1)] motion-reduce:transition-none", courant < 0 && "opacity-0")}
+          className={cn(ONGLETS[courant]?.href === "/repas" && "theme-repas", "pointer-events-none absolute top-1.5 bottom-1.5 left-1.5 w-[calc((100%-12px)/4)] rounded-2xl bg-foreground/[.06] transition-transform duration-[420ms] ease-[cubic-bezier(.3,1.3,.5,1)] motion-reduce:transition-none", courant < 0 && "opacity-0")}
           style={{ transform: `translateX(${Math.max(courant, 0) * 100}%)` }}
         >
           <span className="absolute -bottom-2 left-1/2 h-[3px] w-5 -translate-x-1/2 rounded-full bg-plate" />
@@ -72,17 +70,11 @@ export function TabBar() {
               aria-current={actif ? "page" : undefined}
               className={cn(
                 "relative flex flex-col items-center gap-1 rounded-2xl py-2 text-[10.5px] font-medium transition-colors",
-                actif ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                actif ? (href === "/repas" ? "theme-repas text-plate-ink" : "text-foreground") : "text-muted-foreground hover:text-foreground",
               )}
             >
               <span className="relative">
                 <Icone className={cn("size-[22px]", actif && "animate-[rebond_.45s_cubic-bezier(.3,1.6,.5,1)]")} weight={actif ? "fill" : "regular"} />
-                {href === "/profil" && sync !== null && (
-                  <span
-                    className={cn("absolute -top-0.5 -right-1 size-2 rounded-full ring-2 ring-card", sync ? "bg-success" : "bg-muted-foreground")}
-                    aria-label={sync ? tr("Synchronisé") : tr("Hors ligne")}
-                  />
-                )}
               </span>
               {nom}
             </Link>

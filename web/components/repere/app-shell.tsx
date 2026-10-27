@@ -5,6 +5,7 @@ import { useEffect, ViewTransition } from "react";
 import { usePathname } from "next/navigation";
 import { useRepere } from "@/lib/store";
 import { TabBar } from "./tab-bar";
+import { MenuLateral } from "./menu-lateral";
 import { Installer } from "./installer";
 import { RestTimer } from "./rest-timer";
 import { Confirmateur } from "./confirmer";
@@ -64,9 +65,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <RestTimer avecOnglets={onglets} />
       {onglets && <TabBar />}
       {onglets && <Installer />}
+      {onglets && <MenuLateral />}
       <Confirmateur />
       <Bilan />
       <SurveillantBadges />
+      {/* app de test (repere-test) : impossible à confondre avec la vraie */}
+      {process.env.NEXT_PUBLIC_APP_TEST === "1" && (
+        <span className="pointer-events-none fixed top-[max(env(safe-area-inset-top),6px)] left-1/2 z-[60] -translate-x-1/2 rounded-full bg-orange-500 px-2.5 py-0.5 text-[10.5px] font-bold tracking-[0.08em] text-white uppercase shadow">
+          {tr("Version test")}
+        </span>
+      )}
     </div>
   );
 }
