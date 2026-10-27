@@ -4,7 +4,7 @@
    La logique est dans lib/logic/repas.ts. */
 import { langue, tr } from "@/lib/i18n";
 import { useState } from "react";
-import { ArrowsClockwiseIcon, BowlFoodIcon, CaretRightIcon, CheckIcon, ClockIcon, CookieIcon, HandPalmIcon, MinusIcon, PlusIcon, SunHorizonIcon } from "@phosphor-icons/react";
+import { ArrowsClockwiseIcon, BowlFoodIcon, CaretDownIcon, CaretRightIcon, CheckIcon, ClockIcon, CookieIcon, HandPalmIcon, MinusIcon, PlusIcon, SunHorizonIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import type { Moment, Recette } from "@/lib/data/recettes";
@@ -23,24 +23,27 @@ const EN = () => langue() === "en";
 export function FormPrefs({ p, onChange }: { p: PrefsRepas; onChange: (p: PrefsRepas) => void }) {
   const bascule = (l: string[], x: string) => (l.includes(x) ? l.filter((y) => y !== x) : [...l, x]);
   const evitables = ["poulet", "boeuf", "porc", "saumon", "thon", "crevettes", "oeuf", "tofu", "champignons", "poivron", "avocat", "lentilles", "pois_chiches", "fromage_blanc", "skyr", "whey"];
+  const liste = (l: string[], vide: string) => (l.length ? l.join(", ") : vide);
+  const nomAllergie = (k: string) => ALLERGIES.find((x) => x[0] === k)?.[1] ?? k;
+  const nomMat = (k: string) => MATERIELS.find((x) => x[0] === k)?.[1] ?? k;
   return (
-    <div className="flex flex-col gap-5">
-      <Groupe titre={tr("1 · Ton régime")}>
+    <div className="flex flex-col gap-2">
+      <Groupe titre={tr("1 · Ton régime")} resume={REGIMES[p.regime]}>
         {REGIMES.map((n, i) => <button key={n} aria-pressed={p.regime === i} onClick={() => onChange({ ...p, regime: i })} className={puce(p.regime === i)}>{n}</button>)}
       </Groupe>
-      <Groupe titre={tr("2 · Allergies ou intolérances")}>
+      <Groupe titre={tr("2 · Allergies ou intolérances")} resume={liste(p.allergies.map(nomAllergie), tr("Aucune"))}>
         {ALLERGIES.map(([k, n]) => <button key={k} aria-pressed={p.allergies.includes(k)} onClick={() => onChange({ ...p, allergies: bascule(p.allergies, k) })} className={puce(p.allergies.includes(k))}>{n}</button>)}
       </Groupe>
-      <Groupe titre={tr("3 · Ce que tu n'aimes pas")}>
+      <Groupe titre={tr("3 · Ce que tu n'aimes pas")} resume={liste(p.exclus.map(nomAliment), tr("Rien"))}>
         {evitables.map((id) => <button key={id} aria-pressed={p.exclus.includes(id)} onClick={() => onChange({ ...p, exclus: bascule(p.exclus, id) })} className={puce(p.exclus.includes(id))}>{nomAliment(id)}</button>)}
       </Groupe>
-      <Groupe titre={tr("4 · Temps de cuisine en semaine")}>
+      <Groupe titre={tr("4 · Temps de cuisine en semaine")} resume={TEMPS[p.temps ?? 2]}>
         {TEMPS.map((n, i) => <button key={n} aria-pressed={p.temps === i} onClick={() => onChange({ ...p, temps: i })} className={puce(p.temps === i)}>{n}</button>)}
       </Groupe>
-      <Groupe titre={tr("5 · Ton matériel")}>
+      <Groupe titre={tr("5 · Ton matériel")} resume={liste(p.mat.map(nomMat), tr("Aucun"))}>
         {MATERIELS.map(([k, n]) => <button key={k} aria-pressed={p.mat.includes(k)} onClick={() => onChange({ ...p, mat: bascule(p.mat, k) })} className={puce(p.mat.includes(k))}>{n}</button>)}
       </Groupe>
-      <label className="flex items-center justify-between gap-3 rounded-2xl bg-card px-4 py-3 text-[14.5px]">
+      <label className="mt-2 flex items-center justify-between gap-3 rounded-2xl bg-card px-4 py-3 text-[14.5px]">
         <span>
           <span className="block font-medium">{tr("Afficher les calories")}</span>
           <span className="block text-[12.5px] text-muted-foreground">{tr("kcal, glucides et lipides en plus des protéines")}</span>
@@ -50,13 +53,28 @@ export function FormPrefs({ p, onChange }: { p: PrefsRepas; onChange: (p: PrefsR
     </div>
   );
 }
-function Groupe({ titre, children }: { titre: string; children: React.ReactNode }) {
+/* Une question repliable : le titre, la réponse résumée, et les choix une fois ouverte.
+   Chacune s'ouvre et se ferme librement. */
+function Groupe({ titre, resume, children }: { titre: string; resume: string; children: React.ReactNode }) {
+  const [ouvert, setOuvert] = useState(false);
   return (
-    <section>
-      <h2 className="eyebrow mb-2 px-1">{titre}</h2>
-      <div className="flex flex-wrap gap-1.5">{children}</div>
+    <section className="overflow-hidden rounded-[18px] bg-card" aria-label={titre}>
+      <button onClick={() => { tactile(4); setOuvert((o) => !o); }} aria-expanded={ouvert} className="flex w-full items-center gap-3 px-4 py-3.5 text-left">
+        <span className="min-w-0 flex-1">
+          <span className="block text-[15px] font-semibold">{titre}</span>
+          <span className="block truncate text-[13px] text-muted-foreground">{resume}</span>
+        </span>
+        <CaretDownIcon className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-200", ouvert && "rotate-180")} />
+      </button>
+      {ouvert && <div className="flex flex-wrap gap-1.5 px-4 pb-4">{children}</div>}
     </section>
   );
+}
+
+/** « Végétarien · sans lactose · 30 min max » */
+export function resumePrefs(p: PrefsRepas) {
+  const sans = p.allergies.map((k) => ALLERGIES.find((x) => x[0] === k)?.[1].toLowerCase()).filter(Boolean);
+  return [REGIMES[p.regime], sans.length ? tr("sans {l}", { l: sans.join(", ") }) : "", TEMPS[p.temps ?? 2]].filter(Boolean).join(" · ");
 }
 
 /** Première ouverture : les 5 questions, puis la partie Repas. */

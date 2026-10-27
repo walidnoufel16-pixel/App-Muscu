@@ -34,13 +34,42 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
   ok(await pg.locator("nav a").count() === 5 && (await pg.locator("nav a").allTextContents()).join(",") === "Entraînement,Exercices,Repas,Progrès,Profil", "cinq onglets, Repas au milieu");
   await pg.locator("nav a", { hasText: "Repas" }).click();
   await pg.getByText("Des repas pensés pour ton entraînement").waitFor({ timeout: 8000 });
+  const q = (n) => pg.getByRole("region", { name: n });
+  const entetes = pg.locator("section[aria-label] > button[aria-expanded]");
+  ok(await entetes.count() === 5 && (await entetes.evaluateAll((l) => l.map((x) => x.getAttribute("aria-expanded")))).every((x) => x === "false"), "premier passage : les 5 questions repliées");
   await cap(pg, "repas-accueil");
+  await q("1 · Ton régime").locator("button[aria-expanded]").click();
+  await q("2 · Allergies ou intolérances").locator("button[aria-expanded]").click();
+  ok(await pg.getByRole("button", { name: "Végétarien", exact: true }).isVisible() && await pg.getByRole("button", { name: "Lactose", exact: true }).isVisible(), "deux questions ouvertes en même temps");
   await pg.getByRole("button", { name: "Végétarien", exact: true }).click();
   await pg.getByRole("button", { name: "Lactose", exact: true }).click();
+  ok(/Végétarien/.test(await q("1 · Ton régime").innerText()) && /Lactose/.test(await q("2 · Allergies ou intolérances").locator("button[aria-expanded]").innerText()), "résumés à jour");
+  await q("1 · Ton régime").locator("button[aria-expanded]").click();
+  ok(await pg.getByRole("button", { name: "Omnivore", exact: true }).count() === 0 && await pg.getByRole("button", { name: "Lactose", exact: true }).isVisible(), "régime refermé d'un toucher, allergies toujours ouvertes");
+  await cap(pg, "repas-questions");
   await pg.getByRole("button", { name: "C'est parti" }).click();
   await pg.getByRole("region", { name: "Tes besoins du jour" }).waitFor();
   const A = (await etatLu(pg)).A;
   ok(A.repas?.fait && A.repas.regime === 2 && A.repas.allergies.includes("l"), "préférences notées (végétarien, sans lactose)");
+  /* revenir au questionnaire */
+  const carte = pg.getByRole("region", { name: "Mes préférences" });
+  ok(/Végétarien · sans lactose/.test(await carte.innerText()), "carte « Mes préférences » : le résumé");
+  await carte.getByRole("button", { name: "Modifier" }).click();
+  const feuille = pg.getByRole("dialog");
+  await feuille.getByRole("region", { name: "1 · Ton régime" }).locator("button[aria-expanded]").click();
+  ok(await feuille.getByRole("button", { name: "Végétarien", exact: true }).getAttribute("aria-pressed") === "true", "Modifier : les réponses déjà cochées");
+  await feuille.getByRole("button", { name: "Vegan", exact: true }).click();
+  await feuille.getByRole("button", { name: "Enregistrer" }).click();
+  await pg.waitForTimeout(400);
+  ok((await etatLu(pg)).A.repas.regime === 3 && /Vegan/.test(await carte.innerText()), "enregistré : vegan");
+  await pg.getByRole("tab", { name: "Recettes" }).click();
+  ok(await pg.getByText("Omelette épinards et feta").count() === 0, "les recettes suivent (plus d'omelette)");
+  /* depuis Profil */
+  await pg.goto(U + "/profil/");
+  await pg.getByRole("button", { name: /Préférences repas/ }).click();
+  await pg.waitForURL(/\/repas\/?\?prefs=1/);
+  await pg.getByRole("dialog").getByRole("heading", { name: "Préférences repas" }).or(pg.getByRole("dialog").getByText("Préférences repas")).first().waitFor();
+  ok(true, "Profil › Préférences repas ouvre le questionnaire");
   await ctx.close();
 }
 
@@ -71,9 +100,9 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
   await cap(pg, "repas-fiche");
   await pg.keyboard.press("Escape");
   /* calories en option */
-  await pg.getByRole("button", { name: "Préférences repas" }).click();
+  await pg.getByRole("region", { name: "Mes préférences" }).getByRole("button", { name: "Modifier" }).click();
   await pg.getByRole("dialog").getByRole("checkbox").check();
-  await pg.getByRole("dialog").getByRole("button", { name: "OK" }).click();
+  await pg.getByRole("dialog").getByRole("button", { name: "Enregistrer" }).click();
   await pg.waitForTimeout(400);
   ok(/kcal/.test(await besoins.innerText()), "calories affichées une fois activées");
   await ctx.close();

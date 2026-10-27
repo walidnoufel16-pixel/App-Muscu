@@ -5,13 +5,13 @@
 import { tr } from "@/lib/i18n";
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { GearSixIcon, MinusIcon, PlusIcon, ShareNetworkIcon } from "@phosphor-icons/react";
+import { MinusIcon, PlusIcon, ShareNetworkIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { ChoixLangue } from "@/components/repere/choix-langue";
 import { EnTete } from "@/components/repere/en-tete";
 import { Segmente } from "@/components/repere/segmente";
 import { CarteProteines } from "@/components/repere/proteines";
-import { AccueilRepas, BoutonAutre, CarteBesoins, CarteRecette, Coche, FicheRecette, FormPrefs, Prudence } from "@/components/repere/repas";
+import { AccueilRepas, BoutonAutre, resumePrefs, CarteBesoins, CarteRecette, Coche, FicheRecette, FormPrefs, Prudence } from "@/components/repere/repas";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import type { Recette } from "@/lib/data/recettes";
@@ -37,20 +37,28 @@ function Repas() {
   const [seance, setSeance] = useState(actif);
   const b = besoins(etat, seance);
   const kcal = !!p.kcal;
-  const lien = useSearchParams().get("r");
+  const params = useSearchParams(), lien = params.get("r");
   const [fiche, setFiche] = useState<{ r: Recette; c?: CreneauRepas } | null>(() => (lien && R[lien] ? { r: R[lien] } : null));
-  const [reglages, setReglages] = useState(false);
+  /* le questionnaire, rouvert depuis la carte « Mes préférences » ou depuis Profil (?prefs=1) */
+  const [brouillon, setBrouillon] = useState<PrefsRepas | null>(() => (params.get("prefs") && p.fait ? p : null));
   const majPrefs = (q: PrefsRepas) => muter((E) => { E.A.repas = { ...q, fait: true }; });
 
   return (
     <>
       <EnTete
         surtitre={tr("Nutrition")} titre={tr("Repas")}
-        actions={<span className="flex items-center gap-1.5">{p.fait && <button onClick={() => setReglages(true)} aria-label={tr("Préférences repas")} className="grid size-9 place-items-center rounded-full bg-card"><GearSixIcon className="size-[18px]" /></button>}<ChoixLangue /></span>}
+        actions={<ChoixLangue />}
       />
       {!p.fait ? <AccueilRepas /> : (
         <div className="flex flex-col gap-3 px-4">
           <Segmente label={tr("Rubrique repas")} valeur={vue} onChange={(v: VueRepas) => useVueRepas.setState({ vue: v })} options={[{ v: "jour", n: tr("Aujourd'hui") }, { v: "recettes", n: tr("Recettes") }, { v: "courses", n: tr("Courses") }]} />
+          <section className="flex items-center gap-3 rounded-[18px] bg-card px-4 py-3" aria-label={tr("Mes préférences")}>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[14.5px] font-semibold">{tr("Mes préférences")}</span>
+              <span className="block truncate text-[12.5px] text-muted-foreground">{resumePrefs(p)}</span>
+            </span>
+            <Button variant="soft" size="sm" className="rounded-full" onClick={() => { tactile(6); setBrouillon(p); }}>{tr("Modifier")}</Button>
+          </section>
           {vue === "jour" && <Jour p={p} seance={seance} setSeance={setSeance} b={b} kcal={kcal} auj={auj} ouvrir={(r, c) => setFiche({ r, c })} />}
           {vue === "recettes" && <Recettes p={p} b={b} kcal={kcal} majPrefs={majPrefs} ouvrir={(r) => setFiche({ r })} />}
           {vue === "courses" && <Courses p={p} b={b} kcal={kcal} ouvrir={(r, c) => setFiche({ r, c })} />}
@@ -58,14 +66,16 @@ function Repas() {
         </div>
       )}
       <FicheRecette r={fiche?.r ?? null} c={fiche?.c} b={b} kcal={kcal} pers0={vue === "courses" ? p.pers ?? 1 : 1} onClose={() => setFiche(null)} />
-      <Drawer open={reglages} onOpenChange={setReglages}>
+      <Drawer open={!!brouillon} onOpenChange={(o) => !o && setBrouillon(null)}>
         <DrawerContent className="max-h-[92dvh]">
-          <div className="overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),20px)]">
-            <DrawerTitle className="mt-2 px-1 text-[22px] font-bold">{tr("Préférences repas")}</DrawerTitle>
-            <DrawerDescription className="mt-1 mb-4 px-1 text-[13.5px] text-muted-foreground">{tr("Les recettes proposées en tiennent compte partout.")}</DrawerDescription>
-            <FormPrefs p={p} onChange={majPrefs} />
-            <Button variant="plate" size="lg" className="mt-5 w-full rounded-xl" onClick={() => setReglages(false)}>{tr("OK")}</Button>
-          </div>
+          {brouillon && (
+            <div className="overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),20px)]">
+              <DrawerTitle className="mt-2 px-1 text-[22px] font-bold">{tr("Préférences repas")}</DrawerTitle>
+              <DrawerDescription className="mt-1 mb-4 px-1 text-[13.5px] text-muted-foreground">{tr("Les recettes proposées en tiennent compte partout.")}</DrawerDescription>
+              <FormPrefs p={brouillon} onChange={setBrouillon} />
+              <Button variant="plate" size="lg" className="mt-5 w-full rounded-xl" onClick={() => { tactile(10); majPrefs(brouillon); setBrouillon(null); }}>{tr("Enregistrer")}</Button>
+            </div>
+          )}
         </DrawerContent>
       </Drawer>
     </>

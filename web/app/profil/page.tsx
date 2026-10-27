@@ -5,6 +5,9 @@ import { ReglageCycle, useCycleCharge } from "@/components/repere/cycle";
 import { ReglageZones } from "@/components/repere/forme";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import type { Route } from "next";
+import { prefsDe } from "@/lib/logic/repas";
+import { resumePrefs } from "@/components/repere/repas";
 import { useTheme } from "next-themes";
 import { ArrowsLeftRightIcon, CaretRightIcon, ChartBarIcon, CheckCircleIcon, CloudSlashIcon, EnvelopeIcon, ShieldWarningIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
@@ -186,6 +189,18 @@ export default function PageProfil() {
           <h2 className="eyebrow mb-2 px-1">{tr("Mon matériel")}</h2>
           <MonMateriel />
           <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{tr("Sert de point de départ dans Exercices, « Créer une séance pour moi » et le composeur.")}</p>
+        </section>
+
+        {/* repas : régime, allergies… ; rouvre le questionnaire de l'onglet Repas */}
+        <section>
+          <h2 className="eyebrow mb-2 px-1">{tr("Repas")}</h2>
+          <button onClick={() => router.push((prefsDe(etat.A).fait ? "/repas?prefs=1" : "/repas") as Route)} className="flex w-full items-center gap-3 rounded-[18px] bg-card px-4 py-3.5 text-left active:opacity-80">
+            <span className="min-w-0 flex-1">
+              <span className="block text-[15px] font-medium">{tr("Préférences repas")}</span>
+              <span className="block truncate text-[12.5px] text-muted-foreground">{prefsDe(etat.A).fait ? resumePrefs(prefsDe(etat.A)) : tr("À régler dans l'onglet Repas")}</span>
+            </span>
+            <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" />
+          </button>
         </section>
 
         {/* silhouette du corps : homme ou femme */}
