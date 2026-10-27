@@ -5,21 +5,22 @@
 import { tr } from "@/lib/i18n";
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { MinusIcon, PlusIcon, ShareNetworkIcon } from "@phosphor-icons/react";
+import { MinusIcon, PlusIcon, ShareNetworkIcon, XIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { ChoixLangue } from "@/components/repere/choix-langue";
 import { EnTete } from "@/components/repere/en-tete";
 import { Segmente } from "@/components/repere/segmente";
 import { CarteProteines } from "@/components/repere/proteines";
-import { AccueilRepas, BoutonAutre, resumePrefs, CarteBesoins, CarteRecette, Coche, FicheRecette, FormPrefs, Prudence } from "@/components/repere/repas";
+import { AccueilRepas, BoutonAutre, ChoixAliments, resumePrefs, CarteBesoins, CarteRecette, Coche, FicheRecette, FormPrefs, Prudence } from "@/components/repere/repas";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import type { Recette } from "@/lib/data/recettes";
 import { jourDe } from "@/lib/logic/historique";
+import { emojiDe } from "@/lib/data/aliments";
 import {
-  alimentsParRayon, autreRecette, avecCeQueJai, besoins, CRENEAUX, listeCourses, nomAliment, NOM_CRENEAU, planSemaine, prefsDe, R, recettesPour, semaineParDefaut, suggestions, texteCourses,
+  autreRecette, EMOJIS_RAYON, avecCeQueJai, besoins, CRENEAUX, listeCourses, nomAliment, NOM_CRENEAU, planSemaine, prefsDe, R, recettesPour, semaineParDefaut, suggestions, texteCourses,
 } from "@/lib/logic/repas";
-import type { CreneauRepas, PrefsRepas, SemaineRepas } from "@/lib/logic/types";
+import type { ArticleLibre, CreneauRepas, PrefsRepas, SemaineRepas } from "@/lib/logic/types";
 import { useRepere } from "@/lib/store";
 import { useVueRepas, type VueRepas } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
@@ -125,24 +126,17 @@ function Recettes({ p, b, kcal, majPrefs, ouvrir }: { p: PrefsRepas; b: ReturnTy
       ) : (
         <>
           <p className="px-1 text-[13.5px] text-muted-foreground">{tr("Touche ce que tu as dans ton frigo et tes placards : sel, huile et épices sont comptés d'office.")}</p>
-          {alimentsParRayon().map((ray) => (
-            <section key={ray.k}>
-              <h3 className="eyebrow mb-1.5 px-1">{tr(ray.n)}</h3>
-              <div className="flex flex-wrap gap-1.5">
-                {ray.l.map((id) => {
-                  const on = stock.includes(id);
-                  return <button key={id} aria-pressed={on} onClick={() => { tactile(4); majPrefs({ ...p, stock: on ? stock.filter((x) => x !== id) : [...stock, id] }); }} className={puce(on)}>{nomAliment(id)}</button>;
-                })}
-              </div>
-            </section>
-          ))}
+          <ChoixAliments choisis={stock} perso={p.perso ?? []}
+            onBasculer={(id) => majPrefs({ ...p, stock: stock.includes(id) ? stock.filter((x) => x !== id) : [...stock, id] })}
+            onAjouter={(a) => majPrefs({ ...p, perso: [...(p.perso ?? []), a], stock: [...stock, a.id] })}
+          />
           {stock.length > 0 && <button onClick={() => majPrefs({ ...p, stock: [] })} className="self-start px-1 text-[13px] font-medium text-muted-foreground">{tr("Tout décocher")}</button>}
           <h2 className="mt-2 px-1 text-[19px] font-bold">{tr("Ce que tu peux cuisiner")}</h2>
           {!stock.length ? <p className="px-1 text-[13.5px] text-muted-foreground">{tr("Coche au moins un aliment.")}</p> : (
             <div className="flex flex-col gap-2">
               {corr.slice(0, 15).map(({ r, manque }) => (
                 <CarteRecette key={r.id} r={r} b={b} kcal={kcal} onOuvrir={() => ouvrir(r)}
-                  sous={<span className={cn("mt-1 block truncate text-[12.5px] font-medium", manque.length ? "text-muted-foreground" : "text-success")}>{manque.length ? tr("Il te manque : {l}", { l: manque.map((id) => nomAliment(id).toLowerCase()).join(", ") }) : tr("Tu as tout")}</span>}
+                  sous={<span className={cn("mt-1 block truncate text-[12.5px] font-medium", manque.length ? "text-muted-foreground" : "text-success")}>{manque.length ? tr("Il te manque : {l}", { l: manque.map((id) => `${emojiDe(id)} ${nomAliment(id).toLowerCase()}`).join(", ") }) : tr("Tu as tout")}</span>}
                 />
               ))}
             </div>
@@ -161,9 +155,12 @@ function Courses({ p, b, kcal, ouvrir }: { p: PrefsRepas; b: ReturnType<typeof b
   const maj = (f: (s: SemaineRepas) => SemaineRepas) => muter((E) => { E.A.semaine = f({ ...semaineParDefaut(), ...(E.A.semaine || {}) }); });
   const cases = planSemaine(p, S), pers = p.pers ?? 1;
   const liste = listeCourses(cases, b, pers, p.stock ?? []);
-  const nbArticles = liste.reduce((n, r) => n + r.l.length, 0), restants = liste.reduce((n, r) => n + r.l.filter((x) => !S.coches.includes(x.id)).length, 0);
+  const articles = S.articles ?? [];
+  const nbArticles = liste.reduce((n, r) => n + r.l.length, 0) + articles.length;
+  const restants = liste.reduce((n, r) => n + r.l.filter((x) => !S.coches.includes(x.id)).length, 0) + articles.filter((a) => !S.coches.includes(a.id)).length;
+  const cocher = (id: string) => { tactile(5); maj((s) => ({ ...s, coches: s.coches.includes(id) ? s.coches.filter((y) => y !== id) : [...s.coches, id] })); };
   const partager = async () => {
-    const texte = tr("Liste de courses Repère") + "\n\n" + texteCourses(liste, S.coches);
+    const texte = tr("Liste de courses Repère") + "\n\n" + texteCourses(liste, S.coches, S.articles);
     tactile(8);
     try {
       if (navigator.share) await navigator.share({ title: tr("Liste de courses"), text: texte });
@@ -216,6 +213,25 @@ function Courses({ p, b, kcal, ouvrir }: { p: PrefsRepas; b: ReturnType<typeof b
         </div>
         {(p.stock?.length ?? 0) > 0 && <p className="mb-2 px-1 text-[12.5px] text-muted-foreground">{tr("Sans ce que tu as déjà coché dans « Avec ce que j'ai ».")}</p>}
         <div className="flex flex-col gap-3">
+          {/* articles ajoutés à la main */}
+          <div className="overflow-hidden rounded-[20px] bg-card" aria-label={tr("Mes articles")} role="group">
+            {articles.length > 0 && <h3 className="eyebrow px-4 pt-3 pb-1">{tr("Mes articles")}</h3>}
+            {articles.map((a) => {
+              const on = S.coches.includes(a.id);
+              return (
+                <div key={a.id} className="flex items-center gap-3 border-t border-border/60 px-4 py-2.5 first:border-t-0">
+                  <button aria-pressed={on} onClick={() => cocher(a.id)} className="flex flex-1 items-center gap-3 text-left">
+                    <Coche on={on} />
+                    <span aria-hidden className="text-[18px]">{a.e}</span>
+                    <span className={cn("flex-1 text-[14.5px]", on && "text-muted-foreground line-through")}>{a.n}</span>
+                    {a.q && <span className={cn("num shrink-0 text-[14px] font-semibold", on && "text-muted-foreground")}>{a.q}</span>}
+                  </button>
+                  <button aria-label={tr("Retirer {n}", { n: a.n })} onClick={() => { tactile(6); maj((s) => ({ ...s, articles: (s.articles ?? []).filter((x) => x.id !== a.id), coches: s.coches.filter((y) => y !== a.id) })); }} className="grid size-8 place-items-center rounded-full text-muted-foreground active:bg-muted"><XIcon className="size-4" weight="bold" /></button>
+                </div>
+              );
+            })}
+            <AjoutArticle onAjouter={(a) => maj((s) => ({ ...s, articles: [...(s.articles ?? []), a] }))} />
+          </div>
           {liste.map((ray) => (
             <div key={ray.k} className="overflow-hidden rounded-[20px] bg-card">
               <h3 className="eyebrow px-4 pt-3 pb-1">{ray.n}</h3>
@@ -225,6 +241,7 @@ function Courses({ p, b, kcal, ouvrir }: { p: PrefsRepas; b: ReturnType<typeof b
                   <button key={x.id} aria-pressed={on} onClick={() => { tactile(5); maj((s) => ({ ...s, coches: on ? s.coches.filter((y) => y !== x.id) : [...s.coches, x.id] })); }}
                     className="flex w-full items-center gap-3 border-t border-border/60 px-4 py-2.5 text-left first:border-t-0">
                     <Coche on={on} />
+                    <span aria-hidden className="text-[18px]">{emojiDe(x.id)}</span>
                     <span className={cn("flex-1 text-[14.5px]", on && "text-muted-foreground line-through")}>{nomAliment(x.id)}</span>
                     <span className={cn("num shrink-0 text-[14px] font-semibold", on && "text-muted-foreground")}>{x.texte}</span>
                   </button>
@@ -238,6 +255,29 @@ function Courses({ p, b, kcal, ouvrir }: { p: PrefsRepas; b: ReturnType<typeof b
     </>
   );
 }
+/* « + Ajouter un article » : nom, quantité libre, emoji. */
+function AjoutArticle({ onAjouter }: { onAjouter: (a: ArticleLibre) => void }) {
+  const [ouvert, setOuvert] = useState(false);
+  const [n, setN] = useState(""), [q, setQ] = useState(""), [e, setE] = useState("🛒");
+  if (!ouvert) return <button onClick={() => setOuvert(true)} className="flex w-full items-center gap-2 border-t border-border/60 px-4 py-3 text-left text-[14.5px] font-semibold text-plate-ink first:border-t-0"><PlusIcon className="size-4" weight="bold" />{tr("Ajouter un article")}</button>;
+  const valider = () => { if (n.trim().length < 2) return; tactile(8); onAjouter({ id: "art:" + Date.now().toString(36), n: n.trim().slice(0, 40), q: q.trim().slice(0, 20), e }); setN(""); setQ(""); setE("🛒"); setOuvert(false); };
+  return (
+    <div className="border-t border-border/60 p-3 first:border-t-0" role="group" aria-label={tr("Nouvel article")}>
+      <div className="flex gap-2">
+        <input value={n} onChange={(x) => setN(x.target.value)} onKeyDown={(x) => x.key === "Enter" && valider()} placeholder={tr("Article")} aria-label={tr("Article")} className="h-10 min-w-0 flex-1 rounded-xl bg-muted px-3 text-[15px] outline-none focus:ring-2 focus:ring-plate" />
+        <input value={q} onChange={(x) => setQ(x.target.value)} onKeyDown={(x) => x.key === "Enter" && valider()} placeholder={tr("Quantité")} aria-label={tr("Quantité")} className="h-10 w-24 rounded-xl bg-muted px-3 text-[15px] outline-none focus:ring-2 focus:ring-plate" />
+      </div>
+      <div className="mt-2 flex flex-wrap gap-1">
+        {EMOJIS_RAYON.autre.concat(EMOJIS_RAYON.leg.slice(0, 4), EMOJIS_RAYON.fru.slice(0, 4)).map((x) => <button key={x} aria-pressed={e === x} aria-label={x} onClick={() => setE(x)} className={cn("grid size-9 place-items-center rounded-xl text-[19px]", e === x ? "bg-plate-soft ring-2 ring-plate" : "bg-muted")}>{x}</button>)}
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <Button variant="soft" size="sm" className="rounded-xl" onClick={() => setOuvert(false)}>{tr("Annuler")}</Button>
+        <Button variant="plate" size="sm" className="rounded-xl" disabled={n.trim().length < 2} onClick={valider}>{tr("Ajouter")}</Button>
+      </div>
+    </div>
+  );
+}
+
 function Compteur({ v, min, max, onChange, label }: { v: number; min: number; max: number; onChange: (v: number) => void; label: string }) {
   return (
     <span className="flex items-center gap-1.5">

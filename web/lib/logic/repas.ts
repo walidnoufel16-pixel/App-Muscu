@@ -4,15 +4,23 @@
    traduit en portions faciles (méthode de la main) ; les recettes sont mises à la portion de
    chacun d'après les protéines visées pour ce repas. */
 import { langue, tr } from "@/lib/i18n";
-import { ALIM, RAYONS, type Rayon } from "@/lib/data/aliments";
+import { ALIM, emojiDe, PERSO_EMOJI, RAYONS, type Rayon } from "@/lib/data/aliments";
 import { RECETTES, type Moment, type Recette } from "@/lib/data/recettes";
 import { objectifProteines, poidsDe } from "./nutrition";
-import type { CreneauRepas, Etat, PrefsRepas, Reponses, SemaineRepas } from "./types";
+import type { AlimentPerso, ArticleLibre, CreneauRepas, Etat, PrefsRepas, Reponses, SemaineRepas } from "./types";
 
 export const R: Record<string, Recette> = Object.fromEntries(RECETTES.map((r) => [r.id, r]));
 const en = () => langue() === "en";
 export const nomRecette = (r: Recette) => (en() ? r.en : r.n);
-export const nomAliment = (id: string) => (en() ? ALIM[id]?.en : ALIM[id]?.n) ?? id;
+/* aliments ajoutés par l'utilisateur : noms et rayons, tenus à jour à chaque lecture des préférences */
+const PERSO: Record<string, AlimentPerso> = {};
+function majPerso(l: AlimentPerso[] = []) {
+  for (const a of l) { PERSO[a.id] = a; PERSO_EMOJI[a.id] = a.e; }
+}
+export const estPerso = (id: string) => id.startsWith("perso:");
+export const nomAliment = (id: string) => (en() ? ALIM[id]?.en : ALIM[id]?.n) ?? PERSO[id]?.n ?? id;
+/** « 🥦 Brocoli » */
+export const avecEmoji = (id: string) => `${emojiDe(id)} ${nomAliment(id)}`;
 
 /* ---------------- préférences ---------------- */
 export const REGIMES = [tr("Omnivore"), tr("Pescétarien"), tr("Végétarien"), tr("Vegan")];
@@ -20,8 +28,25 @@ export const CULTES = [tr("Aucun"), tr("Halal"), tr("Casher")];
 export const ALLERGIES: [string, string][] = [["l", tr("Lactose")], ["g", tr("Gluten")], ["o", tr("Œufs")], ["c", tr("Fruits à coque")], ["r", tr("Arachide")], ["p", tr("Poisson et fruits de mer")]];
 export const TEMPS = [tr("15 min max"), tr("30 min max"), tr("Pas de limite")];
 export const MATERIELS: [string, string][] = [["plaques", tr("Plaques")], ["four", tr("Four")], ["micro", tr("Micro-ondes")], ["mixeur", tr("Mixeur")]];
-export const prefsDe = (A: Reponses): PrefsRepas =>
-  ({ regime: 0, allergies: [], exclus: [], temps: 2, mat: ["plaques", "four", "micro", "mixeur"], pers: 1, stock: [], ...(A.repas || {}) });
+export function prefsDe(A: Reponses): PrefsRepas {
+  const p: PrefsRepas = { regime: 0, allergies: [], exclus: [], temps: 2, mat: ["plaques", "four", "micro", "mixeur"], pers: 1, stock: [], perso: [], ...(A.repas || {}) };
+  majPerso(p.perso);
+  return p;
+}
+/** Un aliment ajouté par l'utilisateur, avec un identifiant tiré de son nom. */
+export function nouvelAliment(n: string, ray: string, e: string, existants: AlimentPerso[] = []): AlimentPerso {
+  const base = "perso:" + n.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+  let id = base, k = 2;
+  while (existants.some((a) => a.id === id)) id = `${base}-${k++}`;
+  return { id, n: n.trim().slice(0, 40), ray, e };
+}
+/** Emojis proposés pour un aliment ajouté, d'après le rayon. */
+export const EMOJIS_RAYON: Record<string, string[]> = {
+  leg: ["🥬", "🥦", "🥕", "🧅", "🫑", "🍆", "🥒", "🌽"], fru: ["🍎", "🍐", "🍑", "🍓", "🍇", "🍍", "🍒", "🥝"],
+  prot: ["🍗", "🥩", "🐟", "🦐", "🥚", "🧊", "🦃", "🥓"], lait: ["🥛", "🧀", "🥣", "🧈", "🍦", "🥤", "🍶", "🧋"],
+  fec: ["🍞", "🍚", "🍝", "🥔", "🌾", "🥐", "🫓", "🥯"], epi: ["🫙", "🥫", "🍯", "🍫", "🥜", "🧂", "🌶️", "🫒"],
+  autre: ["🛒", "🧻", "🧽", "🧴", "🥤", "☕", "🍵", "🍪"],
+};
 
 /* ---------------- recettes ---------------- */
 const marques = (r: Recette) => r.ing.map(([id]) => ALIM[id]?.m || "").join("");
@@ -170,8 +195,17 @@ export function avecCeQueJai(p: PrefsRepas, stock: string[]): Correspondance[] {
     .sort((a, b) => b.ont / b.total - a.ont / a.total || a.manque.length - b.manque.length || a.r.min - b.r.min);
 }
 /** Aliments proposés dans « Avec ce que j'ai », par rayon (sans les produits de base). */
-export const alimentsParRayon = () =>
-  RAYONS.filter((x) => x.k !== "base").map((x) => ({ ...x, l: Object.values(ALIM).filter((a) => a.ray === x.k).map((a) => a.id) }));
+export const alimentsParRayon = (perso: AlimentPerso[] = []) =>
+  RAYONS.filter((x) => x.k !== "base")
+    .map((x) => ({ ...x, l: [...Object.values(ALIM).filter((a) => a.ray === x.k).map((a) => a.id), ...perso.filter((a) => a.ray === x.k).map((a) => a.id)] }))
+    .filter((x) => x.l.length);
+/** Aliments dont un mot commence par la recherche (sans accents). */
+export function chercherAliments(q: string, perso: AlimentPerso[] = []) {
+  const f = q.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (!f) return [];
+  const ids = [...Object.values(ALIM).filter((a) => a.ray !== "base").map((a) => a.id), ...perso.map((a) => a.id)];
+  return ids.filter((id) => nomAliment(id).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(/[^a-z0-9]+/).some((m) => m.startsWith(f)));
+}
 
 /* ---------------- semaine de repas ---------------- */
 export const CRENEAUX: CreneauRepas[] = ["matin", "dejeuner", "diner", "collation"];
@@ -232,6 +266,8 @@ export function listeCourses(cases: CaseSemaine[], b: Besoins, pers: number, sto
     .filter((x) => x.l.length);
 }
 /** Liste en texte, pour la feuille de partage du téléphone. */
-export function texteCourses(l: ReturnType<typeof listeCourses>, coches: string[]) {
-  return l.map((r) => `${r.n}\n` + r.l.filter((x) => !coches.includes(x.id)).map((x) => `• ${nomAliment(x.id)} — ${x.texte}`).join("\n")).join("\n\n");
+export function texteCourses(l: ReturnType<typeof listeCourses>, coches: string[], articles: ArticleLibre[] = []) {
+  const libres = articles.filter((a) => !coches.includes(a.id)).map((a) => `• ${a.e} ${a.n}${a.q ? " — " + a.q : ""}`);
+  const rayons = l.map((r) => `${r.n}\n` + r.l.filter((x) => !coches.includes(x.id)).map((x) => `• ${avecEmoji(x.id)} — ${x.texte}`).join("\n"));
+  return [...(libres.length ? [`${tr("Mes articles")}\n${libres.join("\n")}`] : []), ...rayons].join("\n\n");
 }

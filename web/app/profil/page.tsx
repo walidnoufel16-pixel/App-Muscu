@@ -97,7 +97,7 @@ export default function PageProfil() {
 
   return (
     <>
-      <EnTete titre={tr("Profil")} actions={<ChoixLangue />} />
+      <EnTete surtitre={tr("Profil")} titre={tr("Compte et réglages")} actions={<ChoixLangue />} />
       <div className="flex flex-col gap-6 px-4">
         {/* identité */}
         <div className="flex items-center gap-4 rounded-[22px] bg-card p-4">
@@ -141,7 +141,7 @@ export default function PageProfil() {
         </section>
 
         {/* adresse e-mail */}
-        <section>
+        <section id="compte" className="scroll-mt-20">
           <h2 className="eyebrow mb-2 px-1">{tr("Compte")}</h2>
           <div className="rounded-[22px] bg-card p-4">
             {attente && (
@@ -178,14 +178,14 @@ export default function PageProfil() {
 
         {/* cycle menstruel (facultatif, données locales) */}
         {(etat.A.sexe === 1 || cycleActif) && (
-          <section>
+          <section id="cycle" className="scroll-mt-20">
             <h2 className="eyebrow mb-2 px-1">{tr("Cycle menstruel")}</h2>
             <ReglageCycle />
           </section>
         )}
 
         {/* matériel : par défaut dans les listes et les séances composées */}
-        <section>
+        <section id="materiel" className="scroll-mt-20">
           <h2 className="eyebrow mb-2 px-1">{tr("Mon matériel")}</h2>
           <MonMateriel />
           <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{tr("Sert de point de départ dans Exercices, « Créer une séance pour moi » et le composeur.")}</p>
@@ -204,7 +204,7 @@ export default function PageProfil() {
         </section>
 
         {/* silhouette du corps : homme ou femme */}
-        <section>
+        <section id="reglages" className="scroll-mt-20">
           <h2 className="eyebrow mb-2 px-1">{tr("Silhouette")}</h2>
           <Segmente
             label={tr("Silhouette")}
@@ -239,7 +239,7 @@ export default function PageProfil() {
         </section>
 
         {/* confidentialité */}
-        <section>
+        <section id="confidentialite" className="scroll-mt-20">
           <h2 className="eyebrow mb-2 px-1">{tr("Confidentialité")}</h2>
           <div className="rounded-[22px] bg-card p-4 text-[13.5px] leading-relaxed text-muted-foreground">
             <p>
@@ -252,7 +252,7 @@ export default function PageProfil() {
         </section>
 
         {/* crédits */}
-        <section>
+        <section id="credits" className="scroll-mt-20">
           <h2 className="eyebrow mb-2 px-1">{tr("Crédits")}</h2>
           <div className="overflow-hidden rounded-[22px] border border-border/80 bg-card">
             {CREDITS.map((c) => (

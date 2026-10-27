@@ -5,6 +5,7 @@ import { useEffect, ViewTransition } from "react";
 import { usePathname } from "next/navigation";
 import { useRepere } from "@/lib/store";
 import { TabBar } from "./tab-bar";
+import { MenuLateral } from "./menu-lateral";
 import { Installer } from "./installer";
 import { RestTimer } from "./rest-timer";
 import { Confirmateur } from "./confirmer";
@@ -64,6 +65,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <RestTimer avecOnglets={onglets} />
       {onglets && <TabBar />}
       {onglets && <Installer />}
+      {onglets && <MenuLateral />}
       <Confirmateur />
       <Bilan />
       <SurveillantBadges />

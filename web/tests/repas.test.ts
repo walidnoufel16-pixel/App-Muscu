@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { ALIM } from "@/lib/data/aliments";
+import { ALIM, EMOJI, emojiDe } from "@/lib/data/aliments";
 import { RECETTES } from "@/lib/data/recettes";
 import {
-  allergenesDe, avecCeQueJai, besoins, compatible, listeCourses, macros, mains, planSemaine, portion, prefsDe, quantite, R, recettesPour, regimeDe, semaineParDefaut, suggestions,
+  allergenesDe, avecCeQueJai, chercherAliments, nomAliment, nouvelAliment, besoins, compatible, listeCourses, macros, mains, planSemaine, portion, prefsDe, quantite, R, recettesPour, regimeDe, semaineParDefaut, suggestions,
 } from "@/lib/logic/repas";
 import type { Etat, Reponses } from "@/lib/logic/types";
 
@@ -55,6 +55,22 @@ describe("recettes", () => {
     const p = { ...prefsDe({}), temps: 0, mat: ["plaques"] };
     for (const r of recettesPour(p)) { expect(r.min).toBeLessThanOrEqual(15); expect(r.mat.every((m) => m === "plaques")).toBe(true); }
     expect(compatible(R["saumon-patate-douce"], p)).toBe(false);
+  });
+});
+
+describe("emojis et aliments ajoutés", () => {
+  it("chaque aliment a son emoji", () => {
+    for (const id of Object.keys(ALIM)) expect(EMOJI[id], id).toBeTruthy();
+  });
+  it("aliment ajouté : identifiant unique, nom, emoji, trouvé par la loupe", () => {
+    const a = nouvelAliment("Lait d'amande", "lait", "🥛");
+    expect(a.id).toBe("perso:lait-d-amande");
+    expect(nouvelAliment("Lait d'amande", "lait", "🥛", [a]).id).toBe("perso:lait-d-amande-2");
+    prefsDe({ repas: { ...prefsDe({}), perso: [a] } });
+    expect(nomAliment(a.id)).toBe("Lait d'amande");
+    expect(emojiDe(a.id)).toBe("🥛");
+    expect(chercherAliments("amande", [a])).toEqual(expect.arrayContaining(["amandes", a.id]));
+    expect(chercherAliments("broc")).toEqual(["brocoli"]);
   });
 });
 

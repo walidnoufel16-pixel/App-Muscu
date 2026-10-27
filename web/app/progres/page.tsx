@@ -59,7 +59,7 @@ function Progres() {
               {tr("Chaque série validée s'ajoute ici : tes charges, tes records, le volume de chaque muscle et ta régularité.")}
             </p>
           </div>
-          <div className="mt-6"><SectionDefis ouvrirCode={codeDefi} /></div>
+          <div id="defis" className="mt-6 scroll-mt-20"><SectionDefis ouvrirCode={codeDefi} /></div>
         </div>
       </>
     );
@@ -80,9 +80,9 @@ function Progres() {
           <Muscles H={H} auj={auj} />
         </Section>
         <SectionCourse />
-        <SectionDefis ouvrirCode={codeDefi} />
+        <div id="defis" className="scroll-mt-20"><SectionDefis ouvrirCode={codeDefi} /></div>
         <Records H={H} />
-        <GrilleBadges />
+        <div id="badges" className="scroll-mt-20"><GrilleBadges /></div>
         <Section titre={tr("Ma progression par exercice")}>
           <ParExercice H={H} />
         </Section>

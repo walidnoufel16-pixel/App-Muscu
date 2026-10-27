@@ -31,7 +31,7 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
   /* Première ouverture : cinq questions, puis la partie Repas. */
   const [ctx, pg] = await contexte(etat());
   await pg.goto(U + "/entrainement/");
-  ok(await pg.locator("nav a").count() === 5 && (await pg.locator("nav a").allTextContents()).join(",") === "Entraînement,Exercices,Repas,Progrès,Profil", "cinq onglets, Repas au milieu");
+  ok(await pg.locator("nav a").count() === 4 && (await pg.locator("nav a").allTextContents()).join(",") === "Entraînement,Exercices,Repas,Progrès", "quatre onglets : Entraînement, Exercices, Repas, Progrès");
   await pg.locator("nav a", { hasText: "Repas" }).click();
   await pg.getByText("Des repas pensés pour ton entraînement").waitFor({ timeout: 8000 });
   const q = (n) => pg.getByRole("region", { name: n });
@@ -132,11 +132,24 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
   await pg.getByRole("button", { name: "Desserts", exact: true }).click();
   ok(await pg.getByText("Pudding de chia coco-mangue").count() === 1, "filtre Desserts");
   await pg.getByRole("tab", { name: "Avec ce que j'ai" }).click();
-  for (const n of ["Pois chiches (conserve)", "Épinards", "Tofu ferme"]) await pg.getByRole("button", { name: n, exact: true }).click();
+  for (const n of ["Pois chiches (conserve)", "Épinards", "Tofu ferme"]) await pg.getByRole("button", { name: n }).first().click();
+  ok(/🥬/.test(await pg.getByRole("button", { name: /Épinards/ }).first().innerText()), "emoji à côté des aliments");
+  /* loupe */
+  await pg.getByPlaceholder("Rechercher un aliment…").fill("broc");
+  ok(await pg.getByRole("button", { name: /Brocoli/ }).count() === 1 && await pg.getByRole("button", { name: /Courgette/ }).count() === 0, "la loupe retrouve « brocoli »");
+  /* aliment ajouté */
+  await pg.getByPlaceholder("Rechercher un aliment…").fill("Lait d'amande");
+  await pg.getByRole("button", { name: "Ajouter un aliment" }).click();
+  const nouveau = pg.getByRole("group", { name: "Nouvel aliment" });
+  await nouveau.getByRole("button", { name: "Produits laitiers" }).click();
+  await nouveau.getByRole("button", { name: "Ajouter", exact: true }).click();
+  await pg.waitForTimeout(300);
+  ok(await pg.getByRole("button", { name: /Lait d'amande.*perso/ }).count() === 1, "« Lait d'amande » ajouté, badge perso");
+  ok(((await etatLu(pg)).A.repas.perso || []).some((a) => a.n === "Lait d'amande" && a.ray === "lait"), "gardé dans les préférences");
   await pg.getByText("Ce que tu peux cuisiner").scrollIntoViewIfNeeded();
   await pg.waitForTimeout(300);
   ok(await pg.getByText(/Il te manque : /).count() > 0, "avec ce que j'ai : ce qui manque est indiqué");
-  ok(((await etatLu(pg)).A.repas.stock || []).length === 3, "stock gardé pour la prochaine fois");
+  ok(((await etatLu(pg)).A.repas.stock || []).length === 4, "stock gardé pour la prochaine fois (avec l'aliment ajouté)");
   await cap(pg, "repas-stock");
   await ctx.close();
 }
@@ -157,9 +170,22 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
   await lundi.getByRole("button", { name: /^Changer : Lundi/ }).first().click();
   await pg.waitForTimeout(300);
   ok(await lundi.locator("span.truncate").first().innerText() !== nom, "↻ remplace le plat du lundi");
-  const art = liste.getByRole("button").first();
+  ok(/🥕|🥦|🍗|🍚/.test(avant), "emojis dans la liste de courses");
+  const art = liste.locator("button[aria-pressed]").filter({ hasNotText: "Papier" }).first();
   await art.click();
   ok(((await etatLu(pg)).A.semaine?.coches || []).length === 1, "article coché et gardé");
+  /* article libre */
+  await liste.getByRole("button", { name: "Ajouter un article" }).click();
+  await pg.getByPlaceholder("Article").fill("Papier cuisson");
+  await pg.getByPlaceholder("Quantité").fill("1 rouleau");
+  await pg.getByRole("group", { name: "Nouvel article" }).getByRole("button", { name: "Ajouter", exact: true }).click();
+  await liste.getByText("Papier cuisson").waitFor();
+  await liste.getByRole("button", { name: /Papier cuisson/ }).first().click();
+  let S = (await etatLu(pg)).A.semaine;
+  ok(S.articles?.[0]?.n === "Papier cuisson" && S.coches.includes(S.articles[0].id), "article libre ajouté et coché");
+  await liste.getByRole("button", { name: "Retirer Papier cuisson" }).click();
+  S = (await etatLu(pg)).A.semaine;
+  ok(!(S.articles || []).length && !S.coches.some((c) => c.startsWith("art:")), "article libre retiré");
   await liste.scrollIntoViewIfNeeded();
   await cap(pg, "repas-courses");
   await ctx.close();

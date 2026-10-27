@@ -4,14 +4,16 @@
    La logique est dans lib/logic/repas.ts. */
 import { langue, tr } from "@/lib/i18n";
 import { useState } from "react";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { ArrowsClockwiseIcon, BowlFoodIcon, CaretDownIcon, CaretRightIcon, CheckIcon, ClockIcon, CookieIcon, HandPalmIcon, MinusIcon, PlusIcon, SunHorizonIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import type { Moment, Recette } from "@/lib/data/recettes";
 import {
-  ALLERGIES, alimentsParRayon, allergenesDe, CULTES, MATERIELS, macros, mains, nomAliment, nomRecette, NOM_CRENEAU, portion, prefsDe, quantite, regimeDe, REGIMES, TEMPS, type Besoins,
+  ALLERGIES, alimentsParRayon, allergenesDe, chercherAliments, CULTES, EMOJIS_RAYON, estPerso, MATERIELS, nouvelAliment, macros, mains, nomAliment, nomRecette, NOM_CRENEAU, portion, prefsDe, quantite, regimeDe, REGIMES, TEMPS, type Besoins,
 } from "@/lib/logic/repas";
-import type { CreneauRepas, PrefsRepas } from "@/lib/logic/types";
+import type { AlimentPerso, CreneauRepas, PrefsRepas } from "@/lib/logic/types";
+import { emojiDe, RAYONS } from "@/lib/data/aliments";
 import { useRepere } from "@/lib/store";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
@@ -38,13 +40,10 @@ export function FormPrefs({ p, onChange }: { p: PrefsRepas; onChange: (p: PrefsR
         {ALLERGIES.map(([k, n]) => <button key={k} aria-pressed={p.allergies.includes(k)} onClick={() => onChange({ ...p, allergies: bascule(p.allergies, k) })} className={puce(p.allergies.includes(k))}>{n}</button>)}
       </Groupe>
       <Groupe titre={tr("4 · Ce que tu n'aimes pas")} resume={liste(p.exclus.map(nomAliment), tr("Rien"))}>
-        <div className="flex w-full flex-col gap-1.5">
-          {alimentsParRayon().map((ray) => (
-            <SousGroupe key={ray.k} titre={EN() ? ray.en : ray.n} n={ray.l.filter((id) => p.exclus.includes(id)).length}>
-              {ray.l.map((id) => <button key={id} aria-pressed={p.exclus.includes(id)} onClick={() => onChange({ ...p, exclus: bascule(p.exclus, id) })} className={puce(p.exclus.includes(id))}>{nomAliment(id)}</button>)}
-            </SousGroupe>
-          ))}
-        </div>
+        <ChoixAliments replie choisis={p.exclus} perso={p.perso ?? []}
+          onBasculer={(id) => onChange({ ...p, exclus: bascule(p.exclus, id) })}
+          onAjouter={(a) => onChange({ ...p, perso: [...(p.perso ?? []), a], exclus: [...p.exclus, a.id] })}
+        />
       </Groupe>
       <Groupe titre={tr("5 · Temps de cuisine en semaine")} resume={TEMPS[p.temps ?? 2]}>
         {TEMPS.map((n, i) => <button key={n} aria-pressed={p.temps === i} onClick={() => onChange({ ...p, temps: i })} className={puce(p.temps === i)}>{n}</button>)}
@@ -77,6 +76,66 @@ function Groupe({ titre, resume, children }: { titre: string; resume: string; ch
       </button>
       {ouvert && <div className="flex flex-wrap gap-1.5 px-4 pb-4">{children}</div>}
     </section>
+  );
+}
+
+/* Choix d'aliments : une loupe, les rayons (repliables ou non), chaque aliment avec son emoji,
+   et l'ajout d'un aliment qui manque (gardé dans les préférences, badge « perso »). */
+export function ChoixAliments({ choisis, perso, onBasculer, onAjouter, replie = false }: { choisis: string[]; perso: AlimentPerso[]; onBasculer: (id: string) => void; onAjouter: (a: AlimentPerso) => void; replie?: boolean }) {
+  const [q, setQ] = useState("");
+  const [ajout, setAjout] = useState(false);
+  const pastille = (id: string) => (
+    <button key={id} aria-pressed={choisis.includes(id)} onClick={() => { tactile(4); onBasculer(id); }} className={cn(puce(choisis.includes(id)), "inline-flex items-center gap-1.5")}>
+      <span aria-hidden>{emojiDe(id)}</span>{nomAliment(id)}
+      {estPerso(id) && <span className="rounded-full bg-plate-soft px-1.5 text-[10.5px] font-semibold text-plate-ink">{tr("perso")}</span>}
+    </button>
+  );
+  const trouves = chercherAliments(q, perso);
+  return (
+    <div className="flex w-full flex-col gap-2">
+      <div className="relative">
+        <MagnifyingGlassIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Rechercher un aliment…")} aria-label={tr("Rechercher un aliment…")} className="h-10 w-full rounded-xl bg-muted pr-3 pl-9 text-[14.5px] outline-none focus:ring-2 focus:ring-plate" />
+      </div>
+      {q.trim() ? (
+        <div className="flex flex-wrap gap-1.5">
+          {trouves.map(pastille)}
+          {!trouves.length && <p className="px-1 text-[13px] text-muted-foreground">{tr("Rien trouvé : ajoute-le ci-dessous.")}</p>}
+        </div>
+      ) : alimentsParRayon(perso).map((ray) => replie ? (
+        <SousGroupe key={ray.k} titre={EN() ? ray.en : ray.n} n={ray.l.filter((id) => choisis.includes(id)).length}>{ray.l.map(pastille)}</SousGroupe>
+      ) : (
+        <section key={ray.k}>
+          <h3 className="eyebrow mb-1.5 px-1">{EN() ? ray.en : ray.n}</h3>
+          <div className="flex flex-wrap gap-1.5">{ray.l.map(pastille)}</div>
+        </section>
+      ))}
+      {ajout ? <FormAliment nom0={q} existants={perso} onAnnuler={() => setAjout(false)} onValider={(a) => { onAjouter(a); setAjout(false); setQ(""); }} />
+        : <button onClick={() => setAjout(true)} className="flex items-center gap-1.5 self-start rounded-full px-2 py-1.5 text-[14px] font-semibold text-plate-ink"><PlusIcon className="size-4" weight="bold" />{tr("Ajouter un aliment")}</button>}
+    </div>
+  );
+}
+
+/* Petit formulaire : nom, rayon, emoji. */
+function FormAliment({ nom0, existants, onValider, onAnnuler }: { nom0: string; existants: AlimentPerso[]; onValider: (a: AlimentPerso) => void; onAnnuler: () => void }) {
+  const [n, setN] = useState(nom0);
+  const [ray, setRay] = useState("leg");
+  const [e, setE] = useState(EMOJIS_RAYON.leg[0]);
+  const rayons = RAYONS.filter((x) => x.k !== "base");
+  return (
+    <div className="rounded-[16px] border border-plate/40 bg-card p-3" role="group" aria-label={tr("Nouvel aliment")}>
+      <input value={n} onChange={(x) => setN(x.target.value)} placeholder={tr("Nom de l'aliment")} aria-label={tr("Nom de l'aliment")} maxLength={40} className="h-10 w-full rounded-xl bg-muted px-3 text-[15px] outline-none focus:ring-2 focus:ring-plate" />
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {rayons.map((x) => <button key={x.k} aria-pressed={ray === x.k} onClick={() => { setRay(x.k); setE(EMOJIS_RAYON[x.k][0]); }} className={cn(puce(ray === x.k), "h-8 px-3 text-[12.5px]")}>{EN() ? x.en : x.n}</button>)}
+      </div>
+      <div className="mt-2 flex flex-wrap gap-1">
+        {EMOJIS_RAYON[ray].map((x) => <button key={x} aria-pressed={e === x} aria-label={x} onClick={() => setE(x)} className={cn("grid size-9 place-items-center rounded-xl text-[19px]", e === x ? "bg-plate-soft ring-2 ring-plate" : "bg-muted")}>{x}</button>)}
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <Button variant="soft" size="sm" className="rounded-xl" onClick={onAnnuler}>{tr("Annuler")}</Button>
+        <Button variant="plate" size="sm" className="rounded-xl" disabled={n.trim().length < 2} onClick={() => onValider(nouvelAliment(n, ray, e, existants))}>{tr("Ajouter")}</Button>
+      </div>
+    </div>
   );
 }
 
@@ -249,7 +308,7 @@ function Fiche({ r, b, c, kcal, pers0 }: { r: Recette; b: Besoins; c?: CreneauRe
       <ul className="mt-2 overflow-hidden rounded-[18px] bg-card" aria-label={tr("Ingrédients")}>
         {r.ing.map(([id, g]) => (
           <li key={id} className="flex items-baseline justify-between gap-3 border-t border-border/60 px-4 py-2.5 text-[14.5px] first:border-t-0">
-            <span>{nomAliment(id)}</span>
+            <span><span aria-hidden className="mr-2">{emojiDe(id)}</span>{nomAliment(id)}</span>
             <span className="num shrink-0 font-semibold">{quantite(id, g * f * pers)}</span>
           </li>
         ))}

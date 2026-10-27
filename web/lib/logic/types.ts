@@ -102,7 +102,12 @@ export type PrefsRepas = {
   kcal?: boolean;
   stock?: string[];
   pers?: number;
+  /* aliments ajoutés par l'utilisateur (id « perso:… ») */
+  perso?: AlimentPerso[];
 };
+export type AlimentPerso = { id: string; n: string; ray: string; e: string };
+/* article libre de la liste de courses (« papier cuisson », « 2 avocats ») */
+export type ArticleLibre = { id: string; n: string; q: string; e: string };
 export type CreneauRepas = "matin" | "dejeuner" | "diner" | "collation";
 export type SemaineRepas = {
   jours: number;
@@ -111,6 +116,7 @@ export type SemaineRepas = {
   /* recette choisie à la main pour une case « jour|créneau » */
   choix: Record<string, string>;
   coches: string[];
+  articles?: ArticleLibre[];
 };
 
 export type Etat = {
