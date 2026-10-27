@@ -28,6 +28,8 @@ if (cle) {
 const env = { ...process.env, NEXT_TELEMETRY_DISABLED: "1" };
 if (url) env.NEXT_PUBLIC_SUPABASE_URL = url;
 if (cle) env.NEXT_PUBLIC_SUPABASE_KEY = cle;
+/* App de test (site Render « repere-test ») : bandeau « Version test ». */
+if (process.env.APP_TEST === "1") env.NEXT_PUBLIC_APP_TEST = "1";
 
 execSync("npm ci --no-audit --no-fund && npm run build", { cwd: WEB, stdio: "inherit", env });
 rmSync(DIST, { recursive: true, force: true });

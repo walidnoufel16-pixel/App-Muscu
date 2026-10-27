@@ -5,8 +5,8 @@ export const dynamic = "force-static";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: tr("Repère"),
-    short_name: tr("Repère"),
+    name: process.env.NEXT_PUBLIC_APP_TEST === "1" ? "Repère test" : tr("Repère"),
+    short_name: process.env.NEXT_PUBLIC_APP_TEST === "1" ? "Repère test" : tr("Repère"),
     description: tr("Programme de musculation personnalisé, piloté à l'effort ressenti."),
     start_url: "/",
     scope: "/",

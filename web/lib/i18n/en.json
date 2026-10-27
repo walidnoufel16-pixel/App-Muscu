@@ -1764,5 +1764,6 @@
 "Elle s'enregistre dans Progrès et repart à zéro pour la prochaine fois.": "It's saved in Progress and starts fresh next time.",
 "Ajouter à mon suivi ?": "Add to my log?",
 "{n} exercices ne sont pas terminés : seules les séries validées comptent.": "{n} exercises aren't finished: only completed sets count.",
-"{n} exercice n'est pas terminé : seules les séries validées comptent.": "{n} exercise isn't finished: only completed sets count."
+"{n} exercice n'est pas terminé : seules les séries validées comptent.": "{n} exercise isn't finished: only completed sets count.",
+"Version test": "Test version"
 }
