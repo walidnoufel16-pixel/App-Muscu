@@ -76,3 +76,7 @@ export const useVueExercices = create<{ vue: VueExercices }>(() => ({ vue: "corp
 
 /* Vue de l'onglet Entraînement : séances libres (par défaut) ou programme sur 8 semaines. */
 export const useVueEntrainement = create<{ vue: "libres" | "programme" }>(() => ({ vue: "libres" }));
+
+/* Vue de l'onglet Repas : aujourd'hui (par défaut), recettes, courses. */
+export type VueRepas = "jour" | "recettes" | "courses";
+export const useVueRepas = create<{ vue: VueRepas }>(() => ({ vue: "jour" }));

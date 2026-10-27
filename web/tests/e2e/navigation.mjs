@@ -27,7 +27,7 @@ const actif = () => pg.locator('nav a[aria-current="page"]').textContent();
 await pg.goto(U + "/");
 await pg.waitForURL(/\/entrainement\/$/);
 ok(await actif() === "Entraînement", "accueil : onglet Entraînement actif");
-ok(await pg.locator("nav a").count() === 4, "quatre onglets");
+ok(await pg.locator("nav a").count() === 5, "cinq onglets");
 await pg.getByRole("tab", { name: "Programme" }).click();
 ok(await pg.getByText("Construis ton programme").isVisible(), "vue Programme sans programme : la carte propose de le construire");
 await pg.getByRole("tab", { name: "Séances libres" }).click();

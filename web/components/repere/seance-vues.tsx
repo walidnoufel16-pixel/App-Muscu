@@ -12,6 +12,11 @@ import { echauffementDe } from "@/lib/logic/echauffement";
 import { cn } from "@/lib/utils";
 import { Vignette } from "./exercice-carte";
 import { EchauffementSoin } from "./soin";
+import Link from "next/link";
+import type { Route } from "next";
+import { useRepere } from "@/lib/store";
+import { macros, nomRecette, prefsDe, recettesPour } from "@/lib/logic/repas";
+import { VignetteRecette } from "./repas";
 
 /* ---------------- frise des 8 semaines : des disques qui se remplissent ---------------- */
 export function FriseSemaines({ wk, avancement, onChoisir }: { wk: number; avancement: { faites: number; total: number }[]; onChoisir: (w: number) => void }) {
@@ -134,10 +139,36 @@ export function Collation({ obj, onChanger }: { obj: number; onChanger?: (o: num
         <LightbulbIcon className="mt-0.5 size-5 shrink-0 text-plate-ink" />
         <p className="text-[14px] leading-relaxed">{c.n}</p>
       </div>
+      <IdeesRecettes />
       <p className="mt-3 px-1 text-[12px] leading-relaxed text-muted-foreground">
         {tr("Ces repères sont généraux et ne remplacent pas l'avis d'un professionnel. Si tu as un suivi médical ou un rapport compliqué à l'alimentation, parles-en à un médecin ou à un diététicien.")}
       </p>
     </div>
+  );
+}
+
+/* Deux recettes pour après la séance (selon les préférences repas), vers l'onglet Repas. */
+function IdeesRecettes() {
+  const A = useRepere((x) => x.etat.A);
+  const p = prefsDe(A);
+  const l = recettesPour(p).filter((r) => r.t.includes("post")).slice(0, 2);
+  if (!l.length) return null;
+  return (
+    <section className="mt-4" aria-label={tr("Idées de recettes")}>
+      <h3 className="eyebrow mb-2 px-1">{tr("Idées de recettes pour après")}</h3>
+      <div className="flex flex-col gap-1.5">
+        {l.map((r) => (
+          <Link key={r.id} href={`/repas?r=${r.id}` as Route} className="flex items-center gap-3 rounded-[18px] bg-card p-2.5 pr-3 active:opacity-80">
+            <VignetteRecette r={r} className="size-12 shrink-0 rounded-[12px]" />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[14.5px] font-semibold">{nomRecette(r)}</span>
+              <span className="block text-[12.5px] text-muted-foreground">{tr("{n} min · {p} g de protéines", { n: r.min, p: macros(r).p })}</span>
+            </span>
+            <CaretRightIcon className="size-4 text-muted-foreground" />
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 

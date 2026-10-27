@@ -102,7 +102,7 @@ async function ecran(pg, chemin, nom, attendu) {
 }
 
 {
-  /* Liste déroulante de la langue en haut des quatre onglets, dans les deux sens. */
+  /* Liste déroulante de la langue en haut des cinq onglets, dans les deux sens. */
   const ctx = await b.newContext({ locale: "fr-FR", viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
   /* le programme sur 8 semaines est en pause dans l'app : on le rallume pour le tester */
   await ctx.addInitScript(() => localStorage.setItem("repere.programme", "1"));
@@ -111,12 +111,12 @@ async function ecran(pg, chemin, nom, attendu) {
   const pg = await ctx.newPage();
   pg.on("pageerror", (e) => errs.push(e.message));
   let partout = true;
-  for (const c of ["/entrainement/", "/exercices/", "/progres/", "/profil/"]) {
+  for (const c of ["/entrainement/", "/exercices/", "/repas/", "/progres/", "/profil/"]) {
     await pg.goto(U + c);
     await pg.waitForTimeout(1000);
     partout &&= (await pg.getByRole("button", { name: "Langue : Français" }).count()) === 1;
   }
-  ok(partout, "liste de langue sur les quatre onglets");
+  ok(partout, "liste de langue sur les cinq onglets");
   await pg.goto(U + "/progres/");
   await pg.getByRole("heading", { name: "Progrès" }).waitFor();
   await pg.waitForTimeout(1200);

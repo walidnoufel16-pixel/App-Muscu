@@ -80,7 +80,35 @@ export type Reponses = {
   /** Langue choisie dans Profil (suit le compte sur un autre appareil). */
   langue?: "fr" | "en";
   profil?: Record<string, number>;
+  /** Partie Repas : préférences, aliments en stock, réglages (lib/logic/repas.ts). */
+  repas?: PrefsRepas;
+  /** Partie Repas : semaine de repas planifiée et cases cochées de la liste de courses. */
+  semaine?: SemaineRepas;
   [k: string]: unknown;
+};
+
+/* Partie Repas. Régime : 0 omnivore · 1 pescétarien · 2 végétarien · 3 vegan.
+   Allergies : marques des aliments (l lactose, g gluten, o œuf, c fruits à coque, r arachide, p poisson).
+   Temps : 0 ≤ 15 min · 1 ≤ 30 min · 2 sans limite. */
+export type PrefsRepas = {
+  fait?: boolean;
+  regime: number;
+  allergies: string[];
+  exclus: string[];
+  temps: number;
+  mat: string[];
+  kcal?: boolean;
+  stock?: string[];
+  pers?: number;
+};
+export type CreneauRepas = "matin" | "dejeuner" | "diner" | "collation";
+export type SemaineRepas = {
+  jours: number;
+  creneaux: CreneauRepas[];
+  graine: number;
+  /* recette choisie à la main pour une case « jour|créneau » */
+  choix: Record<string, string>;
+  coches: string[];
 };
 
 export type Etat = {

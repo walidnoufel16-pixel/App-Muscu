@@ -50,7 +50,7 @@ const deborde = () => pg.evaluate(() => document.documentElement.scrollWidth > i
 
 await pg.goto(U + "/entrainement/");
 await pg.locator("nav a").first().waitFor();
-ok(await pg.locator("nav a").count() === 4, "quatre onglets");
+ok(await pg.locator("nav a").count() === 5, "cinq onglets");
 await pg.locator("nav a", { hasText: "Progrès" }).click();
 await pg.waitForURL(/\/progres\/$/);
 await pg.getByRole("heading", { name: "Progrès" }).first().waitFor();
