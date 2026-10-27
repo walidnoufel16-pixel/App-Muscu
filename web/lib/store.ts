@@ -225,7 +225,11 @@ export const useRepere = create<Store>((set, get) => ({
     try { localStorage.setItem(PKEY, p); } catch {}
     if (!c) { set({ etat: versEtat(lireLocal()), pret: true }); return { ok: true, message: tr("Mode local : tes données restent sur ce téléphone.") }; }
     const { data, error } = await c.auth.signInAnonymously();
-    if (error || !data.user) return { ok: false, message: error?.message };
+    /* le serveur refuse (connexion anonyme désactivée, quota…) : on continue sur ce téléphone */
+    if (error || !data.user) {
+      set({ etat: versEtat(lireLocal()), pret: true });
+      return { ok: true, message: tr("Le serveur n'accepte pas de compte pour l'instant : tu continues sur ce téléphone, tes données y restent. Tu pourras créer ton compte plus tard depuis Profil.") + (mail ? " " + tr("Ton adresse n'a pas pu être enregistrée.") : "") };
+    }
     set({ user: data.user, session: "ouverte" });
     let message: string | undefined;
     if (mail) {
