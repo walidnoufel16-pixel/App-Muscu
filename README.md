@@ -58,13 +58,16 @@ chaque déploiement invalide l'ancien cache et les utilisateurs reçoivent la no
 
 | Chemin | En-tête | Valeur |
 |---|---|---|
-| `/*` | `Content-Security-Policy` | `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://iyjiwfzrmyvcnmzwlgxe.supabase.co; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'` |
+| `/*` | `Content-Security-Policy` | `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://images.unsplash.com; connect-src 'self' https://iyjiwfzrmyvcnmzwlgxe.supabase.co; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'` |
 | `/*` | `X-Content-Type-Options` | `nosniff` |
 | `/*` | `Referrer-Policy` | `strict-origin-when-cross-origin` |
 | `/` | `Cache-Control` | `no-cache` |
 | `/index.html` | `Cache-Control` | `no-cache` |
 | `/sw.js` | `Cache-Control` | `no-cache` |
 | `/img/*` | `Cache-Control` | `public, max-age=604800` |
+
+`img-src` autorise `images.unsplash.com` : les photos Unsplash des machines de « Ma salle »
+s'affichent depuis leurs serveurs, comme l'exigent leurs règles (sans cette entrée, l'icône prend leur place).
 
 La politique `connect-src` n'autorise que le projet Supabase de production : en cas d'injection,
 le navigateur refuse d'envoyer des données ailleurs. À adapter si `SUPABASE_URL` change.
