@@ -74,6 +74,19 @@
   --success: #3fbf75;
 }
 
+/* Partie Repas : orange safran à la place du bleu (page, feuilles et onglet). */
+.theme-repas {
+  --plate: #f08a24;
+  --plate-foreground: #ffffff;
+  --plate-soft: color-mix(in oklab, #f08a24 14%, transparent);
+  --plate-ink: #b85a00;           /* safran lisible en texte sur fond clair */
+}
+.dark .theme-repas, .dark.theme-repas {
+  --plate: #f59a3c;
+  --plate-soft: color-mix(in oklab, #f59a3c 18%, transparent);
+  --plate-ink: #ffb066;
+}
+
 @theme inline {
   --font-sans: var(--font-geist-sans), "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;

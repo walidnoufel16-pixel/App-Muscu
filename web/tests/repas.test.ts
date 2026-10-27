@@ -39,6 +39,18 @@ describe("recettes", () => {
       for (const m of ["matin", "repas", "collation"]) expect(l.filter((r) => r.m === m).length, `régime ${regime}, ${m}`).toBeGreaterThanOrEqual(2);
     }
   });
+  it("halal : sans porc ; casher : sans porc ni fruits de mer, jamais viande et laitage ensemble", () => {
+    const halal = recettesPour({ ...prefsDe({}), culte: 1 }), casher = recettesPour({ ...prefsDe({}), culte: 2 });
+    for (const r of halal) expect(r.ing.some(([id]) => id === "porc" || id === "jambon"), r.id).toBe(false);
+    expect(halal.some((r) => r.id === "crevettes-ail-riz")).toBe(true);
+    for (const r of casher) {
+      const m = r.ing.map(([id]) => ALIM[id].m).join("");
+      expect(/[hk]/.test(m) || (m.includes("v") && m.includes("l")), r.id).toBe(false);
+    }
+    expect(casher.some((r) => r.id === "gratin-pates-poulet")).toBe(false);
+    expect(casher.some((r) => r.id === "poulet-riz-brocoli")).toBe(true);
+    for (const culte of [1, 2]) for (const m of ["matin", "repas", "collation"]) expect(recettesPour({ ...prefsDe({}), culte }).filter((r) => r.m === m).length).toBeGreaterThanOrEqual(5);
+  });
   it("temps et matériel", () => {
     const p = { ...prefsDe({}), temps: 0, mat: ["plaques"] };
     for (const r of recettesPour(p)) { expect(r.min).toBeLessThanOrEqual(15); expect(r.mat.every((m) => m === "plaques")).toBe(true); }

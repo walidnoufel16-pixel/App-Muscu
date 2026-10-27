@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import type { Moment, Recette } from "@/lib/data/recettes";
 import {
-  ALLERGIES, allergenesDe, MATERIELS, macros, mains, nomAliment, nomRecette, NOM_CRENEAU, portion, prefsDe, quantite, regimeDe, REGIMES, TEMPS, type Besoins,
+  ALLERGIES, alimentsParRayon, allergenesDe, CULTES, MATERIELS, macros, mains, nomAliment, nomRecette, NOM_CRENEAU, portion, prefsDe, quantite, regimeDe, REGIMES, TEMPS, type Besoins,
 } from "@/lib/logic/repas";
 import type { CreneauRepas, PrefsRepas } from "@/lib/logic/types";
 import { useRepere } from "@/lib/store";
@@ -22,7 +22,6 @@ const EN = () => langue() === "en";
 /* ---------------- préférences ---------------- */
 export function FormPrefs({ p, onChange }: { p: PrefsRepas; onChange: (p: PrefsRepas) => void }) {
   const bascule = (l: string[], x: string) => (l.includes(x) ? l.filter((y) => y !== x) : [...l, x]);
-  const evitables = ["poulet", "boeuf", "porc", "saumon", "thon", "crevettes", "oeuf", "tofu", "champignons", "poivron", "avocat", "lentilles", "pois_chiches", "fromage_blanc", "skyr", "whey"];
   const liste = (l: string[], vide: string) => (l.length ? l.join(", ") : vide);
   const nomAllergie = (k: string) => ALLERGIES.find((x) => x[0] === k)?.[1] ?? k;
   const nomMat = (k: string) => MATERIELS.find((x) => x[0] === k)?.[1] ?? k;
@@ -31,16 +30,26 @@ export function FormPrefs({ p, onChange }: { p: PrefsRepas; onChange: (p: PrefsR
       <Groupe titre={tr("1 · Ton régime")} resume={REGIMES[p.regime]}>
         {REGIMES.map((n, i) => <button key={n} aria-pressed={p.regime === i} onClick={() => onChange({ ...p, regime: i })} className={puce(p.regime === i)}>{n}</button>)}
       </Groupe>
-      <Groupe titre={tr("2 · Allergies ou intolérances")} resume={liste(p.allergies.map(nomAllergie), tr("Aucune"))}>
+      <Groupe titre={tr("2 · Halal ou casher")} resume={CULTES[p.culte ?? 0]}>
+        {CULTES.map((n, i) => <button key={n} aria-pressed={(p.culte ?? 0) === i} onClick={() => onChange({ ...p, culte: i })} className={puce((p.culte ?? 0) === i)}>{n}</button>)}
+        {(p.culte ?? 0) > 0 && <p className="mt-1 w-full text-[12.5px] leading-relaxed text-muted-foreground">{p.culte === 1 ? tr("Sans porc. Pour la viande, choisis-la certifiée halal.") : tr("Sans porc ni fruits de mer, et jamais viande et laitage dans le même plat. Pour la viande, choisis-la certifiée casher.")}</p>}
+      </Groupe>
+      <Groupe titre={tr("3 · Allergies ou intolérances")} resume={liste(p.allergies.map(nomAllergie), tr("Aucune"))}>
         {ALLERGIES.map(([k, n]) => <button key={k} aria-pressed={p.allergies.includes(k)} onClick={() => onChange({ ...p, allergies: bascule(p.allergies, k) })} className={puce(p.allergies.includes(k))}>{n}</button>)}
       </Groupe>
-      <Groupe titre={tr("3 · Ce que tu n'aimes pas")} resume={liste(p.exclus.map(nomAliment), tr("Rien"))}>
-        {evitables.map((id) => <button key={id} aria-pressed={p.exclus.includes(id)} onClick={() => onChange({ ...p, exclus: bascule(p.exclus, id) })} className={puce(p.exclus.includes(id))}>{nomAliment(id)}</button>)}
+      <Groupe titre={tr("4 · Ce que tu n'aimes pas")} resume={liste(p.exclus.map(nomAliment), tr("Rien"))}>
+        <div className="flex w-full flex-col gap-1.5">
+          {alimentsParRayon().map((ray) => (
+            <SousGroupe key={ray.k} titre={EN() ? ray.en : ray.n} n={ray.l.filter((id) => p.exclus.includes(id)).length}>
+              {ray.l.map((id) => <button key={id} aria-pressed={p.exclus.includes(id)} onClick={() => onChange({ ...p, exclus: bascule(p.exclus, id) })} className={puce(p.exclus.includes(id))}>{nomAliment(id)}</button>)}
+            </SousGroupe>
+          ))}
+        </div>
       </Groupe>
-      <Groupe titre={tr("4 · Temps de cuisine en semaine")} resume={TEMPS[p.temps ?? 2]}>
+      <Groupe titre={tr("5 · Temps de cuisine en semaine")} resume={TEMPS[p.temps ?? 2]}>
         {TEMPS.map((n, i) => <button key={n} aria-pressed={p.temps === i} onClick={() => onChange({ ...p, temps: i })} className={puce(p.temps === i)}>{n}</button>)}
       </Groupe>
-      <Groupe titre={tr("5 · Ton matériel")} resume={liste(p.mat.map(nomMat), tr("Aucun"))}>
+      <Groupe titre={tr("6 · Ton matériel")} resume={liste(p.mat.map(nomMat), tr("Aucun"))}>
         {MATERIELS.map(([k, n]) => <button key={k} aria-pressed={p.mat.includes(k)} onClick={() => onChange({ ...p, mat: bascule(p.mat, k) })} className={puce(p.mat.includes(k))}>{n}</button>)}
       </Groupe>
       <label className="mt-2 flex items-center justify-between gap-3 rounded-2xl bg-card px-4 py-3 text-[14.5px]">
@@ -71,10 +80,25 @@ function Groupe({ titre, resume, children }: { titre: string; resume: string; ch
   );
 }
 
-/** « Végétarien · sans lactose · 30 min max » */
+/* Sous-catégorie de « Ce que tu n'aimes pas » (légumes, fruits…), repliable elle aussi. */
+function SousGroupe({ titre, n, children }: { titre: string; n: number; children: React.ReactNode }) {
+  const [ouvert, setOuvert] = useState(false);
+  return (
+    <div className="rounded-[14px] bg-muted/60">
+      <button onClick={() => { tactile(4); setOuvert((o) => !o); }} aria-expanded={ouvert} className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left">
+        <span className="flex-1 text-[14px] font-medium">{titre}</span>
+        {n > 0 && <span className="num rounded-full bg-plate px-2 text-[12px] font-bold text-plate-foreground">{n}</span>}
+        <CaretDownIcon className={cn("size-3.5 text-muted-foreground transition-transform duration-200", ouvert && "rotate-180")} />
+      </button>
+      {ouvert && <div className="flex flex-wrap gap-1.5 px-3.5 pb-3">{children}</div>}
+    </div>
+  );
+}
+
+/** « Végétarien · halal · sans lactose · 30 min max » */
 export function resumePrefs(p: PrefsRepas) {
   const sans = p.allergies.map((k) => ALLERGIES.find((x) => x[0] === k)?.[1].toLowerCase()).filter(Boolean);
-  return [REGIMES[p.regime], sans.length ? tr("sans {l}", { l: sans.join(", ") }) : "", TEMPS[p.temps ?? 2]].filter(Boolean).join(" · ");
+  return [REGIMES[p.regime], p.culte ? CULTES[p.culte].toLowerCase() : "", sans.length ? tr("sans {l}", { l: sans.join(", ") }) : "", TEMPS[p.temps ?? 2]].filter(Boolean).join(" · ");
 }
 
 /** Première ouverture : les 5 questions, puis la partie Repas. */
@@ -85,7 +109,7 @@ export function AccueilRepas() {
     <div className="flex flex-col gap-5 px-4">
       <div className="rounded-[22px] bg-plate-soft p-4">
         <p className="text-[16px] font-semibold text-plate-ink">{tr("Des repas pensés pour ton entraînement")}</p>
-        <p className="mt-1 text-[13.5px] leading-relaxed text-muted-foreground">{tr("Cinq réponses, et je te propose des recettes à ta portion, avec ou sans ce que tu as déjà, et la liste de courses qui va avec.")}</p>
+        <p className="mt-1 text-[13.5px] leading-relaxed text-muted-foreground">{tr("Six réponses, et je te propose des recettes à ta portion, avec ou sans ce que tu as déjà, et la liste de courses qui va avec.")}</p>
       </div>
       <FormPrefs p={p} onChange={setP} />
       <Button variant="plate" size="xl" className="w-full" onClick={() => { tactile(10); muter((E) => { E.A.repas = { ...p, fait: true }; }); }}>{tr("C'est parti")}</Button>
@@ -194,7 +218,7 @@ export function CarteRecette({ r, b, c, kcal, onOuvrir, droite, sous }: { r: Rec
 export function FicheRecette({ r, b, c, kcal, pers0 = 1, onClose }: { r: Recette | null; b: Besoins; c?: CreneauRepas; kcal: boolean; pers0?: number; onClose: () => void }) {
   return (
     <Drawer open={!!r} onOpenChange={(o) => !o && onClose()}>
-      <DrawerContent className="max-h-[94dvh]">{r && <Fiche key={r.id} r={r} b={b} c={c} kcal={kcal} pers0={pers0} />}</DrawerContent>
+      <DrawerContent className="theme-repas max-h-[94dvh]">{r && <Fiche key={r.id} r={r} b={b} c={c} kcal={kcal} pers0={pers0} />}</DrawerContent>
     </Drawer>
   );
 }
@@ -202,6 +226,7 @@ function Fiche({ r, b, c, kcal, pers0 }: { r: Recette; b: Besoins; c?: CreneauRe
   const [pers, setPers] = useState(pers0);
   const f = portion(r, b, c), m = macros(r, f);
   const reg = regimeDe(r), alg = allergenesDe(r);
+  const culte = prefsDe(useRepere((s) => s.etat.A)).culte ?? 0;
   return (
     <div className="overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),20px)]">
       <VignetteRecette r={r} className="mt-2 h-40 w-full rounded-[22px]" />
@@ -229,6 +254,7 @@ function Fiche({ r, b, c, kcal, pers0 }: { r: Recette; b: Besoins; c?: CreneauRe
           </li>
         ))}
       </ul>
+      {culte > 0 && reg === 0 && <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{culte === 1 ? tr("Prends une viande certifiée halal.") : tr("Prends une viande certifiée casher.")}</p>}
       <h3 className="mt-5 px-1 text-[17px] font-bold">{tr("Préparation")}</h3>
       <ol className="mt-2 flex flex-col gap-2">
         {(EN() ? r.ee : r.e).map((t, i) => (

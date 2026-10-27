@@ -4,6 +4,7 @@
    [id, nom, nom anglais, rayon, kcal, protéines, glucides, lipides, marques, unité?]
    Marques : a = d'origine animale (non vegan), v = viande, p = poisson ou fruits de mer,
    l = lait / lactose, g = gluten, o = œuf, c = fruits à coque, r = arachide,
+   h = porc (ni halal ni casher), k = fruits de mer (pas casher),
    b = de base (sel, huile, épices… : supposé dans tous les placards, jamais sur la liste).
    Unité : [nom, nom anglais, grammes] pour ce qui se compte (œufs, bananes, tranches…). */
 
@@ -22,12 +23,12 @@ const L: Ligne[] = [
   ["dinde", "Escalope de dinde", "Turkey cutlet", "prot", 108, 24, 0, 1.2, "av"],
   ["hache5", "Steak haché 5 %", "5% ground beef", "prot", 125, 21, 0, 5, "av", ["steak haché", "patty", 125]],
   ["boeuf", "Rumsteck", "Beef rump steak", "prot", 130, 22, 0, 4.5, "av"],
-  ["porc", "Filet mignon de porc", "Pork tenderloin", "prot", 120, 22, 0, 3.5, "av"],
-  ["jambon", "Jambon blanc", "Cooked ham", "prot", 115, 20, 1, 3.5, "av", ["tranche", "slice", 40]],
+  ["porc", "Filet mignon de porc", "Pork tenderloin", "prot", 120, 22, 0, 3.5, "avh"],
+  ["jambon", "Jambon blanc", "Cooked ham", "prot", 115, 20, 1, 3.5, "avh", ["tranche", "slice", 40]],
   ["saumon", "Pavé de saumon", "Salmon fillet", "prot", 200, 20, 0, 13, "ap", ["pavé", "fillet", 125]],
   ["cabillaud", "Dos de cabillaud", "Cod fillet", "prot", 80, 18, 0, 0.7, "ap", ["dos", "fillet", 130]],
   ["thon", "Thon au naturel", "Canned tuna in water", "prot", 115, 26, 0, 1, "ap", ["boîte", "can", 112]],
-  ["crevettes", "Crevettes cuites décortiquées", "Cooked peeled prawns", "prot", 95, 21, 0, 1.2, "ap"],
+  ["crevettes", "Crevettes cuites décortiquées", "Cooked peeled prawns", "prot", 95, 21, 0, 1.2, "apk"],
   ["sardines", "Sardines à l'huile", "Sardines in oil", "prot", 210, 25, 0, 12, "ap", ["boîte", "can", 95]],
   ["oeuf", "Œufs", "Eggs", "prot", 140, 12.5, 0.7, 10, "ao", ["œuf", "egg", 50]],
   ["blanc_oeuf", "Blancs d'œufs", "Egg whites", "prot", 47, 10.5, 0.7, 0.2, "ao"],

@@ -44,7 +44,7 @@ function Repas() {
   const majPrefs = (q: PrefsRepas) => muter((E) => { E.A.repas = { ...q, fait: true }; });
 
   return (
-    <>
+    <div className="theme-repas">
       <EnTete
         surtitre={tr("Nutrition")} titre={tr("Repas")}
         actions={<ChoixLangue />}
@@ -67,7 +67,7 @@ function Repas() {
       )}
       <FicheRecette r={fiche?.r ?? null} c={fiche?.c} b={b} kcal={kcal} pers0={vue === "courses" ? p.pers ?? 1 : 1} onClose={() => setFiche(null)} />
       <Drawer open={!!brouillon} onOpenChange={(o) => !o && setBrouillon(null)}>
-        <DrawerContent className="max-h-[92dvh]">
+        <DrawerContent className="theme-repas max-h-[92dvh]">
           {brouillon && (
             <div className="overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),20px)]">
               <DrawerTitle className="mt-2 px-1 text-[22px] font-bold">{tr("Préférences repas")}</DrawerTitle>
@@ -78,7 +78,7 @@ function Repas() {
           )}
         </DrawerContent>
       </Drawer>
-    </>
+    </div>
   );
 }
 

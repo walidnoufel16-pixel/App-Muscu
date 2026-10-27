@@ -1890,5 +1890,17 @@
 "À régler dans l'onglet Repas": "Set them up in the Meals tab",
 "Mes préférences": "My preferences",
 "Rien": "Nothing",
-"sans {l}": "no {l}"
+"sans {l}": "no {l}",
+"Halal": "Halal",
+"Casher": "Kosher",
+"2 · Halal ou casher": "2 · Halal or kosher",
+"3 · Allergies ou intolérances": "3 · Allergies or intolerances",
+"4 · Ce que tu n'aimes pas": "4 · What you don't like",
+"5 · Temps de cuisine en semaine": "5 · Weekday cooking time",
+"6 · Ton matériel": "6 · Your equipment",
+"Sans porc. Pour la viande, choisis-la certifiée halal.": "No pork. For meat, choose it certified halal.",
+"Sans porc ni fruits de mer, et jamais viande et laitage dans le même plat. Pour la viande, choisis-la certifiée casher.": "No pork or shellfish, and never meat and dairy in the same dish. For meat, choose it certified kosher.",
+"Prends une viande certifiée halal.": "Use certified halal meat.",
+"Prends une viande certifiée casher.": "Use certified kosher meat.",
+"Six réponses, et je te propose des recettes à ta portion, avec ou sans ce que tu as déjà, et la liste de courses qui va avec.": "Six answers, and I'll suggest recipes sized for you, with or without what you already have, plus the matching shopping list."
 }

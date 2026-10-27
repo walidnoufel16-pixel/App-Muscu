@@ -16,6 +16,7 @@ export const nomAliment = (id: string) => (en() ? ALIM[id]?.en : ALIM[id]?.n) ??
 
 /* ---------------- préférences ---------------- */
 export const REGIMES = [tr("Omnivore"), tr("Pescétarien"), tr("Végétarien"), tr("Vegan")];
+export const CULTES = [tr("Aucun"), tr("Halal"), tr("Casher")];
 export const ALLERGIES: [string, string][] = [["l", tr("Lactose")], ["g", tr("Gluten")], ["o", tr("Œufs")], ["c", tr("Fruits à coque")], ["r", tr("Arachide")], ["p", tr("Poisson et fruits de mer")]];
 export const TEMPS = [tr("15 min max"), tr("30 min max"), tr("Pas de limite")];
 export const MATERIELS: [string, string][] = [["plaques", tr("Plaques")], ["four", tr("Four")], ["micro", tr("Micro-ondes")], ["mixeur", tr("Mixeur")]];
@@ -31,8 +32,16 @@ export function regimeDe(r: Recette) {
 }
 export const allergenesDe = (r: Recette) => ALLERGIES.map(([k]) => k).filter((k) => marques(r).includes(k));
 
+/** Halal : sans porc. Casher : sans porc ni fruits de mer, et jamais viande et laitage ensemble. */
+export function conformeCulte(r: Recette, culte = 0) {
+  const m = marques(r);
+  if (culte >= 1 && m.includes("h")) return false;
+  if (culte === 2 && (m.includes("k") || (m.includes("v") && m.includes("l")))) return false;
+  return true;
+}
 export function compatible(r: Recette, p: PrefsRepas) {
   if (regimeDe(r) < p.regime) return false;
+  if (!conformeCulte(r, p.culte)) return false;
   if (p.allergies.some((a) => marques(r).includes(a))) return false;
   if (r.ing.some(([id]) => p.exclus.includes(id))) return false;
   if (r.min > [15, 30, Infinity][p.temps ?? 2]) return false;

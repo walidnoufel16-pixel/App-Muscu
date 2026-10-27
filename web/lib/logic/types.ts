@@ -93,6 +93,8 @@ export type Reponses = {
 export type PrefsRepas = {
   fait?: boolean;
   regime: number;
+  /* 0 aucun · 1 halal · 2 casher */
+  culte?: number;
   allergies: string[];
   exclus: string[];
   temps: number;

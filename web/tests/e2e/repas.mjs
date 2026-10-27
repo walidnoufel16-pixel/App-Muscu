@@ -36,24 +36,37 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
   await pg.getByText("Des repas pensés pour ton entraînement").waitFor({ timeout: 8000 });
   const q = (n) => pg.getByRole("region", { name: n });
   const entetes = pg.locator("section[aria-label] > button[aria-expanded]");
-  ok(await entetes.count() === 5 && (await entetes.evaluateAll((l) => l.map((x) => x.getAttribute("aria-expanded")))).every((x) => x === "false"), "premier passage : les 5 questions repliées");
+  ok(await entetes.count() === 6 && (await entetes.evaluateAll((l) => l.map((x) => x.getAttribute("aria-expanded")))).every((x) => x === "false"), "premier passage : les 6 questions repliées");
   await cap(pg, "repas-accueil");
   await q("1 · Ton régime").locator("button[aria-expanded]").click();
-  await q("2 · Allergies ou intolérances").locator("button[aria-expanded]").click();
+  await q("3 · Allergies ou intolérances").locator("button[aria-expanded]").click();
   ok(await pg.getByRole("button", { name: "Végétarien", exact: true }).isVisible() && await pg.getByRole("button", { name: "Lactose", exact: true }).isVisible(), "deux questions ouvertes en même temps");
   await pg.getByRole("button", { name: "Végétarien", exact: true }).click();
   await pg.getByRole("button", { name: "Lactose", exact: true }).click();
-  ok(/Végétarien/.test(await q("1 · Ton régime").innerText()) && /Lactose/.test(await q("2 · Allergies ou intolérances").locator("button[aria-expanded]").innerText()), "résumés à jour");
+  ok(/Végétarien/.test(await q("1 · Ton régime").innerText()) && /Lactose/.test(await q("3 · Allergies ou intolérances").locator("button[aria-expanded]").innerText()), "résumés à jour");
+  /* halal ou casher */
+  await q("2 · Halal ou casher").locator("button[aria-expanded]").first().click();
+  await pg.getByRole("button", { name: "Halal", exact: true }).click();
+  ok(/Halal/.test(await q("2 · Halal ou casher").locator("button[aria-expanded]").first().innerText()), "halal choisi");
+  /* ce que tu n'aimes pas : sous-catégories repliables */
+  await q("4 · Ce que tu n'aimes pas").locator("button[aria-expanded]").first().click();
+  await q("4 · Ce que tu n'aimes pas").getByRole("button", { name: /^Légumes/ }).click();
+  await pg.getByRole("button", { name: "Brocoli", exact: true }).click();
+  await q("4 · Ce que tu n'aimes pas").getByRole("button", { name: /^Fruits/ }).click();
+  ok(await pg.getByRole("button", { name: "Kiwis", exact: true }).isVisible() && /Brocoli/.test(await q("4 · Ce que tu n'aimes pas").locator("button[aria-expanded]").first().innerText()), "sous-catégories légumes et fruits, brocoli évité");
+  await cap(pg, "repas-n-aime-pas");
   await q("1 · Ton régime").locator("button[aria-expanded]").click();
   ok(await pg.getByRole("button", { name: "Omnivore", exact: true }).count() === 0 && await pg.getByRole("button", { name: "Lactose", exact: true }).isVisible(), "régime refermé d'un toucher, allergies toujours ouvertes");
   await cap(pg, "repas-questions");
   await pg.getByRole("button", { name: "C'est parti" }).click();
   await pg.getByRole("region", { name: "Tes besoins du jour" }).waitFor();
   const A = (await etatLu(pg)).A;
-  ok(A.repas?.fait && A.repas.regime === 2 && A.repas.allergies.includes("l"), "préférences notées (végétarien, sans lactose)");
+  ok(A.repas?.fait && A.repas.regime === 2 && A.repas.culte === 1 && A.repas.allergies.includes("l") && A.repas.exclus.includes("brocoli"), "préférences notées (végétarien, halal, sans lactose, sans brocoli)");
+  const couleur = await pg.evaluate(() => getComputedStyle(document.querySelector(".theme-repas")).getPropertyValue("--plate").trim());
+  ok(couleur === "#f08a24", `Repas en orange safran (${couleur})`);
   /* revenir au questionnaire */
   const carte = pg.getByRole("region", { name: "Mes préférences" });
-  ok(/Végétarien · sans lactose/.test(await carte.innerText()), "carte « Mes préférences » : le résumé");
+  ok(/Végétarien · halal · sans lactose/.test(await carte.innerText()), "carte « Mes préférences » : le résumé");
   await carte.getByRole("button", { name: "Modifier" }).click();
   const feuille = pg.getByRole("dialog");
   await feuille.getByRole("region", { name: "1 · Ton régime" }).locator("button[aria-expanded]").click();
