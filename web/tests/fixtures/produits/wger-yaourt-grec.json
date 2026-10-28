@@ -1,0 +1,67 @@
+{
+ "count": 1000,
+ "next": "https://wger.de/api/v2/ingredient/?format=json&language=12&limit=5&name__search=yaourt+grec&offset=5",
+ "previous": null,
+ "results": [
+  {
+   "id": 1985952,
+   "code": "9120419626262",
+   "name": "YAOURT GREC",
+   "brand": "",
+   "energy": 132,
+   "protein": "6.000",
+   "carbohydrates": "4.500",
+   "fat": "10.000",
+   "language": 12,
+   "source_name": "Open Food Facts"
+  },
+  {
+   "id": 2869054,
+   "code": "6111246954546",
+   "name": "YAOURT GREC",
+   "brand": "Jibal, JIBAL",
+   "energy": 102,
+   "protein": "2.200",
+   "carbohydrates": "15.400",
+   "fat": "3.500",
+   "language": 12,
+   "source_name": "Open Food Facts"
+  },
+  {
+   "id": 39588,
+   "code": "3350033458680",
+   "name": "Yaourt Grec",
+   "brand": "MONOPRIX GOURMET",
+   "energy": 130,
+   "protein": "6.300",
+   "carbohydrates": "3.800",
+   "fat": "10.000",
+   "language": 12,
+   "source_name": "Open Food Facts"
+  },
+  {
+   "id": 360512,
+   "code": "0060383063207",
+   "name": "Yaourt Grec",
+   "brand": "PC",
+   "energy": 86,
+   "protein": "9.710",
+   "carbohydrates": "10.800",
+   "fat": "0.000",
+   "language": 12,
+   "source_name": "Open Food Facts"
+  },
+  {
+   "id": 648969,
+   "code": "5202234141619",
+   "name": "Yaourt Grec",
+   "brand": "Κρι Κρι, Kri Kri",
+   "energy": 114,
+   "protein": "5.500",
+   "carbohydrates": "5.000",
+   "fat": "8.000",
+   "language": 12,
+   "source_name": "Open Food Facts"
+  }
+ ]
+}

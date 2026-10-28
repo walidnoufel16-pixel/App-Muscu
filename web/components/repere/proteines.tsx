@@ -3,7 +3,11 @@
 /* Protéines du jour : un anneau, et une feuille pour ajouter en un geste. */
 import { tr } from "@/lib/i18n";
 import { useState } from "react";
-import { CaretRightIcon, EggIcon, MinusIcon, PlusIcon } from "@phosphor-icons/react";
+import { BarcodeIcon, CaretRightIcon, EggIcon, MagnifyingGlassIcon, MinusIcon, PlusIcon } from "@phosphor-icons/react";
+import { toast } from "sonner";
+import { ChercherProduit, QuantiteProduit, Scanner } from "./produits";
+import { garderProduit, produitParCode, protDe } from "@/lib/logic/produits";
+import type { Produit } from "@/lib/logic/types";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { ajouterProt, ALIMENTS, objectifProteines, poidsDe, protDuJour } from "@/lib/logic/nutrition";
 import { jourDe } from "@/lib/logic/historique";
@@ -16,9 +20,28 @@ export function CarteProteines({ accueil = false, tuile = false }: { accueil?: b
   const muter = useRepere((s) => s.muter);
   const [auj] = useState(() => jourDe(Date.now()));
   const [ouvert, setOuvert] = useState(false);
+  /* dans la feuille : le jour, la recherche d'un produit, ou la quantité d'un produit choisi */
+  const [vue, setVue] = useState<{ e: "jour" } | { e: "chercher"; q?: string; erreur?: string } | { e: "quantite"; p: Produit }>({ e: "jour" });
+  const [scan, setScan] = useState(false);
+  const produits = (A.produits as Produit[] | undefined) ?? [];
   if (accueil && A.protOff) return null;
   const obj = objectifProteines(A), g = protDuJour(A, auj), p = Math.min(1, g / obj);
   const ajouter = (n: number) => { tactile(n > 0 ? 8 : 5); muter((E) => ajouterProt(E.A, auj, n)); };
+  const ajouterProduit = (n: number, pr: Produit) => {
+    muter((E) => { ajouterProt(E.A, auj, n); E.A.produits = garderProduit(E.A.produits as Produit[] | undefined, pr); });
+    toast.success(tr("+{n} g de protéines : {p}", { n, p: pr.n }), { duration: 1800 });
+    setVue({ e: "jour" });
+  };
+  /* code lu par le scanner : le produit, sinon la recherche avec le code et un message */
+  const codeLu = async (code: string) => {
+    setScan(false);
+    try {
+      const pr = await produitParCode(code);
+      setVue(pr ? { e: "quantite", p: pr } : { e: "chercher", q: code, erreur: tr("Ce produit n'est pas dans Open Food Facts, ou sans protéines indiquées. Essaie avec son nom.") });
+    } catch {
+      setVue({ e: "chercher", q: code, erreur: tr("Pas de réponse du service : vérifie ta connexion, puis touche Chercher.") });
+    }
+  };
   return (
     <>
       {tuile ? (
@@ -49,9 +72,13 @@ export function CarteProteines({ accueil = false, tuile = false }: { accueil?: b
         <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" />
       </button>
       )}
-      <Drawer open={ouvert} onOpenChange={setOuvert}>
+      {/* pas de repositionnement au clavier (champ de recherche) : sur iPhone la feuille remonterait hors de l'écran */}
+      <Drawer open={ouvert} onOpenChange={(o) => { setOuvert(o); if (!o) setVue({ e: "jour" }); }} repositionInputs={false}>
         <DrawerContent>
           <div className="max-h-[80vh] overflow-y-auto px-5 pt-2 pb-[max(env(safe-area-inset-bottom),20px)]">
+            {vue.e === "chercher" && <ChercherProduit key={vue.q ?? ""} q0={vue.q} erreur0={vue.erreur} onChoisir={(pr) => setVue({ e: "quantite", p: pr })} onScanner={() => setScan(true)} onRetour={() => setVue({ e: "jour" })} />}
+            {vue.e === "quantite" && <QuantiteProduit produit={vue.p} onAjouter={ajouterProduit} onRetour={() => setVue({ e: "chercher" })} />}
+            <div className={cn(vue.e !== "jour" && "hidden")}>
             <DrawerTitle className="text-[20px] font-bold">{tr("Protéines aujourd'hui")}</DrawerTitle>
             <DrawerDescription className="mt-0.5 text-[13px] text-muted-foreground">{tr("{a} Pas de calories à compter.", { a: poidsDe(A) ? tr("Objectif calculé sur ton poids ({a} kg) et ton objectif.", { a: poidsDe(A) }) : tr("Note ton poids dans Progrès pour un objectif sur mesure.") })}</DrawerDescription>
             <div className="mt-4 flex items-center justify-center gap-4">
@@ -75,6 +102,29 @@ export function CarteProteines({ accueil = false, tuile = false }: { accueil?: b
                 </button>
               ))}
             </div>
+            <h3 className="eyebrow mt-5 mb-2">{tr("Un produit précis")}</h3>
+            <div className="grid grid-cols-2 gap-1.5">
+              <button onClick={() => { tactile(6); setScan(true); }} className="flex items-center justify-center gap-2 rounded-2xl border bg-card px-3 py-3 text-[14px] font-semibold active:scale-[.98]"><BarcodeIcon className="size-5" />{tr("Scanner")}</button>
+              <button onClick={() => { tactile(6); setVue({ e: "chercher" }); }} className="flex items-center justify-center gap-2 rounded-2xl border bg-card px-3 py-3 text-[14px] font-semibold active:scale-[.98]"><MagnifyingGlassIcon className="size-5" />{tr("Chercher")}</button>
+            </div>
+            {produits.length > 0 && (
+              <>
+                <h3 className="eyebrow mt-4 mb-2">{tr("Mes produits")}</h3>
+                <ul className="overflow-hidden rounded-[18px] border bg-card" aria-label={tr("Mes produits")}>
+                  {produits.slice(0, 6).map((pr) => (
+                    <li key={pr.code ?? pr.n + pr.marque} className="border-t border-border/60 first:border-t-0">
+                      <button onClick={() => { tactile(5); setVue({ e: "quantite", p: pr }); }} className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left active:bg-muted">
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-[14px] font-medium">{pr.n}</span>
+                          <span className="block truncate text-[11.5px] text-muted-foreground">{[pr.marque, pr.portion ? tr("1 portion ({g} g)", { g: pr.portion }) : tr("100 g")].filter(Boolean).join(" · ")}</span>
+                        </span>
+                        <span className="num shrink-0 text-[15px] font-bold text-success">+{protDe(pr, pr.portion ?? 100)}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
             <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-muted/60 px-3.5 py-2.5">
               <span className="text-[13.5px]">{tr("Objectif par jour")}</span>
               <span className="flex items-center gap-1">
@@ -87,9 +137,11 @@ export function CarteProteines({ accueil = false, tuile = false }: { accueil?: b
               {tr("Afficher sur l'écran Entraînement")}
               <input type="checkbox" checked={!A.protOff} onChange={(e) => muter((E) => { E.A.protOff = !e.target.checked; })} className={cn("size-5 accent-[var(--plate)]")} />
             </label>
+            </div>
           </div>
         </DrawerContent>
       </Drawer>
+      <Scanner ouvert={scan} onCode={codeLu} onClose={() => setScan(false)} />
     </>
   );
 }

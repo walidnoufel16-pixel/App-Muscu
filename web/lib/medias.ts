@@ -170,6 +170,7 @@ export const CREDITS: { quoi: string; nom: string; licence: string; lien: string
   }),
   /* chaque photographe est nommé sous sa photo, dans la fiche de la recette */
   { quoi: tr("Photos des recettes"), nom: tr("{n} photographes d'Unsplash, cités sous chaque photo", { n: new Set(Object.values(PHOTOS_RECETTES).map((ph) => ph.profil)).size }), licence: tr("Licence Unsplash"), lien: `https://unsplash.com/${UTM}` },
+  { quoi: tr("Valeurs des produits (protéines)"), nom: tr("Open Food Facts, recherche par nom via wger"), licence: "ODbL", lien: "https://world.openfoodfacts.org" },
   { quoi: tr("Schéma du corps"), nom: tr("react-native-body-highlighter, Hicham Elabbassi"), licence: "MIT", lien: "https://github.com/HichamELBSI/react-native-body-highlighter" },
   { quoi: tr("Icônes"), nom: tr("Phosphor Icons"), licence: "MIT", lien: "https://phosphoricons.com" },
   { quoi: tr("Polices"), nom: tr("Geist (Vercel) · Barlow Condensed (Jeremy Tribby)"), licence: tr("SIL Open Font License"), lien: "https://vercel.com/font" },
