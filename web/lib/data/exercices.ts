@@ -111,7 +111,7 @@ export const EX: Record<string, Exercice> = {
  },
  "rh": {
   "n": "Rowing haltère un bras",
-  "m": "Dos, arrière d'épaule",
+  "m": "Dos, arrière d'épaule, biceps",
   "img": "One-Arm_Dumbbell_Row",
   "pat": "th",
   "pat2": "fc",
@@ -121,7 +121,7 @@ export const EX: Record<string, Exercice> = {
  },
  "ra": {
   "n": "Rowing australien",
-  "m": "Dos, arrière d'épaule",
+  "m": "Dos, arrière d'épaule, biceps",
   "img": "Inverted_Row",
   "pat": "th",
   "pat2": "fc",
@@ -382,7 +382,7 @@ export const EX: Record<string, Exercice> = {
  },
  "sqf": {
   "n": "Squat avant",
-  "m": "Quadriceps, gainage",
+  "m": "Quadriceps, fessiers, gainage",
   "img": "Front_Barbell_Squat",
   "pat": "eg",
   "pat2": "fh",
@@ -1193,7 +1193,7 @@ export const EX: Record<string, Exercice> = {
  },
  "sdts": {
   "n": "Soulevé de terre sumo",
-  "m": "Fessiers, adducteurs, ischio-jambiers",
+  "m": "Fessiers, adducteurs, ischio-jambiers, quadriceps",
   "img": "Sumo_Deadlift",
   "pat": "fh",
   "pat2": "add",
@@ -2604,7 +2604,7 @@ export const EX: Record<string, Exercice> = {
  },
  "mup": {
   "n": "Muscle-up",
-  "m": "Dos, triceps, épaules",
+  "m": "Dos, biceps, triceps, épaules",
   "img": "Muscle_Up",
   "pat": "tv",
   "pat2": "ec",
