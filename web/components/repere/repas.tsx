@@ -16,6 +16,7 @@ import type { AlimentPerso, CreneauRepas, PrefsRepas } from "@/lib/logic/types";
 import { emojiDe, RAYONS } from "@/lib/data/aliments";
 import { useRepere } from "@/lib/store";
 import { auteurRecette, imgRecette } from "@/lib/medias";
+import { coutRecette, euros } from "@/lib/logic/budget";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 
@@ -51,6 +52,12 @@ export function FormPrefs({ p, onChange }: { p: PrefsRepas; onChange: (p: PrefsR
       </Groupe>
       <Groupe titre={tr("6 · Ton matériel")} resume={liste(p.mat.map(nomMat), tr("Aucun"))}>
         {MATERIELS.map(([k, n]) => <button key={k} aria-pressed={p.mat.includes(k)} onClick={() => onChange({ ...p, mat: bascule(p.mat, k) })} className={puce(p.mat.includes(k))}>{n}</button>)}
+      </Groupe>
+      <Groupe titre={tr("7 · Ton budget courses")} resume={p.budget ? tr("{e} par semaine", { e: euros(p.budget) }) : tr("Pas de budget")}>
+        <button aria-pressed={!p.budget} onClick={() => onChange({ ...p, budget: undefined })} className={puce(!p.budget)}>{tr("Pas de budget")}</button>
+        {[30, 50, 70, 100].map((x) => <button key={x} aria-pressed={p.budget === x} onClick={() => onChange({ ...p, budget: x })} className={puce(p.budget === x)}>{euros(x)}</button>)}
+        <ChampBudget v={p.budget} onChange={(budget) => onChange({ ...p, budget })} />
+        <p className="mt-1 w-full text-[12.5px] leading-relaxed text-muted-foreground">{tr("Pour la liste de courses de la semaine. L'app estime ce qu'elle coûte et te propose des recettes moins chères si tu dépasses.")}</p>
       </Groupe>
       <label className="mt-2 flex items-center justify-between gap-3 rounded-2xl bg-card px-4 py-3 text-[14.5px]">
         <span>
@@ -140,6 +147,19 @@ function FormAliment({ nom0, existants, onValider, onAnnuler }: { nom0: string; 
   );
 }
 
+/** Budget de la semaine saisi à la main, en euros (vide : pas de budget). */
+export function ChampBudget({ v, onChange, className }: { v?: number; onChange: (v: number | undefined) => void; className?: string }) {
+  const [t, setT] = useState(v ? String(v) : "");
+  const valider = () => { const x = Math.round(parseFloat(t.replace(",", "."))); onChange(x > 0 ? Math.min(x, 2000) : undefined); };
+  return (
+    <span className={cn("flex h-9 items-center gap-1.5 rounded-full border border-border bg-card pr-3 pl-1", className)}>
+      <input inputMode="numeric" value={t} onChange={(e) => setT(e.target.value.replace(/[^\d.,]/g, ""))} onBlur={valider} onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()}
+        placeholder={tr("Autre")} aria-label={tr("Budget en euros par semaine")} className="num h-7 w-16 rounded-full bg-muted px-2.5 text-center text-[14px] font-semibold outline-none focus:ring-2 focus:ring-plate" />
+      <span className="text-[13px] text-muted-foreground">{tr("€ / semaine")}</span>
+    </span>
+  );
+}
+
 /* Sous-catégorie de « Ce que tu n'aimes pas » (légumes, fruits…), repliable elle aussi. */
 function SousGroupe({ titre, n, children }: { titre: string; n: number; children: React.ReactNode }) {
   const [ouvert, setOuvert] = useState(false);
@@ -161,7 +181,7 @@ export function resumePrefs(p: PrefsRepas) {
   return [REGIMES[p.regime], p.culte ? CULTES[p.culte].toLowerCase() : "", sans.length ? tr("sans {l}", { l: sans.join(", ") }) : "", TEMPS[p.temps ?? 2]].filter(Boolean).join(" · ");
 }
 
-/** Première ouverture : les 5 questions, puis la partie Repas. */
+/** Première ouverture : les questions, puis la partie Repas. */
 export function AccueilRepas() {
   const A = useRepere((s) => s.etat.A), muter = useRepere((s) => s.muter);
   const [p, setP] = useState(() => prefsDe(A));
@@ -169,7 +189,7 @@ export function AccueilRepas() {
     <div className="flex flex-col gap-5 px-4">
       <div className="rounded-[22px] bg-plate-soft p-4">
         <p className="text-[16px] font-semibold text-plate-ink">{tr("Des repas pensés pour ton entraînement")}</p>
-        <p className="mt-1 text-[13.5px] leading-relaxed text-muted-foreground">{tr("Six réponses, et je te propose des recettes à ta portion, avec ou sans ce que tu as déjà, et la liste de courses qui va avec.")}</p>
+        <p className="mt-1 text-[13.5px] leading-relaxed text-muted-foreground">{tr("Quelques réponses, et je te propose des recettes à ta portion, avec ou sans ce que tu as déjà, et la liste de courses qui va avec, au prix estimé.")}</p>
       </div>
       <FormPrefs p={p} onChange={setP} />
       <Button variant="plate" size="xl" className="w-full" onClick={() => { tactile(10); muter((E) => { E.A.repas = { ...p, fait: true }; }); }}>{tr("C'est parti")}</Button>
@@ -256,6 +276,7 @@ export function VignetteRecette({ r, className, large }: { r: Recette; className
 
 export function CarteRecette({ r, b, c, kcal, onOuvrir, droite, sous }: { r: Recette; b: Besoins; c?: CreneauRepas; kcal: boolean; onOuvrir: () => void; droite?: React.ReactNode; sous?: React.ReactNode }) {
   const f = portion(r, b, c), m = macros(r, f);
+  const perso = useRepere((s) => s.etat.A.repas?.prix);
   return (
     <div className="flex items-center gap-3 rounded-[20px] bg-card p-2.5 pr-3">
       <button onClick={onOuvrir} className="flex min-w-0 flex-1 items-center gap-3 text-left active:opacity-80">
@@ -263,10 +284,11 @@ export function CarteRecette({ r, b, c, kcal, onOuvrir, droite, sous }: { r: Rec
         <span className="min-w-0 flex-1">
           {c && <span className="eyebrow block">{NOM_CRENEAU[c]}</span>}
           <span className="block truncate text-[15.5px] leading-tight font-semibold">{nomRecette(r)}</span>
-          <span className="mt-1 flex items-center gap-2 text-[12.5px] text-muted-foreground">
+          <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[12.5px] text-muted-foreground">
             <span className="flex items-center gap-1"><ClockIcon className="size-3.5" />{tr("{n} min", { n: r.min })}</span>
             <span className="font-semibold text-plate-ink">{tr("{p} g de protéines", { p: m.p })}</span>
             {kcal && <span>{m.kcal}{" "}{tr("kcal")}</span>}
+            <span aria-label={tr("Environ {e} la portion", { e: euros(coutRecette(r, f, perso)) })}>{"≈ " + euros(coutRecette(r, f, perso))}</span>
           </span>
           {sous}
         </span>
@@ -288,7 +310,7 @@ function Fiche({ r, b, c, kcal, pers0 }: { r: Recette; b: Besoins; c?: CreneauRe
   const [pers, setPers] = useState(pers0);
   const f = portion(r, b, c), m = macros(r, f);
   const reg = regimeDe(r), alg = allergenesDe(r);
-  const culte = prefsDe(useRepere((s) => s.etat.A)).culte ?? 0;
+  const pr = prefsDe(useRepere((s) => s.etat.A)), culte = pr.culte ?? 0, prixPerso = pr.prix;
   return (
     <div className="overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),20px)]">
       <VignetteRecette r={r} large className="mt-2 h-40 w-full rounded-[22px]" />
@@ -321,6 +343,9 @@ function Fiche({ r, b, c, kcal, pers0 }: { r: Recette; b: Besoins; c?: CreneauRe
           </li>
         ))}
       </ul>
+      <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">
+        {pers > 1 ? tr("Coût estimé : environ {e} pour {n} personnes, prix moyens en supermarché.", { e: euros(coutRecette(r, f * pers, prixPerso)), n: pers }) : tr("Coût estimé : environ {e} la portion, prix moyens en supermarché.", { e: euros(coutRecette(r, f, prixPerso)) })}
+      </p>
       {culte > 0 && reg === 0 && <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{culte === 1 ? tr("Prends une viande certifiée halal.") : tr("Prends une viande certifiée casher.")}</p>}
       <h3 className="mt-5 px-1 text-[17px] font-bold">{tr("Préparation")}</h3>
       <ol className="mt-2 flex flex-col gap-2">

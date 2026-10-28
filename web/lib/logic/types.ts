@@ -104,10 +104,16 @@ export type PrefsRepas = {
   pers?: number;
   /* aliments ajoutés par l'utilisateur (id « perso:… ») */
   perso?: AlimentPerso[];
+  /* budget courses de la semaine, en euros (facultatif) */
+  budget?: number;
+  /* prix au kilo corrigés par l'utilisateur (« chez moi, le skyr coûte… ») */
+  prix?: Record<string, number>;
+  /* estimation de la liste : ce qu'on paie en caisse (emballages entiers, par défaut) ou ce que la semaine consomme */
+  conso?: boolean;
 };
 export type AlimentPerso = { id: string; n: string; ray: string; e: string };
 /* article libre de la liste de courses (« papier cuisson », « 2 avocats ») */
-export type ArticleLibre = { id: string; n: string; q: string; e: string };
+export type ArticleLibre = { id: string; n: string; q: string; e: string; prix?: number };
 export type CreneauRepas = "matin" | "dejeuner" | "diner" | "collation";
 export type SemaineRepas = {
   jours: number;
