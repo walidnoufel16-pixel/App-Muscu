@@ -110,7 +110,7 @@ const PHOTOS_RECETTES: Record<string, { img: string; auteur: string; profil: str
   "cottage-fruits": { img: "photo-1611575330633-551252bafad7", auteur: "Nataliya Melnychuk", profil: "natinati" },
   "energy-balls": { img: "photo-1596723455658-72ebb0d12edd", auteur: "Abbie Whiddett", profil: "abbiew" },
   "tartine-jambon": { img: "photo-1612182062808-9929a1873b3e", auteur: "Jaqueline Pelzer", profil: "jaqui123456" },
-  "pomme-amandes": { img: "photo-1785130488478-15f997ddc95e", auteur: "Trương Tuyết Ly", profil: "liliantruong2603" },
+  "pomme-amandes": { img: "photo-1568702846914-96b305d2aaeb", auteur: "an_vision", profil: "anvision" },
   "lait-chocolat": { img: "photo-1553909489-ec2175ef3f52", auteur: "Mae Mu", profil: "picoftasty" },
   "yaourt-grec-miel": { img: "photo-1589963465859-7b5c846d79af", auteur: "Mahbod Akhzami", profil: "mahbodakhzami" },
   "smoothie-mangue": { img: "photo-1623065422902-30a2d299bbe4", auteur: "Julia Zyablova", profil: "foyu" },
