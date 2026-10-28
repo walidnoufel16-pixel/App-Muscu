@@ -54,6 +54,20 @@ export const imgPoste = (p: { id: string; img?: string }) => {
   const ph = PHOTOS_POSTES[p.id];
   return ph && `https://images.unsplash.com/${ph.img}?w=360&h=360&fit=crop&auto=format&q=70`;
 };
+/** La même photo en grand, sans recadrage, pour la voir en plein écran. */
+export const imgPosteGrand = (p: { id: string; img?: string }) => {
+  if (p.img) return imgEx(p.img);
+  if (PHOTOS_LIBRES[p.id]) return `/img/poste-${p.id}-grand.avif`;
+  const ph = PHOTOS_POSTES[p.id];
+  return ph && `https://images.unsplash.com/${ph.img}?w=1080&fit=max&auto=format&q=75`;
+};
+/** Qui a fait la photo d'un poste, pour la mention sous la photo en grand. */
+export const creditPoste = (p: { id: string; img?: string }): { nom: string; lien: string; licence: string } | undefined => {
+  if (p.img) { const s = sourceEx(p.img); return { nom: s.nom, lien: s.lien, licence: s.licence }; }
+  if (PHOTOS_LIBRES[p.id]) { const ph = PHOTOS_LIBRES[p.id]; return { nom: ph.auteur, lien: ph.lien, licence: ph.licence }; }
+  const ph = PHOTOS_POSTES[p.id];
+  return ph && { nom: tr("{n} sur Unsplash", { n: ph.auteur }), lien: `https://unsplash.com/@${ph.profil}${UTM}`, licence: tr("Licence Unsplash") };
+};
 
 /* Photos Unsplash des recettes (partie Repas), mêmes règles que celles des machines. */
 const PHOTOS_RECETTES: Record<string, { img: string; auteur: string; profil: string }> = {
@@ -132,6 +146,13 @@ export const auteurRecette = (id: string) => {
   const ph = PHOTOS_RECETTES[id];
   return ph && { nom: ph.auteur, lien: `https://unsplash.com/@${ph.profil}${UTM}` };
 };
+
+/** Toutes les photos servies par Unsplash (recettes, machines, petites et grandes) : l'app les
+    garde sur le téléphone pour les montrer hors connexion (lib/photos-hors-ligne.ts). */
+export const photosDistantes = () => [
+  ...Object.keys(PHOTOS_RECETTES).flatMap((id) => [imgRecette(id, "carre")!, imgRecette(id, "large")!]),
+  ...POSTES.filter((p) => !p.img && PHOTOS_POSTES[p.id]).flatMap((p) => [imgPoste(p)!, imgPosteGrand(p)!]),
+];
 
 /* Tout ce que l'app emprunte, pour la page Compte › Crédits. */
 export const CREDITS: { quoi: string; nom: string; licence: string; lien: string }[] = [

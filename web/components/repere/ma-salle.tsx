@@ -2,10 +2,11 @@
 
 import { tr } from "@/lib/i18n";
 import { useState } from "react";
-import { BarbellIcon, BuildingsIcon, CaretRightIcon, CheckIcon } from "@phosphor-icons/react";
+import { BarbellIcon, BuildingsIcon, CaretRightIcon, CheckIcon, XIcon } from "@phosphor-icons/react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { POSTES, ZONES_SALLE, type Poste } from "@/lib/data/salle";
-import { imgPoste } from "@/lib/medias";
+import { creditPoste, imgPoste, imgPosteGrand } from "@/lib/medias";
 import { useRepere } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +29,40 @@ function PhotoPoste({ p, className }: { p: Poste; className?: string }) {
   );
 }
 
+/* Une machine en grand, photo entière, avec son auteur. Se ferme avec la croix, en touchant le
+   fond ou avec Échap. Hors connexion sans la grande photo : la petite, sinon l'icône. */
+function Visionneuse({ p, onClose }: { p: Poste | null; onClose: () => void }) {
+  const sources = p ? ([imgPosteGrand(p), imgPoste(p)].filter(Boolean) as string[]) : [];
+  const [rate, setRate] = useState(0);
+  const credit = p ? creditPoste(p) : undefined;
+  return (
+    <Dialog open={!!p} onOpenChange={(o) => { if (!o) { setRate(0); onClose(); } }}>
+      <DialogContent showCloseButton={false} onClick={() => { setRate(0); onClose(); }}
+        className="flex h-dvh max-h-dvh w-screen max-w-none flex-col items-center justify-center gap-3 rounded-none border-0 bg-black/95 p-4 text-white shadow-none sm:max-w-none">
+        <DialogTitle className="sr-only">{p?.n}</DialogTitle>
+        <DialogDescription className="sr-only">{tr("Photo en grand. Touche la croix pour la fermer.")}</DialogDescription>
+        <button onClick={(e) => { e.stopPropagation(); setRate(0); onClose(); }} aria-label={tr("Fermer")} autoFocus
+          className="absolute top-[max(env(safe-area-inset-top),14px)] right-4 grid size-11 place-items-center rounded-full bg-white/15 text-white backdrop-blur active:scale-90">
+          <XIcon className="size-5" weight="bold" />
+        </button>
+        {rate < sources.length ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img key={sources[rate]} src={sources[rate]} alt={p?.n ?? ""} onError={() => setRate((x) => x + 1)} onClick={(e) => e.stopPropagation()}
+            className="max-h-[72dvh] w-auto max-w-full rounded-2xl object-contain" />
+        ) : (
+          <BarbellIcon className="size-24 text-white/50" weight="duotone" />
+        )}
+        <p className="text-center text-[18px] font-semibold">{p?.n}</p>
+        {credit && (
+          <a href={credit.lien} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-center text-[12.5px] text-white/65 underline underline-offset-2">
+            {tr("Photo : {n} · {l}", { n: credit.nom, l: credit.licence })}
+          </a>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /* « Ma salle » : une planche illustrée des machines et postes ; on touche ceux
    qu'on n'a pas. Enregistré dans le compte (A.sansPostes). */
 export function FeuilleSalle({ ouvert, onOuvert, types = ["m0", "m1"] }: { ouvert: boolean; onOuvert: (o: boolean) => void; types?: string[] }) {
@@ -44,13 +79,14 @@ export function FeuilleSalle({ ouvert, onOuvert, types = ["m0", "m1"] }: { ouver
     E.A.sansPostes = dispo ? l : [...l, ...visibles];
   });
   const n = visibles.filter((id) => !sans.includes(id)).length;
+  const [grand, setGrand] = useState<Poste | null>(null);
   return (
     <Drawer open={ouvert} onOpenChange={onOuvert}>
       <DrawerContent className="max-h-[92dvh]">
         <div className="overflow-y-auto px-4 pt-2 pb-[max(env(safe-area-inset-bottom),20px)]">
           <DrawerTitle className="text-center text-[20px] font-bold">{tr("Ma salle")}</DrawerTitle>
           <DrawerDescription className="mt-1 text-center text-[13.5px] text-muted-foreground">
-            {tr("Touche une machine pour dire que ta salle ne l'a pas : ses exercices disparaissent de tes listes et de tes séances.")}
+            {tr("Touche le nom d'une machine pour dire que ta salle ne l'a pas : ses exercices disparaissent de tes listes et de tes séances. Touche sa photo pour la voir en grand.")}
           </DrawerDescription>
           <div className="mt-3 flex items-center justify-between px-1">
             <span className="text-[13.5px] font-medium">{tr("{n} sur {t} disponibles", { n, t: visibles.length })}</span>
@@ -66,19 +102,21 @@ export function FeuilleSalle({ ouvert, onOuvert, types = ["m0", "m1"] }: { ouver
                 {POSTES.filter((p) => p.zone === z.k).map((p) => {
                   const dispo = !sans.includes(p.id);
                   return (
-                    <button
-                      key={p.id}
-                      aria-pressed={dispo}
-                      aria-label={p.n}
-                      onClick={() => basculer(p.id)}
-                      className={cn("relative flex flex-col items-stretch gap-1.5 rounded-[16px] border-2 bg-card p-1.5 text-left transition active:scale-[.97]", dispo ? "border-plate" : "border-transparent")}
-                    >
-                      <PhotoPoste p={p} className={cn("aspect-square w-full rounded-[11px] transition", !dispo && "opacity-40 grayscale")} />
-                      <span className={cn("line-clamp-2 min-h-[2.4em] px-0.5 text-[12px] leading-[1.2] font-medium", !dispo && "text-muted-foreground line-through")}>{p.n}</span>
-                      <span className={cn("absolute top-2.5 right-2.5 grid size-5 place-items-center rounded-full ring-2 ring-card", dispo ? "bg-plate text-plate-foreground" : "bg-muted")}>
-                        {dispo && <CheckIcon className="size-3" weight="bold" />}
-                      </span>
-                    </button>
+                    <div key={p.id} className={cn("relative flex flex-col items-stretch gap-1.5 rounded-[16px] border-2 bg-card p-1.5 transition", dispo ? "border-plate" : "border-transparent")}>
+                      {/* la photo s'ouvre en grand ; le nom et la coche disent si la salle a la machine */}
+                      <button onClick={() => setGrand(p)} aria-label={tr("Voir en grand : {n}", { n: p.n })} className="rounded-[11px] transition active:scale-[.97]">
+                        <PhotoPoste p={p} className={cn("aspect-square w-full rounded-[11px] transition", !dispo && "opacity-40 grayscale")} />
+                      </button>
+                      <button aria-pressed={dispo} aria-label={p.n} onClick={() => basculer(p.id)}
+                        className={cn("line-clamp-2 min-h-[2.4em] px-0.5 text-left text-[12px] leading-[1.2] font-medium", !dispo && "text-muted-foreground line-through")}>
+                        {p.n}
+                      </button>
+                      <button aria-hidden tabIndex={-1} onClick={() => basculer(p.id)} className="absolute top-0.5 right-0.5 grid size-10 place-items-center">
+                        <span className={cn("grid size-5 place-items-center rounded-full ring-2 ring-card", dispo ? "bg-plate text-plate-foreground" : "bg-muted")}>
+                          {dispo && <CheckIcon className="size-3" weight="bold" />}
+                        </span>
+                      </button>
+                    </div>
                   );
                 })}
               </div>
@@ -86,6 +124,7 @@ export function FeuilleSalle({ ouvert, onOuvert, types = ["m0", "m1"] }: { ouver
           ))}
         </div>
       </DrawerContent>
+      <Visionneuse p={grand} onClose={() => setGrand(null)} />
     </Drawer>
   );
 }

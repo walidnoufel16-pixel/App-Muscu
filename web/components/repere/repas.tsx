@@ -268,10 +268,11 @@ const TEINTE: Record<Moment, string> = { matin: "from-amber-200 to-orange-300 da
 /** Vignette d'une recette : sa photo, ou une pastille colorée selon le moment (pas de photo, hors ligne, image bloquée). */
 export function VignetteRecette({ r, className, large }: { r: Recette; className?: string; large?: boolean }) {
   const I = ICONE[r.m];
-  const src = r.img ?? imgRecette(r.id, large ? "large" : "carre");
-  const [rate, setRate] = useState(false);
+  /* en grand : le bandeau, sinon la vignette (souvent déjà gardée hors connexion), sinon la pastille */
+  const sources = (r.img ? [r.img] : large ? [imgRecette(r.id, "large"), imgRecette(r.id, "carre")] : [imgRecette(r.id, "carre")]).filter(Boolean) as string[];
+  const [rate, setRate] = useState(0);
   // eslint-disable-next-line @next/next/no-img-element -- export statique : pas d'optimisation d'image Next
-  if (src && !rate) return <img src={src} alt="" loading="lazy" onError={() => setRate(true)} className={cn("bg-muted object-cover", className)} />;
+  if (rate < sources.length) return <img key={sources[rate]} src={sources[rate]} alt="" loading="lazy" onError={() => setRate((x) => x + 1)} className={cn("bg-muted object-cover", className)} />;
   return <span aria-hidden className={cn("grid place-items-center bg-gradient-to-br", TEINTE[r.m], className)}><I className="size-1/2 text-white/90" weight="fill" /></span>;
 }
 
