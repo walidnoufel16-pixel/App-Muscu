@@ -256,7 +256,7 @@ export default function PageProfil() {
           <h2 className="eyebrow mb-2 px-1">{tr("Crédits")}</h2>
           <div className="overflow-hidden rounded-[22px] border border-border/80 bg-card">
             {CREDITS.map((c) => (
-              <a key={c.quoi} href={c.lien || undefined} target="_blank" rel="noreferrer" className="flex items-center gap-3 border-b border-border/70 px-4 py-3 last:border-b-0 active:bg-muted">
+              <a key={c.quoi + c.nom} href={c.lien || undefined} target="_blank" rel="noreferrer" className="flex items-center gap-3 border-b border-border/70 px-4 py-3 last:border-b-0 active:bg-muted">
                 <span className="min-w-0 flex-1">
                   <span className="block text-[12px] font-medium text-muted-foreground">{c.quoi}</span>
                   <span className="block truncate text-[14.5px] font-medium">{c.nom}</span>

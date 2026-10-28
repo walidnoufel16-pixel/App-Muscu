@@ -15,6 +15,7 @@ import {
 import type { AlimentPerso, CreneauRepas, PrefsRepas } from "@/lib/logic/types";
 import { emojiDe, RAYONS } from "@/lib/data/aliments";
 import { useRepere } from "@/lib/store";
+import { auteurRecette, imgRecette } from "@/lib/medias";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 
@@ -243,11 +244,13 @@ function Chiffre({ v, u, n, accent }: { v: number; u: string; n: string; accent?
 const ICONE: Record<Moment, typeof BowlFoodIcon> = { matin: SunHorizonIcon, repas: BowlFoodIcon, collation: CookieIcon };
 const TEINTE: Record<Moment, string> = { matin: "from-amber-200 to-orange-300 dark:from-amber-700/60 dark:to-orange-800/60", repas: "from-emerald-200 to-teal-300 dark:from-emerald-700/60 dark:to-teal-800/60", collation: "from-rose-200 to-pink-300 dark:from-rose-700/60 dark:to-pink-800/60" };
 
-/** Vignette d'une recette : sa photo, ou en attendant une pastille colorée selon le moment. */
-export function VignetteRecette({ r, className }: { r: Recette; className?: string }) {
+/** Vignette d'une recette : sa photo, ou une pastille colorée selon le moment (pas de photo, hors ligne, image bloquée). */
+export function VignetteRecette({ r, className, large }: { r: Recette; className?: string; large?: boolean }) {
   const I = ICONE[r.m];
-  // eslint-disable-next-line @next/next/no-img-element -- export statique : photo locale déjà optimisée (AVIF)
-  if (r.img) return <img src={r.img} alt="" className={cn("object-cover", className)} />;
+  const src = r.img ?? imgRecette(r.id, large ? "large" : "carre");
+  const [rate, setRate] = useState(false);
+  // eslint-disable-next-line @next/next/no-img-element -- export statique : pas d'optimisation d'image Next
+  if (src && !rate) return <img src={src} alt="" loading="lazy" onError={() => setRate(true)} className={cn("bg-muted object-cover", className)} />;
   return <span aria-hidden className={cn("grid place-items-center bg-gradient-to-br", TEINTE[r.m], className)}><I className="size-1/2 text-white/90" weight="fill" /></span>;
 }
 
@@ -288,7 +291,12 @@ function Fiche({ r, b, c, kcal, pers0 }: { r: Recette; b: Besoins; c?: CreneauRe
   const culte = prefsDe(useRepere((s) => s.etat.A)).culte ?? 0;
   return (
     <div className="overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),20px)]">
-      <VignetteRecette r={r} className="mt-2 h-40 w-full rounded-[22px]" />
+      <VignetteRecette r={r} large className="mt-2 h-40 w-full rounded-[22px]" />
+      {auteurRecette(r.id) && (
+        <p className="mt-1 px-1 text-right text-[11px] text-muted-foreground">
+          {tr("Photo : ")}<a href={auteurRecette(r.id)!.lien} target="_blank" rel="noreferrer" className="underline underline-offset-2">{auteurRecette(r.id)!.nom}</a>{tr(" sur ")}<a href="https://unsplash.com/?utm_source=repere&utm_medium=referral" target="_blank" rel="noreferrer" className="underline underline-offset-2">Unsplash</a>
+        </p>
+      )}
       <DrawerTitle className="mt-3 px-1 text-[23px] leading-tight font-bold tracking-[-0.01em]">{nomRecette(r)}</DrawerTitle>
       <DrawerDescription className="mt-1 px-1 text-[13.5px] text-muted-foreground">
         {tr("{n} min", { n: r.min })} · {reg > 0 ? REGIMES[reg] : tr("Avec viande")}{alg.length ? " · " + tr("Contient : {l}", { l: alg.map((k) => ALLERGIES.find((x) => x[0] === k)![1].toLowerCase()).join(", ") }) : ""}
