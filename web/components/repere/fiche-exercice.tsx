@@ -12,7 +12,7 @@ import { useRepere } from "@/lib/store";
 import { useFiche } from "@/lib/fiches";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { imgEx, sourceEx } from "@/lib/medias";
+import { imgEx, imgExGrand, sourceEx } from "@/lib/medias";
 import { variantesDe } from "@/lib/logic/variantes";
 import { musclesDe } from "@/lib/logic/core";
 import { Vignette } from "./exercice-carte";
@@ -37,8 +37,10 @@ function Duo({ id }: { id: string }) {
             key={n}
             className={cn("relative m-0", anime && "absolute inset-0", anime && n === 1 && "animate-[duo_2.4s_ease-in-out_infinite]")}
           >
+            {/* en grand (850 px) ; hors connexion sans elle, la petite */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imgEx(id, n as 0 | 1)} alt={`${EX[id].n}, ${n ? "fin" : tr("départ")}`} className="size-full object-cover" />
+            <img src={imgExGrand(id, n as 0 | 1)} alt={`${EX[id].n}, ${n ? "fin" : tr("départ")}`} className="size-full object-cover"
+              onError={(e) => { const p = imgEx(id, n as 0 | 1); if (!e.currentTarget.src.endsWith(p)) e.currentTarget.src = p; }} />
             {!anime && (
               <figcaption className="absolute bottom-2 left-2 rounded-md bg-background/85 px-1.5 py-0.5 text-[10.5px] font-medium tracking-wide uppercase backdrop-blur">
                 {n ? tr("Fin") : tr("Départ")}

@@ -25,6 +25,9 @@ export const sourceEx = (id: string): Source => SOURCES[SOURCE_EX[id] ?? "fedb"]
 
 /** Photo de démonstration : 0 = départ, 1 = fin. */
 export const imgEx = (id: string, n: 0 | 1 = 0) => `/img/${EX[id]?.img}_${n}.avif`;
+/** La même en grand (850 px au lieu de 420), pour l'afficher à pleine largeur (scripts/photos-grand.mjs).
+    Gardée sur le téléphone quand on la regarde ; hors connexion sans elle, on reprend la petite. */
+export const imgExGrand = (id: string, n: 0 | 1 = 0) => `/img/grand/${EX[id]?.img}_${n}.avif`;
 
 /* Photos Unsplash des machines sans exercice illustré (Ma salle). Règles d'Unsplash :
    l'image s'affiche depuis leurs serveurs (jamais copiée dans public/) et son
@@ -56,7 +59,7 @@ export const imgPoste = (p: { id: string; img?: string }) => {
 };
 /** La même photo en grand, sans recadrage, pour la voir en plein écran. */
 export const imgPosteGrand = (p: { id: string; img?: string }) => {
-  if (p.img) return imgEx(p.img);
+  if (p.img) return imgExGrand(p.img);
   if (PHOTOS_LIBRES[p.id]) return `/img/poste-${p.id}-grand.avif`;
   const ph = PHOTOS_POSTES[p.id];
   return ph && `https://images.unsplash.com/${ph.img}?w=1080&fit=max&auto=format&q=75`;
@@ -139,7 +142,7 @@ const PHOTOS_RECETTES: Record<string, { img: string; auteur: string; profil: str
 /** Photo d'une recette : carrée (listes) ou large (fiche). Sans photo : rien, la vignette garde sa pastille. */
 export const imgRecette = (id: string, format: "carre" | "large" = "carre") => {
   const ph = PHOTOS_RECETTES[id];
-  return ph && `https://images.unsplash.com/${ph.img}?${format === "carre" ? "w=240&h=240" : "w=900&h=450&crop=entropy"}&fit=crop&auto=format&q=70`;
+  return ph && `https://images.unsplash.com/${ph.img}?${format === "carre" ? "w=240&h=240" : "w=1080&h=540&crop=entropy"}&fit=crop&auto=format&q=70`;
 };
 /** Photographe d'une recette, pour la mention sous la photo. */
 export const auteurRecette = (id: string) => {

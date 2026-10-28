@@ -5,7 +5,7 @@ import { EX } from "@/lib/data/exercices";
 import { POSTES, POSTE_DE, ZONES_SALLE } from "@/lib/data/salle";
 import { FAMILLES_STREET, PROGRAMMES_STREET } from "@/lib/data/street";
 import EX_EN from "@/lib/i18n/exercices.en.json";
-import { CREDITS, creditPoste, imgEx, imgPoste, imgPosteGrand, photosDistantes } from "@/lib/medias";
+import { CREDITS, creditPoste, imgEx, imgExGrand, imgPoste, imgPosteGrand, photosDistantes } from "@/lib/medias";
 import { avecSalle, barreDeclaree, exoFiltre, selDeclare } from "@/lib/logic/core";
 import { construireSeance } from "@/lib/logic/assistant";
 
@@ -56,6 +56,10 @@ describe("Ma salle", () => {
       if (g.startsWith("/")) expect(fs.existsSync(path.join(PUB, g)), g).toBe(true);
       expect(creditPoste(p)?.lien, p.id).toMatch(/^https:\/\//);
     }
+  });
+  it("chaque photo d'exercice existe aussi en grand (fiche, photo en grand de Ma salle)", () => {
+    const manquantes = [...new Set(Object.keys(EX).filter((o) => fs.existsSync(path.join(PUB, imgEx(o)))).flatMap((o) => [imgExGrand(o, 0), imgExGrand(o, 1)]))].filter((f) => !fs.existsSync(path.join(PUB, f)));
+    expect(manquantes).toEqual([]);
   });
   it("hors connexion : la liste des photos à garder ne contient que des photos Unsplash, sans doublon", () => {
     const l = photosDistantes();

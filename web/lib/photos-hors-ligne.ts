@@ -16,7 +16,8 @@ export async function memoriserPhotos() {
   fait = true;
   try {
     const cache = await caches.open(CACHE_PHOTOS), voulues = new Set(photosDistantes());
-    for (const req of await cache.keys()) if (!voulues.has(req.url)) await cache.delete(req);
+    /* on ne retire que les photos Unsplash qui ne servent plus (les grandes photos d'exercices, vues une fois, restent) */
+    for (const req of await cache.keys()) if (req.url.startsWith("https://images.unsplash.com/") && !voulues.has(req.url)) await cache.delete(req);
     const manquantes: string[] = [];
     for (const url of voulues) if (!(await cache.match(url, { ignoreVary: true }))) manquantes.push(url);
     /* quatre à la fois, pour ne pas gêner l'app */
