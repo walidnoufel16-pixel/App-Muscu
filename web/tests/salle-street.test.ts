@@ -30,13 +30,23 @@ describe("Ma salle", () => {
     }
   });
   it("photo Unsplash : affichée depuis leurs serveurs, photographe cité dans Crédits", () => {
-    const unsplash = POSTES.filter((p) => !p.img && imgPoste(p));
+    const unsplash = POSTES.filter((p) => imgPoste(p)?.startsWith("https://images.unsplash.com/"));
     expect(unsplash.length).toBe(7);
     for (const p of unsplash) {
       expect(imgPoste(p), p.id).toMatch(/^https:\/\/images\.unsplash\.com\//);
       const c = CREDITS.find((x) => x.quoi.includes(p.n));
       expect(c?.lien, p.id).toMatch(/^https:\/\/unsplash\.com\/@[\w-]+\?utm_source=repere&utm_medium=referral$/);
       expect(c?.nom, p.id).toMatch(/ sur Unsplash$/);
+    }
+  });
+  it("photo libre : copiée dans public/img, auteur et licence dans Crédits", () => {
+    const libres = POSTES.filter((p) => imgPoste(p)?.startsWith("/img/poste-"));
+    expect(libres.map((p) => p.id).sort()).toEqual(["devinc", "latm", "mollass"]);
+    for (const p of libres) {
+      expect(fs.existsSync(path.join(PUB, imgPoste(p)!)), p.id).toBe(true);
+      const c = CREDITS.find((x) => x.quoi.includes(p.n));
+      expect(c?.licence, p.id).toMatch(/^CC BY(-SA)? \d\.\d$/);
+      expect(c?.lien, p.id).toMatch(/^https:\/\//);
     }
   });
   it("chaque exercice machine (eq 0) hors soin a son poste", () => {

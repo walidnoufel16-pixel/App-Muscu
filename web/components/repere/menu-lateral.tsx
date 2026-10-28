@@ -6,7 +6,7 @@
 import { tr } from "@/lib/i18n";
 import { usePathname, useRouter } from "next/navigation";
 import type { Route } from "next";
-import { CaretRightIcon, ListIcon } from "@phosphor-icons/react";
+import { CalendarDotsIcon, CaretRightIcon, DeviceMobileIcon, DownloadSimpleIcon, FileTextIcon, ForkKnifeIcon, GearSixIcon, ListIcon, LockSimpleIcon, MedalIcon, ToolboxIcon, TrophyIcon, WrenchIcon, type Icon } from "@phosphor-icons/react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { useRepere } from "@/lib/store";
 import { useEstAdmin } from "@/lib/admin";
@@ -53,32 +53,32 @@ export function MenuLateral() {
   const va = (c: string, ancre?: string) => () => { tactile(5); fermer(); setTimeout(() => allerA(router, c, ancre), 180); };
   const initiale = (pseudo || "?").trim().charAt(0).toUpperCase();
 
-  type Ligne = { e: string; n: string; onClick: () => void; cache?: boolean };
+  type Ligne = { Icone: Icon; n: string; onClick: () => void; cache?: boolean };
   const blocs: { titre: string; l: Ligne[] }[] = [
     {
       titre: tr("Aller plus loin"),
       l: [
-        { e: "🏆", n: tr("Défis entre amis"), onClick: va("/progres", "defis") },
-        { e: "🎖️", n: tr("Badges et bilans"), onClick: va("/progres", "badges") },
-        { e: "📅", n: tr("Programme 8 semaines"), onClick: () => { useVueEntrainement.setState({ vue: "programme" }); va("/entrainement")(); } },
-        { e: "📥", n: tr("Importer une séance"), onClick: () => { useVueEntrainement.setState({ vue: "libres" }); va("/entrainement")(); setTimeout(() => useMenu.setState({ importer: true }), 500); } },
+        { Icone: TrophyIcon, n: tr("Défis entre amis"), onClick: va("/progres", "defis") },
+        { Icone: MedalIcon, n: tr("Badges et bilans"), onClick: va("/progres", "badges") },
+        { Icone: CalendarDotsIcon, n: tr("Programme 8 semaines"), onClick: () => { useVueEntrainement.setState({ vue: "programme" }); va("/entrainement")(); } },
+        { Icone: DownloadSimpleIcon, n: tr("Importer une séance"), onClick: () => { useVueEntrainement.setState({ vue: "libres" }); va("/entrainement")(); setTimeout(() => useMenu.setState({ importer: true }), 500); } },
       ],
     },
     {
       titre: tr("Mes réglages"),
       l: [
-        { e: "🧰", n: tr("Mon matériel"), onClick: va("/profil", "materiel") },
-        { e: "🍽️", n: tr("Préférences repas"), onClick: va("/repas?prefs=1") },
-        { e: "⚙️", n: tr("Réglages : langue, apparence, silhouette"), onClick: va("/profil", "reglages") },
+        { Icone: ToolboxIcon, n: tr("Mon matériel"), onClick: va("/profil", "materiel") },
+        { Icone: ForkKnifeIcon, n: tr("Préférences repas"), onClick: va("/repas?prefs=1") },
+        { Icone: GearSixIcon, n: tr("Réglages : langue, apparence, silhouette"), onClick: va("/profil", "reglages") },
       ],
     },
     {
       titre: tr("L'app"),
       l: [
-        { e: "📲", n: tr("Installer l'app"), onClick: () => { tactile(5); fermer(); setTimeout(() => useMenu.setState({ installer: true }), 250); }, cache: appInstallee() && !admin },
-        { e: "🔒", n: tr("Confidentialité"), onClick: va("/profil", "confidentialite") },
-        { e: "📄", n: tr("Crédits"), onClick: va("/profil", "credits") },
-        { e: "🛠️", n: tr("Administration"), onClick: va("/admin"), cache: !admin },
+        { Icone: DeviceMobileIcon, n: tr("Installer l'app"), onClick: () => { tactile(5); fermer(); setTimeout(() => useMenu.setState({ installer: true }), 250); }, cache: appInstallee() && !admin },
+        { Icone: LockSimpleIcon, n: tr("Confidentialité"), onClick: va("/profil", "confidentialite") },
+        { Icone: FileTextIcon, n: tr("Crédits"), onClick: va("/profil", "credits") },
+        { Icone: WrenchIcon, n: tr("Administration"), onClick: va("/admin"), cache: !admin },
       ],
     },
   ];
@@ -108,7 +108,8 @@ export function MenuLateral() {
               <div className="overflow-hidden rounded-[18px] bg-card">
                 {b.l.filter((x) => !x.cache).map((x) => (
                   <button key={x.n} onClick={x.onClick} className="flex w-full items-center gap-3 border-t border-border/60 px-3.5 py-3 text-left first:border-t-0 active:bg-muted">
-                    <span className="grid size-8 shrink-0 place-items-center rounded-[10px] bg-muted text-[17px]" aria-hidden>{x.e}</span>
+                    {/* même dessin que les icônes des onglets : trait fin, 22 px */}
+                    <x.Icone className="size-[22px] shrink-0 text-foreground" aria-hidden />
                     <span className="flex-1 text-[15px] font-medium">{x.n}</span>
                     <CaretRightIcon className="size-3.5 text-muted-foreground" />
                   </button>

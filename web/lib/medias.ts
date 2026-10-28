@@ -40,9 +40,17 @@ const PHOTOS_POSTES: Record<string, { img: string; auteur: string; profil: strin
   traineau: { img: "photo-1751456357786-68c278e9063c", auteur: "TSquared Lab", profil: "tsquaredlab" },
 };
 
-/** Photo d'un poste de « Ma salle » : celle de son exercice, sinon Unsplash, sinon rien (icône). */
+/* Photos sous licence libre (Creative Commons), copiées dans public/img, recadrées au carré. */
+const PHOTOS_LIBRES: Record<string, { auteur: string; licence: string; lien: string }> = {
+  mollass: { auteur: "DakilAuctioneers", licence: "CC BY 2.0", lien: "https://www.flickr.com/photos/29694550@N06/19507914228" },
+  devinc: { auteur: "Aliva Sahoo", licence: "CC BY-SA 4.0", lien: "https://commons.wikimedia.org/w/index.php?curid=179972402" },
+  latm: { auteur: "Aliva Sahoo", licence: "CC BY-SA 4.0", lien: "https://commons.wikimedia.org/w/index.php?curid=179972398" },
+};
+
+/** Photo d'un poste de « Ma salle » : celle de son exercice, sinon une photo libre ou Unsplash, sinon rien (icône). */
 export const imgPoste = (p: { id: string; img?: string }) => {
   if (p.img) return imgEx(p.img);
+  if (PHOTOS_LIBRES[p.id]) return `/img/poste-${p.id}.avif`;
   const ph = PHOTOS_POSTES[p.id];
   return ph && `https://images.unsplash.com/${ph.img}?w=360&h=360&fit=crop&auto=format&q=70`;
 };
@@ -53,6 +61,10 @@ export const CREDITS: { quoi: string; nom: string; licence: string; lien: string
   ...POSTES.filter((p) => PHOTOS_POSTES[p.id]).map((p) => {
     const ph = PHOTOS_POSTES[p.id];
     return { quoi: tr("Photo · {n}", { n: p.n }), nom: tr("{n} sur Unsplash", { n: ph.auteur }), licence: tr("Licence Unsplash"), lien: `https://unsplash.com/@${ph.profil}${UTM}` };
+  }),
+  ...POSTES.filter((p) => PHOTOS_LIBRES[p.id]).map((p) => {
+    const ph = PHOTOS_LIBRES[p.id];
+    return { quoi: tr("Photo recadrée · {n}", { n: p.n }), nom: ph.auteur, licence: ph.licence, lien: ph.lien };
   }),
   { quoi: tr("Schéma du corps"), nom: tr("react-native-body-highlighter, Hicham Elabbassi"), licence: "MIT", lien: "https://github.com/HichamELBSI/react-native-body-highlighter" },
   { quoi: tr("Icônes"), nom: tr("Phosphor Icons"), licence: "MIT", lien: "https://phosphoricons.com" },
