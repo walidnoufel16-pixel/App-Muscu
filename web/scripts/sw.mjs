@@ -19,9 +19,11 @@ const liste = fichiers(OUT)
 const sw = `/* Repère — service worker généré (scripts/sw.mjs). */
 const C = "repere-${v}";
 const ASSETS = ${JSON.stringify(liste)};
+/* une nouvelle version s'installe puis attend : l'app propose « Recharger » (components/repere/mise-a-jour.tsx) */
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(C).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(C).then((c) => c.addAll(ASSETS)));
 });
+self.addEventListener("message", (e) => { if (e.data === "activer") self.skipWaiting(); });
 /* les photos Unsplash gardées pour le hors-ligne (lib/photos-hors-ligne.ts) survivent aux mises à jour */
 const PHOTOS = "repere-photos";
 self.addEventListener("activate", (e) => {

@@ -11,6 +11,7 @@ import { Vignette } from "@/components/repere/exercice-carte";
 import { FicheExercice, type FicheOuverte } from "@/components/repere/fiche-exercice";
 import { Remplacer } from "@/components/repere/seance-vues";
 import { FeuilleAjout } from "@/components/repere/ajout-exercice";
+import { MaterielRepliable } from "@/components/repere/filtre-materiel";
 import { confirmer } from "@/components/repere/confirmer";
 import { EX } from "@/lib/data/exercices";
 import { OBJS, PAS_REPOS } from "@/lib/data/referentiels";
@@ -41,6 +42,8 @@ export default function PageComposer() {
   /* la feuille d'ajout part sans matériel coché ; remplacements et « Autre » suivent le matériel coché, sinon celui du Profil */
   const selFeuille = avecSalle(selB ?? [], etat.A);
   const sel = selFeuille.some((t) => !t.startsWith("x:")) ? selFeuille : avecSalle(selDeclare(etat.A), etat.A);
+  /* matériel modifiable sur place : il vaut pour Remplacer, « Autre » et la feuille d'ajout */
+  const materiel = <MaterielRepliable sel={selB ? selFeuille : sel} declare={selDeclare(etat.A)} onChange={setSel} />;
   const [ouv, setOuv] = useState<string | null>(null);
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);
   const [remp, setRemp] = useState<number | null>(null);
@@ -148,6 +151,7 @@ export default function PageComposer() {
               </button>
             ))}
           </div>
+          <div className="mt-4">{materiel}</div>
         </section>
 
         {L.gen && (
@@ -232,6 +236,7 @@ export default function PageComposer() {
         sousTitre={rempCur ? tr("Remplacer · {a}", { a: nomPat(EX[rempCur].pat) }) : ""}
         liste={rempListe}
         courant={rempCur}
+        entete={<div className="mb-3">{materiel}</div>}
         onChoisir={(o) => {
           majLibre((l) => {
             const e = l.ex[remp!], x = EX[o], old = EX[e.id];
