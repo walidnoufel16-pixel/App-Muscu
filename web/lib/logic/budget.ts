@@ -66,6 +66,18 @@ export function estimer(liste: ReturnType<typeof listeCourses>, articles: Articl
   return { total: ref + exact, bas: ref * FOURCHETTE[0] + exact, haut: ref * FOURCHETTE[1] + exact, rayons, lignes, libres };
 }
 
+/** Coût de chaque jour de la semaine : ce que ses repas consomment (personnes comprises), sans ce
+    qui est déjà en stock. Les restes du dîner comptent le jour où on les mange, à la portion du
+    dîner, comme dans la liste de courses : la somme des jours égale l'estimation « consommé ». */
+export function coutsParJour(cases: CaseSemaine[], b: Besoins, pers: number, jours: number, stock: string[] = [], perso?: Perso) {
+  const s = new Set(stock), t = Array.from({ length: jours }, () => 0);
+  for (const k of cases) {
+    const f = portion(k.r, b, k.reste ? "diner" : k.c) * pers;
+    for (const [id, g] of k.r.ing) if (ALIM[id] && ALIM[id].ray !== "base" && !s.has(id)) t[k.jour] += coutAliment(id, g * f, false, perso);
+  }
+  return t;
+}
+
 /** Estimation de la semaine telle qu'elle est planifiée. */
 export function estimerSemaine(p: PrefsRepas, S: SemaineRepas, b: Besoins) {
   const liste = listeCourses(planSemaine(p, S), b, p.pers ?? 1, p.stock ?? []);

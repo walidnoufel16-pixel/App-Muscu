@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ALIM } from "@/lib/data/aliments";
 import { PRIX } from "@/lib/data/prix";
 import { RECETTES } from "@/lib/data/recettes";
-import { ajuster, appliquer, coutAliment, coutRecette, echanges, estimer, estimerSemaine, petitBudget } from "@/lib/logic/budget";
+import { ajuster, appliquer, coutAliment, coutRecette, coutsParJour, echanges, estimer, estimerSemaine, petitBudget } from "@/lib/logic/budget";
 import { listeCourses, macros, planSemaine, portion, prefsDe, semaineParDefaut, type Besoins } from "@/lib/logic/repas";
 import type { SemaineRepas } from "@/lib/logic/types";
 
@@ -62,6 +62,19 @@ describe("estimation de la liste", () => {
     const perso = estimer(liste, [], true, tout);
     expect(perso.bas).toBeCloseTo(perso.total);
     expect(perso.haut).toBeCloseTo(perso.total);
+  });
+});
+
+describe("coût par jour", () => {
+  it("un montant par jour ; la somme des jours égale la liste « consommé », restes et stock compris", () => {
+    const cases = planSemaine(p, S);
+    for (const [pers, stock] of [[1, []], [2, ["riz", "oeuf", "pates"]]] as [number, string[]][]) {
+      const jours = coutsParJour(cases, b, pers, S.jours, stock);
+      expect(jours).toHaveLength(7);
+      for (const j of jours) expect(j).toBeGreaterThan(0);
+      const conso = estimer(listeCourses(cases, b, pers, stock), [], false).total;
+      expect(jours.reduce((a, x) => a + x, 0)).toBeCloseTo(conso, 6);
+    }
   });
 });
 

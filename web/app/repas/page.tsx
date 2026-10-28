@@ -5,7 +5,7 @@
 import { tr } from "@/lib/i18n";
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { MinusIcon, PlusIcon, ShareNetworkIcon, XIcon } from "@phosphor-icons/react";
+import { CaretDownIcon, MinusIcon, PlusIcon, ShareNetworkIcon, XIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { ChoixLangue } from "@/components/repere/choix-langue";
 import { EnTete } from "@/components/repere/en-tete";
@@ -20,7 +20,7 @@ import { emojiDe } from "@/lib/data/aliments";
 import {
   autreRecette, EMOJIS_RAYON, avecCeQueJai, besoins, CRENEAUX, listeCourses, nomAliment, nomRecette, NOM_CRENEAU, planSemaine, prefsDe, quantite, R, recettesPour, semaineParDefaut, suggestions, texteCourses,
 } from "@/lib/logic/repas";
-import { ajuster, appliquer, echanges, emballage, estimer, estimerSemaine, euros, petitBudget, prixKg, type Estimation } from "@/lib/logic/budget";
+import { ajuster, appliquer, coutsParJour, echanges, emballage, estimer, estimerSemaine, euros, petitBudget, prixKg, type Estimation } from "@/lib/logic/budget";
 import { PRIX } from "@/lib/data/prix";
 import type { ArticleLibre, CreneauRepas, PrefsRepas, SemaineRepas } from "@/lib/logic/types";
 import { useRepere } from "@/lib/store";
@@ -164,6 +164,11 @@ function Courses({ p, b, kcal, ouvrir }: { p: PrefsRepas; b: ReturnType<typeof b
   const est = estimer(liste, articles, !p.conso, p.prix);
   const majPrefs = (f: (q: PrefsRepas) => PrefsRepas) => muter((E) => { E.A.repas = f(prefsDe(E.A)); });
   const [prixDe, setPrixDe] = useState<string | null>(null);
+  /* jours dépliés : repliés par défaut, la semaine se lit d'un coup d'œil (jour, repas, coût) */
+  const [ouverts, setOuverts] = useState<number[]>([]);
+  const parJour = coutsParJour(cases, b, pers, S.jours, p.stock ?? [], p.prix);
+  const joursPlanifies = Array.from({ length: S.jours }, (_, j) => j).filter((j) => cases.some((k) => k.jour === j));
+  const toutOuvert = joursPlanifies.every((j) => ouverts.includes(j));
   const nbArticles = liste.reduce((n, r) => n + r.l.length, 0) + articles.length;
   const restants = liste.reduce((n, r) => n + r.l.filter((x) => !S.coches.includes(x.id)).length, 0) + articles.filter((a) => !S.coches.includes(a.id)).length;
   const cocher = (id: string) => { tactile(5); maj((s) => ({ ...s, coches: s.coches.includes(id) ? s.coches.filter((y) => y !== id) : [...s.coches, id] })); };
@@ -196,23 +201,48 @@ function Courses({ p, b, kcal, ouvrir }: { p: PrefsRepas; b: ReturnType<typeof b
         <Button variant="soft" size="lg" className="mt-3 w-full rounded-xl" onClick={() => { tactile(8); maj((s) => ({ ...s, graine: s.graine + 1, choix: {}, coches: [] })); }}>{tr("Proposer une autre semaine")}</Button>
       </section>
 
-      {Array.from({ length: S.jours }, (_, j) => {
-        const du = cases.filter((k) => k.jour === j);
-        if (!du.length) return null;
+      {joursPlanifies.length > 0 && (
+        <div className="mt-1 flex items-baseline justify-between px-1">
+          <h2 className="text-[17px] font-bold">{tr("Jour par jour")}</h2>
+          <button onClick={() => { tactile(5); setOuverts(toutOuvert ? [] : joursPlanifies); }} className="text-[13px] font-semibold text-plate-ink">
+            {toutOuvert ? tr("Tout replier") : tr("Tout déplier")}
+          </button>
+        </div>
+      )}
+      {joursPlanifies.map((j) => {
+        const du = cases.filter((k) => k.jour === j), ouvert = ouverts.includes(j);
         return (
-          <section key={j} aria-label={JOURS[j]}>
-            <h3 className="eyebrow mb-1.5 px-1">{JOURS[j]}</h3>
-            <div className="flex flex-col gap-1.5">
-              {du.map((k) => (
-                <CarteRecette key={k.c} r={k.r} c={k.c} b={b} kcal={kcal} onOuvrir={() => ouvrir(k.r, k.c)}
-                  sous={k.reste ? <span className="mt-1 block text-[12.5px] font-medium text-plate-ink">{tr("Les restes du dîner d'hier")}</span> : undefined}
-                  droite={k.reste ? <span className="size-10" /> : <BoutonAutre label={tr("Changer : {j}, {c}", { j: JOURS[j], c: NOM_CRENEAU[k.c] })} onClick={() => maj((s) => ({ ...s, choix: { ...s.choix, [`${j}|${k.c}`]: autreRecette(p, cases, k).id } }))} />}
-                />
-              ))}
-            </div>
+          <section key={j} aria-label={JOURS[j]} className="overflow-hidden rounded-[20px] bg-card">
+            <button onClick={() => { tactile(4); setOuverts((o) => (o.includes(j) ? o.filter((x) => x !== j) : [...o, j])); }} aria-expanded={ouvert}
+              className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-muted">
+              <span className="min-w-0 flex-1">
+                <span className="flex items-baseline gap-2">
+                  <span className="text-[15.5px] font-semibold">{JOURS[j]}</span>
+                  <span className="text-[12.5px] text-muted-foreground">{du.length > 1 ? tr("{n} repas", { n: du.length }) : tr("1 repas")}</span>
+                </span>
+                {!ouvert && <span className="block truncate text-[12.5px] text-muted-foreground">{du.map((k) => nomRecette(k.r)).join(" · ")}</span>}
+              </span>
+              <span className="num shrink-0 text-[15px] font-bold" aria-label={tr("Environ {e} ce jour-là", { e: euros(parJour[j]) })}>{"≈ " + euros(parJour[j])}</span>
+              <CaretDownIcon className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-200", ouvert && "rotate-180")} />
+            </button>
+            {ouvert && (
+              <div className="flex flex-col gap-1.5 bg-muted/40 p-1.5">
+                {du.map((k) => (
+                  <CarteRecette key={k.c} r={k.r} c={k.c} b={b} kcal={kcal} onOuvrir={() => ouvrir(k.r, k.c)}
+                    sous={k.reste ? <span className="mt-1 block text-[12.5px] font-medium text-plate-ink">{tr("Les restes du dîner d'hier")}</span> : undefined}
+                    droite={k.reste ? <span className="size-10" /> : <BoutonAutre label={tr("Changer : {j}, {c}", { j: JOURS[j], c: NOM_CRENEAU[k.c] })} onClick={() => maj((s) => ({ ...s, choix: { ...s.choix, [`${j}|${k.c}`]: autreRecette(p, cases, k).id } }))} />}
+                  />
+                ))}
+              </div>
+            )}
           </section>
         );
       })}
+      {joursPlanifies.length > 0 && (
+        <p className="px-1 text-[12px] leading-relaxed text-muted-foreground">
+          {pers > 1 ? tr("Coût de ce que les repas de chaque jour consomment, pour {n} personnes. En caisse, les paquets entiers font un peu plus.", { n: pers }) : tr("Coût de ce que les repas de chaque jour consomment. En caisse, les paquets entiers font un peu plus.")}
+        </p>
+      )}
 
       <CarteBudget p={p} S={S} b={b} est={est} majPrefs={majPrefs} majSemaine={(s) => maj(() => s)} />
 
