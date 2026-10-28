@@ -9,12 +9,14 @@
     "lint": "eslint",
     "test": "vitest run",
     "fixtures": "node tests/genere-fixtures.mjs",
-    "postbuild": "node scripts/sw.mjs"
+    "postbuild": "node scripts/sw.mjs",
+    "prebuild": "node scripts/zxing.mjs"
   },
   "dependencies": {
     "@fontsource/barlow-condensed": "^5.3.0",
     "@phosphor-icons/react": "^2.1.10",
     "@supabase/supabase-js": "^2.117.2",
+    "barcode-detector": "3.2.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "geist": "^1.7.2",

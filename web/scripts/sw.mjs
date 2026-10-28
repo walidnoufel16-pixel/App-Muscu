@@ -12,15 +12,18 @@ if (!v) try { v = execSync("git rev-parse --short=8 HEAD").toString().trim(); } 
 const liste = fichiers(OUT)
   .map((p) => "/" + relative(OUT, p).split(sep).join("/"))
   /* les photos en grand (≈ 19 Mo) ne sont pas mises en cache d'avance : gardées quand on les regarde */
-  .filter((p) => p !== "/sw.js" && !p.endsWith(".txt") && !p.endsWith(".map") && !p.startsWith("/img/grand/"))
+  /* ni le moteur du scanner (≈ 1 Mo, il faut de toute façon le réseau pour trouver un produit) */
+  .filter((p) => p !== "/sw.js" && !p.endsWith(".txt") && !p.endsWith(".map") && !p.startsWith("/img/grand/") && !p.startsWith("/zxing/"))
   .map((p) => p.replace(/index\.html$/, ""))
   .sort();
 const sw = `/* Repère — service worker généré (scripts/sw.mjs). */
 const C = "repere-${v}";
 const ASSETS = ${JSON.stringify(liste)};
+/* une nouvelle version s'installe puis attend : l'app propose « Recharger » (components/repere/mise-a-jour.tsx) */
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(C).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(C).then((c) => c.addAll(ASSETS)));
 });
+self.addEventListener("message", (e) => { if (e.data === "activer") self.skipWaiting(); });
 /* les photos Unsplash gardées pour le hors-ligne (lib/photos-hors-ligne.ts) survivent aux mises à jour */
 const PHOTOS = "repere-photos";
 self.addEventListener("activate", (e) => {

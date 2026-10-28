@@ -177,13 +177,14 @@ function IdeesRecettes() {
    boutons de portée (pour aujourd'hui, pour toujours) sous la ligne. Sans
    `actions`, le toucher remplace directement. */
 export function Remplacer({
-  ouvert, onClose, titre, sousTitre, liste, courant, onChoisir, actions, pied,
+  ouvert, onClose, titre, sousTitre, liste, courant, onChoisir, actions, pied, entete,
 }: {
   ouvert: boolean; onClose: () => void; titre: string; sousTitre: string;
   liste: string[]; courant?: string;
   onChoisir?: (o: string) => void;
   actions?: (o: string) => React.ReactNode;
   pied?: React.ReactNode;
+  entete?: React.ReactNode; // au-dessus de la liste (ex. le matériel, pour élargir les propositions)
 }) {
   const [sel, setSel] = useState<string | null>(null);
   return (
@@ -195,6 +196,7 @@ export function Remplacer({
           <DrawerDescription className="mb-3 text-[13.5px] text-muted-foreground">
             {tr("Même muscle, compatible avec ton matériel. Remplacer ne change ni tes séries ni ton effort visé.")}
           </DrawerDescription>
+          {entete}
           <div className="flex flex-col gap-1.5">
             {liste.map((o) => {
               const cur = o === courant, choisi = sel === o;

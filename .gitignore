@@ -5,3 +5,5 @@ node_modules/
 supabase/.temp/
 supabase/.branches/
 .DS_Store
+# moteur de lecture des codes-barres, recopié avant chaque build (web/scripts/zxing.mjs)
+web/public/zxing/

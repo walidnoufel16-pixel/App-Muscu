@@ -1,0 +1,25 @@
+{
+ "code": "3033491454080",
+ "product": {
+  "brands": "Danone",
+  "code": "3033491454080",
+  "image_front_small_url": "https://images.openfoodfacts.org/images/products/303/349/145/4080/front_fr.134.200.jpg",
+  "nutriments": {
+   "carbohydrates_100g": 3.9,
+   "energy-kcal_100g": 57.5,
+   "fat_100g": 0.2,
+   "proteins_100g": 10
+  },
+  "nutrition_data": "on",
+  "nutrition_data_prepared_per": "100g",
+  "product_name": "SKYR",
+  "product_name_fr": "SKYR",
+  "product_quantity": 480,
+  "product_quantity_unit": "g",
+  "quantity": "480 g",
+  "serving_quantity": 120,
+  "serving_size": "120g"
+ },
+ "status": 1,
+ "status_verbose": "product found"
+}

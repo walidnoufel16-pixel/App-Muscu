@@ -17,6 +17,7 @@ import { suivreHistorique } from "@/lib/suivi";
 import { suivreDefis } from "@/lib/defis";
 import { useVerifierAccesProgramme } from "@/lib/fonctionnalites";
 import { memoriserPhotosAuRepos } from "@/lib/photos-hors-ligne";
+import { MiseAJour } from "./mise-a-jour";
 
 /* Démarre l'app une fois (session Supabase, état local) et pose la barre
    d'onglets. Les écrans plein écran (accueil, questionnaire) et les tâches
@@ -38,9 +39,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     usePile.getState().noter(chemin + location.search);
     useSens.setState({ sens: null });
   }, [chemin]);
-  /* Mode hors ligne : service worker généré au build (scripts/sw.mjs). */
+  /* Mode hors ligne : service worker généré au build (scripts/sw.mjs), enregistré par MiseAJour. */
   useEffect(() => {
-    if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
     /* photos des recettes et des machines (Unsplash) gardées sur le téléphone */
     memoriserPhotosAuRepos();
   }, []);
@@ -69,6 +69,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {onglets && <TabBar />}
       {onglets && <Installer />}
       {onglets && <MenuLateral />}
+      {/* le bandeau de mise à jour attend qu'on quitte une tâche en cours (séance, composeur…) */}
+      <MiseAJour visible={onglets} />
       <Confirmateur />
       <Bilan />
       <SurveillantBadges />
