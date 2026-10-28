@@ -39,7 +39,7 @@ function Duo({ id }: { id: string }) {
           >
             {/* en grand (850 px) ; hors connexion sans elle, la petite */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imgExGrand(id, n as 0 | 1)} alt={`${EX[id].n}, ${n ? "fin" : tr("départ")}`} className="size-full object-cover"
+            <img src={imgExGrand(id, n as 0 | 1)} alt={`${EX[id].n}, ${n ? "fin" : tr("départ")}`} className="photo-salle size-full object-cover"
               onError={(e) => { const p = imgEx(id, n as 0 | 1); if (!e.currentTarget.src.endsWith(p)) e.currentTarget.src = p; }} />
             {!anime && (
               <figcaption className="absolute bottom-2 left-2 rounded-md bg-background/85 px-1.5 py-0.5 text-[10.5px] font-medium tracking-wide uppercase backdrop-blur">

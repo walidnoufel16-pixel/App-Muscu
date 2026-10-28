@@ -22,7 +22,7 @@ export function Vignette({ id, num, fait, trace, className }: { id: string; num?
         src={imgEx(id)}
         alt=""
         loading="lazy"
-        className={cn("size-full object-cover transition-opacity", fait && "opacity-70")}
+        className={cn("photo-salle size-full object-cover transition-opacity", fait && "opacity-70")}
         onError={(e) => (e.currentTarget.style.visibility = "hidden")}
       />
       {num != null && (
