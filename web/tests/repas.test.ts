@@ -157,7 +157,7 @@ describe("photos des recettes", () => {
     for (const r of RECETTES) {
       const src = imgRecette(r.id);
       expect(src, r.id).toMatch(/^https:\/\/images\.unsplash\.com\/photo-[\w-]+\?/);
-      expect(imgRecette(r.id, "large"), r.id).toMatch(/w=900&h=450/);
+      expect(imgRecette(r.id, "large"), r.id).toMatch(/w=1080&h=540/);
       expect(auteurRecette(r.id)?.lien, r.id).toMatch(/^https:\/\/unsplash\.com\/@[\w-]+\?utm_source=repere&utm_medium=referral$/);
       const photo = src!.split("?")[0];
       expect(vues.has(photo), `${r.id} : photo déjà utilisée`).toBe(false);

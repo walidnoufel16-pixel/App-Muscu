@@ -16,6 +16,7 @@ import { usePile, useSens } from "@/lib/nav";
 import { suivreHistorique } from "@/lib/suivi";
 import { suivreDefis } from "@/lib/defis";
 import { useVerifierAccesProgramme } from "@/lib/fonctionnalites";
+import { memoriserPhotosAuRepos } from "@/lib/photos-hors-ligne";
 
 /* Démarre l'app une fois (session Supabase, état local) et pose la barre
    d'onglets. Les écrans plein écran (accueil, questionnaire) et les tâches
@@ -40,6 +41,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   /* Mode hors ligne : service worker généré au build (scripts/sw.mjs). */
   useEffect(() => {
     if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+    /* photos des recettes et des machines (Unsplash) gardées sur le téléphone */
+    memoriserPhotosAuRepos();
   }, []);
 
   if (!pret)

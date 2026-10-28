@@ -5,7 +5,7 @@ import { EX } from "@/lib/data/exercices";
 import { POSTES, POSTE_DE, ZONES_SALLE } from "@/lib/data/salle";
 import { FAMILLES_STREET, PROGRAMMES_STREET } from "@/lib/data/street";
 import EX_EN from "@/lib/i18n/exercices.en.json";
-import { CREDITS, imgEx, imgPoste } from "@/lib/medias";
+import { CREDITS, creditPoste, imgEx, imgExGrand, imgPoste, imgPosteGrand, photosDistantes } from "@/lib/medias";
 import { avecSalle, barreDeclaree, exoFiltre, selDeclare } from "@/lib/logic/core";
 import { construireSeance } from "@/lib/logic/assistant";
 
@@ -48,6 +48,24 @@ describe("Ma salle", () => {
       expect(c?.licence, p.id).toMatch(/^CC BY(-SA)? \d\.\d$/);
       expect(c?.lien, p.id).toMatch(/^https:\/\//);
     }
+  });
+  it("chaque machine avec photo l'a aussi en grand, avec son auteur ; les fichiers locaux existent", () => {
+    for (const p of POSTES.filter((x) => imgPoste(x))) {
+      const g = imgPosteGrand(p)!;
+      expect(g, p.id).toBeTruthy();
+      if (g.startsWith("/")) expect(fs.existsSync(path.join(PUB, g)), g).toBe(true);
+      expect(creditPoste(p)?.lien, p.id).toMatch(/^https:\/\//);
+    }
+  });
+  it("chaque photo d'exercice existe aussi en grand (fiche, photo en grand de Ma salle)", () => {
+    const manquantes = [...new Set(Object.keys(EX).filter((o) => fs.existsSync(path.join(PUB, imgEx(o)))).flatMap((o) => [imgExGrand(o, 0), imgExGrand(o, 1)]))].filter((f) => !fs.existsSync(path.join(PUB, f)));
+    expect(manquantes).toEqual([]);
+  });
+  it("hors connexion : la liste des photos à garder ne contient que des photos Unsplash, sans doublon", () => {
+    const l = photosDistantes();
+    expect(l.length).toBe(63 * 2 + 7 * 2);
+    expect(new Set(l).size).toBe(l.length);
+    for (const u of l) expect(u).toMatch(/^https:\/\/images\.unsplash\.com\/photo-/);
   });
   it("chaque exercice machine (eq 0) hors soin a son poste", () => {
     const sans = Object.keys(EX).filter((o) => EX[o].eq === 0 && EX[o].pat !== "soin" && !POSTE_DE[o]);

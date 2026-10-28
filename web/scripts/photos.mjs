@@ -7,8 +7,9 @@
 import { readdirSync, mkdirSync, statSync } from "node:fs";
 import sharp from "sharp";
 
-const SRC = new URL("../medias/originaux/", import.meta.url).pathname;
-const OUT = new URL("../public/img/", import.meta.url).pathname;
+/* PHOTOS_SRC / PHOTOS_OUT : traiter un autre dossier (les photos en grand, scripts/photos-grand.mjs) */
+const SRC = process.env.PHOTOS_SRC || new URL("../medias/originaux/", import.meta.url).pathname;
+const OUT = process.env.PHOTOS_OUT || new URL("../public/img/", import.meta.url).pathname;
 mkdirSync(OUT, { recursive: true });
 
 async function studio(fichier) {
