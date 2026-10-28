@@ -5,7 +5,7 @@ import { EX } from "@/lib/data/exercices";
 import { POSTES, POSTE_DE, ZONES_SALLE } from "@/lib/data/salle";
 import { FAMILLES_STREET, PROGRAMMES_STREET } from "@/lib/data/street";
 import EX_EN from "@/lib/i18n/exercices.en.json";
-import { imgEx } from "@/lib/medias";
+import { CREDITS, imgEx, imgPoste } from "@/lib/medias";
 import { avecSalle, barreDeclaree, exoFiltre, selDeclare } from "@/lib/logic/core";
 import { construireSeance } from "@/lib/logic/assistant";
 
@@ -14,16 +14,39 @@ const FICHES = JSON.parse(fs.readFileSync(path.join(PUB, "data/fiches.json"), "u
 const FICHES_EN = JSON.parse(fs.readFileSync(path.join(PUB, "data/fiches.en.json"), "utf8"));
 
 describe("Ma salle", () => {
-  it("chaque poste regroupe des exercices existants, sans doublon, avec une zone et une image", () => {
+  it("chaque poste regroupe des exercices existants, sans doublon, avec une zone", () => {
     const vus = new Set<string>();
+    expect(new Set(POSTES.map((p) => p.id)).size).toBe(POSTES.length);
     for (const p of POSTES) {
       expect(ZONES_SALLE.some((z) => z.k === p.zone), p.id).toBe(true);
-      expect(EX[p.img], p.id).toBeTruthy();
+      if (p.img) expect(EX[p.img], p.id).toBeTruthy();
+      /* un poste avec exercices montre la photo de l'un d'eux */
+      if (p.ex.length) expect(p.img && p.ex.includes(p.img), p.id).toBe(true);
       for (const o of p.ex) {
         expect(EX[o], `${p.id} : ${o}`).toBeTruthy();
         expect(vus.has(o), `${o} dans deux postes`).toBe(false);
         vus.add(o);
       }
+    }
+  });
+  it("photo Unsplash : affichée depuis leurs serveurs, photographe cité dans Crédits", () => {
+    const unsplash = POSTES.filter((p) => imgPoste(p)?.startsWith("https://images.unsplash.com/"));
+    expect(unsplash.length).toBe(7);
+    for (const p of unsplash) {
+      expect(imgPoste(p), p.id).toMatch(/^https:\/\/images\.unsplash\.com\//);
+      const c = CREDITS.find((x) => x.quoi.includes(p.n));
+      expect(c?.lien, p.id).toMatch(/^https:\/\/unsplash\.com\/@[\w-]+\?utm_source=repere&utm_medium=referral$/);
+      expect(c?.nom, p.id).toMatch(/ sur Unsplash$/);
+    }
+  });
+  it("photo libre : copiée dans public/img, auteur et licence dans Crédits", () => {
+    const libres = POSTES.filter((p) => imgPoste(p)?.startsWith("/img/poste-"));
+    expect(libres.map((p) => p.id).sort()).toEqual(["devinc", "latm", "mollass"]);
+    for (const p of libres) {
+      expect(fs.existsSync(path.join(PUB, imgPoste(p)!)), p.id).toBe(true);
+      const c = CREDITS.find((x) => x.quoi.includes(p.n));
+      expect(c?.licence, p.id).toMatch(/^CC BY(-SA)? \d\.\d$/);
+      expect(c?.lien, p.id).toMatch(/^https:\/\//);
     }
   });
   it("chaque exercice machine (eq 0) hors soin a son poste", () => {

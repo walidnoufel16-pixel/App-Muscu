@@ -2,15 +2,31 @@
 
 import { tr } from "@/lib/i18n";
 import { useState } from "react";
-import { BuildingsIcon, CaretRightIcon, CheckIcon } from "@phosphor-icons/react";
+import { BarbellIcon, BuildingsIcon, CaretRightIcon, CheckIcon } from "@phosphor-icons/react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
-import { Vignette } from "./exercice-carte";
-import { POSTES, ZONES_SALLE } from "@/lib/data/salle";
+import { POSTES, ZONES_SALLE, type Poste } from "@/lib/data/salle";
+import { imgPoste } from "@/lib/medias";
 import { useRepere } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 /* Postes visibles selon le matériel coché : machines (m0), postes à barre (m1). */
 const zonesPour = (types: string[]) => ZONES_SALLE.filter((z) => types.includes(z.type));
+
+/* Photo d'un poste ; icône s'il n'en a pas ou si elle ne charge pas (hors ligne, image bloquée). */
+function PhotoPoste({ p, className }: { p: Poste; className?: string }) {
+  const src = imgPoste(p);
+  const [rate, setRate] = useState(false);
+  return (
+    <span className={cn("relative grid place-items-center overflow-hidden bg-muted", className)}>
+      {src && !rate ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img src={src} alt="" loading="lazy" className="size-full object-cover" onError={() => setRate(true)} />
+      ) : (
+        <BarbellIcon className="size-9 text-muted-foreground/70" weight="duotone" />
+      )}
+    </span>
+  );
+}
 
 /* « Ma salle » : une planche illustrée des machines et postes ; on touche ceux
    qu'on n'a pas. Enregistré dans le compte (A.sansPostes). */
@@ -57,7 +73,7 @@ export function FeuilleSalle({ ouvert, onOuvert, types = ["m0", "m1"] }: { ouver
                       onClick={() => basculer(p.id)}
                       className={cn("relative flex flex-col items-stretch gap-1.5 rounded-[16px] border-2 bg-card p-1.5 text-left transition active:scale-[.97]", dispo ? "border-plate" : "border-transparent")}
                     >
-                      <Vignette id={p.img} className={cn("aspect-square size-auto w-full rounded-[11px] transition", !dispo && "opacity-40 grayscale")} />
+                      <PhotoPoste p={p} className={cn("aspect-square w-full rounded-[11px] transition", !dispo && "opacity-40 grayscale")} />
                       <span className={cn("line-clamp-2 min-h-[2.4em] px-0.5 text-[12px] leading-[1.2] font-medium", !dispo && "text-muted-foreground line-through")}>{p.n}</span>
                       <span className={cn("absolute top-2.5 right-2.5 grid size-5 place-items-center rounded-full ring-2 ring-card", dispo ? "bg-plate text-plate-foreground" : "bg-muted")}>
                         {dispo && <CheckIcon className="size-3" weight="bold" />}

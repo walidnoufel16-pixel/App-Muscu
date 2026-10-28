@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ALIM, EMOJI, emojiDe } from "@/lib/data/aliments";
 import { RECETTES } from "@/lib/data/recettes";
+import { auteurRecette, imgRecette } from "@/lib/medias";
 import {
   allergenesDe, avecCeQueJai, chercherAliments, nomAliment, nouvelAliment, besoins, compatible, listeCourses, macros, mains, planSemaine, portion, prefsDe, quantite, R, recettesPour, regimeDe, semaineParDefaut, suggestions,
 } from "@/lib/logic/repas";
@@ -147,5 +148,20 @@ describe("suggestions, avec ce que j'ai, semaine, courses", () => {
     expect(l.map((r) => r.k)[0]).toBe("leg");
     /* deux personnes : deux fois plus */
     expect(listeCourses(cases, b, 2, []).flatMap((r) => r.l).find((x) => x.id === "poulet")!.g).toBeCloseTo(attendu * 2);
+  });
+});
+
+describe("photos des recettes", () => {
+  it("une photo Unsplash par recette, affichée depuis leurs serveurs, photographe cité", () => {
+    const vues = new Set<string>();
+    for (const r of RECETTES) {
+      const src = imgRecette(r.id);
+      expect(src, r.id).toMatch(/^https:\/\/images\.unsplash\.com\/photo-[\w-]+\?/);
+      expect(imgRecette(r.id, "large"), r.id).toMatch(/w=900&h=450/);
+      expect(auteurRecette(r.id)?.lien, r.id).toMatch(/^https:\/\/unsplash\.com\/@[\w-]+\?utm_source=repere&utm_medium=referral$/);
+      const photo = src!.split("?")[0];
+      expect(vues.has(photo), `${r.id} : photo déjà utilisée`).toBe(false);
+      vues.add(photo);
+    }
   });
 });
