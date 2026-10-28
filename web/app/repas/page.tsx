@@ -69,7 +69,9 @@ function Repas() {
         </div>
       )}
       <FicheRecette r={fiche?.r ?? null} c={fiche?.c} b={b} kcal={kcal} pers0={vue === "courses" ? p.pers ?? 1 : 1} onClose={() => setFiche(null)} />
-      <Drawer open={!!brouillon} onOpenChange={(o) => !o && setBrouillon(null)}>
+      {/* grande feuille qui défile : pas de repositionnement au clavier (sur iPhone, elle remontait
+          hors de l'écran et cachait le champ en cours de saisie) ; c'est la page qui fait défiler le champ */}
+      <Drawer open={!!brouillon} onOpenChange={(o) => !o && setBrouillon(null)} repositionInputs={false}>
         <DrawerContent className="theme-repas max-h-[92dvh]">
           {brouillon && (
             <div className="overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),20px)]">

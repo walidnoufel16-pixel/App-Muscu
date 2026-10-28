@@ -154,6 +154,7 @@ export function ChampBudget({ v, onChange, className }: { v?: number; onChange: 
   return (
     <span className={cn("flex h-9 items-center gap-1.5 rounded-full border border-border bg-card pr-3 pl-1", className)}>
       <input inputMode="numeric" value={t} onChange={(e) => setT(e.target.value.replace(/[^\d.,]/g, ""))} onBlur={valider} onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()}
+        onFocus={(e) => { const el = e.currentTarget; setTimeout(() => el.scrollIntoView({ block: "center", behavior: "smooth" }), 350); }}
         placeholder={tr("Autre")} aria-label={tr("Budget en euros par semaine")} className="num h-7 w-16 rounded-full bg-muted px-2.5 text-center text-[14px] font-semibold outline-none focus:ring-2 focus:ring-plate" />
       <span className="text-[13px] text-muted-foreground">{tr("€ / semaine")}</span>
     </span>
