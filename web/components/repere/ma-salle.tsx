@@ -21,7 +21,7 @@ function PhotoPoste({ p, className }: { p: Poste; className?: string }) {
     <span className={cn("relative grid place-items-center overflow-hidden bg-muted", className)}>
       {src && !rate ? (
         /* eslint-disable-next-line @next/next/no-img-element */
-        <img src={src} alt="" loading="lazy" className="photo-salle size-full object-cover" onError={() => setRate(true)} />
+        <img src={src} alt="" loading="lazy" className="size-full object-cover" onError={() => setRate(true)} />
       ) : (
         <BarbellIcon className="size-9 text-muted-foreground/70" weight="duotone" />
       )}
@@ -48,7 +48,7 @@ function Visionneuse({ p, onClose }: { p: Poste | null; onClose: () => void }) {
         {rate < sources.length ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img key={sources[rate]} src={sources[rate]} alt={p?.n ?? ""} onError={() => setRate((x) => x + 1)} onClick={(e) => e.stopPropagation()}
-            className="photo-salle max-h-[72dvh] w-auto max-w-full rounded-2xl object-contain" />
+            className="max-h-[72dvh] w-auto max-w-full rounded-2xl object-contain" />
         ) : (
           <BarbellIcon className="size-24 text-white/50" weight="duotone" />
         )}

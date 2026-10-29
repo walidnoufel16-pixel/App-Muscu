@@ -37,7 +37,7 @@ function Photo({ nom, grand, className }: { nom: string; grand?: boolean; classN
   const petite = `/img/${nom}.avif`;
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={grand ? `/img/grand/${nom}.avif` : petite} alt="" loading="lazy" className={cn("photo-salle object-cover", className)}
+    <img src={grand ? `/img/grand/${nom}.avif` : petite} alt="" loading="lazy" className={cn("object-cover", className)}
       onError={(e) => { if (!e.currentTarget.src.endsWith(petite)) e.currentTarget.src = petite; else e.currentTarget.style.visibility = "hidden"; }} />
   );
 }
