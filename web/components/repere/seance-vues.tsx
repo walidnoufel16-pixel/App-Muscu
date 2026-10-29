@@ -3,8 +3,11 @@
 import { pluriel, tr } from "@/lib/i18n";
 import { CarteProteines } from "./proteines";
 import { useState } from "react";
-import { CaretRightIcon, ClockIcon, LightbulbIcon } from "@phosphor-icons/react";
+import { CaretRightIcon, ClockIcon, LightbulbIcon, MagnifyingGlassPlusIcon, XIcon } from "@phosphor-icons/react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Duo } from "./fiche-exercice";
 import { EX } from "@/lib/data/exercices";
 import { COLLATION, ECHAUF, OBJS } from "@/lib/data/referentiels";
 import { baseRPE, nomPat } from "@/lib/logic/core";
@@ -175,7 +178,8 @@ function IdeesRecettes() {
 /* ---------------- remplacer un exercice ----------------
    Un toucher sur un mouvement le sélectionne ; `actions` rend alors les
    boutons de portée (pour aujourd'hui, pour toujours) sous la ligne. Sans
-   `actions`, le toucher remplace directement. */
+   `actions`, le toucher remplace directement. Toucher la photo montre le
+   mouvement en grand avant de choisir. */
 export function Remplacer({
   ouvert, onClose, titre, sousTitre, liste, courant, onChoisir, actions, pied, entete,
 }: {
@@ -187,8 +191,9 @@ export function Remplacer({
   entete?: React.ReactNode; // au-dessus de la liste (ex. le matériel, pour élargir les propositions)
 }) {
   const [sel, setSel] = useState<string | null>(null);
+  const [vu, setVu] = useState<string | null>(null);
   return (
-    <Drawer open={ouvert} onOpenChange={(o) => { if (!o) { setSel(null); onClose(); } }}>
+    <Drawer open={ouvert} onOpenChange={(o) => { if (!o) { setSel(null); setVu(null); onClose(); } }}>
       <DrawerContent className="max-h-[88dvh]">
         <div className="overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),20px)]">
           <div className="eyebrow mt-2">{sousTitre}</div>
@@ -202,12 +207,16 @@ export function Remplacer({
               const cur = o === courant, choisi = sel === o;
               return (
                 <div key={o} className={cn("overflow-hidden rounded-[18px] border bg-card transition-colors", cur || choisi ? "border-plate" : "border-border/80")}>
+                  <div className="flex items-center">
+                  <button onClick={() => setVu(o)} aria-label={tr("Voir {n} en grand", { n: EX[o].n })} className="relative shrink-0 py-2.5 pl-2.5 active:scale-95">
+                    <Vignette id={o} className="size-12 rounded-[12px]" />
+                    <MagnifyingGlassPlusIcon className="absolute right-0.5 bottom-2 size-4 rounded-full bg-background/90 p-0.5" weight="bold" />
+                  </button>
                   <button
                     disabled={cur}
                     onClick={() => (actions ? setSel(choisi ? null : o) : onChoisir?.(o))}
-                    className="flex w-full items-center gap-3 p-2.5 text-left disabled:cursor-default"
+                    className="flex min-w-0 flex-1 items-center gap-3 p-2.5 pl-3 text-left disabled:cursor-default"
                   >
-                    <Vignette id={o} className="size-12 rounded-[12px]" />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[15px] font-semibold">{EX[o].n}</span>
                       <span className="block truncate text-[12.5px] text-muted-foreground">{EX[o].m}</span>
@@ -218,6 +227,7 @@ export function Remplacer({
                       <CaretRightIcon className={cn("size-4 text-muted-foreground transition-transform", choisi && "rotate-90")} />
                     )}
                   </button>
+                  </div>
                   {choisi && actions && <div className="grid grid-cols-2 gap-2 px-2.5 pb-2.5 animate-in fade-in-0 duration-150">{actions(o)}</div>}
                 </div>
               );
@@ -226,7 +236,44 @@ export function Remplacer({
           {pied}
           <p className="mt-3 text-center text-[11.5px] text-muted-foreground">{tr("{length} mouvement{a} · {a1}", { length: liste.length, a: pluriel(liste.length) ? "s" : "", a1: nomPat(EX[liste[0]]?.pat || "") })}</p>
         </div>
+        <Apercu id={vu} courant={vu === courant} onClose={() => setVu(null)}
+          onChoisir={(o) => { setVu(null); if (actions) setSel(o); else onChoisir?.(o); }} actions={actions} />
       </DrawerContent>
     </Drawer>
+  );
+}
+
+/* Le mouvement en grand (départ et fin), et le choix sur place. Avec `actions`
+   (pour aujourd'hui, pour toujours), ce sont elles qui valident. */
+function Apercu({ id, courant, onClose, onChoisir, actions }: {
+  id: string | null; courant: boolean; onClose: () => void; onChoisir: (o: string) => void; actions?: (o: string) => React.ReactNode;
+}) {
+  return (
+    <Dialog open={!!id} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent showCloseButton={false} className="w-[calc(100vw-24px)] max-w-[456px] gap-0 rounded-[26px] p-3 pb-[max(env(safe-area-inset-bottom),12px)]">
+        {id && (
+          <>
+            <div className="relative">
+              <Duo id={id} />
+              <button onClick={onClose} aria-label={tr("Fermer")} autoFocus
+                className="absolute top-2.5 right-2.5 grid size-9 place-items-center rounded-full bg-background/85 backdrop-blur active:scale-90">
+                <XIcon className="size-4" weight="bold" />
+              </button>
+            </div>
+            <DialogTitle className="mt-3 px-1 text-[20px] leading-tight font-bold">{EX[id].n}</DialogTitle>
+            <DialogDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">{EX[id].m}</DialogDescription>
+            <div className="mt-3">
+              {courant ? (
+                <Button variant="soft" size="lg" className="w-full rounded-xl" onClick={onClose}>{tr("C'est l'exercice en cours")}</Button>
+              ) : actions ? (
+                <div className="grid grid-cols-2 gap-2">{actions(id)}</div>
+              ) : (
+                <Button variant="plate" size="lg" className="w-full rounded-xl" onClick={() => onChoisir(id)}>{tr("Choisir cet exercice")}</Button>
+              )}
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }

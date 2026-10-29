@@ -27,7 +27,7 @@ export type FicheOuverte = {
 };
 
 /* Photos départ / fin : elles alternent en fondu pour suggérer le mouvement. */
-function Duo({ id }: { id: string }) {
+export function Duo({ id }: { id: string }) {
   const [anime, setAnime] = useState(true);
   return (
     <div className="relative">
