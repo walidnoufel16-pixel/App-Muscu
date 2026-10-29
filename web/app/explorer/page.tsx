@@ -3,5 +3,5 @@
 import { Redirige } from "@/components/repere/redirige";
 
 export default function Ancienne() {
-  return <Redirige vers="/exercices" />;
+  return <Redirige vers="/entrainement" />;
 }

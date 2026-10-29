@@ -1,8 +1,8 @@
 "use client";
 
-/* Une rubrique de la bibliothèque (musculation, street, course, soin), ouverte depuis sa bannière
-   dans Exercices. Ses onglets naviguent dans la rubrique : un muscle, une partie du street ou de
-   la course, une zone de soin. */
+/* Une rubrique d'Entraînement, ouverte depuis sa bannière. Ses onglets naviguent dans la rubrique :
+   la semaine ou tout le programme, un muscle, une partie du street ou de la course, une zone de soin.
+   Séance libre n'a pas d'onglets : créer, composer, importer, puis Mes séances. */
 import { tr } from "@/lib/i18n";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -20,7 +20,11 @@ import { selDeclare, avecSalle } from "@/lib/logic/core";
 import { ZONES } from "@/lib/data/referentiels";
 import { useRepere } from "@/lib/store";
 import { useBrouillon } from "@/lib/brouillon";
-import { remplacement, useOngletsExercices } from "@/lib/nav";
+import { AVANT, remplacement, useOngletsExercices } from "@/lib/nav";
+import { CreerSeance, MesSeances } from "@/components/repere/mes-seances";
+import { Hero, MaSemaine, ToutLeProgramme } from "@/components/repere/programme-vues";
+import { ProgrammeBientot } from "@/components/repere/bientot";
+import { useProgrammeActif } from "@/lib/fonctionnalites";
 import { ZONES_SOIN, type ZoneSoin } from "@/lib/data/soin";
 import type { Route } from "next";
 
@@ -41,22 +45,26 @@ function Contenu() {
   /* sans choix de matériel : celui du Profil, pour voir tout de suite des exercices */
   const sel = avecSalle(selB ?? selDeclare(A), A);
   const sensibles = useZonesASoigner();
+  const prog = useProgrammeActif();
+  const plan = useRepere((s) => s.etat.FINI || !!s.etat.PLAN);
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);
   const ouvrir = (id: string) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") });
 
   /* les onglets de la rubrique ; le choisi vient de l'adresse, sinon du dernier ouvert, sinon le premier */
   const options: { v: string; n: string }[] =
-    v === "corps" ? ORDRE_ZONES.map((z) => ({ v: z, n: ZONES[z] }))
+    v === "libre" ? []
+    : v === "programme" ? (prog && plan ? [{ v: "semaine", n: tr("Ma semaine") }, { v: "tout", n: tr("Tout le programme") }] : [])
+    : v === "corps" ? ORDRE_ZONES.map((z) => ({ v: z, n: ZONES[z] }))
     : v === "street" ? [{ v: "programmes", n: tr("Programmes") }, { v: "mesure", n: tr("Sur mesure") }, { v: "familles", n: tr("Familles") }]
     : v === "course" ? [{ v: "plan", n: tr("Mon plan") }, { v: "seances", n: tr("Les séances") }]
     : ZONES_SOIN.map(([z]) => ({ v: z, n: zonesSoinCourt()[z] }));
   const memo = useOngletsExercices((s) => s[v]);
   const valide = (o: string | null | undefined) => (o && options.some((x) => x.v === o) ? o : null);
-  const onglet = valide(q.get("o")) ?? valide(q.get("z")) ?? valide(memo) ?? (v === "soin" ? valide(sensibles[0]) : null) ?? options[0].v;
+  const onglet = valide(q.get("o")) ?? valide(q.get("z")) ?? valide(memo) ?? (v === "soin" ? valide(sensibles[0]) : null) ?? options[0]?.v ?? "";
   const changer = (o: string) => {
     useOngletsExercices.setState({ [v]: o });
     remplacement();
-    router.replace(`/exercices/rubrique?v=${v}&o=${o}` as Route);
+    router.replace(`/entrainement/rubrique?v=${v}&o=${o}` as Route);
   };
   /* Musculation : la zone est l'onglet, le type de mouvement se choisit dessous */
   const [pat, setPat] = useState<string | null>(null);
@@ -64,10 +72,26 @@ function Contenu() {
 
   return (
     <>
-      <EnTete surtitre={tr("Exercices")} titre={nomRubrique(v)} gauche={<Retour repli="/exercices" />} />
-      <div className="flex flex-col gap-4 px-4">
-        <Onglets label={nomRubrique(v)} options={options} valeur={onglet} onChange={(o) => { setPat(null); changer(o); }} style={v === "street" || v === "course" ? "soulignes" : "pastilles"} />
-        {v === "corps" ? (
+      <EnTete titre={nomRubrique(v)} gauche={<Retour repli="/entrainement" />} />
+      <div className="flex flex-col gap-4 px-4 pb-6">
+        {options.length > 0 && <Onglets label={nomRubrique(v)} options={options} valeur={onglet} onChange={(o) => { setPat(null); changer(o); }} style={v === "corps" || v === "soin" ? "pastilles" : "soulignes"} />}
+        {v === "libre" ? (
+          <>
+            <CreerSeance />
+            <MesSeances />
+          </>
+        ) : v === "programme" ? (
+          !prog ? <ProgrammeBientot />
+          : !plan ? (
+            <Hero
+              surtitre={tr("Programme sur 8 semaines")}
+              titre={tr("Construis ton programme")}
+              texte={tr("Une douzaine de questions sur ton objectif, ton matériel et ton rythme : Repère prépare huit semaines de séances et fait monter l'effort semaine après semaine.")}
+              bouton={tr("Commencer le questionnaire")}
+              onClick={() => router.push("/questionnaire", AVANT)}
+            />
+          ) : onglet === "tout" ? <ToutLeProgramme /> : <MaSemaine />
+        ) : v === "corps" ? (
           <>
             <MaterielRepliable sel={sel} declare={selDeclare(A)} onChange={setSel} />
             <Bibliotheque sel={sel} zone={zone} setZone={(z) => setPat(z?.p ?? null)} onFiche={ouvrir} schema={false} />

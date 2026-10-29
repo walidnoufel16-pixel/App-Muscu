@@ -35,13 +35,18 @@ export const remplacement = () => usePile.setState({ remplace: true });
 
 const TITRES: [RegExp, string][] = [
   [/^\/entrainement\/programme/, tr("Programme")],
+  [/^\/entrainement\/rubrique\?v=libre/, tr("Séance libre")],
+  [/^\/entrainement\/rubrique\?v=programme/, tr("Programme")],
+  [/^\/entrainement\/rubrique\?v=corps/, tr("Musculation")],
+  [/^\/entrainement\/rubrique\?v=street/, tr("Street workout")],
+  [/^\/entrainement\/rubrique\?v=course/, tr("Course")],
+  [/^\/entrainement\/rubrique\?v=soin/, tr("Soin & mobilité")],
   [/^\/entrainement\/seance/, tr("Séance")],
   [/^\/entrainement\/assistant/, tr("Créer une séance")],
   [/^\/entrainement\/composer/, tr("Composer")],
   [/^\/entrainement\/cardio/, tr("Cardio")],
   [/^\/entrainement\/course/, tr("Course")],
   [/^\/entrainement/, tr("Entraînement")],
-  [/^\/exercices/, tr("Exercices")],
   [/^\/progres\/bilan/, tr("Bilan")],
   [/^\/progres/, tr("Progrès")],
   [/^\/profil/, tr("Profil")],
@@ -59,6 +64,8 @@ export function revenirA(chemin: string, remplacer: () => void) {
   if (i < 0 || i === pile.length - 1) { remplacer(); return; }
   useSens.setState({ sens: "nav-back" });
   const pas = pile.length - 1 - i;
+  /* la pile reprend là où on revient : l'écran d'arrivée est déjà en haut, `noter` ne l'empile pas une seconde fois */
+  usePile.setState({ pile: pile.slice(0, i + 1) });
   requestAnimationFrame(() => history.go(-pas));
 }
 
@@ -69,11 +76,9 @@ export const noterPosition = (chemin: string, y: number) => { positions[chemin] 
 export const oublierPosition = (chemin: string) => { delete positions[chemin]; };
 export const positionDe = (chemin: string): number | undefined => positions[chemin];
 
-/* Dernier onglet ouvert dans chaque rubrique d'Exercices (muscle, zone de soin…), le temps de la session. */
+/* Dernier onglet ouvert dans chaque rubrique d'Entraînement (muscle, zone de soin…), le temps de la session. */
 export const useOngletsExercices = create<Record<string, string>>(() => ({}));
 
-/* Vue de l'onglet Entraînement : séances libres (par défaut) ou programme sur 8 semaines. */
-export const useVueEntrainement = create<{ vue: "libres" | "programme" }>(() => ({ vue: "libres" }));
 
 /* Vue de l'onglet Repas : aujourd'hui (par défaut), recettes, courses. */
 export type VueRepas = "jour" | "recettes" | "courses";

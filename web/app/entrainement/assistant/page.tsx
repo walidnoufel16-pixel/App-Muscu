@@ -26,6 +26,7 @@ import { useRepere } from "@/lib/store";
 import { ARRIERE, AVANT, remplacement, revenirA } from "@/lib/nav";
 import { Retour } from "@/components/repere/retour";
 import { useBrouillon } from "@/lib/brouillon";
+import { lienRubrique } from "@/components/repere/rubriques";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 
@@ -53,7 +54,7 @@ function Assistant() {
     muter((E) => { (E.SEANCES_CARDIO ??= []).push({ nom, ...choix }); });
     toast.success(tr("« {nom} » ajoutée à tes séances cardio", { nom }));
     if (demarrer) { preparer(); remplacement(); router.replace(`/entrainement/cardio?s=${i}&go=1` as Route, AVANT); return; }
-    revenirA("/entrainement", () => router.replace("/entrainement", ARRIERE));
+    revenirA("/entrainement/rubrique", () => router.replace(lienRubrique("libre"), ARRIERE));
   };
   const { sel: selB, setSel, setLibre } = useBrouillon();
   const sel = avecSalle(selB ?? [], A);

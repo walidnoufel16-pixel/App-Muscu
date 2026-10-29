@@ -1,7 +1,7 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRightIcon, BarbellIcon, CalendarDotsIcon, PersonSimpleTaiChiIcon, CaretLeftIcon, ShareNetworkIcon, SparkleIcon, WifiSlashIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
@@ -15,21 +15,22 @@ import { cn } from "@/lib/utils";
 import { SaisieCodeMail } from "@/components/repere/code-mail";
 import { LogoTuile } from "@/components/repere/logo";
 import { useProgrammeActif } from "@/lib/fonctionnalites";
-import { ProgrammeBientot } from "@/components/repere/bientot";
 
-type Etape = "accueil" | "compte" | "confirmer" | "choix" | "recup" | "code";
+type Etape = "accueil" | "compte" | "confirmer" | "entrer" | "recup" | "code";
 
 function Bienvenue() {
   const router = useRouter();
   const prog = useProgrammeActif();
   const recup = useSearchParams().get("recup");
   const { user, creerCompte, setUser, apresConnexion } = useRepere();
-  const [etape, setEtape] = useState<Etape>(recup ? "recup" : user ? "choix" : "accueil");
+  const [etape, setEtape] = useState<Etape>(recup ? "recup" : user ? "entrer" : "accueil");
   const [pseudo, setPseudo] = useState(() => (typeof window !== "undefined" && localStorage.getItem("palier.pseudo.v1")) || "");
   const [mail, setMail] = useState("");
   const [code, setCode] = useState("");
   const [err, setErr] = useState("");
   const [occupe, setOccupe] = useState(false);
+  /* compte prêt : on arrive directement dans Entraînement, sur les rubriques */
+  useEffect(() => { if (etape === "entrer") router.replace("/entrainement", AVANT); }, [etape, router]);
 
   const creer = async () => {
     const p = pseudo.trim(), m = mail.trim().toLowerCase();
@@ -39,9 +40,9 @@ function Bienvenue() {
     try {
       const r = await creerCompte(p, m || undefined);
       if (!r.ok) setErr(messageErreur({ message: r.message }, "connexion") + tr(" Tes données resteront sur ce téléphone."));
-      else if (r.message) { toast(r.message, { duration: 8000 }); setEtape("choix"); }
+      else if (r.message) { toast(r.message, { duration: 8000 }); setEtape("entrer"); }
       /* Le code part tout de suite : on le fait saisir ici, pas dans Profil. */
-      else setEtape(m && useRepere.getState().user?.new_email ? "confirmer" : "choix");
+      else setEtape(m && useRepere.getState().user?.new_email ? "confirmer" : "entrer");
     } catch (e) { setErr(messageErreur(e, "connexion")); }
     setOccupe(false);
   };
@@ -73,7 +74,7 @@ function Bienvenue() {
 
   return (
     <div className="flex min-h-dvh flex-col px-6 pt-[max(env(safe-area-inset-top),24px)] pb-[max(env(safe-area-inset-bottom),20px)]">
-      {etape !== "accueil" && etape !== "choix" && etape !== "confirmer" && (
+      {etape !== "accueil" && etape !== "entrer" && etape !== "confirmer" && (
         <button onClick={() => { setErr(""); setEtape(etape === "code" ? "recup" : "accueil"); }} className="-ml-1 flex items-center gap-0.5 self-start py-2 text-[15px] font-medium text-muted-foreground">
           <CaretLeftIcon className="size-5" />{tr("Retour")}
         </button>
@@ -106,7 +107,7 @@ function Bienvenue() {
             </ul>
           </div>
           <div className="mt-8 flex flex-col gap-2">
-            <Button variant="plate" size="xl" onClick={() => setEtape(user ? "choix" : "compte")}>{tr("Commencer")}<ArrowRightIcon /></Button>
+            <Button variant="plate" size="xl" onClick={() => setEtape(user ? "entrer" : "compte")}>{tr("Commencer")}<ArrowRightIcon /></Button>
             <Button variant="ghost" onClick={() => setEtape("recup")}>{tr("J'ai déjà un compte")}</Button>
           </div>
         </>
@@ -147,34 +148,14 @@ function Bienvenue() {
           <p className="mt-2 mb-6 text-[15px] leading-relaxed text-muted-foreground">
             {tr("Six chiffres viennent d'être envoyés à")}{" "}<b className="font-semibold text-foreground">{user?.new_email}</b>{tr(". Pense à regarder tes indésirables.")}
           </p>
-          <SaisieCodeMail grand onConfirme={(u) => { if (!u?.new_email) setEtape("choix"); }} />
+          <SaisieCodeMail grand onConfirme={(u) => { if (!u?.new_email) setEtape("entrer"); }} />
           <div className="mt-auto pt-6">
-            <Button variant="ghost" className="w-full" onClick={() => setEtape("choix")}>{tr("Plus tard")}</Button>
+            <Button variant="ghost" className="w-full" onClick={() => setEtape("entrer")}>{tr("Plus tard")}</Button>
             <p className="mt-1 text-center text-[12.5px] text-muted-foreground">{tr("Le code restera à saisir dans Profil.")}</p>
           </div>
         </div>
       )}
 
-      {etape === "choix" && (
-        <div className="mt-6 flex flex-1 flex-col">
-          <div className="eyebrow">{tr("Par où commencer")}</div>
-          <h1 className="mt-2 text-[34px] leading-[1.05] font-bold tracking-[-0.025em]">{prog ? tr("Deux façons de t'entraîner") : tr("Tes séances, à ta façon")}</h1>
-          {prog ? (
-            <button onClick={() => router.push("/questionnaire", AVANT)} className="mt-6 rounded-[24px] bg-foreground p-5 text-left text-background active:scale-[.99]">
-              <span className="flex items-center justify-between"><b className="text-[19px] font-semibold">{tr("Un plan sur huit semaines")}</b><span className="num rounded-full bg-plate px-2.5 py-0.5 text-[15px] font-bold text-plate-foreground">{tr("8 sem.")}</span></span>
-              <span className="mt-2 block text-[14px] leading-relaxed text-background/75">{tr("Une douzaine de questions, puis un cycle complet qui suit tes charges et fait monter l'effort semaine après semaine. C'est le mode qui te fait progresser.")}</span>
-              <span className="mt-3 block text-[13px] font-medium text-plate">{tr("Compter trois minutes →")}</span>
-            </button>
-          ) : null}
-          <button onClick={() => router.push("/entrainement", AVANT)} className={cn("mt-3 rounded-[24px] p-5 text-left active:scale-[.99]", prog ? "border bg-card" : "bg-foreground text-background")}>
-            <b className="text-[19px] font-semibold">{tr("Une séance à la carte")}</b>
-            <span className={cn("mt-2 block text-[14px] leading-relaxed", prog ? "text-muted-foreground" : "text-background/75")}>{tr("Tu choisis les muscles, Repère compose, ou tu choisis tes exercices un par un. Aucune question préalable.")}</span>
-            <span className={cn("mt-3 block text-[13px] font-medium", !prog && "text-plate")}>{tr("Prêt tout de suite →")}</span>
-          </button>
-          {!prog && <ProgrammeBientot className="mt-3" />}
-          {prog && <p className="mt-4 text-center text-[12.5px] leading-relaxed text-muted-foreground">{tr("Tu pourras passer de l'un à l'autre à tout moment.")}</p>}
-        </div>
-      )}
     </div>
   );
 }
