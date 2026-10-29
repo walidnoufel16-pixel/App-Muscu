@@ -21,10 +21,10 @@ export const nomRubrique = (v: Rubrique) =>
 
 /* photos des exercices (domaine public), en grand ; hors connexion sans elles, la petite */
 const BANNIERES: Record<Rubrique, { photo: string; fond: string; texte: () => string }> = {
-  corps: { photo: "Barbell_Bench_Press_-_Medium_Grip_0", fond: "#2346c4", texte: () => tr("Tous les exercices, muscle par muscle, avec ton matériel.") },
-  street: { photo: "Chin-Up_1", fond: "#1d1d1f", texte: () => tr("Poids du corps et barre : programmes par niveau, du plus facile au plus dur.") },
-  course: { photo: "Running_Treadmill_0", fond: "#9a4a1c", texte: () => tr("10 km, semi ou marathon : un plan jusqu'au jour J, à ton allure.") },
-  soin: { photo: "Hamstring_Stretch_0", fond: "#5d6b55", texte: () => tr("Routines courtes par zone, pour bouger sans douleur.") },
+  corps: { photo: "Barbell_Bench_Press_-_Medium_Grip_0", fond: "#2f5bea", texte: () => tr("Tous les exercices, muscle par muscle, avec ton matériel.") },
+  street: { photo: "Chin-Up_1", fond: "#14266e", texte: () => tr("Poids du corps et barre : programmes par niveau, du plus facile au plus dur.") },
+  course: { photo: "Running_Treadmill_0", fond: "#2448c8", texte: () => tr("10 km, semi ou marathon : un plan jusqu'au jour J, à ton allure.") },
+  soin: { photo: "Hamstring_Stretch_0", fond: "#1b3a9e", texte: () => tr("Routines courtes par zone, pour bouger sans douleur.") },
 };
 
 const ZONE_PHOTO: Record<string, string> = {
