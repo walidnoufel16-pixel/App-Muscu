@@ -61,7 +61,9 @@ function Assistant() {
   };
   const { sel: selB, setSel, setLibre } = useBrouillon();
   const sel = avecSalle(selB ?? [], A);
-  const [m, setM] = useState<string[]>([]);
+  /* muscles touchés sur le corps d'Entraînement : déjà cochés */
+  const mUrl = useSearchParams().get("m");
+  const [m, setM] = useState<string[]>(() => (mUrl ? mUrl.split(",").filter((k) => MUSC.some((g) => g.k === k)) : []));
   const [vue, setVue] = useState<"corps" | "liste">("corps");
   const [d, setD] = useState(45);
   const [obj, setObj] = useState<number | null>(A.objectif ?? null);
