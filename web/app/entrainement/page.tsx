@@ -32,7 +32,7 @@ export default function PageEntrainement() {
   const enProgramme = prog && plan;
   const habitue = enProgramme || !!etat.SEANCES.length || !!etat.HIST?.length || !!etat.CARDIO?.length || !!etat.COURSE;
 
-  const rubriques: Rubrique[] = ["libre", ...(prog ? (["programme"] as const) : []), "corps", "street", "course", "soin"];
+  const rubriques: Rubrique[] = ["libre", ...(prog ? (["programme"] as const) : []), "street", "course", "soin"];
   const detailProgramme = enProgramme && !etat.FINI ? tr("Semaine {a} sur 8 · {b} séance{c} sur {d}", { a: wk + 1, b: faites, c: faites > 1 ? "s" : "", d: socle.length }) : undefined;
 
   return (

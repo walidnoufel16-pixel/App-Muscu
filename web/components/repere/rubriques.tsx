@@ -8,27 +8,23 @@ import type { Route } from "next";
 import { AVANT } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
-export type Rubrique = "libre" | "programme" | "corps" | "street" | "course" | "soin";
-export const RUBRIQUES: Rubrique[] = ["libre", "programme", "corps", "street", "course", "soin"];
+export type Rubrique = "libre" | "programme" | "street" | "course" | "soin";
+export const RUBRIQUES: Rubrique[] = ["libre", "programme", "street", "course", "soin"];
 
-/** Lien vers une rubrique (et, pour la musculation, une zone du corps déjà choisie). */
-export const lienRubrique = (v: Rubrique, z?: string) => `/entrainement/rubrique?v=${v}${z ? `&z=${z}` : ""}` as Route;
+/** Lien vers une rubrique. */
+export const lienRubrique = (v: Rubrique) => `/entrainement/rubrique?v=${v}` as Route;
 
 export const nomRubrique = (v: Rubrique) =>
-  ({ libre: tr("Séance libre"), programme: tr("Programme 8 semaines"), corps: tr("Musculation"), street: tr("Street workout"), course: tr("Course"), soin: tr("Soin & mobilité") })[v];
+  ({ libre: tr("Séance libre"), programme: tr("Programme 8 semaines"), street: tr("Street workout"), course: tr("Course"), soin: tr("Soin & mobilité") })[v];
 
 /* photos des exercices (domaine public), en grand ; hors connexion sans elles, la petite */
 const BANNIERES: Record<Rubrique, { photo: string; fond: string; texte: () => string }> = {
-  libre: { photo: "Dumbbell_Lunges_0", fond: "#14266e", texte: () => tr("Crée ta séance, compose-la exercice par exercice, ou importe-la.") },
+  libre: { photo: "Dumbbell_Lunges_0", fond: "#2346c4", texte: () => tr("Muscu, cardio ou combinée : crée ta séance, compose-la, ou parcours les exercices.") },
   programme: { photo: "Barbell_Squat_0", fond: "#0e7490", texte: () => tr("Huit semaines de séances qui font monter l'effort semaine après semaine.") },
-  corps: { photo: "Barbell_Bench_Press_-_Medium_Grip_0", fond: "#2346c4", texte: () => tr("Tous les exercices, muscle par muscle, avec ton matériel.") },
   street: { photo: "Chin-Up_1", fond: "#1d1d1f", texte: () => tr("Poids du corps et barre : programmes par niveau, du plus facile au plus dur.") },
   course: { photo: "Running_Treadmill_0", fond: "#9a4a1c", texte: () => tr("10 km, semi ou marathon : un plan jusqu'au jour J, à ton allure.") },
   soin: { photo: "Hamstring_Stretch_0", fond: "#5d6b55", texte: () => tr("Routines courtes par zone, pour bouger sans douleur.") },
 };
-
-/* zones du corps, dans l'ordre des onglets de la rubrique Musculation */
-export const ORDRE_ZONES = ["pectoraux", "dos", "epaules", "bras", "jambes", "fessiers", "tronc"];
 
 function Photo({ nom, className }: { nom: string; className?: string }) {
   const petite = `/img/${nom}.avif`;

@@ -37,7 +37,6 @@ const TITRES: [RegExp, string][] = [
   [/^\/entrainement\/programme/, tr("Programme")],
   [/^\/entrainement\/rubrique\?v=libre/, tr("Séance libre")],
   [/^\/entrainement\/rubrique\?v=programme/, tr("Programme")],
-  [/^\/entrainement\/rubrique\?v=corps/, tr("Musculation")],
   [/^\/entrainement\/rubrique\?v=street/, tr("Street workout")],
   [/^\/entrainement\/rubrique\?v=course/, tr("Course")],
   [/^\/entrainement\/rubrique\?v=soin/, tr("Soin & mobilité")],
