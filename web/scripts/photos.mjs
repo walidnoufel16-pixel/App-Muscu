@@ -1,3 +1,5 @@
+// Remplacé par le détourage (scripts/detourage.py) : les photos sont maintenant détourées sur fond bleu.
+// Gardé pour mémoire et pour un éventuel retour au traitement « Studio ».
 // Retraitement des photos de démonstration : traitement « Studio ».
 // Les murs rouges des photos d'origine (free-exercise-db) deviennent un gris
 // anthracite, les autres couleurs sont calmées, puis tout est exporté en AVIF.
