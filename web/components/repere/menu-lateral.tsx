@@ -59,8 +59,8 @@ export function MenuLateral() {
     {
       titre: tr("Aller plus loin"),
       l: [
-        { Icone: TrophyIcon, n: tr("Défis entre amis"), onClick: va("/progres", "defis") },
-        { Icone: MedalIcon, n: tr("Badges et bilans"), onClick: va("/progres", "badges") },
+        { Icone: TrophyIcon, n: tr("Défis entre amis"), onClick: va("/progres?o=defis", "defis") },
+        { Icone: MedalIcon, n: tr("Badges et bilans"), onClick: va("/progres?o=defis", "badges") },
         { Icone: CalendarDotsIcon, n: tr("Programme 8 semaines"), onClick: va(lienRubrique("programme")) },
         { Icone: DownloadSimpleIcon, n: tr("Importer une séance"), onClick: () => { va(lienRubrique("libre"))(); setTimeout(() => useMenu.setState({ importer: true }), 500); } },
       ],
