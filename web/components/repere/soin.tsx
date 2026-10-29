@@ -7,7 +7,8 @@ import { EX } from "@/lib/data/exercices";
 import { AVERTISSEMENT_SOIN, routineDe, ROUTINES_SOIN, SOIN_DE_BLESSURE, ZONES_SOIN, type RoutineSoin, type ZoneSoin } from "@/lib/data/soin";
 import { zonesActives } from "@/lib/logic/forme";
 import { useRepere } from "@/lib/store";
-import { AVANT, useVueExercices } from "@/lib/nav";
+import { AVANT } from "@/lib/nav";
+import { lienRubrique } from "./rubriques";
 import { LigneExercice } from "./ligne-exercice";
 import { Vignette } from "./exercice-carte";
 
@@ -84,7 +85,7 @@ export function useZonesASoigner(): ZoneSoin[] {
 export function SectionSoin() {
   const router = useRouter();
   const zones = useZonesASoigner();
-  const routines = () => { useVueExercices.setState({ vue: "soin" }); router.push("/exercices"); };
+  const routines = () => router.push(lienRubrique("soin"), AVANT);
   return (
     <section>
       <div className="mb-2 flex items-baseline justify-between px-1">

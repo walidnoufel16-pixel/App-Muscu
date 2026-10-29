@@ -1,44 +1,25 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
-import { useState } from "react";
 import { ChoixLangue } from "@/components/repere/choix-langue";
 import { EnTete } from "@/components/repere/en-tete";
-import { Bibliotheque } from "@/components/repere/bibliotheque";
-import { FicheExercice, type FicheOuverte } from "@/components/repere/fiche-exercice";
-import { FiltreMateriel } from "@/components/repere/filtre-materiel";
-import { Segmente } from "@/components/repere/segmente";
-import { selDeclare, avecSalle } from "@/lib/logic/core";
-import { useRepere } from "@/lib/store";
+import { Bannieres, ParMuscle } from "@/components/repere/rubriques";
 import { EX } from "@/lib/data/exercices";
-import { VueSoin } from "@/components/repere/soin";
-import { VueStreet } from "@/components/repere/street";
-import { VueCourse } from "@/components/repere/course";
-import { useBrouillon } from "@/lib/brouillon";
-import { useVueExercices, type VueExercices } from "@/lib/nav";
+import { ROUTINES_SOIN } from "@/lib/data/soin";
 
+/* Exercices : une rangée « Par muscle », puis une grande bannière par rubrique. */
 export default function PageExercices() {
-  const A = useRepere((s) => s.etat.A);
-  const { sel: selB, setSel } = useBrouillon();
-  const sel = avecSalle(selB ?? [], A);
-  const vue = useVueExercices((s) => s.vue);
-  const setVue = (v: VueExercices) => useVueExercices.setState({ vue: v });
-  const [zone, setZone] = useState<{ z: string; p: string | null } | null>(null);
-  const [fiche, setFiche] = useState<FicheOuverte | null>(null);
-  const ouvrir = (id: string) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") });
+  const n = Object.keys(EX).length;
   return (
     <>
-      <EnTete surtitre={tr("Bibliothèque · {n} exercices", { n: Object.keys(EX).length })} titre={tr("Exercices")} actions={<ChoixLangue />} />
-      <div className="flex flex-col gap-3 px-4">
-        <FiltreMateriel sel={sel} declare={selDeclare(A)} onChange={setSel} />
-        <Segmente label={tr("Rubrique")} valeur={vue} onChange={setVue} options={[{ v: "corps", n: tr("Corps") }, { v: "street", n: tr("Street") }, { v: "course", n: tr("Course") }, { v: "soin", n: tr("Soin") }]} />
-        {vue === "corps" ? (
-          <Bibliotheque sel={sel} zone={zone} setZone={setZone} onFiche={ouvrir} />
-        ) : vue === "street" ? <VueStreet onFiche={ouvrir} />
-          : vue === "course" ? <VueCourse />
-          : <VueSoin onFiche={ouvrir} />}
+      <EnTete surtitre={tr("Bibliothèque · {n} exercices", { n })} titre={tr("Exercices")} actions={<ChoixLangue />} />
+      <div className="flex flex-col gap-6 px-4">
+        <ParMuscle />
+        <section>
+          <h2 className="eyebrow mb-2 px-1">{tr("Rubriques")}</h2>
+          <Bannieres compte={{ corps: tr("{n} exercices", { n }), soin: tr("{n} routines", { n: ROUTINES_SOIN.length }) }} />
+        </section>
       </div>
-      <FicheExercice fiche={fiche} onClose={() => setFiche(null)} />
     </>
   );
 }
