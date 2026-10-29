@@ -9,7 +9,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { LogoDisque } from "@/components/repere/logo";
 import { moisPrecedent, recap } from "@/lib/logic/recap";
 import { avecSorties } from "@/lib/logic/course";
-import { AVANT } from "@/lib/nav";
+import { AVANT, remplacement } from "@/lib/nav";
+import type { Route } from "next";
+import { Onglets } from "@/components/repere/onglets";
 import { ChoixLangue } from "@/components/repere/choix-langue";
 import { EnTete } from "@/components/repere/en-tete";
 import { Barres, Calendrier, Courbe } from "@/components/repere/graphes";
@@ -40,18 +42,30 @@ export default function PageProgres() {
 
 function Progres() {
   const etat = useRepere((s) => s.etat);
-  const codeDefi = useSearchParams().get("d");
+  const q = useSearchParams(), router = useRouter();
+  const codeDefi = q.get("d");
   const premiere = usePremiereVisite();
   const H = useMemo(() => etat.HIST || [], [etat.HIST]);
   const C = useMemo(() => avecSorties(etat.CARDIO, etat.SORTIES), [etat.CARDIO, etat.SORTIES]);
   const [auj] = useState(() => jourDe(Date.now()));
   const [jour, setJour] = useState<string | null>(null);
+  /* deux onglets : ton évolution, et les défis et badges (ouverts d'office par un lien de défi) */
+  const onglet = q.get("o") === "defis" || codeDefi ? "defis" : "evolution";
+  const changer = (o: string) => { remplacement(); router.replace((o === "defis" ? "/progres?o=defis" : "/progres") as Route); };
+  const vide = !H.length && !C.length;
 
-  if (!H.length && !C.length)
-    return (
-      <>
-        <EnTete surtitre={tr("Ton évolution")} titre={tr("Progrès")} actions={<ChoixLangue />} />
-        <div className={cn("px-4", premiere && "entree")}>
+  return (
+    <>
+      <EnTete surtitre={tr("Ton évolution")} titre={tr("Progrès")} actions={<ChoixLangue />} />
+      <div className={cn("flex flex-col gap-6 px-4", premiere && "entree")}>
+        <Onglets label={tr("Progrès")} style="soulignes" valeur={onglet} onChange={changer}
+          options={[{ v: "evolution", n: tr("Mon évolution") }, { v: "defis", n: tr("Défis & badges") }]} />
+        {onglet === "defis" ? (
+          <>
+            <div id="defis" className="scroll-mt-20"><SectionDefis ouvrirCode={codeDefi} /></div>
+            <div id="badges" className="scroll-mt-20"><GrilleBadges /></div>
+          </>
+        ) : vide ? (
           <div className="rounded-[24px] border border-dashed border-border bg-card p-6 text-center">
             <ChartLineUpIcon className="mx-auto size-10 text-plate" weight="duotone" />
             <h2 className="mt-3 text-[19px] font-bold">{tr("Ta première séance remplira cet écran")}</h2>
@@ -59,40 +73,33 @@ function Progres() {
               {tr("Chaque série validée s'ajoute ici : tes charges, tes records, le volume de chaque muscle et ta régularité.")}
             </p>
           </div>
-          <div id="defis" className="mt-6 scroll-mt-20"><SectionDefis ouvrirCode={codeDefi} /></div>
-        </div>
-      </>
-    );
-
-  return (
-    <>
-      <EnTete surtitre={tr("Ton évolution")} titre={tr("Progrès")} actions={<ChoixLangue />} />
-      <div className={cn("flex flex-col gap-6 px-4", premiere && "entree")}>
-        <CetteSemaine H={H} C={C} auj={auj} />
-        <Bilans auj={auj} />
-        <Section titre={tr("Régularité")}>
-          <div className="flex flex-col gap-2">
-            <CarteRegularite reglable />
-            <Activite H={H} C={C} auj={auj} onJour={setJour} />
-          </div>
-        </Section>
-        <Section titre={tr("Muscles travaillés · 7 derniers jours")}>
-          <Muscles H={H} auj={auj} />
-        </Section>
-        <SectionCourse />
-        <div id="defis" className="scroll-mt-20"><SectionDefis ouvrirCode={codeDefi} /></div>
-        <Records H={H} />
-        <div id="badges" className="scroll-mt-20"><GrilleBadges /></div>
-        <Section titre={tr("Ma progression par exercice")}>
-          <ParExercice H={H} />
-        </Section>
-        <Section titre={tr("Poids du corps")}>
-          <Poids />
-        </Section>
-        {C.length > 0 && (
-          <Section titre={tr("Cardio · minutes par semaine")}>
-            <Cardio H={H} C={C} auj={auj} />
-          </Section>
+        ) : (
+          <>
+            <CetteSemaine H={H} C={C} auj={auj} />
+            <Section titre={tr("Muscles travaillés · 7 derniers jours")}>
+              <Muscles H={H} auj={auj} />
+            </Section>
+            <Section titre={tr("Régularité")}>
+              <div className="flex flex-col gap-2">
+                <CarteRegularite reglable />
+                <Activite H={H} C={C} auj={auj} onJour={setJour} />
+              </div>
+            </Section>
+            <Bilans auj={auj} />
+            <Records H={H} />
+            <Section titre={tr("Ma progression par exercice")}>
+              <ParExercice H={H} />
+            </Section>
+            <Section titre={tr("Poids du corps")}>
+              <Poids />
+            </Section>
+            <SectionCourse />
+            {C.length > 0 && (
+              <Section titre={tr("Cardio · minutes par semaine")}>
+                <Cardio H={H} C={C} auj={auj} />
+              </Section>
+            )}
+          </>
         )}
       </div>
       <DetailJour jour={jour} onClose={() => setJour(null)} H={H} C={C} />
@@ -137,12 +144,13 @@ function CetteSemaine({ H, C, auj }: { H: LigneHist[]; C: NonNullable<ReturnType
   return (
     <section>
       <h2 className="eyebrow mb-2 px-1">{tr("Cette semaine")}</h2>
-      <div className="grid grid-cols-2 gap-2">
-        {cases.map((c, i) => (
-          <div key={c.n} className="animate-[monter_.45s_ease-out_both] rounded-[18px] border border-border/80 bg-card p-3.5" style={{ animationDelay: i * 60 + "ms" }}>
-            <div className="num text-[28px] leading-none font-bold">{c.f(c.v)}</div>
-            <div className="mt-1 flex items-center justify-between gap-1">
-              <span className="text-[12.5px] font-medium text-muted-foreground">{c.n}</span>
+      {/* une ligne : séances, séries, minutes de cardio */}
+      <div className="grid grid-cols-3 divide-x divide-border/80 overflow-hidden rounded-[18px] border border-border/80 bg-card">
+        {cases.map((c) => (
+          <div key={c.n} className="px-3 py-2.5">
+            <div className="num text-[24px] leading-none font-bold">{c.f(c.v)}</div>
+            <div className="mt-1 flex flex-wrap items-center gap-x-1">
+              <span className="text-[12px] font-medium text-muted-foreground">{c.n}</span>
               <Ecart v={c.v} avant={c.a} />
             </div>
           </div>
@@ -152,49 +160,66 @@ function CetteSemaine({ H, C, auj }: { H: LigneHist[]; C: NonNullable<ReturnType
   );
 }
 
+/* Régularité compacte : les 4 dernières semaines, une par ligne ; les 12 dans une feuille. */
 function Activite({ H, C, auj, onJour }: { H: LigneHist[]; C: Parameters<typeof activite>[1]; auj: string; onJour: (j: string) => void }) {
   const act = useMemo(() => activite(H, C), [H, C]);
-  const debut = decaler(lundiDe(auj), -7 * 11);
-  const jours = Array.from({ length: 84 }, (_, i) => decaler(debut, i));
-  const actifs = jours.filter((j) => act.has(j)).length;
+  const [tout, setTout] = useState(false);
+  const jours = (n: number) => { const debut = decaler(lundiDe(auj), -7 * (n - 1)); return Array.from({ length: n * 7 }, (_, i) => decaler(debut, i)); };
+  const douze = jours(12), actifs = douze.filter((j) => act.has(j)).length;
+  const legende = (
+    <span className="flex items-center gap-3">
+      <span className="flex items-center gap-1"><i className="size-2.5 rounded-[3px] bg-plate" />{tr("Muscu")}</span>
+      <span className="flex items-center gap-1"><i className="size-2.5 rounded-[3px] bg-success" />{tr("Cardio")}</span>
+    </span>
+  );
   return (
     <Carte>
-      <Calendrier jours={jours} etat={(j) => act.get(j)} onJour={onJour} aujourdhui={auj} />
+      <Calendrier jours={jours(4)} etat={(j) => act.get(j)} onJour={onJour} aujourdhui={auj} semaines />
       <div className="mt-3 flex items-center justify-between text-[12px] text-muted-foreground">
-        <span><b className="num text-[15px] text-foreground">{actifs}</b>{" "}{tr("jours d'entraînement")}</span>
-        <span className="flex items-center gap-3">
-          <span className="flex items-center gap-1"><i className="size-2.5 rounded-[3px] bg-plate" />{tr("Muscu")}</span>
-          <span className="flex items-center gap-1"><i className="size-2.5 rounded-[3px] bg-success" />{tr("Cardio")}</span>
-        </span>
+        <button onClick={() => setTout(true)} className="text-[13px] font-semibold text-plate-ink">{tr("Voir les 12 semaines")} →</button>
+        {legende}
       </div>
+      <Drawer open={tout} onOpenChange={setTout}>
+        <DrawerContent>
+          <div className="px-5 pt-2 pb-[max(env(safe-area-inset-bottom),20px)]">
+            <DrawerTitle className="text-[20px] font-bold">{tr("12 dernières semaines")}</DrawerTitle>
+            <DrawerDescription className="mt-0.5 mb-4 text-[13.5px] text-muted-foreground">{tr("{a} jours d'entraînement · touche un jour pour le revoir", { a: actifs })}</DrawerDescription>
+            <Calendrier jours={douze} etat={(j) => act.get(j)} onJour={(j) => { setTout(false); onJour(j); }} aujourdhui={auj} />
+            <div className="mt-3 flex justify-end text-[12px] text-muted-foreground">{legende}</div>
+          </div>
+        </DrawerContent>
+      </Drawer>
     </Carte>
   );
 }
 
-/* Repère courant : 10 à 20 séries par muscle et par semaine pour progresser. */
+/* Le corps teinté par les séries des 7 derniers jours ; 10 à 20 séries par muscle et par semaine pour progresser. */
 function Muscles({ H, auj }: { H: LigneHist[]; auj: string }) {
   const parM = useMemo(() => seriesParMuscle(H, decaler(auj, -6), auj), [H, auj]);
   const liste = Object.entries(parM).sort((a, b) => b[1] - a[1]);
   const teinte = (r: { p?: string }) => { const m = r.p && PAT2MUSC[r.p]; return m && parM[m] ? Math.min(1, parM[m] / 16) : 0; };
   if (!liste.length) return <Carte><p className="text-[14px] text-muted-foreground">{tr("Aucune série de musculation ces 7 derniers jours.")}</p></Carte>;
+  const restants = PRINCIPAUX.filter((k) => !parM[k]).map((k) => nomMuscle(k).toLowerCase());
   return (
     <div className="flex flex-col gap-2">
       <SchemaCorps actif={() => false} choisi={() => false} onToucher={() => {}} teinte={teinte} legende={tr("Plus c'est foncé, plus le muscle a travaillé")} />
-      <Carte className="flex flex-col gap-2.5">
+      {/* séries de la semaine par muscle ; de 10 à 20, un muscle progresse bien */}
+      <div className="flex flex-wrap gap-1.5">
         {liste.map(([m, n]) => (
-          <div key={m}>
-            <div className="flex justify-between text-[13.5px]"><span className="font-medium">{nomMuscle(m)}</span><span className="num text-[15px] font-semibold">{n} <span className="text-[12px] font-normal text-muted-foreground">{tr("séries")}</span></span></div>
-            <div className="relative mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
-              <div className="h-full origin-left animate-[remplir_.7s_ease-out_both] rounded-full bg-plate" style={{ width: Math.min(100, (n / 20) * 100) + "%" }} />
-              <span className="absolute inset-y-0 left-1/2 w-px bg-foreground/30" aria-hidden />
-            </div>
-          </div>
+          <span key={m} className={cn("rounded-full border px-3 py-1 text-[12.5px] font-medium", n >= 10 ? "border-plate/40 bg-plate-soft" : "border-border/80 bg-card")}>
+            {nomMuscle(m)}{" "}<b className="num text-plate-ink">{n}</b>
+          </span>
         ))}
-        <p className="text-[11.5px] leading-snug text-muted-foreground">{tr("Le trait marque 10 séries : entre 10 et 20 séries par semaine, un muscle progresse bien.")}</p>
-      </Carte>
+      </div>
+      {restants.length > 0 && (
+        <p className="rounded-2xl border border-border/80 bg-card px-3.5 py-2.5 text-[13px] leading-snug">{tr("Pas encore cette semaine :")}{" "}<b className="font-semibold">{restants.join(", ")}</b></p>
+      )}
     </div>
   );
 }
+
+/* les grands groupes, pour « pas encore cette semaine » */
+const PRINCIPAUX = ["pec", "dos", "epa", "bic", "tri", "qua", "isc", "mol", "abd"];
 
 function Records({ H }: { H: LigneHist[] }) {
   const R = useMemo(() => records(H), [H]);

@@ -17,6 +17,7 @@ import { EnTete } from "@/components/repere/en-tete";
 import { SchemaCorps } from "@/components/repere/schema-corps";
 import { FiltreMateriel } from "@/components/repere/filtre-materiel";
 import { Segmente } from "@/components/repere/segmente";
+import { BibliothequeMuscles } from "@/components/repere/bibliotheque-muscles";
 import { dire } from "@/components/repere/confirmer";
 import { DUREES, FULLBODY, MUSC, OBJS, PAT2MUSC } from "@/lib/data/referentiels";
 import { avecSalle, selDeclare } from "@/lib/logic/core";
@@ -26,6 +27,7 @@ import { useRepere } from "@/lib/store";
 import { ARRIERE, AVANT, remplacement, revenirA } from "@/lib/nav";
 import { Retour } from "@/components/repere/retour";
 import { useBrouillon } from "@/lib/brouillon";
+import { lienRubrique } from "@/components/repere/rubriques";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +45,9 @@ function Assistant() {
   const muter = useRepere((s) => s.muter);
   /* Deux catégories à part : musculation (muscles, puis composeur) ou cardio (format, machine, durées). */
   const typeUrl = useSearchParams().get("type");
-  const [type, setType] = useState<"muscu" | "cardio" | "mixte" | "course">(typeUrl === "cardio" || typeUrl === "mixte" || typeUrl === "course" ? typeUrl : "muscu");
+  /* venu de la rubrique Course : la préparation d'une course seulement */
+  const courseSeule = typeUrl === "course";
+  const [type, setType] = useState<"muscu" | "cardio" | "mixte" | "exercices" | "course">(typeUrl === "cardio" || typeUrl === "mixte" || typeUrl === "exercices" || typeUrl === "course" ? typeUrl : "muscu");
   const [choix, setChoix] = useState<ChoixCardio>(() => { const n = niveauDe(A.regularite); return { f: "fractionne", m: "tapis", n, r: reglagesDe("fractionne", n) }; });
   const [nomCardio, setNomCardio] = useState("");
   /* Enregistrer la séance cardio ; avec `demarrer`, son minuteur s'ouvre aussitôt (à la place de l'assistant). */
@@ -53,11 +57,13 @@ function Assistant() {
     muter((E) => { (E.SEANCES_CARDIO ??= []).push({ nom, ...choix }); });
     toast.success(tr("« {nom} » ajoutée à tes séances cardio", { nom }));
     if (demarrer) { preparer(); remplacement(); router.replace(`/entrainement/cardio?s=${i}&go=1` as Route, AVANT); return; }
-    revenirA("/entrainement", () => router.replace("/entrainement", ARRIERE));
+    revenirA("/entrainement/rubrique", () => router.replace(lienRubrique("libre"), ARRIERE));
   };
   const { sel: selB, setSel, setLibre } = useBrouillon();
   const sel = avecSalle(selB ?? [], A);
-  const [m, setM] = useState<string[]>([]);
+  /* muscles touchés sur le corps d'Entraînement : déjà cochés */
+  const mUrl = useSearchParams().get("m");
+  const [m, setM] = useState<string[]>(() => (mUrl ? mUrl.split(",").filter((k) => MUSC.some((g) => g.k === k)) : []));
   const [vue, setVue] = useState<"corps" | "liste">("corps");
   const [d, setD] = useState(45);
   const [obj, setObj] = useState<number | null>(A.objectif ?? null);
@@ -81,8 +87,8 @@ function Assistant() {
   return (
     <>
       <EnTete
-        surtitre={tr("Séance sur mesure")}
-        titre={tr("Créer une séance pour moi")}
+        surtitre={courseSeule ? tr("Course") : tr("Séance sur mesure")}
+        titre={courseSeule ? tr("Prépare une course") : tr("Créer une séance pour moi")}
         gauche={<Retour repli="/entrainement" />}
       >
         <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
@@ -92,13 +98,17 @@ function Assistant() {
               ? tr("De la musculation et un bloc cardio dans la même séance. Le bloc se place où tu veux : avant, entre deux exercices ou à la fin.")
               : type === "course"
                 ? tr("Un plan de préparation pour ta course : allures calculées sur ton niveau, montée progressive, affûtage avant le jour J, et renfo du coureur.")
-                : tr("Une séance guidée : Repère annonce chaque effort et chaque récupération, avec un signal sonore.")}
+                : type === "exercices"
+                  ? tr("Tous les exercices, muscle par muscle, avec ton matériel. Touche un exercice pour voir sa fiche.")
+                  : tr("Une séance guidée : Repère annonce chaque effort et chaque récupération, avec un signal sonore.")}
         </p>
-        <Segmente label={tr("Catégorie")} className="mt-4" valeur={type} onChange={setType} options={[{ v: "muscu", n: tr("Muscu") }, { v: "cardio", n: tr("Cardio") }, { v: "mixte", n: tr("Combinée") }, { v: "course", n: tr("Course") }]} />
+        {!courseSeule && <Segmente label={tr("Catégorie")} className="mt-4" valeur={type} onChange={setType} options={[{ v: "muscu", n: tr("Muscu") }, { v: "cardio", n: tr("Cardio") }, { v: "mixte", n: tr("Combinée") }, { v: "exercices", n: tr("Exercices") }]} />}
       </EnTete>
 
       {type === "course" ? (
         <QuestionnaireCourse />
+      ) : type === "exercices" ? (
+        <div className="px-4 pb-10"><BibliothequeMuscles /></div>
       ) : type === "cardio" ? (
         <>
           <div className="flex flex-col gap-6 px-4 pb-28">

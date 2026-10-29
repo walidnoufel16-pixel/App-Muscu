@@ -29,6 +29,7 @@ import { useRepere } from "@/lib/store";
 import { ARRIERE, revenirA } from "@/lib/nav";
 import { Retour, useRetour } from "@/components/repere/retour";
 import { useBrouillon } from "@/lib/brouillon";
+import { lienRubrique } from "@/components/repere/rubriques";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 
@@ -53,7 +54,7 @@ export default function PageComposer() {
   const [blocOuvert, setBlocOuvert] = useState<string | null>(null); // id du bloc cardio dont les réglages sont ouverts
 
   const retour = useRetour("/entrainement");
-  const versEntrainement = () => revenirA("/entrainement", () => router.replace("/entrainement", ARRIERE));
+  const versEntrainement = () => revenirA("/entrainement/rubrique", () => router.replace(lienRubrique("libre"), ARRIERE));
   const part = useRef(false); // on quitte : le brouillon vidé ne doit pas déclencher de redirection
   useEffect(() => { if (!libre && !part.current) router.replace("/entrainement"); }, [libre, router]);
   if (!libre) return null;

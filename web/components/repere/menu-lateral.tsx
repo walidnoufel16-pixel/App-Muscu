@@ -1,7 +1,7 @@
 "use client";
 
-/* Menu latéral (☰) : tout ce qui n'est pas du quotidien. Les quatre onglets du bas gardent
-   l'entraînement, les exercices, les repas et les progrès ; ici, le compte, les réglages,
+/* Menu latéral (☰) : tout ce qui n'est pas du quotidien. Les trois onglets du bas gardent
+   l'entraînement (séances et rubriques d'exercices), les repas et les progrès ; ici, le compte, les réglages,
    les défis, les badges, l'import d'une séance et l'installation de l'app. */
 import { tr } from "@/lib/i18n";
 import { usePathname, useRouter } from "next/navigation";
@@ -10,13 +10,14 @@ import { CalendarDotsIcon, CaretRightIcon, DeviceMobileIcon, DownloadSimpleIcon,
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { useRepere } from "@/lib/store";
 import { useEstAdmin } from "@/lib/admin";
-import { useMenu, useVueEntrainement } from "@/lib/nav";
+import { useMenu } from "@/lib/nav";
+import { lienRubrique } from "./rubriques";
 import { tactile } from "@/lib/repos";
 import { appInstallee } from "./installer";
 import { cn } from "@/lib/utils";
 
 /* Les écrans des quatre onglets, et « Compte et réglages » : le bouton ☰ y remplace le retour. */
-export const RACINES = ["/entrainement", "/exercices", "/repas", "/progres", "/profil"];
+export const RACINES = ["/entrainement", "/repas", "/progres", "/profil"];
 export const estRacine = (chemin: string) => RACINES.includes(chemin.replace(/\/$/, "") || "/");
 
 /** Bouton ☰ de l'en-tête, avec la pastille de synchronisation. */
@@ -58,10 +59,10 @@ export function MenuLateral() {
     {
       titre: tr("Aller plus loin"),
       l: [
-        { Icone: TrophyIcon, n: tr("Défis entre amis"), onClick: va("/progres", "defis") },
-        { Icone: MedalIcon, n: tr("Badges et bilans"), onClick: va("/progres", "badges") },
-        { Icone: CalendarDotsIcon, n: tr("Programme 8 semaines"), onClick: () => { useVueEntrainement.setState({ vue: "programme" }); va("/entrainement")(); } },
-        { Icone: DownloadSimpleIcon, n: tr("Importer une séance"), onClick: () => { useVueEntrainement.setState({ vue: "libres" }); va("/entrainement")(); setTimeout(() => useMenu.setState({ importer: true }), 500); } },
+        { Icone: TrophyIcon, n: tr("Défis entre amis"), onClick: va("/progres?o=defis", "defis") },
+        { Icone: MedalIcon, n: tr("Badges et bilans"), onClick: va("/progres?o=defis", "badges") },
+        { Icone: CalendarDotsIcon, n: tr("Programme 8 semaines"), onClick: va(lienRubrique("programme")) },
+        { Icone: DownloadSimpleIcon, n: tr("Importer une séance"), onClick: () => { va(lienRubrique("libre"))(); setTimeout(() => useMenu.setState({ importer: true }), 500); } },
       ],
     },
     {

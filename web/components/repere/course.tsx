@@ -165,14 +165,14 @@ const SORTIES_PLAN: [string, string][] = [
 ];
 
 /** Rubrique Course : ton plan s'il y en a un, sinon de quoi en préparer un ; les séances qu'il contient. */
-export function VueCourse() {
+export function VueCourse({ onglet }: { onglet: "plan" | "seances" }) {
   const router = useRouter();
   const etat = useRepere((s) => s.etat);
   const [auj] = useState(() => jourDe(Date.now()));
   const enCours = !!etat.COURSE && joursAvantCourse(etat.COURSE, auj) >= -7;
   return (
     <div className="flex flex-col gap-5">
-      {enCours ? (
+      {onglet === "plan" && (enCours ? (
         <section className="flex flex-col gap-2">
           <h3 className="px-1 text-[19px] font-bold">{tr("Ton plan")}</h3>
           <CarteCourse />
@@ -186,9 +186,9 @@ export function VueCourse() {
             {tr("Créer mon plan")}<ArrowRightIcon className="size-4" weight="bold" />
           </button>
         </div>
-      )}
-      <section>
-        <h3 className="mb-2 px-1 text-[19px] font-bold">{tr("Les séances du plan")}</h3>
+      ))}
+      {onglet === "seances" && <section>
+        <p className="mb-3 rounded-[18px] bg-plate-soft p-3.5 text-[13.5px] leading-relaxed">{tr("Les séances qu'un plan enchaîne jusqu'au jour J.")}</p>
         <ul className="flex flex-col gap-1.5">
           {SORTIES_PLAN.map(([n, d]) => (
             <li key={n} className="flex items-start gap-3 rounded-[18px] bg-card p-3">
@@ -200,7 +200,7 @@ export function VueCourse() {
             </li>
           ))}
         </ul>
-      </section>
+      </section>}
     </div>
   );
 }

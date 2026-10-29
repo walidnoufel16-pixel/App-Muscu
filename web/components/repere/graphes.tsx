@@ -98,15 +98,18 @@ export function Barres({ valeurs, unite = "", hauteur = 120, couleur = "var(--pl
 }
 
 /** Calendrier d'activité : une colonne par semaine (lundi en haut), une case par jour. */
-export function Calendrier({ jours, etat, onJour, aujourdhui }: {
+export function Calendrier({ jours, etat, onJour, aujourdhui, semaines = false }: {
   jours: string[]; // tous les jours affichés, du plus ancien au plus récent, en commençant un lundi
   etat: (j: string) => { muscu: boolean; cardio: boolean } | undefined;
   onJour: (j: string) => void;
   aujourdhui: string;
+  semaines?: boolean; // une semaine par ligne (lundi → dimanche), sous les initiales des jours : version compacte
 }) {
   const colonnes = Math.ceil(jours.length / 7);
   return (
-    <div className="grid grid-flow-col grid-rows-7 gap-[3px]" style={{ gridTemplateColumns: `repeat(${colonnes}, minmax(0, 1fr))` }}>
+    <div className={cn("grid gap-[3px]", semaines ? "grid-cols-7 gap-1" : "grid-flow-col grid-rows-7")} style={semaines ? undefined : { gridTemplateColumns: `repeat(${colonnes}, minmax(0, 1fr))` }}>
+      {/* initiales des jours dans la langue de l'app (le 1er janvier 2024 est un lundi) */}
+      {semaines && Array.from({ length: 7 }, (_, i) => <span key={i} className="text-center text-[10.5px] font-medium text-muted-foreground">{new Date(2024, 0, 1 + i).toLocaleDateString(loc(), { weekday: "narrow" })}</span>)}
       {jours.map((j, i) => {
         const e = etat(j), futur = j > aujourdhui;
         const fond = !e ? "var(--muted)" : e.muscu && e.cardio
@@ -117,7 +120,7 @@ export function Calendrier({ jours, etat, onJour, aujourdhui }: {
             disabled={futur || !e}
             onClick={() => onJour(j)}
             aria-label={`${j}${e ? (e.muscu ? tr(" · musculation") : "") + (e.cardio ? tr(" · cardio") : "") : ""}`}
-            className={cn("aspect-square rounded-[4px] transition-transform active:scale-90", futur && "opacity-0", j === aujourdhui && "ring-2 ring-foreground/50 ring-offset-1 ring-offset-card")}
+            className={cn(semaines ? "h-5 rounded-[5px]" : "aspect-square rounded-[4px]", "transition-transform active:scale-90", futur && "opacity-0", j === aujourdhui && "ring-2 ring-foreground/50 ring-offset-1 ring-offset-card")}
             style={{ background: fond, animation: e ? tr("pop .35s {a}ms both", { a: Math.min(i * 6, 500) }) : undefined }}
           />
         );
