@@ -155,11 +155,10 @@
   .eyebrow {
     @apply text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground;
   }
-  /* photos de la salle (exercices, machines) en bleu et blanc, aux couleurs de l'app : elles
-     viennent de sources différentes, le même ton les accorde (filtre #bichromie, app/layout.tsx).
-     Les photos des recettes restent en couleur. */
+  /* photos de la salle (exercices, machines) en noir et blanc : elles viennent de sources
+     différentes, le même ton les accorde. Les photos des recettes restent en couleur. */
   .photo-salle {
-    filter: url(#bichromie);
+    filter: grayscale(1) contrast(1.05);
   }
   .safe-top {
     padding-top: max(env(safe-area-inset-top), 0px);
