@@ -2,7 +2,7 @@
 
 /* Une rubrique d'Entraînement, ouverte depuis sa bannière. Ses onglets naviguent dans la rubrique :
    la semaine ou tout le programme, un muscle, une partie du street ou de la course, une zone de soin.
-   Séance libre n'a pas d'onglets : créer, composer, importer, puis Mes séances. */
+   Séance libre n'a pas d'onglets : Mes séances, le corps humain, puis créer, composer, importer. */
 import { tr } from "@/lib/i18n";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -17,6 +17,7 @@ import { VueCourse } from "@/components/repere/course";
 import { useRepere } from "@/lib/store";
 import { AVANT, remplacement, useOngletsExercices } from "@/lib/nav";
 import { CreerSeance, MesSeances } from "@/components/repere/mes-seances";
+import { CorpsDuJour } from "@/components/repere/corps-du-jour";
 import { Hero, MaSemaine, ToutLeProgramme } from "@/components/repere/programme-vues";
 import { ProgrammeBientot } from "@/components/repere/bientot";
 import { useProgrammeActif } from "@/lib/fonctionnalites";
@@ -38,6 +39,7 @@ function Contenu() {
   const sensibles = useZonesASoigner();
   const prog = useProgrammeActif();
   const plan = useRepere((s) => s.etat.FINI || !!s.etat.PLAN);
+  const aDesSeances = useRepere((s) => !!s.etat.SEANCES.length || !!s.etat.SEANCES_CARDIO?.length);
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);
   const ouvrir = (id: string) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") });
 
@@ -63,10 +65,12 @@ function Contenu() {
       <div className="flex flex-col gap-4 px-4 pb-6">
         {options.length > 0 && <Onglets label={nomRubrique(v)} options={options} valeur={onglet} onChange={changer} style={v === "soin" ? "pastilles" : "soulignes"} />}
         {v === "libre" ? (
-          <>
+          <div className="flex flex-col gap-6 pb-20">
+            {/* tes séances d'abord ; le corps pour en créer une sur les muscles touchés ; puis les trois façons de faire */}
+            {aDesSeances && <MesSeances />}
+            <CorpsDuJour titre={aDesSeances ? tr("Ou travaille autre chose aujourd'hui ?") : tr("Qu'est-ce que tu travailles aujourd'hui ?")} />
             <CreerSeance />
-            <MesSeances />
-          </>
+          </div>
         ) : v === "programme" ? (
           !prog ? <ProgrammeBientot />
           : !plan ? (

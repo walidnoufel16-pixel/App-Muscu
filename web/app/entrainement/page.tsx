@@ -1,9 +1,8 @@
 "use client";
 
 /* Entraînement : en tête, ce qu'il y a à faire (la séance du jour du programme, sinon ta
-   prochaine séance libre), puis le corps humain pour créer une séance sur les muscles touchés,
-   ta régularité et tes protéines, et une bannière par rubrique. Juste après l'inscription,
-   le corps arrive en premier. */
+   prochaine séance libre), ta régularité et tes protéines ; puis une bannière par rubrique.
+   Juste après l'inscription, il n'y a que les bannières, Séance libre en premier. */
 import { tr } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
 import { ChartLineUpIcon } from "@phosphor-icons/react";
@@ -14,7 +13,6 @@ import { CarteProteines } from "@/components/repere/proteines";
 import { CarteCourse } from "@/components/repere/course";
 import { ProgrammeBientot } from "@/components/repere/bientot";
 import { Bannieres, type Rubrique } from "@/components/repere/rubriques";
-import { CorpsDuJour } from "@/components/repere/corps-du-jour";
 import { CarteProgrammeDuJour, Hero, useProgramme } from "@/components/repere/programme-vues";
 import { musclesDe } from "@/lib/logic/core";
 import { dureeTotale as dureeSeance } from "@/lib/logic/combinee";
@@ -32,8 +30,6 @@ export default function PageEntrainement() {
   const prog = useProgrammeActif();
   const { plan, wk, socle, faites } = useProgramme();
   const enProgramme = prog && plan;
-  /* une carte « séance » en tête : le corps se présente alors comme l'alternative */
-  const aUneSeance = enProgramme || prochaineLibre(etat.SEANCES, etat.HIST) != null;
   const habitue = enProgramme || !!etat.SEANCES.length || !!etat.HIST?.length || !!etat.CARDIO?.length || !!etat.COURSE;
 
   const rubriques: Rubrique[] = ["libre", ...(prog ? (["programme"] as const) : []), "street", "course", "soin"];
@@ -46,10 +42,9 @@ export default function PageEntrainement() {
         titre={tr("Entraînement")}
         actions={<ChoixLangue />}
       />
-      <div className={cn("flex flex-col gap-3 px-4 pb-20", premiere && "entree")}>
+      <div className={cn("flex flex-col gap-3 px-4", premiere && "entree")}>
         {enProgramme ? <CarteProgrammeDuJour /> : <ProchaineLibre />}
         <Reprise />
-        <CorpsDuJour titre={aUneSeance ? tr("Ou travaille autre chose aujourd'hui ?") : tr("Qu'est-ce que tu travailles aujourd'hui ?")} />
         {habitue && (
           <>
             <div className="grid grid-cols-2 gap-3">
@@ -60,7 +55,7 @@ export default function PageEntrainement() {
           </>
         )}
         <section className="mt-4">
-          <h2 className="eyebrow mb-2 px-1">{habitue ? tr("Rubriques") : tr("Ou choisis une rubrique")}</h2>
+          <h2 className="eyebrow mb-2 px-1">{habitue ? tr("Rubriques") : tr("Par où commencer")}</h2>
           <Bannieres rubriques={rubriques} texte={enProgramme ? {} : { programme: tr("Construis ton programme : une douzaine de questions, puis huit semaines de séances.") }} detail={detailProgramme ? { programme: detailProgramme } : {}} />
         </section>
         {!prog && <ProgrammeBientot className="mt-1" />}
