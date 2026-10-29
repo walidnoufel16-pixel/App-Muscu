@@ -51,14 +51,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Geist:wght@400..800&display=swap" />
       </head>
       <body className="min-h-full">
-        {/* bichromie des photos de la salle (.photo-salle) : ombres bleu nuit, tons moyens bleu doux, lumières blanches */}
+        {/* bichromie des photos de la salle (.photo-salle) : ombres bleu nuit, tons moyens au bleu de l'app, lumières blanches */}
         <svg aria-hidden width="0" height="0" className="absolute">
           <filter id="bichromie" colorInterpolationFilters="sRGB">
             <feColorMatrix type="matrix" values="0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0 0 0 1 0" />
             <feComponentTransfer>
-              <feFuncR type="table" tableValues="0.10 0.50 1" />
-              <feFuncG type="table" tableValues="0.13 0.57 1" />
-              <feFuncB type="table" tableValues="0.28 0.80 1" />
+              <feFuncR type="table" tableValues="0.05 0.18 1" />
+              <feFuncG type="table" tableValues="0.11 0.36 1" />
+              <feFuncB type="table" tableValues="0.40 0.92 1" />
             </feComponentTransfer>
           </filter>
         </svg>
