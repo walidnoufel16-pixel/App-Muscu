@@ -53,25 +53,17 @@ export function CarteRoutine({ r, titre, compacte }: { r: RoutineSoin; titre?: s
   );
 }
 
-/** Onglet « Soin & mobilité » de la bibliothèque : une section par zone, routine en tête. */
-export function VueSoin({ onFiche }: { onFiche: (id: string) => void }) {
-  const ids = Object.keys(EX);
+/** Rubrique « Soin & mobilité » de la bibliothèque : la zone choisie (un onglet par zone), routine en tête. */
+export function VueSoin({ onFiche, zone }: { onFiche: (id: string) => void; zone: ZoneSoin }) {
+  const nom = ZONES_SOIN.find(([z]) => z === zone)?.[1] ?? "";
   return (
-    <div className="flex flex-col gap-6">
-      <p className="rounded-[18px] bg-plate-soft p-3.5 text-[13.5px] leading-relaxed">
-        {tr("Mobilité et rééducation légère, rangées par zone. Chaque zone a sa routine prête à lancer.")}{" "}
-        <span className="text-muted-foreground">{tr(AVERTISSEMENT_SOIN)}</span>
-      </p>
-      {ZONES_SOIN.map(([z, nom]) => (
-        <section key={z} aria-label={nom}>
-          <h3 className="mb-2 px-1 text-[19px] font-bold">{nom}</h3>
-          <CarteRoutine r={routineDe(z)} titre={tr("Routine · {nom}", { nom: routineDe(z).nom })} />
-          <div className="mt-2 flex flex-col gap-1.5">
-            {ids.filter((o) => EX[o].soin === z).map((o) => <LigneExercice key={o} id={o} onOuvrir={() => onFiche(o)} />)}
-          </div>
-        </section>
-      ))}
-    </div>
+    <section aria-label={nom} className="flex flex-col gap-2">
+      <CarteRoutine r={routineDe(zone)} titre={tr("Routine · {nom}", { nom: routineDe(zone).nom })} />
+      <div className="flex flex-col gap-1.5">
+        {Object.keys(EX).filter((o) => EX[o].soin === zone).map((o) => <LigneExercice key={o} id={o} onOuvrir={() => onFiche(o)} />)}
+      </div>
+      <p className="mt-2 px-1 text-[12.5px] leading-relaxed text-muted-foreground">{tr(AVERTISSEMENT_SOIN)}</p>
+    </section>
   );
 }
 

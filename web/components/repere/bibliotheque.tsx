@@ -17,10 +17,11 @@ import { cn } from "@/lib/utils";
    un toucher réduit la liste à un muscle (la pastille « Tout » élargit au groupe), avec en
    dessous les exercices de soin & mobilité de la zone. */
 export function Bibliotheque({
-  sel, zone, setZone, pris, onAjouter, onFiche,
+  sel, zone, setZone, pris, onAjouter, onFiche, schema = true,
 }: {
   sel: string[]; zone: { z: string; p: string | null } | null; setZone: (z: { z: string; p: string | null } | null) => void;
   pris?: (o: string) => boolean; onAjouter?: (o: string) => void; onFiche: (o: string) => void;
+  schema?: boolean; // sans schéma : la zone vient d'ailleurs (onglets de la rubrique Musculation)
 }) {
   /* deux catégories : musculation, puis soin & mobilité de la zone touchée */
   const l = (zone ? (zone.p ? exosDe(zone.p, sel) : exosZone(zone.z, sel)) : []).filter((o) => !estSoin(o));
@@ -28,7 +29,7 @@ export function Bibliotheque({
   const pats = zone ? patsZone(zone.z, sel).filter((p) => exosDe(p, sel).some((o) => !estSoin(o))) : [];
   return (
     <div className="flex flex-col gap-3">
-      <SchemaCorps
+      {schema && <SchemaCorps
         actif={(r) => !!r.z && exosZone(r.z, sel).length > 0}
         choisi={(r) => !!zone && r.z === zone.z && (!zone.p || r.p === zone.p)}
         onToucher={(r) => {
@@ -37,7 +38,7 @@ export function Bibliotheque({
           else setZone({ z: r.z!, p: cible });
         }}
         legende={tr("Touche un muscle pour filtrer")}
-      />
+      />}
       {zone ? (
         <div className="flex flex-col gap-5">
           <section aria-label={tr("Musculation")}>

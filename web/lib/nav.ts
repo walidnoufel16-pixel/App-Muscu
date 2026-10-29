@@ -69,6 +69,9 @@ export const noterPosition = (chemin: string, y: number) => { positions[chemin] 
 export const oublierPosition = (chemin: string) => { delete positions[chemin]; };
 export const positionDe = (chemin: string): number | undefined => positions[chemin];
 
+/* Dernier onglet ouvert dans chaque rubrique d'Exercices (muscle, zone de soin…), le temps de la session. */
+export const useOngletsExercices = create<Record<string, string>>(() => ({}));
+
 /* Vue de l'onglet Entraînement : séances libres (par défaut) ou programme sur 8 semaines. */
 export const useVueEntrainement = create<{ vue: "libres" | "programme" }>(() => ({ vue: "libres" }));
 

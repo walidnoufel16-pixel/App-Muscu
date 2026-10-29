@@ -2,7 +2,7 @@
 
 import { tr } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
-import { CaretRightIcon, CheckIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, CaretRightIcon, CheckIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { musclesDe } from "@/lib/logic/core";
@@ -115,28 +115,37 @@ function ApercuProgramme({ p, k, setK, deja, onAjouter, onFiche }: { p: Programm
 }
 
 /* Onglet « Street » de la bibliothèque : programmes par niveau, séance sur mesure, familles d'exercices. */
-export function VueStreet({ onFiche }: { onFiche: (id: string) => void }) {
+export type OngletStreet = "programmes" | "mesure" | "familles";
+
+export function VueStreet({ onFiche, onglet }: { onFiche: (id: string) => void; onglet: OngletStreet }) {
   const router = useRouter();
   const setSel = useBrouillon((s) => s.setSel);
   const surMesure = () => { setSel(MATERIEL_STREET); router.push("/entrainement/assistant", AVANT); };
+  if (onglet === "programmes")
+    return (
+      <section aria-label={tr("Programmes street workout")} className="flex flex-col gap-2.5">
+        <p className="rounded-[18px] bg-plate-soft p-3.5 text-[13.5px] leading-relaxed">
+          {tr("Poids du corps et barre de traction. Choisis ton niveau : trois séances par semaine, à enchaîner A, B, C.")}
+        </p>
+        {PROGRAMMES_STREET.map((p) => <CarteProgramme key={p.niv} p={p} onFiche={onFiche} />)}
+      </section>
+    );
+  if (onglet === "mesure")
+    return (
+      <div className="rounded-[22px] bg-plate p-5 text-plate-foreground">
+        <SparkleIcon className="size-8" weight="fill" />
+        <h3 className="mt-2 text-[22px] leading-tight font-bold">{tr("Une séance street sur mesure")}</h3>
+        <p className="mt-1.5 text-[14px] leading-relaxed opacity-90">{tr("Tu choisis les muscles et la durée, Repère compose avec le poids du corps et la barre.")}</p>
+        <button onClick={surMesure} className="mt-4 inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[15px] font-semibold text-[#2346c4] active:scale-[.97]">
+          {tr("Composer ma séance")}<ArrowRightIcon className="size-4" weight="bold" />
+        </button>
+      </div>
+    );
   return (
     <div className="flex flex-col gap-6">
       <p className="rounded-[18px] bg-plate-soft p-3.5 text-[13.5px] leading-relaxed">
-        {tr("Poids du corps et barre de traction. Choisis ton niveau : trois séances par semaine, à enchaîner A, B, C. Chaque famille d'exercices est rangée de la variante la plus facile à la plus dure.")}
+        {tr("Chaque famille d'exercices est rangée de la variante la plus facile à la plus dure.")}
       </p>
-      <section aria-label={tr("Programmes street workout")}>
-        <h3 className="mb-2 px-1 text-[19px] font-bold">{tr("Programmes")}</h3>
-        <div className="flex flex-col gap-2.5">
-          {PROGRAMMES_STREET.map((p) => <CarteProgramme key={p.niv} p={p} onFiche={onFiche} />)}
-          <button onClick={surMesure} className="flex w-full items-center gap-3 rounded-[20px] border border-dashed border-border bg-card/60 p-3.5 text-left active:scale-[.99]">
-            <span className="grid size-10 place-items-center rounded-full bg-plate-soft text-plate"><SparkleIcon className="size-5" weight="fill" /></span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-[15px] font-semibold">{tr("Une séance street sur mesure")}</span>
-              <span className="block text-[12.5px] text-muted-foreground">{tr("Tu choisis les muscles et la durée, Repère compose avec le poids du corps et la barre.")}</span>
-            </span>
-          </button>
-        </div>
-      </section>
       {FAMILLES_STREET.map((f) => (
         <section key={f.k} aria-label={f.n}>
           <h3 className="mb-2 px-1 text-[19px] font-bold">{f.n}</h3>

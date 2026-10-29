@@ -31,7 +31,7 @@ const ZONE_PHOTO: Record<string, string> = {
   pectoraux: "Pushups_0", dos: "Bent_Over_Barbell_Row_0", epaules: "Dumbbell_Shoulder_Press_0", bras: "Barbell_Curl_0",
   jambes: "Barbell_Squat_0", fessiers: "Barbell_Hip_Thrust_1", tronc: "Plank_0",
 };
-const ORDRE_ZONES = ["pectoraux", "dos", "epaules", "bras", "jambes", "fessiers", "tronc"];
+export const ORDRE_ZONES = ["pectoraux", "dos", "epaules", "bras", "jambes", "fessiers", "tronc"];
 
 function Photo({ nom, grand, className }: { nom: string; grand?: boolean; className?: string }) {
   const petite = `/img/${nom}.avif`;
