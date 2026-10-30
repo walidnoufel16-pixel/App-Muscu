@@ -1,7 +1,8 @@
 // Service worker généré après `next build` : précache tout out/ (pages, JS,
 // polices, photos) pour un fonctionnement hors ligne complet. Le nom du cache
 // prend le hash du commit : chaque déploiement remplace l'ancien cache.
-import { readdirSync, statSync, writeFileSync } from "node:fs";
+import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { join, relative, sep } from "node:path";
 import { execSync } from "node:child_process";
 
@@ -16,9 +17,16 @@ const liste = fichiers(OUT)
   .filter((p) => p !== "/sw.js" && !p.endsWith(".txt") && !p.endsWith(".map") && !p.startsWith("/img/grand/") && !p.startsWith("/zxing/"))
   .map((p) => p.replace(/index\.html$/, ""))
   .sort();
+/* empreinte de chaque photo en grand : une photo refaite change d'empreinte, la copie gardée
+   sur le téléphone est alors remplacée (sans retélécharger celles qui n'ont pas changé) */
+const GRAND = Object.fromEntries(fichiers(join(OUT, "img/grand")).map((p) => [
+  "/" + relative(OUT, p).split(sep).join("/"), createHash("sha1").update(readFileSync(p)).digest("hex").slice(0, 8),
+]));
 const sw = `/* Repère — service worker généré (scripts/sw.mjs). */
 const C = "repere-${v}";
 const ASSETS = ${JSON.stringify(liste)};
+const GRAND = ${JSON.stringify(GRAND)};
+const cleGrand = (chemin) => chemin + "?v=" + (GRAND[chemin] || "");
 /* une nouvelle version s'installe puis attend : l'app propose « Recharger » (components/repere/mise-a-jour.tsx) */
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(C).then((c) => c.addAll(ASSETS)));
@@ -27,7 +35,13 @@ self.addEventListener("message", (e) => { if (e.data === "activer") self.skipWai
 /* les photos Unsplash gardées pour le hors-ligne (lib/photos-hors-ligne.ts) survivent aux mises à jour */
 const PHOTOS = "repere-photos";
 self.addEventListener("activate", (e) => {
-  e.waitUntil(caches.keys().then((k) => Promise.all(k.filter((x) => x !== C && x !== PHOTOS).map((x) => caches.delete(x)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then((k) => Promise.all(k.filter((x) => x !== C && x !== PHOTOS).map((x) => caches.delete(x))))
+    /* photos en grand refaites depuis la version d'avant : l'ancienne copie part */
+    .then(() => caches.open(PHOTOS)).then((c) => c.keys().then((l) => Promise.all(l.filter((r) => {
+      const u = new URL(r.url);
+      return u.pathname.startsWith("/img/grand/") && u.pathname + u.search !== cleGrand(u.pathname);
+    }).map((r) => c.delete(r)))))
+    .then(() => self.clients.claim()));
 });
 /* Pages : réseau d'abord, cache en secours. Le reste : cache d'abord. */
 self.addEventListener("fetch", (e) => {
@@ -42,10 +56,12 @@ self.addEventListener("fetch", (e) => {
     return;
   }
   if (new URL(req.url).origin !== location.origin) return;
-  /* photos d'exercices en grand : gardées avec les photos Unsplash, elles survivent aux mises à jour */
+  /* photos d'exercices en grand : gardées avec les photos Unsplash, elles survivent aux mises à jour
+     tant qu'elles n'ont pas été refaites (empreinte dans la clé) */
   if (new URL(req.url).pathname.startsWith("/img/grand/")) {
-    e.respondWith(caches.open(PHOTOS).then((c) => c.match(req).then((r) => r || fetch(req).then((res) => {
-      if (res.ok) c.put(req, res.clone());
+    const cle = cleGrand(new URL(req.url).pathname);
+    e.respondWith(caches.open(PHOTOS).then((c) => c.match(cle).then((r) => r || fetch(req, { cache: "no-cache" }).then((res) => {
+      if (res.ok) c.put(cle, res.clone());
       return res;
     }))));
     return;
