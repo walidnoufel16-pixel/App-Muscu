@@ -7,12 +7,14 @@ import type { ExLibre } from "@/lib/logic/types";
 /* Familles, de la variante la plus accessible à la plus dure : la « prochaine étape »
    d'un exercice est le suivant de sa famille. */
 export const FAMILLES_STREET: { k: string; n: string; ex: string[] }[] = [
-  { k: "tirage", n: "Tirage à la barre", ex: ["ra", "scappu", "trneg", "eltr", "trs", "tr", "trmix", "trarch", "trlest", "tr1"] },
+  { k: "tirage", n: "Tirage à la barre", ex: ["susp", "ra", "scappu", "trneg", "eltr", "trs", "tr", "trmix", "trarch", "trlest", "tr1"] },
   { k: "poussee", n: "Pompes", ex: ["pompi", "pompis", "pomp", "pompl", "pompt", "pomph", "pompe", "pompeg", "pompgl", "pompp", "pomp1"] },
+  { k: "epaules", n: "Épaules", ex: ["pompk", "pv3"] },
   { k: "dips", n: "Dips", ex: ["bdips", "dip", "dipt", "dipan"] },
+  { k: "biceps", n: "Biceps", ex: ["curlel", "curlpc", "trs"] },
   { k: "jambes", n: "Jambes", ex: ["sqpc", "fepc", "splsq", "stepg", "pont1", "pistol", "nord", "mol1"] },
   { k: "explosivite", n: "Explosivité", ex: ["jsq", "fsaut", "ktj", "bondl", "grenou", "sautl"] },
-  { k: "gainage", n: "Abdos et gainage", ex: ["gai", "plat", "dbug", "mclimb", "spider", "ciseaux", "legpi", "rgen", "crsusp", "rj", "hpike"] },
+  { k: "gainage", n: "Abdos et gainage", ex: ["gai", "plat", "dbug", "mclimb", "spider", "ciseaux", "legpi", "rgen", "lsit", "crsusp", "rj", "hpike"] },
   { k: "figures", n: "Figures", ex: ["mup", "pv3", "pomp1", "tr1"] },
 ];
 

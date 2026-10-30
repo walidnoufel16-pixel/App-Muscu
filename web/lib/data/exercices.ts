@@ -3115,6 +3115,62 @@ export const EX: Record<string, Exercice> = {
   "d": 0,
   "bt": 1,
   "horsIA": 1
+ },
+ "curlpc": {
+  "n": "Curl au poids du corps",
+  "m": "Biceps, avant-bras",
+  "img": "",
+  "pat": "fc",
+  "pat2": "th",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "bt": 1,
+  "horsIA": 1
+ },
+ "curlel": {
+  "n": "Curl à l'élastique",
+  "m": "Biceps",
+  "img": "",
+  "pat": "fc",
+  "eq": 3,
+  "acc": "el",
+  "ch": "aucune",
+  "d": 0,
+  "horsIA": 1
+ },
+ "pompk": {
+  "n": "Pompes pike",
+  "m": "Épaules, triceps",
+  "img": "",
+  "pat": "pv",
+  "pat2": "ec",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "horsIA": 1
+ },
+ "susp": {
+  "n": "Suspension à la barre",
+  "m": "Avant-bras, prise, épaules",
+  "img": "",
+  "pat": "avb",
+  "eq": 3,
+  "ch": "temps",
+  "d": 30,
+  "bt": 1,
+  "horsIA": 1
+ },
+ "lsit": {
+  "n": "L-sit",
+  "m": "Abdominaux, fléchisseurs, triceps",
+  "img": "",
+  "pat": "ft",
+  "pat2": "ae",
+  "eq": 3,
+  "ch": "temps",
+  "d": 15,
+  "horsIA": 1
  }
 };
 
