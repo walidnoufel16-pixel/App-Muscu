@@ -15,12 +15,19 @@ export const SOURCES = {
     lien: "https://github.com/yuhonas/free-exercise-db",
     mention: tr("Illustrations · free-exercise-db · domaine public · retouche Repère"),
   },
+  /* photos de la base d'exercices wger, une par auteur (licence CC BY-SA : auteur cité) */
+  wgerWakanda: {
+    nom: "wakanda90 · wger",
+    licence: "CC BY-SA 4.0",
+    lien: "https://wger.de/en/exercise/456/view",
+    mention: tr("Photo · wakanda90 sur wger · CC BY-SA 4.0 · retouche Repère"),
+  },
 } satisfies Record<string, Source>;
 
 export type CleSource = keyof typeof SOURCES;
 
-/* Source des démonstrations de chaque exercice (toutes free-exercise-db pour l'instant). */
-const SOURCE_EX: Partial<Record<string, CleSource>> = {};
+/* Source des démonstrations de chaque exercice (free-exercise-db, sauf celles-ci). */
+const SOURCE_EX: Partial<Record<string, CleSource>> = { pistol: "wgerWakanda" };
 export const sourceEx = (id: string): Source => SOURCES[SOURCE_EX[id] ?? "fedb"];
 
 /** Photo de démonstration : 0 = départ, 1 = fin. */

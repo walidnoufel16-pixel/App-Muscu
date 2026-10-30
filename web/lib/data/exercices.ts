@@ -2923,6 +2923,198 @@ export const EX: Record<string, Exercice> = {
   "ch": "aucune",
   "d": 0,
   "horsIA": 1
+ },
+ "trarch": {
+  "n": "Tractions archer",
+  "m": "Dos, biceps",
+  "img": "Side_To_Side_Chins",
+  "pat": "tv",
+  "pat2": "fc",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "bt": 1,
+  "horsIA": 1
+ },
+ "trmix": {
+  "n": "Tractions prise mixte",
+  "m": "Dos, biceps",
+  "img": "Mixed_Grip_Chin",
+  "pat": "tv",
+  "pat2": "fc",
+  "eq": 3,
+  "ch": "lest",
+  "d": 0,
+  "bt": 1,
+  "horsIA": 1
+ },
+ "trlest": {
+  "n": "Tractions lestées",
+  "m": "Dos, biceps",
+  "img": "Weighted_Pull_Ups",
+  "pat": "tv",
+  "pat2": "fc",
+  "eq": 3,
+  "ch": "lest",
+  "d": 5,
+  "bt": 1,
+  "horsIA": 1
+ },
+ "pompis": {
+  "n": "Pompes inclinées serrées",
+  "m": "Triceps, pectoraux",
+  "img": "Incline_Push-Up_Close-Grip",
+  "pat": "ec",
+  "pat2": "ph",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "horsIA": 1
+ },
+ "pomph": {
+  "n": "Pompes horloge",
+  "m": "Pectoraux, épaules, gainage",
+  "img": "Clock_Push-Up",
+  "pat": "ph",
+  "pat2": "ae",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "horsIA": 1
+ },
+ "pompeg": {
+  "n": "Pompes essuie-glace",
+  "m": "Pectoraux, triceps",
+  "img": "Isometric_Wipers",
+  "pat": "ph",
+  "pat2": "ec",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "horsIA": 1
+ },
+ "dipan": {
+  "n": "Dips aux anneaux",
+  "m": "Pectoraux bas, triceps",
+  "img": "Ring_Dips",
+  "pat": "ph",
+  "pat2": "ec",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "acc": "trx",
+  "horsIA": 1
+ },
+ "pistol": {
+  "n": "Pistol squat",
+  "m": "Quadriceps, fessiers, équilibre",
+  "img": "Pistol_Squat",
+  "pat": "eg",
+  "pat2": "fh",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "horsIA": 1
+ },
+ "stepg": {
+  "n": "Step-up genou levé",
+  "m": "Quadriceps, fessiers",
+  "img": "Step-up_with_Knee_Raise",
+  "pat": "eg",
+  "pat2": "fh",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "horsIA": 1
+ },
+ "fsaut": {
+  "n": "Fentes sautées",
+  "m": "Quadriceps, fessiers, explosivité",
+  "img": "Split_Jump",
+  "pat": "eg",
+  "pat2": "fh",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "horsIA": 1
+ },
+ "bondl": {
+  "n": "Bonds latéraux",
+  "m": "Fessiers, quadriceps, explosivité",
+  "img": "Lateral_Bound",
+  "pat": "eg",
+  "pat2": "fh",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "horsIA": 1
+ },
+ "grenou": {
+  "n": "Sauts de grenouille",
+  "m": "Quadriceps, fessiers, explosivité",
+  "img": "Frog_Hops",
+  "pat": "eg",
+  "pat2": "fh",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "horsIA": 1
+ },
+ "sautl": {
+  "n": "Saut en longueur sans élan",
+  "m": "Fessiers, quadriceps, explosivité",
+  "img": "Standing_Long_Jump",
+  "pat": "eg",
+  "pat2": "fh",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "horsIA": 1
+ },
+ "spider": {
+  "n": "Spider crawl",
+  "m": "Abdominaux, épaules, hanches",
+  "img": "Spider_Crawl",
+  "pat": "ae",
+  "pat2": "ph",
+  "eq": 3,
+  "ch": "temps",
+  "d": 30,
+  "horsIA": 1
+ },
+ "ciseaux": {
+  "n": "Ciseaux au sol",
+  "m": "Abdominaux, fléchisseurs de hanche",
+  "img": "Scissor_Kick",
+  "pat": "ft",
+  "pat2": "ae",
+  "eq": 3,
+  "ch": "temps",
+  "d": 30,
+  "horsIA": 1
+ },
+ "legpi": {
+  "n": "Leg pull-in au sol",
+  "m": "Abdominaux",
+  "img": "Leg_Pull-In",
+  "pat": "ft",
+  "pat2": "ae",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "horsIA": 1
+ },
+ "crsusp": {
+  "n": "Crunch suspendu",
+  "m": "Abdominaux, dos",
+  "img": "Gorilla_Chin_Crunch",
+  "pat": "ft",
+  "pat2": "tv",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
+  "bt": 1,
+  "horsIA": 1
  }
 };
 

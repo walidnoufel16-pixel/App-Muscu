@@ -86,6 +86,8 @@ export type Reponses = {
   semaine?: SemaineRepas;
   /** Produits trouvés (scan ou recherche) pour le suivi des protéines, du plus récent au plus ancien. */
   produits?: Produit[];
+  /* tests d'entrée du street workout (tractions, pompes, dips, squats max), du plus ancien au plus récent */
+  testsStreet?: { d: string; tr: number; po: number; di: number; sq: number }[];
   [k: string]: unknown;
 };
 

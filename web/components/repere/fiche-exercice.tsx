@@ -13,6 +13,7 @@ import { useFiche } from "@/lib/fiches";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { imgEx, imgExGrand, sourceEx } from "@/lib/medias";
+import { etapesDe } from "@/lib/data/street";
 import { variantesDe } from "@/lib/logic/variantes";
 import { musclesDe } from "@/lib/logic/core";
 import { Vignette } from "./exercice-carte";
@@ -83,6 +84,7 @@ function Contenu({ fiche }: { fiche: FicheOuverte }) {
   const max = Math.max(1, ...lignes.map((l) => l.v));
   const u = UNITE[e.ch];
   const variantes = variantesDe(etat.A, id);
+  const etapes = etapesDe(id);
   const aller = (p: string[]) => { setPile(p); defile.current?.scrollTo({ top: 0 }); };
   const prec = pile.length > 1 ? pile[pile.length - 2] : fiche.id;
   const router = useRouter();
@@ -169,6 +171,20 @@ function Contenu({ fiche }: { fiche: FicheOuverte }) {
           </Bloc>
           <Bloc titre={tr("Comment progresser")}>
             <p className="rounded-2xl bg-plate-soft p-3.5 text-[15px] leading-relaxed">{t.p}</p>
+            {/* street workout : l'étape d'avant et la suivante dans la famille de l'exercice */}
+            {etapes && (etapes.avant || etapes.apres) && (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {([["avant", tr("Étape précédente")], ["apres", tr("Prochaine étape")]] as const).map(([k, n]) => {
+                  const o = etapes[k];
+                  return o && EX[o] ? (
+                    <button key={k} onClick={() => aller([...pile, o])} className={cn("flex items-center gap-2 rounded-2xl border bg-card p-2 text-left active:scale-[.98]", k === "apres" && "col-start-2 border-plate/50")}>
+                      <Vignette id={o} className="size-10 rounded-[10px]" />
+                      <span className="min-w-0"><span className="block text-[11px] text-muted-foreground">{n}</span><span className="block truncate text-[13.5px] font-semibold">{EX[o].n}</span></span>
+                    </button>
+                  ) : null;
+                })}
+              </div>
+            )}
           </Bloc>
         </>
       ) : (
