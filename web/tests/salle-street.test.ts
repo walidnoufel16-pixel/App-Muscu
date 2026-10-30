@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { EX } from "@/lib/data/exercices";
 import { POSTES, POSTE_DE, ZONES_SALLE } from "@/lib/data/salle";
-import { FAMILLES_STREET, PROGRAMMES_STREET } from "@/lib/data/street";
+import { etapesDe, FAMILLES_STREET, niveauConseille, PROGRAMMES_STREET, testARefaire } from "@/lib/data/street";
 import EX_EN from "@/lib/i18n/exercices.en.json";
 import { CREDITS, creditPoste, imgEx, imgExGrand, imgPoste, imgPosteGrand, photosDistantes } from "@/lib/medias";
 import { avecSalle, barreDeclaree, exoFiltre, selDeclare } from "@/lib/logic/core";
@@ -108,8 +108,8 @@ describe("barre de traction", () => {
 
 describe("TRX", () => {
   const trx = Object.keys(EX).filter((o) => EX[o].acc === "trx");
-  it("19 exercices TRX, hors du programme généré, visibles seulement avec les sangles", () => {
-    expect(trx.length).toBe(19);
+  it("20 exercices aux sangles (TRX, et les dips aux anneaux), hors du programme généré, visibles seulement avec les sangles", () => {
+    expect(trx.length).toBe(20);
     for (const o of trx) {
       expect(EX[o].horsIA, o).toBe(1);
       expect(exoFiltre(o, ["trx"]), o).toBe(true);
@@ -127,12 +127,27 @@ describe("street workout", () => {
   it("familles et programmes ne citent que des exercices existants", () => {
     for (const f of FAMILLES_STREET) for (const o of f.ex) expect(EX[o], `${f.k} : ${o}`).toBeTruthy();
     for (const p of PROGRAMMES_STREET) {
-      expect(p.seances.map((s) => s.k)).toEqual(["A", "B", "C"]);
+      expect(p.seances.map((s) => s.k)).toEqual(p.niv === "debutant" ? ["A", "B", "C"] : ["A", "B", "C", "D"]);
       for (const s of p.seances) for (const e of s.ex) expect(EX[e.id], `${p.niv}-${s.k} : ${e.id}`).toBeTruthy();
     }
   });
   it("les programmes se font avec le poids du corps et la barre seulement", () => {
     for (const p of PROGRAMMES_STREET) for (const s of p.seances) for (const e of s.ex) expect(exoFiltre(e.id, ["m3", "bt"]), e.id).toBe(true);
+  });
+  it("chaque exercice des familles a une étape suivante, sauf le dernier", () => {
+    expect(etapesDe("pompi")?.apres).toBe("pompis");
+    expect(etapesDe("tr1")?.apres).toBeUndefined();
+    expect(etapesDe("cpoi")).toBeNull();
+    for (const f of FAMILLES_STREET) expect(new Set(f.ex).size, f.k).toBe(f.ex.length);
+  });
+  it("le test d'entrée conseille un niveau", () => {
+    expect(niveauConseille({ tr: 0, po: 8, di: 0, sq: 20 })).toBe("debutant");
+    expect(niveauConseille({ tr: 6, po: 25, di: 10, sq: 40 })).toBe("intermediaire");
+    expect(niveauConseille({ tr: 6, po: 25, di: 4, sq: 40 })).toBe("debutant");
+    expect(niveauConseille({ tr: 14, po: 40, di: 20, sq: 50 })).toBe("avance");
+    expect(testARefaire(undefined, "2026-10-30")).toBe(true);
+    expect(testARefaire({ d: "2026-10-01", tr: 1, po: 1, di: 1, sq: 1 }, "2026-10-30")).toBe(false);
+    expect(testARefaire({ d: "2026-09-10", tr: 1, po: 1, di: 1, sq: 1 }, "2026-10-30")).toBe(true);
   });
   it("les nouveaux exercices ont fiche, traduction et photos", () => {
     const nouveaux = Object.keys(EX).filter((o) => EX[o].horsIA);
