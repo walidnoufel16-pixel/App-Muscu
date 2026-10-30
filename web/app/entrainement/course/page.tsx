@@ -124,10 +124,18 @@ function Plan() {
         ) : null}
 
         <section>
+          {/* avant le premier lundi : quoi faire d'ici là */}
+          {auj < c.debut && (
+            <p className="mb-3 rounded-2xl bg-plate-soft px-3.5 py-2.5 text-[13.5px] leading-snug">
+              <b className="font-semibold">{tr("Avant le {a} :", { a: court(c.debut) })}</b>{" "}{tr("2 ou 3 footings faciles par semaine, pour arriver prêt à la semaine 1.")}
+            </p>
+          )}
           <div className="mb-2 flex items-baseline justify-between px-1">
-            <h2 className="eyebrow">{auj < c.debut ? tr("Démarre le {a}", { a: court(c.debut) }) : tr("Semaine {a} sur {length} · {a1}", { a: k + 1, length: P.length, a1: NOMS_PHASE[P[k].phase] })}</h2>
+            <h2 className="eyebrow">{tr("Semaine {a} sur {length} · du {b} au {c}", { a: k + 1, length: P.length, b: court(P[k].lundi), c: court(decaler(P[k].lundi, 6)) })}</h2>
             {P[k].allegee && <span className="text-[12px] font-semibold text-success">{tr("semaine allégée")}</span>}
           </div>
+          {/* les séances de la semaine se font le jour qu'on veut, pas toutes le lundi */}
+          <p className="mb-2 px-1 text-[12.5px] leading-snug text-muted-foreground">{tr("{n} séances dans la semaine, les jours de ton choix : laisse un jour de repos entre deux, et la sortie longue plutôt le week-end.", { n: P[k].seances.length })}</p>
           <div className="overflow-hidden rounded-[20px] border border-border/80 bg-card">
             {P[k].seances.map((x, j) => {
               const I = ICONES[x.type], f = x.type === "renfo" ? renfo(P[k], x.renfo!).faite : !!faite(k, j);
@@ -163,7 +171,7 @@ function Plan() {
                     <span className="num w-7 text-[17px] font-bold text-muted-foreground">{W.k + 1}</span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-[14px] font-medium">{NOMS_PHASE[W.phase]}{W.allegee ? tr(" · allégée") : ""}</span>
-                      <span className="block text-[12px] text-muted-foreground">{court(W.lundi)} · {W.long ? tr("sortie longue {a} km", { a: kmTxt(W.long) }) : tr("course")}{W.k <= k ? tr(" · {fait}/{total} faites", { fait, total }) : ""}</span>
+                      <span className="block text-[12px] text-muted-foreground">{tr("semaine du {a}", { a: court(W.lundi) })} · {W.long ? tr("sortie longue {a} km", { a: kmTxt(W.long) }) : tr("course")}{W.k <= k ? tr(" · {fait}/{total} faites", { fait, total }) : ""}</span>
                     </span>
                     <CaretDownIcon className={cn("size-4 text-muted-foreground transition-transform", ouv && "rotate-180")} />
                   </button>
