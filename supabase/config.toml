@@ -6,3 +6,6 @@ verify_jwt = true
 
 [functions.oublier]
 verify_jwt = true
+
+[functions.rappels]
+verify_jwt = false # appelée par le cron (clé x-cle) ou par l'app (jeton vérifié dans la fonction)

@@ -43,6 +43,22 @@ self.addEventListener("activate", (e) => {
     }).map((r) => c.delete(r)))))
     .then(() => self.clients.claim()));
 });
+/* rappels après quelques jours sans séance (supabase/functions/rappels) */
+self.addEventListener("push", (e) => {
+  let m = {};
+  try { m = e.data ? e.data.json() : {}; } catch {}
+  e.waitUntil(self.registration.showNotification(m.titre || "Repère", {
+    body: m.corps || "", tag: m.tag || "rappel", icon: "/icon-192.png", badge: "/icon-192.png", data: { url: m.url || "/entrainement/" },
+  }));
+});
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = new URL((e.notification.data && e.notification.data.url) || "/", location.origin).href;
+  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((l) => {
+    const ouverte = l.find((c) => new URL(c.url).origin === location.origin);
+    return ouverte ? ouverte.focus().then((c) => c.navigate(url)).catch(() => self.clients.openWindow(url)) : self.clients.openWindow(url);
+  }));
+});
 /* Pages : réseau d'abord, cache en secours. Le reste : cache d'abord. */
 self.addEventListener("fetch", (e) => {
   const req = e.request;
