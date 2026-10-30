@@ -107,6 +107,11 @@ Secrets des fonctions (tableau de bord → Edge Functions → Secrets) :
 | `QUOTA_PAR_UTILISATEUR` | optionnel, générations payantes par compte et par jour (défaut 5) |
 | `QUOTA_TOTAL` | optionnel, plafond global par jour (défaut 150) |
 
+Rappels après quelques jours sans séance (`rappels`) : une tâche pg_cron appelle la fonction toutes les
+heures avec la clé `rappels_cle` du Vault ; elle n'envoie qu'à 18 h (Paris). Les clés VAPID sont tirées par la
+fonction à son premier passage et rangées dans le Vault (`rappels_vapid_prive`, `rappels_vapid_public`) :
+aucun secret à saisir. Déploiement : `supabase functions deploy rappels --no-verify-jwt`.
+
 ## Sécurité
 
 - La clé publishable est publique par nature : l'accès aux données repose sur les règles RLS.

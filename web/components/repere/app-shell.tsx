@@ -2,6 +2,7 @@
 
 import { tr } from "@/lib/i18n";
 import { useEffect, ViewTransition } from "react";
+import { resynchroniserRappels } from "@/lib/rappels";
 import { usePathname } from "next/navigation";
 import { useRepere } from "@/lib/store";
 import { TabBar } from "./tab-bar";
@@ -31,7 +32,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const chemin = usePathname().replace(/(.)\/$/, "$1");
   const sens = useSens((s) => s.sens);
 
-  useEffect(() => { suivreHistorique(); suivreDefis(); demarrer(); }, [demarrer]);
+  useEffect(() => {
+    suivreHistorique(); suivreDefis(); demarrer();
+    /* appareil inscrit aux rappels : remis au nom du compte et de la langue actuels */
+    const t = setTimeout(resynchroniserRappels, 8000);
+    return () => clearTimeout(t);
+  }, [demarrer]);
   /* programme sur 8 semaines : ouvert compte par compte par l'admin */
   useVerifierAccesProgramme();
   /* Pile des écrans (bouton retour) ; le sens d'un retour ne sert qu'une fois. */

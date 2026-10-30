@@ -1,9 +1,10 @@
 "use client";
 
 import { loc, pluriel, tr } from "@/lib/i18n";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChartLineUpIcon, FlameIcon, TrophyIcon } from "@phosphor-icons/react";
+import { BellRingingIcon, ChartLineUpIcon, FlameIcon, TrophyIcon } from "@phosphor-icons/react";
+import { activerRappels, dejaPropose, etatRappels, noterPropose } from "@/lib/rappels";
 import { ajouterAuSuivi } from "@/lib/suivi";
 import { tactile } from "@/lib/repos";
 import { useRepere } from "@/lib/store";
@@ -70,6 +71,7 @@ export function Bilan() {
               ))}
             </div>
             <Suite />
+            <ProposerRappels />
             {libre != null ? (
               <>
                 <Button variant="plate" size="xl" className="mt-6 w-full" onClick={suivre}><ChartLineUpIcon weight="bold" />{tr("Ajouter à mon suivi")}</Button>
@@ -97,6 +99,37 @@ function Suite() {
         <span>{S.cetteSemaine >= S.objectif
           ? <><b>{tr("Objectif de la semaine atteint")}</b>{S.semaines > 1 ? tr(" · {semaines} semaines d'affilée", { semaines: S.semaines }) : ""}</>
           : <><b>{tr("{cetteSemaine} séance{a} sur {objectif}", { cetteSemaine: S.cetteSemaine, a: pluriel(S.cetteSemaine) ? "s" : "", objectif: S.objectif })}</b>{" "}{tr("cette semaine")}</>}</span>
+      </div>
+    </div>
+  );
+}
+
+/* Une seule fois, à la fin d'une séance : proposer les rappels après quelques jours sans séance. */
+function ProposerRappels() {
+  const [voir, setVoir] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  useEffect(() => { if (!dejaPropose()) etatRappels().then((e) => setVoir(e === "inactif")); }, []);
+  if (!voir) return null;
+  const oui = async () => {
+    tactile(10);
+    const e = await activerRappels().catch(() => "inactif");
+    if (e === "actif") setVoir(false);
+    else setMsg(e === "refuse" ? tr("Notifications refusées : tu peux les autoriser dans les réglages du téléphone.") : tr("Activation impossible pour l'instant. Réessaie depuis Profil."));
+  };
+  const non = () => { noterPropose(); setVoir(false); };
+  return (
+    <div className="mt-1.5 animate-[monter_.5s_.9s_ease-out_both] rounded-2xl border bg-card p-3.5 text-left">
+      <div className="flex items-start gap-2.5">
+        <BellRingingIcon className="mt-0.5 size-4 shrink-0 text-primary" weight="fill" />
+        <div className="min-w-0 flex-1">
+          <div className="text-[14px] font-semibold">{tr("Un petit mot si tu décroches ?")}</div>
+          <p className="mt-0.5 text-[12.5px] leading-snug text-muted-foreground">{tr("Une notification après quelques jours sans séance, trois au plus, jamais avant 18 h.")}</p>
+          {msg && <p className="mt-1.5 text-[12.5px] text-destructive">{msg}</p>}
+          <div className="mt-2.5 flex gap-2">
+            <Button size="sm" className="rounded-xl" onClick={oui}>{tr("Activer")}</Button>
+            <Button size="sm" variant="ghost" className="rounded-xl text-muted-foreground" onClick={non}>{tr("Non merci")}</Button>
+          </div>
+        </div>
       </div>
     </div>
   );

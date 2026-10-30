@@ -25,6 +25,7 @@ import { ARRIERE, AVANT } from "@/lib/nav";
 import { recap } from "@/lib/logic/questionnaire";
 import { useProgrammeActif } from "@/lib/fonctionnalites";
 import { MonMateriel } from "@/components/repere/mon-materiel";
+import { ReglageRappels } from "@/components/repere/rappels";
 import { cn } from "@/lib/utils";
 
 export default function PageProfil() {
@@ -213,6 +214,12 @@ export default function PageProfil() {
             options={[{ v: 0, n: tr("Homme") }, { v: 1, n: tr("Femme") }]}
           />
           <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{tr("Le schéma du corps prend ta silhouette. Ton choix sert aussi aux prochains programmes.")}</p>
+        </section>
+
+        {/* rappels après quelques jours sans séance */}
+        <section id="rappels" className="scroll-mt-20">
+          <h2 className="eyebrow mb-2 px-1">{tr("Rappels")}</h2>
+          <ReglageRappels />
         </section>
 
         {/* apparence */}
