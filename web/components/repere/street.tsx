@@ -2,6 +2,7 @@
 
 import { tr } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
+import type { Route } from "next";
 import { ArrowRightIcon, CaretRightIcon, CheckIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
@@ -190,7 +191,7 @@ export type OngletStreet = "programmes" | "mesure" | "familles";
 export function VueStreet({ onFiche, onglet }: { onFiche: (id: string) => void; onglet: OngletStreet }) {
   const router = useRouter();
   const setSel = useBrouillon((s) => s.setSel);
-  const surMesure = () => { setSel(MATERIEL_STREET); router.push("/entrainement/assistant", AVANT); };
+  const surMesure = () => { setSel(MATERIEL_STREET); router.push("/entrainement/assistant?street=1" as Route, AVANT); };
   const dernier = useRepere((s) => s.etat.A.testsStreet?.at(-1));
   const conseil = dernier ? niveauConseille(dernier) : null;
   if (onglet === "programmes")

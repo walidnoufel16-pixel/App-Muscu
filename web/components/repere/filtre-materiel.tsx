@@ -9,7 +9,8 @@ import { LienSalle } from "./ma-salle";
 
 /* Matériel disponible : rien de coché au départ, chaque type se coche indépendamment
    (« Mon matériel déclaré » remet celui du Profil en un geste). */
-export function FiltreMateriel({ sel, onChange, declare }: { sel: string[]; onChange: (s: string[]) => void; declare: string[] }) {
+/* `types` : les seuls matériels proposés (street workout), tous par défaut. */
+export function FiltreMateriel({ sel, onChange, declare, types }: { sel: string[]; onChange: (s: string[]) => void; declare: string[]; types?: string[] }) {
   const trie = (l: string[]) => l.slice().sort().join();
   const perso = trie(sel) !== trie(declare);
   return (
@@ -23,7 +24,7 @@ export function FiltreMateriel({ sel, onChange, declare }: { sel: string[]; onCh
         )}
       </div>
       <div className="flex flex-wrap gap-1.5">
-        {TYPES.map(([t, n]) => {
+        {TYPES.filter(([t]) => !types || types.includes(t)).map(([t, n]) => {
           const on = sel.includes(t);
           return (
             <button

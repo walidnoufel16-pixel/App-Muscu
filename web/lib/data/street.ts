@@ -84,7 +84,9 @@ export function niveauConseille(t: Omit<TestStreet, "d">): Niveau {
 export const testARefaire = (t: TestStreet | undefined, auj: string) =>
   !t || (Date.parse(auj) - Date.parse(t.d)) / 864e5 >= 42;
 
-/* Matériel du street workout pour « Créer une séance pour moi ». */
+/* « Créer une séance pour moi » depuis le street workout : le matériel proposé (pas de
+   machines ni de charges libres) et celui coché au départ. */
+export const OUTILS_STREET = ["m3", "bt", "el", "trx"];
 export const MATERIEL_STREET = ["m3", "bt"];
 
 if (langue() === "en") {
