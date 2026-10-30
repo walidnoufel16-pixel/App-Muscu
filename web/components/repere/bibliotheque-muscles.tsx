@@ -36,8 +36,17 @@ export function BibliothequeMuscles({ outils, depart }: { outils?: string[]; dep
     const l = de("pat");
     return l.length ? { g, l, aussi: false } : { g, l: de("pat2"), aussi: true };
   });
+  /* Full body : tous les muscles d'un geste, donc tous les exercices faisables avec le matériel coché */
+  const choisir = (l: string[]) => { tactile(6); useOngletsExercices.setState({ muscles: l.join(",") }); };
   return (
     <div className="flex flex-col gap-4">
+      <div className="-mb-2 flex items-baseline justify-between px-1">
+        <span className="eyebrow">{tr("Muscles{a}", { a: m.length ? ` · ${m.length}` : "" })}</span>
+        <span className="flex gap-3 text-[13px] font-medium">
+          <button onClick={() => choisir(MUSC.map((g) => g.k))} className="text-foreground">{tr("Full body")}</button>
+          {m.length > 0 && <button onClick={() => choisir([])} className="text-muted-foreground">{tr("Tout décocher")}</button>}
+        </span>
+      </div>
       <SchemaCorps
         actif={(r) => !!(r.p && PAT2MUSC[r.p])}
         choisi={(r) => !!(r.p && m.includes(PAT2MUSC[r.p]))}
