@@ -53,14 +53,14 @@ export function FiltreMateriel({ sel, onChange, declare, types }: { sel: string[
 }
 
 /* Le matériel retenu en une ligne, et « Modifier » pour le changer sur place (composeur, Remplacer). */
-export function MaterielRepliable({ sel, onChange, declare, className }: { sel: string[]; onChange: (s: string[]) => void; declare: string[]; className?: string }) {
+export function MaterielRepliable({ sel, onChange, declare, className, types }: { sel: string[]; onChange: (s: string[]) => void; declare: string[]; className?: string; types?: string[] }) {
   const [ouvert, setOuvert] = useState(false);
   const noms = TYPES.filter(([t]) => sel.includes(t)).map(([, n]) => n);
   return (
     <div className={className}>
       {ouvert ? (
         <>
-          <FiltreMateriel sel={sel} onChange={onChange} declare={declare} />
+          <FiltreMateriel sel={sel} onChange={onChange} declare={declare} types={types} />
           <button onClick={() => setOuvert(false)} className="mt-2 text-[13px] font-semibold text-plate-ink">{tr("Fermer")}</button>
         </>
       ) : (

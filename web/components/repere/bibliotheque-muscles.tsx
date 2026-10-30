@@ -19,11 +19,12 @@ import { useBrouillon } from "@/lib/brouillon";
 import { useOngletsExercices } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 
-export function BibliothequeMuscles() {
+/* `outils` : le matériel proposé seulement (street workout : poids du corps, barre, élastiques, TRX). */
+export function BibliothequeMuscles({ outils, depart }: { outils?: string[]; depart?: string[] } = {}) {
   const A = useRepere((s) => s.etat.A);
   const { sel: selB, setSel } = useBrouillon();
   /* sans choix de matériel : celui du Profil, pour voir tout de suite des exercices */
-  const sel = avecSalle(selB ?? selDeclare(A), A);
+  const sel = outils ? (selB ?? depart ?? outils).filter((t) => outils.includes(t)) : avecSalle(selB ?? selDeclare(A), A);
   /* l'app retient les muscles touchés, le temps de la session */
   const memo = useOngletsExercices((s) => s.muscles);
   const m = memo ? memo.split(",").filter(Boolean) : [];
@@ -40,7 +41,7 @@ export function BibliothequeMuscles() {
         onToucher={(r) => r.p && PAT2MUSC[r.p] && basculer(PAT2MUSC[r.p])}
         legende={tr("Touche un ou plusieurs muscles")}
       />
-      <MaterielRepliable sel={sel} declare={selDeclare(A)} onChange={setSel} />
+      <MaterielRepliable sel={sel} declare={outils ? depart ?? outils : selDeclare(A)} types={outils} onChange={setSel} />
       {!m.length ? (
         <p className="flex items-center gap-2 rounded-2xl bg-plate-soft px-3.5 py-3 text-[14px] font-semibold text-plate-ink">
           <HandPointingIcon className="size-5 shrink-0 -rotate-12" weight="fill" />{tr("Touche un muscle pour voir ses exercices.")}

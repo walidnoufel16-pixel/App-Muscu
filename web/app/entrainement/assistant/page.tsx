@@ -48,7 +48,7 @@ function Assistant() {
   const typeUrl = useSearchParams().get("type");
   /* venu de la rubrique Course : la préparation d'une course seulement */
   const courseSeule = typeUrl === "course";
-  /* venu du street workout (onglet Sur mesure) : musculation seulement, avec le matériel du street */
+  /* venu du street workout (onglet Sur mesure) : le matériel du street seulement, pas de séance combinée */
   const street = useSearchParams().get("street") === "1";
   const [type, setType] = useState<"muscu" | "cardio" | "mixte" | "exercices" | "course">(typeUrl === "cardio" || typeUrl === "mixte" || typeUrl === "exercices" || typeUrl === "course" ? typeUrl : "muscu");
   const [choix, setChoix] = useState<ChoixCardio>(() => { const n = niveauDe(A.regularite); return { f: "fractionne", m: "tapis", n, r: reglagesDe("fractionne", n) }; });
@@ -105,13 +105,14 @@ function Assistant() {
                   ? tr("Tous les exercices, muscle par muscle, avec ton matériel. Touche un exercice pour voir sa fiche.")
                   : tr("Une séance guidée : Repère annonce chaque effort et chaque récupération, avec un signal sonore.")}
         </p>
-        {!courseSeule && !street && <Segmente label={tr("Catégorie")} className="mt-4" valeur={type} onChange={setType} options={[{ v: "muscu", n: tr("Muscu") }, { v: "cardio", n: tr("Cardio") }, { v: "mixte", n: tr("Combinée") }, { v: "exercices", n: tr("Exercices") }]} />}
+        {/* street : pas de séance combinée (muscu en salle + bloc cardio) */}
+        {!courseSeule && <Segmente label={tr("Catégorie")} className="mt-4" valeur={type} onChange={setType} options={[{ v: "muscu", n: tr("Muscu") }, { v: "cardio", n: tr("Cardio") }, ...(street ? [] : [{ v: "mixte" as const, n: tr("Combinée") }]), { v: "exercices", n: tr("Exercices") }]} />}
       </EnTete>
 
       {type === "course" ? (
         <QuestionnaireCourse />
       ) : type === "exercices" ? (
-        <div className="px-4 pb-10"><BibliothequeMuscles /></div>
+        <div className="px-4 pb-10">{street ? <BibliothequeMuscles outils={OUTILS_STREET} depart={MATERIEL_STREET} /> : <BibliothequeMuscles />}</div>
       ) : type === "cardio" ? (
         <>
           <div className="flex flex-col gap-6 px-4 pb-28">
