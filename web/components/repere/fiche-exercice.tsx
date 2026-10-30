@@ -2,7 +2,7 @@
 
 import { tr } from "@/lib/i18n";
 import { useRef, useState } from "react";
-import { ArrowsLeftRightIcon, CaretLeftIcon, CaretRightIcon, ChartLineUpIcon } from "@phosphor-icons/react";
+import { ArrowsLeftRightIcon, BarbellIcon, CaretLeftIcon, CaretRightIcon, ChartLineUpIcon } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { AVANT } from "@/lib/nav";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
@@ -30,6 +30,12 @@ export type FicheOuverte = {
 /* Photos départ / fin : elles alternent en fondu pour suggérer le mouvement. */
 export function Duo({ id }: { id: string }) {
   const [anime, setAnime] = useState(true);
+  if (!EX[id]?.img)
+    return (
+      <div className="grid aspect-[3/2] place-items-center rounded-[22px] bg-muted text-center text-muted-foreground">
+        <div><BarbellIcon className="mx-auto size-10 opacity-60" /><p className="mt-1.5 text-[13px] font-medium">{tr("Photo à venir")}</p></div>
+      </div>
+    );
   return (
     <div className="relative">
       <div className={cn("relative grid overflow-hidden rounded-[22px] bg-muted", anime ? "aspect-[3/2]" : "grid-cols-2 gap-px")}>
@@ -98,7 +104,7 @@ function Contenu({ fiche }: { fiche: FicheOuverte }) {
       )}
       <div className="pt-2">
         <Duo key={id} id={id} />
-        <p className="mt-1.5 text-center text-[10.5px] text-muted-foreground">{sourceEx(id).mention}</p>
+        {EX[id]?.img && <p className="mt-1.5 text-center text-[10.5px] text-muted-foreground">{sourceEx(id).mention}</p>}
       </div>
       <div className="eyebrow mt-4">{e.m} · {nomPat(e.pat)}</div>
       <DrawerTitle className="mt-1 text-[26px] leading-tight font-bold tracking-[-0.02em]">{e.n}</DrawerTitle>

@@ -1,7 +1,7 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
-import { ArrowsLeftRightIcon, CaretDownIcon, CheckIcon, CrosshairIcon, InfoIcon } from "@phosphor-icons/react";
+import { ArrowsLeftRightIcon, BarbellIcon, CaretDownIcon, CheckIcon, CrosshairIcon, InfoIcon } from "@phosphor-icons/react";
 import { EX } from "@/lib/data/exercices";
 import { musclesDe, okDe, resumeDe } from "@/lib/logic/core";
 import { EtiquetteZone } from "./forme";
@@ -17,14 +17,17 @@ const UNITE_RESUME: Record<string, string> = { kg: "kg", lest: tr("kg de lest"),
 export function Vignette({ id, num, fait, trace, className }: { id: string; num?: number; fait?: boolean; trace?: boolean; className?: string }) {
   return (
     <span className={cn("relative block size-14 shrink-0 overflow-hidden rounded-[14px] bg-muted", className)}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={imgEx(id)}
-        alt=""
-        loading="lazy"
-        className={cn("size-full object-cover transition-opacity", fait && "opacity-70")}
-        onError={(e) => (e.currentTarget.style.visibility = "hidden")}
-      />
+      {/* exercice encore sans photo : une icône à la place */}
+      {EX[id]?.img ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={imgEx(id)}
+          alt=""
+          loading="lazy"
+          className={cn("size-full object-cover transition-opacity", fait && "opacity-70")}
+          onError={(e) => (e.currentTarget.style.visibility = "hidden")}
+        />
+      ) : <BarbellIcon className="absolute inset-0 m-auto size-1/2 text-muted-foreground/60" />}
       {num != null && (
         <span className="num absolute top-1 left-1 grid h-5 min-w-5 place-items-center rounded-md bg-background/85 px-1 text-[12px] font-bold backdrop-blur">
           {num}

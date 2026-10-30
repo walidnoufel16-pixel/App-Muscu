@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { EnTete } from "@/components/repere/en-tete";
 import { SchemaCorps } from "@/components/repere/schema-corps";
 import { FiltreMateriel } from "@/components/repere/filtre-materiel";
+import { MATERIEL_STREET, OUTILS_STREET } from "@/lib/data/street";
 import { Segmente } from "@/components/repere/segmente";
 import { BibliothequeMuscles } from "@/components/repere/bibliotheque-muscles";
 import { dire } from "@/components/repere/confirmer";
@@ -47,6 +48,8 @@ function Assistant() {
   const typeUrl = useSearchParams().get("type");
   /* venu de la rubrique Course : la préparation d'une course seulement */
   const courseSeule = typeUrl === "course";
+  /* venu du street workout (onglet Sur mesure) : le matériel du street seulement, pas de séance combinée */
+  const street = useSearchParams().get("street") === "1";
   const [type, setType] = useState<"muscu" | "cardio" | "mixte" | "exercices" | "course">(typeUrl === "cardio" || typeUrl === "mixte" || typeUrl === "exercices" || typeUrl === "course" ? typeUrl : "muscu");
   const [choix, setChoix] = useState<ChoixCardio>(() => { const n = niveauDe(A.regularite); return { f: "fractionne", m: "tapis", n, r: reglagesDe("fractionne", n) }; });
   const [nomCardio, setNomCardio] = useState("");
@@ -60,7 +63,7 @@ function Assistant() {
     revenirA("/entrainement/rubrique", () => router.replace(lienRubrique("libre"), ARRIERE));
   };
   const { sel: selB, setSel, setLibre } = useBrouillon();
-  const sel = avecSalle(selB ?? [], A);
+  const sel = street ? (selB ?? MATERIEL_STREET).filter((t) => OUTILS_STREET.includes(t)) : avecSalle(selB ?? [], A);
   /* muscles touchés sur le corps d'Entraînement : déjà cochés */
   const mUrl = useSearchParams().get("m");
   const [m, setM] = useState<string[]>(() => (mUrl ? mUrl.split(",").filter((k) => MUSC.some((g) => g.k === k)) : []));
@@ -87,7 +90,7 @@ function Assistant() {
   return (
     <>
       <EnTete
-        surtitre={courseSeule ? tr("Course") : tr("Séance sur mesure")}
+        surtitre={courseSeule ? tr("Course") : street ? tr("Street workout") : tr("Séance sur mesure")}
         titre={courseSeule ? tr("Prépare une course") : tr("Créer une séance pour moi")}
         gauche={<Retour repli="/entrainement" />}
       >
@@ -102,13 +105,14 @@ function Assistant() {
                   ? tr("Tous les exercices, muscle par muscle, avec ton matériel. Touche un exercice pour voir sa fiche.")
                   : tr("Une séance guidée : Repère annonce chaque effort et chaque récupération, avec un signal sonore.")}
         </p>
-        {!courseSeule && <Segmente label={tr("Catégorie")} className="mt-4" valeur={type} onChange={setType} options={[{ v: "muscu", n: tr("Muscu") }, { v: "cardio", n: tr("Cardio") }, { v: "mixte", n: tr("Combinée") }, { v: "exercices", n: tr("Exercices") }]} />}
+        {/* street : pas de séance combinée (muscu en salle + bloc cardio) */}
+        {!courseSeule && <Segmente label={tr("Catégorie")} className="mt-4" valeur={type} onChange={setType} options={[{ v: "muscu", n: tr("Muscu") }, { v: "cardio", n: tr("Cardio") }, ...(street ? [] : [{ v: "mixte" as const, n: tr("Combinée") }]), { v: "exercices", n: tr("Exercices") }]} />}
       </EnTete>
 
       {type === "course" ? (
         <QuestionnaireCourse />
       ) : type === "exercices" ? (
-        <div className="px-4 pb-10"><BibliothequeMuscles /></div>
+        <div className="px-4 pb-10">{street ? <BibliothequeMuscles outils={OUTILS_STREET} depart={MATERIEL_STREET} /> : <BibliothequeMuscles />}</div>
       ) : type === "cardio" ? (
         <>
           <div className="flex flex-col gap-6 px-4 pb-28">
@@ -176,7 +180,7 @@ function Assistant() {
         </section>
 
         <section>
-          <FiltreMateriel sel={sel} declare={selDeclare(A)} onChange={(s) => setSel(s)} />
+          <FiltreMateriel sel={sel} declare={street ? MATERIEL_STREET : selDeclare(A)} types={street ? OUTILS_STREET : undefined} onChange={(s) => setSel(s)} />
         </section>
 
         <section>

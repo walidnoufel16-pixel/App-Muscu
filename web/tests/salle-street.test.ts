@@ -149,6 +149,7 @@ describe("street workout", () => {
     expect(testARefaire({ d: "2026-10-01", tr: 1, po: 1, di: 1, sq: 1 }, "2026-10-30")).toBe(false);
     expect(testARefaire({ d: "2026-09-10", tr: 1, po: 1, di: 1, sq: 1 }, "2026-10-30")).toBe(true);
   });
+  const PHOTO_A_VENIR = ["curlpc", "curlel", "pompk", "susp", "lsit"];
   it("les nouveaux exercices ont fiche, traduction et photos", () => {
     const nouveaux = Object.keys(EX).filter((o) => EX[o].horsIA);
     expect(nouveaux.length).toBeGreaterThanOrEqual(10);
@@ -156,6 +157,8 @@ describe("street workout", () => {
       expect(FICHES[o], o).toBeTruthy();
       expect(FICHES_EN[o], o).toBeTruthy();
       expect((EX_EN as Record<string, unknown>)[o], o).toBeTruthy();
+      /* photo à venir (fiche : « Photo à venir ») : seulement ceux-ci, choisis en connaissance de cause */
+      if (PHOTO_A_VENIR.includes(o)) { expect(EX[o].img, o).toBe(""); continue; }
       for (const n of [0, 1] as const) expect(fs.existsSync(path.join(PUB, imgEx(o, n))), imgEx(o, n)).toBe(true);
     }
   });
