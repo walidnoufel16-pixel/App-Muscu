@@ -16,9 +16,15 @@ export function ReglageRappels() {
   const changer = async (v: number) => {
     if (occupe) return;
     setOccupe(true); setMsg(null);
-    const e = await (v ? activerRappels() : couperRappels()).catch(() => "inactif" as const);
+    /* la cause s'affiche entre parenthèses : utile pour comprendre un échec propre à un téléphone */
+    let cause = "";
+    const e = await (v ? activerRappels() : couperRappels()).catch((x: unknown) => {
+      cause = String((x as { message?: string })?.message || x).slice(0, 120);
+      return "inactif" as const;
+    });
+    if (v && e === "inactif" && !cause) cause = "permission " + (typeof Notification !== "undefined" ? Notification.permission : "?");
     setEtat(e); setOccupe(false);
-    if (v && e !== "actif") setMsg(e === "refuse" ? tr("Notifications refusées : tu peux les autoriser dans les réglages du téléphone.") : tr("Activation impossible pour l'instant. Réessaie depuis Profil."));
+    if (v && e !== "actif") setMsg(e === "refuse" ? tr("Notifications refusées : tu peux les autoriser dans les réglages du téléphone.") : tr("Activation impossible pour l'instant. Réessaie depuis Profil.") + (cause ? ` (${cause})` : ""));
   };
   return (
     <>
