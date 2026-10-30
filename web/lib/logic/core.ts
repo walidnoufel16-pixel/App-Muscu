@@ -370,15 +370,34 @@ function selonForme(A: Reponses, x: Exercice, id: string, base: { v: number; rep
   return ajuster(x, base, pasDe(x), f, zonesDe(id, f?.douleur || []).length > 0);
 }
 const joindre = (...t: (string | undefined)[]) => t.filter(Boolean).join(" ") || undefined;
+/* Séance libre : double progression. Toutes les séries prévues réussies à l'objectif la
+   dernière fois (et pas jugées trop dures) → un cran de plus : la charge, une répétition ou
+   quelques secondes. Sinon, on reprend la dernière séance telle quelle. */
+export function progressionLibre(x: Exercice, cible: { s: number; r: number }, d: Journal): { v: number; reps: number; t: string } | null {
+  const ok = (d.series || []).filter((s) => okDe(d, s)), pas = pasDe(x), dbl = x.ch === "kg" || x.ch === "lest";
+  const v = maxV(d), reps = d.reps ?? cible.r;
+  if (d.feel === 2) return { v, reps, t: tr("Même charge : la dernière fois était au-dessus de la cible.") };
+  const atteint = ok.length >= cible.s && ok.every((s) => (dbl ? s.reps : s.v) >= cible.r);
+  if (!atteint || x.ch === "dist") return null;
+  if (x.ch === "kg" || (x.ch === "lest" && v > 0))
+    return { v: v + pas, reps: cible.r, t: tr("Toutes tes séries réussies à {r} répétitions la dernière fois : +{a} kg.", { r: cible.r, a: nb(pas) }) };
+  if (x.ch === "lest") return { v, reps: reps + 1, t: tr("Toutes tes séries réussies la dernière fois : une répétition de plus, ou un lest de 2,5 kg.") };
+  /* répétitions ou secondes : on part de la série la plus faible, pour que toutes suivent */
+  const bas = Math.min(...ok.map((s) => s.v));
+  if (x.ch === "temps") return { v: bas + pas, reps, t: tr("Toutes tes séries tenues la dernière fois : +{a} s.", { a: pas }) };
+  return { v: bas + 1, reps, t: tr("Toutes tes séries réussies la dernière fois : une répétition de plus.") };
+}
+
 export function ctxLibre(E: Etat, idx: number, j: number): Ctx | null {
   const S = E.SEANCES[idx], e = S?.ex[j];
   if (!e || !EX[e.id]) return null;
   const x = EX[e.id], k = kLibre(idx, j), d = precedent(E, e.id, k);
-  const aj = selonForme(E.A, x, e.id, d ? { v: maxV(d), reps: d.reps ?? e.r } : { v: x.d, reps: e.r });
+  const pr = d ? progressionLibre(x, e, d) : null;
+  const aj = selonForme(E.A, x, e.id, pr ? { v: pr.v, reps: pr.reps } : d ? { v: maxV(d), reps: d.reps ?? e.r } : { v: x.d, reps: e.r });
   return {
     k, id: e.id, n: e.s,
     base: aj.base,
-    why: joindre(d ? tr("Reprise de ta dernière séance sur cet exercice.") : undefined, aj.texte),
+    why: joindre(pr ? pr.t : d ? tr("Reprise de ta dernière séance sur cet exercice.") : undefined, aj.texte),
     repos: e.p, prev: d,
   };
 }

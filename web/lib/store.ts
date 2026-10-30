@@ -19,8 +19,14 @@ import { decoderBlocs, encoderBlocs } from "@/lib/logic/combinee";
 import { MAX_HIST, reconstruire, redater } from "@/lib/logic/historique";
 import { ROUTINES_SOIN } from "@/lib/data/soin";
 import { rattacherJournaux } from "@/lib/logic/actions";
+import { fusionner } from "@/lib/logic/fusion";
 
 export const SKEY = "palier.state.v1";
+/* date (ts) de la dernière sauvegarde du compte que cet appareil a vue : si le compte a été
+   modifié depuis par un autre appareil, on fusionne au lieu d'écraser (lib/logic/fusion.ts) */
+const BKEY = "palier.base.v1";
+const lireBase = () => { try { return +(localStorage.getItem(BKEY) || 0); } catch { return 0; } };
+const noterBase = (ts: number) => { try { localStorage.setItem(BKEY, String(ts)); } catch {} };
 export const PKEY = "palier.pseudo.v1";
 
 const vide = (): Etat => ({ A: {}, LOG: {}, SWAP: {}, SWAPP: {}, PLAN: null, SEANCES: [], wk: 0, day: 0, FINI: false });
@@ -115,6 +121,7 @@ type Store = {
   apresConnexion: (forcerDistant?: boolean) => Promise<string | null>;
   creerCompte: (pseudo: string, mail?: string) => Promise<{ ok: boolean; message?: string }>;
   pousser: () => Promise<void>;
+  tirer: () => Promise<void>;
   setUser: (u: User | null) => void;
   toutEffacer: () => Promise<void>;
   changerDeCompte: () => Promise<void>;
@@ -162,11 +169,39 @@ export const useRepere = create<Store>((set, get) => ({
     const c = await sb(), u = get().user;
     if (!c || !u) return;
     try {
-      const { error } = await c.from("etats").upsert({ user_id: u.id, pseudo: get().pseudo, etat: instantane(get().etat), maj: new Date().toISOString() });
+      /* un autre appareil a écrit depuis notre dernière lecture : on fusionne avant d'envoyer */
+      const { data } = await c.from("etats").select("etat").eq("user_id", u.id).maybeSingle();
+      const distant = data?.etat as Stocke | undefined;
+      let envoi = instantane(get().etat);
+      if (distant && (distant.ts || 0) > lireBase()) {
+        const etat = versEtat(fusionner(distant, envoi));
+        set({ etat });
+        envoi = instantane(etat);
+        try { localStorage.setItem(SKEY, JSON.stringify(envoi)); } catch {}
+      }
+      const { error } = await c.from("etats").upsert({ user_id: u.id, pseudo: get().pseudo, etat: envoi, maj: new Date().toISOString() });
+      if (!error) noterBase(envoi.ts);
       set({ sync: !error });
     } catch {
       set({ sync: false });
     }
+  },
+
+  /* Retour sur l'app (ou retour du réseau) : on reprend ce qu'un autre appareil a fait entre-temps. */
+  async tirer() {
+    const c = await sb(), u = get().user;
+    if (!c || !u) return;
+    try {
+      const { data } = await c.from("etats").select("etat").eq("user_id", u.id).maybeSingle();
+      const distant = data?.etat as Stocke | undefined;
+      if (!distant || (distant.ts || 0) <= lireBase()) return;
+      const local = instantane(get().etat), etat = versEtat(fusionner(distant, local));
+      set({ etat, sync: true });
+      try { localStorage.setItem(SKEY, JSON.stringify(instantane(etat))); } catch {}
+      noterBase(distant.ts || 0);
+      /* il y avait ici des choses que le compte n'avait pas : on les lui envoie */
+      await get().pousser();
+    } catch {}
   },
 
   setUser(u) { set({ user: u, session: u ? "ouverte" : "aucune" }); },
@@ -178,6 +213,11 @@ export const useRepere = create<Store>((set, get) => ({
     let pseudo = "";
     try { pseudo = sansBalise(localStorage.getItem(PKEY)) || ""; } catch {}
     set({ etat: versEtat(lireLocal()), pret: true, pseudo });
+    /* retour sur l'app, ou retour du réseau : on reprend ce qu'un autre appareil a fait */
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") void get().tirer(); });
+      window.addEventListener("online", () => void get().tirer());
+    }
     const c = await sb();
     if (!c) { set({ sync: false, session: "aucune" }); return; }
     try {
@@ -202,8 +242,10 @@ export const useRepere = create<Store>((set, get) => ({
       } catch {}
     }
     const local = lireLocal();
-    const choisi = forcerDistant ? distant || local
-      : distant && local ? ((distant.ts || 0) >= (local.ts || 0) ? distant : local) : distant || local;
+    /* même compte des deux côtés : on fusionne (rien de fait ne se perd) ; récupération sur un
+       nouvel appareil : le compte a raison */
+    const choisi = forcerDistant ? distant || local : distant && local ? fusionner(distant, local) : distant || local;
+    if (distant) noterBase(distant.ts || 0);
     set({ etat: versEtat(choisi), pret: true, sync: true });
     /* Compte retrouvé sur un appareil où la langue n'a jamais été choisie : on reprend celle du compte. */
     const l = get().etat.A.langue;
@@ -211,7 +253,7 @@ export const useRepere = create<Store>((set, get) => ({
     if (forcerDistant && !distant)
       info = tr("Compte ouvert, mais il ne contenait aucune sauvegarde. Ce qui était sur cet appareil a été conservé et lui est maintenant rattaché.");
     try { if (get().pseudo) localStorage.setItem(PKEY, get().pseudo); } catch {}
-    if (!distant || (local && (local.ts || 0) > (distant.ts || 0))) {
+    if (choisi !== distant) {
       try { localStorage.setItem(SKEY, JSON.stringify(instantane(get().etat))); } catch {}
       await get().pousser();
     }
@@ -257,7 +299,7 @@ export const useRepere = create<Store>((set, get) => ({
         await c.auth.signOut();
       }
     } catch {}
-    try { localStorage.removeItem(SKEY); localStorage.removeItem(PKEY); localStorage.removeItem("repere.cycle.v1"); } catch {}
+    try { localStorage.removeItem(SKEY); localStorage.removeItem(PKEY); localStorage.removeItem(BKEY); localStorage.removeItem("repere.cycle.v1"); } catch {}
     // Rechargement complet voulu : repartir d'un état vierge.
     // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     location.href = "/";
@@ -273,7 +315,7 @@ export const useRepere = create<Store>((set, get) => ({
       await get().pousser();
       try { await c?.auth.signOut(); } catch {}
     }
-    try { localStorage.removeItem(SKEY); localStorage.removeItem(PKEY); localStorage.removeItem("repere.cycle.v1"); } catch {}
+    try { localStorage.removeItem(SKEY); localStorage.removeItem(PKEY); localStorage.removeItem(BKEY); localStorage.removeItem("repere.cycle.v1"); } catch {}
     set({ etat: vide(), user: null, pseudo: "", sync: null, session: "aucune" });
   },
 
