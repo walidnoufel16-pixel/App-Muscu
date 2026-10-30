@@ -40,18 +40,20 @@ export async function activerRappels(): Promise<EtatRappels> {
   noterPropose();
   if (!pris()) return etatRappels();
   if ((await Notification.requestPermission()) !== "granted") return etatRappels();
+  /* l'inscription se fait au nom du compte : sans session (serveur injoignable), inutile d'aller plus loin */
+  const c = await sb(), { data } = (await c?.auth.getSession()) ?? { data: null };
+  if (!c || !data?.session) throw new Error("pas de connexion au serveur");
   const reg = await navigator.serviceWorker.ready;
   let sub = await reg.pushManager.getSubscription();
   if (!sub) {
     /* clé publique VAPID (la privée reste dans le Vault Supabase) */
-    const c = await sb(), { data: cle } = (await c?.rpc("rappels_vapid_public")) ?? { data: null };
+    const { data: cle } = await c.rpc("rappels_vapid_public");
     if (typeof cle !== "string" || !cle) throw new Error("clé absente");
     sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: octets(cle) });
   }
   await inscrire(sub);
   /* la notification de confirmation vérifie toute la chaîne ; son échec ne bloque rien */
-  const c = await sb(), { data } = (await c?.auth.getSession()) ?? { data: null };
-  if (data?.session) fetch(SB_URL.replace(/\/$/, "") + "/functions/v1/rappels", {
+  fetch(SB_URL.replace(/\/$/, "") + "/functions/v1/rappels", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: "Bearer " + data.session.access_token, apikey: SB_KEY },
     body: JSON.stringify({ essai: true }),
