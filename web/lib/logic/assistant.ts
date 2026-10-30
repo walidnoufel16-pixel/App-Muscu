@@ -33,7 +33,13 @@ export function construireSeance(muscles: string[], duree: number, obj: number, 
   let reste = n - parts.reduce((a, p) => a + p.n, 0);
   parts.slice().sort((a, b) => b.q - Math.floor(b.q) - (a.q - Math.floor(a.q))).forEach((p) => { if (reste > 0) { p.n++; reste--; } });
   const pris = new Set<string>(), res: { o: string; poly: boolean; big: boolean; abdo: boolean }[] = [];
-  const libres = (pat: string) => Object.keys(EX).filter((o) => EX[o].pat === pat && exoFiltre(o, sel) && !pris.has(o) && EX[o].ch !== "dist");
+  /* Sans exercice d'isolation possible avec ce matériel (biceps au poids du corps), on prend ceux qui
+     travaillent aussi ce muscle (tractions supination : second schéma « fc »). */
+  const libres = (pat: string) => {
+    const ok = (o: string) => exoFiltre(o, sel) && !pris.has(o) && EX[o].ch !== "dist";
+    const l = Object.keys(EX).filter((o) => EX[o].pat === pat && ok(o));
+    return l.length ? l : Object.keys(EX).filter((o) => EX[o].pat2 === pat && ok(o));
+  };
   /* Parmi les candidats, on préfère ceux qui se chargent quand il y en a. */
   const choisir = (l: string[]) => {
     const kg = l.filter((o) => EX[o].ch === "kg"), c = l.filter((o) => EX[o].ch !== "aucune");
