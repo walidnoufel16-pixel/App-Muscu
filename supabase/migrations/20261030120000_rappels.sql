@@ -85,6 +85,7 @@ revoke all on function public.rappels_a_traiter(), public.rappels_cles() from pu
 grant execute on function public.rappels_a_traiter(), public.rappels_cles() to service_role;
 
 -- Toutes les heures à la 2e minute ; la fonction ne fait rien hors de 18 h à Paris.
+-- L'adresse est celle du projet de la vraie appli ; sur repere-staging (app test) : shhxawbybavlmayuyrky.
 -- Les secrets du Vault : voir 20261030121000_rappels_cles_generees.sql.
 select cron.schedule('rappels', '2 * * * *', $$
   select net.http_post(
