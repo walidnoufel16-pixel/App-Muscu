@@ -1,8 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Repère : un disque vu de face dont l'anneau se remplit, comme la frise des semaines et le minuteur. -->
+  <!-- Oxa : un anneau de progression rempli aux trois quarts et, au centre, un haltère incliné vers le haut. -->
   <defs><linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b67f5"/><stop offset="1" stop-color="#2346c4"/></linearGradient></defs>
   <rect width="512" height="512" fill="url(#f)"/>
-  <circle cx="256" cy="256" r="148" fill="none" stroke="#fff" stroke-opacity=".28" stroke-width="46"/>
-  <circle cx="256" cy="256" r="148" fill="none" stroke="#fff" stroke-width="46" stroke-linecap="round" stroke-dasharray="697.4 929.9" transform="rotate(-90 256 256)"/>
-  <circle cx="256" cy="256" r="34" fill="#fff"/>
+  <circle cx="256" cy="256" r="178" fill="none" stroke="#fff" stroke-opacity=".28" stroke-width="40"/>
+  <circle cx="256" cy="256" r="178" fill="none" stroke="#fff" stroke-width="40" stroke-linecap="round" stroke-dasharray="838.6 1118.4" transform="rotate(-90 256 256)"/>
+  <g fill="#fff" transform="translate(256 256) rotate(-35) scale(.72)">
+    <rect x="-120" y="-15" width="240" height="30" rx="8"/>
+    <rect x="-142" y="-80" width="44" height="160" rx="16"/>
+    <rect x="98" y="-80" width="44" height="160" rx="16"/>
+    <rect x="-184" y="-58" width="36" height="116" rx="14"/>
+    <rect x="148" y="-58" width="36" height="116" rx="14"/>
+    <rect x="-206" y="-22" width="28" height="44" rx="10"/>
+    <rect x="178" y="-22" width="28" height="44" rx="10"/>
+  </g>
 </svg>
