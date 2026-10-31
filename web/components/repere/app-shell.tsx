@@ -80,7 +80,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {onglets && <Installer />}
       {onglets && <MenuLateral />}
       {/* le bandeau de mise à jour attend qu'on quitte une tâche en cours (séance, composeur…) */}
-      <MiseAJour visible={onglets} />
+      <MiseAJour visible={onglets} auto={chemin === "/" || chemin === "/bienvenue"} />
       <Confirmateur />
       <Bilan />
       {/* ancienne adresse (*.onrender.com) : comment retrouver son compte sur la nouvelle */}
