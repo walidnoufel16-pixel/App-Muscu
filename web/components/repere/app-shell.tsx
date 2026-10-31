@@ -20,6 +20,7 @@ import { suivreDefis } from "@/lib/defis";
 import { useVerifierAccesProgramme } from "@/lib/fonctionnalites";
 import { memoriserPhotosAuRepos } from "@/lib/photos-hors-ligne";
 import { MiseAJour } from "./mise-a-jour";
+import { Demenagement } from "./demenagement";
 
 /* Démarre l'app une fois (session Supabase, état local) et pose la barre
    d'onglets. Les écrans plein écran (accueil, questionnaire) et les tâches
@@ -82,6 +83,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <MiseAJour visible={onglets} />
       <Confirmateur />
       <Bilan />
+      {/* ancienne adresse (*.onrender.com) : comment retrouver son compte sur la nouvelle */}
+      {onglets && <Demenagement />}
       <SurveillantBadges />
       {/* app de test (repere-test) : impossible à confondre avec la vraie */}
       {process.env.NEXT_PUBLIC_APP_TEST === "1" && (
