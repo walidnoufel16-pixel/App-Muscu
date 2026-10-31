@@ -28,9 +28,9 @@ export function Vitrine({ onCommencer, onCompte }: { onCommencer: () => void; on
           <LogoTuile className="size-9" />{tr("Repère")}
           <button onClick={onCompte} className="ml-auto text-[14px] font-semibold opacity-90">{tr("J'ai déjà un compte")}</button>
         </div>
-        <h1 className="mt-8 text-[40px] leading-[1.02] font-black tracking-[-0.03em]">{tr("Ton coach muscu et street workout.")}</h1>
+        <h1 className="mt-8 text-[35px] leading-[1.06] font-black tracking-[-0.03em]">{tr("Touche un muscle.")}<span className="block opacity-80">{tr("Ta séance est prête.")}</span></h1>
         <p className="mt-3.5 text-[16.5px] leading-relaxed opacity-90">
-          {tr("Gratuit, sans abonnement, il s'adapte à toi : touche les muscles que tu veux travailler, Repère crée ta séance et fait monter tes charges au bon moment.")}
+          {tr("Quels exercices, combien de séries, quel poids : Repère décide avec toi, et ajoute du poids quand tu es prêt.")}
         </p>
         <Button size="xl" onClick={onCommencer} className="mt-6 w-full bg-white text-plate-ink hover:bg-white/90">{tr("Commencer gratuitement")}<ArrowRightIcon /></Button>
         <p className="mt-3 text-center text-[13.5px] font-medium opacity-90">{tr("Pas d'App Store : ajoute-la à ton écran d'accueil en 2 gestes")}</p>
