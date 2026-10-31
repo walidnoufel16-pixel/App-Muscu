@@ -1,39 +1,70 @@
-/* Logo de Repère : un disque vu de face dont l'anneau se remplit aux trois quarts,
-   comme la frise des semaines et le minuteur. Source de l'icône : public/icone-source.svg. */
+/* Logo d'Oxa : un haltère qui décolle, propulsé par deux flammes de fusée (tu progresses).
+   Charte « Flamme seule » : tuile noire, haltère blanc, flammes orange. L'haltère et les
+   flammes ont chacun leur couleur. Source de l'icône : public/icone-source.svg (même dessin). */
+import { useId } from "react";
 import { tr } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-/** Icône d'app : le disque blanc sur une tuile cobalt. */
+/** Icône d'app : tuile noire, haltère blanc, flammes orange. Le dessin est réduit (0,84) pour
+    tenir dans la zone sûre des icônes Android, rognées en cercle. */
 export function LogoTuile({ className }: { className?: string }) {
+  const id = useId();
   return (
     <svg viewBox="0 0 512 512" className={cn("rounded-[22.37%]", className)} role="img" aria-label={tr("Oxa")}>
       <defs>
-        <linearGradient id="logo-fond" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#3b67f5" />
-          <stop offset="1" stopColor="#2346c4" />
+        <linearGradient id={`${id}fond`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#25252b" />
+          <stop offset="1" stopColor="#0a0a0c" />
         </linearGradient>
       </defs>
-      <rect width="512" height="512" fill="url(#logo-fond)" />
-      <Disque couleur="#fff" />
+      <rect width="512" height="512" fill={`url(#${id}fond)`} />
+      <g transform="translate(256 256) scale(.84) translate(-256 -256)">
+        <Marque haltere="#fff" flamme="#ff6a1a" />
+      </g>
     </svg>
   );
 }
 
-/** Le disque seul, dans la couleur du texte (ou cobalt avec `accent`). */
-export function LogoDisque({ className, accent }: { className?: string; accent?: boolean }) {
+/** Le logo sans tuile, dans la couleur du texte. `feu` colore les flammes en orange
+    (sinon elles suivent le texte, pour les filigranes). `accent` : haltère couleur d'action. */
+export function LogoDisque({ className, accent, feu }: { className?: string; accent?: boolean; feu?: boolean }) {
   return (
-    <svg viewBox="80 80 352 352" className={cn(accent ? "text-plate" : "", className)} role="img" aria-label={tr("Oxa")}>
-      <Disque couleur="currentColor" />
+    <svg viewBox="64 64 384 384" className={cn(accent ? "text-plate" : "", className)} role="img" aria-label={tr("Oxa")}>
+      <Marque haltere="currentColor" flamme={feu ? "var(--feu)" : "currentColor"} />
     </svg>
   );
 }
 
-function Disque({ couleur }: { couleur: string }) {
+/* une flamme sous le disque d'abscisse x : large à la sortie de la tuyère, pointue en bas */
+const flamme = (x: number) => `M${x - 24} 270 C${x - 54} 318 ${x - 38} 410 ${x} 486 C${x + 38} 410 ${x + 54} 318 ${x + 24} 270 Z`;
+const tuyere = (x: number) => `M${x - 18} 242 H${x + 18} L${x + 26} 272 H${x - 26} Z`;
+
+/** Le dessin, centré dans un carré de 512. */
+function Marque({ haltere, flamme: couleur }: { haltere: string; flamme: string }) {
+  const id = useId();
   return (
-    <>
-      <circle cx="256" cy="256" r="148" fill="none" stroke={couleur} strokeOpacity=".28" strokeWidth="46" />
-      <circle cx="256" cy="256" r="148" fill="none" stroke={couleur} strokeWidth="46" strokeLinecap="round" strokeDasharray="697.4 929.9" transform="rotate(-90 256 256)" />
-      <circle cx="256" cy="256" r="34" fill={couleur} />
-    </>
+    <g transform="translate(0 -28)">
+      <defs>
+        <linearGradient id={`${id}f`} gradientUnits="userSpaceOnUse" x1="0" y1="270" x2="0" y2="486">
+          <stop offset="0" stopColor={couleur} stopOpacity=".95" />
+          <stop offset="1" stopColor={couleur} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {[153, 359].map((x) => (
+        <g key={x}>
+          <path d={tuyere(x)} fill={haltere} />
+          <path d={flamme(x)} fill={`url(#${id}f)`} />
+        </g>
+      ))}
+      <g fill={haltere} transform="translate(256 170) scale(.86)">
+        <rect x="-120" y="-15" width="240" height="30" rx="8" />
+        <rect x="-142" y="-80" width="44" height="160" rx="16" />
+        <rect x="98" y="-80" width="44" height="160" rx="16" />
+        <rect x="-184" y="-58" width="36" height="116" rx="14" />
+        <rect x="148" y="-58" width="36" height="116" rx="14" />
+        <rect x="-206" y="-22" width="28" height="44" rx="10" />
+        <rect x="178" y="-22" width="28" height="44" rx="10" />
+      </g>
+    </g>
   );
 }

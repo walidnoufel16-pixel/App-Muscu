@@ -41,8 +41,8 @@ export function Courbe({ points, unite = "", hauteur = 150, className }: {
       aria-label={tr("Courbe : de {a} à {a1} {unite}", { a: fmt(points[0].y), a1: fmt(points[points.length - 1].y), unite })}>
       <defs>
         <linearGradient id={id} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="var(--plate)" stopOpacity=".28" />
-          <stop offset="1" stopColor="var(--plate)" stopOpacity="0" />
+          <stop offset="0" stopColor="var(--feu)" stopOpacity=".28" />
+          <stop offset="1" stopColor="var(--feu)" stopOpacity="0" />
         </linearGradient>
       </defs>
       {[0.25, 0.5, 0.75].map((t) => (
@@ -50,14 +50,14 @@ export function Courbe({ points, unite = "", hauteur = 150, className }: {
       ))}
       {points.length > 1 && <path d={aire} fill={`url(#${id})`} className="animate-[monter_.6s_ease-out_both]" />}
       {points.length > 1 && (
-        <path d={d} pathLength={1} fill="none" stroke="var(--plate)" strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round"
+        <path d={d} pathLength={1} fill="none" stroke="var(--feu)" strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round"
           strokeDasharray="1" className="animate-[tracer_1s_cubic-bezier(.4,0,.2,1)_both] motion-reduce:animate-none" />
       )}
       {points.map((q, j) => (
         <circle key={j} cx={X(j)} cy={Y(q.y)} r={j === i ? 5 : points.length > 24 ? 0 : 2.6}
-          className={j === i ? "fill-plate stroke-card" : "fill-card stroke-plate"} strokeWidth={j === i ? 2.5 : 1.6} />
+          className={j === i ? "fill-feu stroke-card" : "fill-card stroke-feu"} strokeWidth={j === i ? 2.5 : 1.6} />
       ))}
-      <line x1={X(i)} x2={X(i)} y1={haut - 2} y2={H - bas} className="stroke-plate/40" strokeDasharray="3 3" />
+      <line x1={X(i)} x2={X(i)} y1={haut - 2} y2={H - bas} className="stroke-feu/40" strokeDasharray="3 3" />
       <g transform={`translate(${bulleX},12)`}>
         <rect x={-58} y={-11} width={116} height={20} rx={10} className="fill-foreground" />
         <text textAnchor="middle" y={3.5} className="fill-background text-[10.5px] font-semibold">{fmt(p.y)}{unite && " " + unite} · {p.info ?? p.x}</text>
@@ -69,7 +69,7 @@ export function Courbe({ points, unite = "", hauteur = 150, className }: {
 }
 
 /** Barres verticales, la dernière (en cours) en couleur pleine. */
-export function Barres({ valeurs, unite = "", hauteur = 120, couleur = "var(--plate)" }: {
+export function Barres({ valeurs, unite = "", hauteur = 120, couleur = "var(--feu)" }: {
   valeurs: { x: string; y: number }[];
   unite?: string;
   hauteur?: number;
@@ -113,7 +113,7 @@ export function Calendrier({ jours, etat, onJour, aujourdhui, semaines = false }
       {jours.map((j, i) => {
         const e = etat(j), futur = j > aujourdhui;
         const fond = !e ? "var(--muted)" : e.muscu && e.cardio
-          ? "linear-gradient(135deg, var(--plate) 50%, var(--success) 50%)" : e.muscu ? "var(--plate)" : "var(--success)";
+          ? "linear-gradient(135deg, var(--feu) 50%, color-mix(in oklab, var(--foreground) 45%, transparent) 50%)" : e.muscu ? "var(--feu)" : "color-mix(in oklab, var(--foreground) 45%, transparent)";
         return (
           <button
             key={j}

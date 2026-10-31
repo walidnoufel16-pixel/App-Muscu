@@ -409,7 +409,7 @@ function Bilans({ auj }: { auj: string }) {
     <div className="flex flex-col gap-2">
       {liste.map((r) => (
         <button key={r.p.id} onClick={() => router.push(`/progres/bilan?p=${r.p.id}` as "/progres/bilan", AVANT)}
-          className="relative isolate flex items-center gap-3 overflow-hidden rounded-[20px] bg-gradient-to-br from-[#3b67f5] to-[#1b36a0] p-4 text-left text-white active:scale-[.99]">
+          className="relative isolate flex items-center gap-3 overflow-hidden rounded-[20px] bg-gradient-to-br from-[#25252b] to-[#0a0a0c] p-4 text-left text-white active:scale-[.99]">
           <LogoDisque className="pointer-events-none absolute -right-8 -bottom-10 -z-10 size-36 text-white/10" />
           <SparkleIcon className="size-7 shrink-0" weight="fill" />
           <span className="min-w-0 flex-1">

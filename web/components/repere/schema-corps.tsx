@@ -38,10 +38,10 @@ export function SchemaCorps({
             <path
               key={r.i}
               d={r.d}
-              style={teinte && t > 0 && !sel ? { fill: `color-mix(in oklab, var(--plate) ${Math.round(25 + t * 75)}%, transparent)` } : undefined}
+              style={teinte && t > 0 && !sel ? { fill: `color-mix(in oklab, var(--feu) ${Math.round(25 + t * 75)}%, transparent)` } : undefined}
               className={cn(
                 "stroke-card transition-[fill] duration-200 [stroke-linejoin:round] [stroke-width:1.5px] [vector-effect:non-scaling-stroke]",
-                sel ? "animate-[muscle_.45s_ease-out] fill-plate" : on ? "fill-foreground/35" : "fill-foreground/10",
+                sel ? "animate-[muscle_.45s_ease-out] fill-feu" : on ? "fill-foreground/35" : "fill-foreground/10",
               )}
             />
           );

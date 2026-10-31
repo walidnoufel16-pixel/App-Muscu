@@ -175,7 +175,7 @@ export function Minuteur({ phases, titre, course, setCourse, onFin, seuil = 60, 
           <button
             onClick={pause}
             aria-label={course.pause ? tr("Reprendre") : tr("Pause")}
-            className={cn("grid size-20 place-items-center rounded-full shadow-lg active:scale-95", effort ? "bg-white text-[#2346c4]" : "bg-plate text-plate-foreground")}
+            className={cn("grid size-20 place-items-center rounded-full shadow-lg active:scale-95", effort ? "bg-white text-[#0a0a0c]" : "bg-plate text-plate-foreground")}
           >
             {course.pause ? <PlayIcon className="size-8" weight="fill" /> : <PauseIcon className="size-8" weight="fill" />}
           </button>

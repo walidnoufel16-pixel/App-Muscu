@@ -59,7 +59,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return (
       <div className="grid min-h-dvh place-items-center">
         <div className="flex flex-col items-center gap-3 text-muted-foreground">
-          <LogoDisque accent className="size-12 animate-pulse" />
+          <LogoDisque accent feu className="size-12 animate-pulse" />
           <span className="eyebrow">{tr("Oxa")}</span>
         </div>
       </div>

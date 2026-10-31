@@ -178,11 +178,11 @@ export function VueCourse({ onglet }: { onglet: "plan" | "seances" }) {
           <CarteCourse />
         </section>
       ) : (
-        <div className="rounded-[22px] bg-plate p-5 text-plate-foreground">
+        <div className="rounded-[22px] bg-bandeau p-5 text-white">
           <PersonSimpleRunIcon className="size-8" weight="fill" />
           <h3 className="mt-2 text-[22px] leading-tight font-bold">{tr("Prépare une course")}</h3>
           <p className="mt-1.5 text-[14px] leading-relaxed opacity-90">{tr("10 km, semi-marathon ou marathon : un plan jusqu'au jour J, avec tes allures calculées sur ton niveau.")}</p>
-          <button onClick={() => router.push("/entrainement/assistant?type=course" as Route, AVANT)} className="mt-4 inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[15px] font-semibold text-[#2346c4] active:scale-[.97]">
+          <button onClick={() => router.push("/entrainement/assistant?type=course" as Route, AVANT)} className="mt-4 inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[15px] font-semibold text-[#0a0a0c] active:scale-[.97]">
             {tr("Créer mon plan")}<ArrowRightIcon className="size-4" weight="bold" />
           </button>
         </div>
@@ -299,7 +299,7 @@ export function SectionCourse() {
             <div key={n}><div className="num text-[22px] leading-tight font-bold">{v}</div><div className="text-[11px] text-muted-foreground">{n}</div></div>
           ))}
         </div>
-        <div className="mt-3"><Barres valeurs={semaines.map((l, i) => ({ x: new Date(l + "T12:00").toLocaleDateString(loc(), { day: "numeric", month: "short" }).replace(".", ""), y: Math.round(parSem[i] * 10) / 10 }))} unite="km" couleur="var(--plate)" /></div>
+        <div className="mt-3"><Barres valeurs={semaines.map((l, i) => ({ x: new Date(l + "T12:00").toLocaleDateString(loc(), { day: "numeric", month: "short" }).replace(".", ""), y: Math.round(parSem[i] * 10) / 10 }))} unite="km" couleur="var(--feu)" /></div>
         {c && est && (
           <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-plate-soft px-3.5 py-2.5">
             <span className="text-[13px] leading-snug">

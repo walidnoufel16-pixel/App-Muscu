@@ -4,88 +4,87 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================================
-   Repère — système de design
-   Base shadcn (gris zinc, bordures fines, rayon 12 px) ; une seule
-   couleur d'accent, le jaune « disque de fonte », utilisée avec
-   parcimonie. Les chiffres (charges, répétitions, minuteur) ont leur
-   propre police condensée : c'est là que l'app a du caractère.
+   Oxa — système de design, charte « Flamme seule »
+   Neutres purs (blanc, gris, noir) et une seule couleur : l'orange
+   flamme du logo. L'action (`plate`) est noire en clair, orange en
+   sombre ; le feu (`feu`) marque le progrès, les records, les muscles
+   travaillés et les graphiques. Le rouge et les couleurs de RPE
+   restent : ce sont des signaux, pas de la décoration.
    ============================================================ */
 
 :root {
   --radius: 0.75rem;
 
-  /* neutres légèrement bleutés, accordés au cobalt */
-  --background: #f2f3f7;          /* fond groupé, façon iOS */
-  --foreground: #0b0d12;
+  --background: #f2f2f4;          /* fond groupé, façon iOS */
+  --foreground: #0a0a0c;
   --card: #ffffff;
-  --card-foreground: #0b0d12;
+  --card-foreground: #0a0a0c;
   --popover: #ffffff;
-  --popover-foreground: #0b0d12;
-  --primary: #0f1218;
-  --primary-foreground: #f8f9fb;
-  --secondary: #e8eaf0;
-  --secondary-foreground: #0f1218;
-  --muted: #eceef3;
-  --muted-foreground: #6a7180;
-  --accent: #eceef3;
-  --accent-foreground: #0f1218;
+  --popover-foreground: #0a0a0c;
+  --primary: #0a0a0c;
+  --primary-foreground: #f8f8fa;
+  --secondary: #e8e8ec;
+  --secondary-foreground: #0a0a0c;
+  --muted: #ececef;
+  --muted-foreground: #6b6b75;
+  --accent: #ececef;
+  --accent-foreground: #0a0a0c;
   --destructive: #e5484d;
-  --border: #e1e4eb;
-  --input: #d6dae3;
-  --ring: #9aa3b5;
+  --border: #e2e2e6;
+  --input: #d7d7dd;
+  --ring: #9c9ca6;
 
-  /* identité : cobalt, la couleur du disque de 20 kg.
-     (Les jetons gardent le nom « plate », le disque de fonte.) */
-  --plate: #2f5bea;
+  /* action : noir (les jetons gardent le nom « plate », le disque de fonte) */
+  --plate: #0a0a0c;
   --plate-foreground: #ffffff;
-  --plate-soft: color-mix(in oklab, var(--plate) 12%, transparent);
-  --plate-ink: #2448c8;           /* cobalt lisible en texte sur fond clair */
-  --success: #2f9e5f;
-  --success-soft: color-mix(in oklab, var(--success) 14%, transparent);
+  --plate-soft: color-mix(in oklab, var(--plate) 6%, transparent);
+  --plate-ink: #0a0a0c;
+  /* bandeaux (programme, vitrine, street…) : noir en clair, anthracite en sombre */
+  --bandeau: #0a0a0c;
+  /* feu : l'orange de la flamme, pour le progrès */
+  --feu: #ff6a1a;
+  --feu-ink: #c2410c;             /* orange lisible en texte sur fond clair */
+  --feu-soft: color-mix(in oklab, var(--feu) 14%, transparent);
+  --success: var(--feu-ink);       /* réussite = le feu, en teinte lisible sur fond clair */
+  --success-soft: var(--feu-soft);
   --rpe7: #2f9e5f;
   --rpe8: #e0a400;
   --rpe9: #e5484d;
 }
 
 .dark {
-  --background: #0a0b0f;
-  --foreground: #f3f4f7;
-  --card: #14161c;
-  --card-foreground: #f3f4f7;
-  --popover: #191c23;
-  --popover-foreground: #f3f4f7;
-  --primary: #f3f4f7;
-  --primary-foreground: #0f1218;
-  --secondary: #20232c;
-  --secondary-foreground: #f3f4f7;
-  --muted: #1c1f27;
-  --muted-foreground: #9097a6;
-  --accent: #222632;
-  --accent-foreground: #f3f4f7;
+  --background: #0a0a0c;
+  --foreground: #f5f5f7;
+  --card: #17171c;
+  --card-foreground: #f5f5f7;
+  --popover: #1c1c22;
+  --popover-foreground: #f5f5f7;
+  --primary: #f5f5f7;
+  --primary-foreground: #0a0a0c;
+  --secondary: #222228;
+  --secondary-foreground: #f5f5f7;
+  --muted: #1f1f25;
+  --muted-foreground: #95959f;
+  --accent: #26262d;
+  --accent-foreground: #f5f5f7;
   --destructive: #ff5c61;
-  --border: #252935;
-  --input: #2f3442;
-  --ring: #4f5668;
+  --border: #29292f;
+  --input: #34343c;
+  --ring: #55555f;
 
-  --plate: #5b7cff;
-  --plate-foreground: #ffffff;
-  --plate-soft: color-mix(in oklab, var(--plate) 17%, transparent);
-  --plate-ink: #8aa2ff;
-  --success: #3fbf75;
+  --plate: #ff6a1a;
+  --plate-foreground: #0a0a0c;
+  --plate-soft: color-mix(in oklab, var(--plate) 16%, transparent);
+  --plate-ink: #ff8a4c;
+  --bandeau: #1f1f25;
+  --feu: #ff6a1a;
+  --feu-ink: #ff8a4c;
+  --feu-soft: color-mix(in oklab, var(--feu) 18%, transparent);
+  --success: var(--feu);
 }
 
-/* Partie Repas : orange safran à la place du bleu (page, feuilles et onglet). */
-.theme-repas {
-  --plate: #f08a24;
-  --plate-foreground: #ffffff;
-  --plate-soft: color-mix(in oklab, #f08a24 14%, transparent);
-  --plate-ink: #b85a00;           /* safran lisible en texte sur fond clair */
-}
-.dark .theme-repas, .dark.theme-repas {
-  --plate: #f59a3c;
-  --plate-soft: color-mix(in oklab, #f59a3c 18%, transparent);
-  --plate-ink: #ffb066;
-}
+/* Oxa Meal prend désormais la même couleur que le reste ; la classe reste posée par la page Repas. */
+.theme-repas {}
 
 @theme inline {
   --font-sans: var(--font-geist-sans), "Geist", ui-sans-serif, system-ui, sans-serif;
@@ -120,6 +119,10 @@
   --color-plate-foreground: var(--plate-foreground);
   --color-plate-soft: var(--plate-soft);
   --color-plate-ink: var(--plate-ink);
+  --color-bandeau: var(--bandeau);
+  --color-feu: var(--feu);
+  --color-feu-ink: var(--feu-ink);
+  --color-feu-soft: var(--feu-soft);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --color-rpe7: var(--rpe7);

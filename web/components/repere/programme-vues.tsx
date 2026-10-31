@@ -33,15 +33,15 @@ export function useProgramme() {
   return { W, plan, wk, socle, jour, faites, ouvrir };
 }
 
-/* Grande carte cobalt : l'action du moment. Le disque du logo en filigrane. */
+/* Grand bandeau noir : l'action du moment. Le disque du logo en filigrane. */
 export function Hero({ surtitre, titre, texte, bouton, onClick, icone }: { surtitre: string; titre: string; texte: string; bouton: string; onClick: () => void; icone?: React.ReactNode }) {
   return (
-    <div className="relative isolate overflow-hidden rounded-[26px] bg-plate p-5 text-plate-foreground shadow-[0_18px_40px_-22px_var(--plate)]">
+    <div className="relative isolate overflow-hidden rounded-[26px] bg-bandeau p-5 text-white shadow-[0_18px_40px_-22px_var(--bandeau)]">
       <LogoDisque className="pointer-events-none absolute -right-10 -bottom-12 -z-10 size-52 text-white/[.13]" />
       <div className="flex items-center gap-2 text-[11.5px] font-semibold tracking-[0.12em] uppercase opacity-80">{icone}{surtitre}</div>
       <h2 className="mt-2 text-[26px] leading-[1.1] font-bold tracking-[-0.02em] text-balance">{titre}</h2>
       <p className="mt-2 max-w-[34ch] text-[14px] leading-relaxed opacity-85">{texte}</p>
-      <button onClick={onClick} className="mt-4 inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[15px] font-semibold text-[#2346c4] shadow-sm active:scale-[.97]">
+      <button onClick={onClick} className="mt-4 inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[15px] font-semibold text-[#0a0a0c] shadow-sm active:scale-[.97]">
         {bouton}<ArrowRightIcon className="size-4" weight="bold" />
       </button>
     </div>
@@ -96,7 +96,7 @@ export function MaSemaine() {
   return (
     <section className="overflow-hidden rounded-[20px] bg-card">
       <div className="flex items-center gap-3 px-4 py-3">
-        <span className="grid size-9 shrink-0 place-items-center rounded-full" style={{ background: `conic-gradient(var(--plate) ${(socle.length ? faites / socle.length : 0) * 360}deg, var(--muted) 0)` }}>
+        <span className="grid size-9 shrink-0 place-items-center rounded-full" style={{ background: `conic-gradient(var(--feu) ${(socle.length ? faites / socle.length : 0) * 360}deg, var(--muted) 0)` }}>
           <span className="num grid size-[27px] place-items-center rounded-full bg-card text-[16px] font-bold">{wk + 1}</span>
         </span>
         <span className="min-w-0 flex-1">
