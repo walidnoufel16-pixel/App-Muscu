@@ -4,12 +4,13 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================================
-   Oxa — système de design, charte « Flamme seule »
-   Neutres purs (blanc, gris, noir) et une seule couleur : l'orange
-   flamme du logo. L'action (`plate`) est noire en clair, orange en
-   sombre ; le feu (`feu`) marque le progrès, les records, les muscles
-   travaillés et les graphiques. Le rouge et les couleurs de RPE
-   restent : ce sont des signaux, pas de la décoration.
+   Oxa — système de design, charte indigo
+   Neutres purs (blanc, gris, noir) et une couleur de marque : l'indigo
+   électrique, celle des flammes du logo. Elle sert à l'action (`plate`),
+   aux grands bandeaux (`bandeau`) et au progrès (`feu` : records,
+   muscles travaillés, graphiques). Les bannières de rubriques gardent
+   chacune leur teinte. Le rouge et les couleurs de RPE restent : ce
+   sont des signaux, pas de la décoration.
    ============================================================ */
 
 :root {
@@ -34,18 +35,20 @@
   --input: #d7d7dd;
   --ring: #9c9ca6;
 
-  /* action : noir (les jetons gardent le nom « plate », le disque de fonte) */
-  --plate: #0a0a0c;
+  /* action : indigo (les jetons gardent le nom « plate », le disque de fonte) */
+  --plate: #4f46e5;
   --plate-foreground: #ffffff;
-  --plate-soft: color-mix(in oklab, var(--plate) 6%, transparent);
-  --plate-ink: #0a0a0c;
-  /* bandeaux (programme, vitrine, street…) : noir en clair, anthracite en sombre */
-  --bandeau: #0a0a0c;
-  /* feu : l'orange de la flamme, pour le progrès */
-  --feu: #ff6a1a;
-  --feu-ink: #c2410c;             /* orange lisible en texte sur fond clair */
+  --plate-soft: color-mix(in oklab, var(--plate) 12%, transparent);
+  --plate-ink: #4338ca;           /* indigo lisible en texte sur fond clair */
+  /* grands bandeaux (séance du moment, vitrine, street…) */
+  --bandeau: #4f46e5;
+  /* bannière Street : noire en clair, graphite en sombre (sinon noir sur noir) */
+  --street: #1d1d1f;
+  /* feu : le progrès (records, muscles travaillés, graphiques), même indigo */
+  --feu: #4f46e5;
+  --feu-ink: #4338ca;
   --feu-soft: color-mix(in oklab, var(--feu) 14%, transparent);
-  --success: var(--feu-ink);       /* réussite = le feu, en teinte lisible sur fond clair */
+  --success: var(--feu-ink);       /* réussite = le progrès, en teinte lisible sur fond clair */
   --success-soft: var(--feu-soft);
   --rpe7: #2f9e5f;
   --rpe8: #e0a400;
@@ -55,7 +58,7 @@
 .dark {
   --background: #0a0a0c;
   --foreground: #f5f5f7;
-  --card: #17171c;
+  --card: #1c1c22;
   --card-foreground: #f5f5f7;
   --popover: #1c1c22;
   --popover-foreground: #f5f5f7;
@@ -72,13 +75,14 @@
   --input: #34343c;
   --ring: #55555f;
 
-  --plate: #ff6a1a;
-  --plate-foreground: #0a0a0c;
-  --plate-soft: color-mix(in oklab, var(--plate) 16%, transparent);
-  --plate-ink: #ff8a4c;
-  --bandeau: #1f1f25;
-  --feu: #ff6a1a;
-  --feu-ink: #ff8a4c;
+  --plate: #6d63ff;
+  --plate-foreground: #ffffff;
+  --plate-soft: color-mix(in oklab, var(--plate) 18%, transparent);
+  --plate-ink: #a5a0ff;
+  --bandeau: #4f46e5;
+  --street: #2c2c33;
+  --feu: #6d63ff;
+  --feu-ink: #a5a0ff;
   --feu-soft: color-mix(in oklab, var(--feu) 18%, transparent);
   --success: var(--feu);
 }
@@ -120,6 +124,7 @@
   --color-plate-soft: var(--plate-soft);
   --color-plate-ink: var(--plate-ink);
   --color-bandeau: var(--bandeau);
+  --color-street: var(--street);
   --color-feu: var(--feu);
   --color-feu-ink: var(--feu-ink);
   --color-feu-soft: var(--feu-soft);

@@ -45,13 +45,13 @@ async function image(r: Recap): Promise<Blob | null> {
   if (!g) return null;
   const police = getComputedStyle(document.body).fontFamily;
   const fond = g.createLinearGradient(0, 0, 0, H);
-  fond.addColorStop(0, "#25252b"); fond.addColorStop(1, "#0a0a0c");
+  fond.addColorStop(0, "#5b52f0"); fond.addColorStop(1, "#3a32b8");
   g.fillStyle = fond; g.fillRect(0, 0, W, H);
   /* le disque du logo, en grand et en filigrane */
   g.lineCap = "round";
-  g.strokeStyle = "rgba(255,106,26,.10)"; g.lineWidth = 120;
+  g.strokeStyle = "rgba(255,255,255,.08)"; g.lineWidth = 120;
   g.beginPath(); g.arc(W - 120, H - 260, 420, 0, Math.PI * 2); g.stroke();
-  g.strokeStyle = "rgba(255,106,26,.24)";
+  g.strokeStyle = "rgba(255,255,255,.16)";
   g.beginPath(); g.arc(W - 120, H - 260, 420, -Math.PI / 2, Math.PI); g.stroke();
   g.fillStyle = "#fff";
   const texte = (t: string, x: number, y: number, taille: number, poids = 700, alpha = 1) => {
@@ -123,7 +123,7 @@ function BilanPeriode() {
   };
   const e = E[i];
   return (
-    <div className="relative isolate min-h-dvh overflow-hidden bg-gradient-to-b from-[#25252b] to-[#0a0a0c] text-white select-none">
+    <div className="relative isolate min-h-dvh overflow-hidden bg-gradient-to-b from-[#5b52f0] to-[#3a32b8] text-white select-none">
       <LogoDisque className="pointer-events-none absolute -right-24 -bottom-24 -z-10 size-[420px] text-white/[.09]" />
       <div className="flex gap-1 px-4 pt-[max(env(safe-area-inset-top),14px)]" aria-hidden>
         {Array.from({ length: total }, (_, k) => (

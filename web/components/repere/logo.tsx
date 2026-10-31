@@ -1,11 +1,11 @@
 /* Logo d'Oxa : un haltère qui décolle, propulsé par deux flammes de fusée (tu progresses).
-   Charte « Flamme seule » : tuile noire, haltère blanc, flammes orange. L'haltère et les
+   Tuile noire, haltère blanc, flammes indigo. L'haltère et les
    flammes ont chacun leur couleur. Source de l'icône : public/icone-source.svg (même dessin). */
 import { useId } from "react";
 import { tr } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-/** Icône d'app : tuile noire, haltère blanc, flammes orange. Le dessin est réduit (0,84) pour
+/** Icône d'app : tuile noire, haltère blanc, flammes indigo. Le dessin est réduit (0,84) pour
     tenir dans la zone sûre des icônes Android, rognées en cercle. */
 export function LogoTuile({ className }: { className?: string }) {
   const id = useId();
@@ -19,13 +19,13 @@ export function LogoTuile({ className }: { className?: string }) {
       </defs>
       <rect width="512" height="512" fill={`url(#${id}fond)`} />
       <g transform="translate(256 256) scale(.84) translate(-256 -256)">
-        <Marque haltere="#fff" flamme="#ff6a1a" />
+        <Marque haltere="#fff" flamme="#6366f1" />
       </g>
     </svg>
   );
 }
 
-/** Le logo sans tuile, dans la couleur du texte. `feu` colore les flammes en orange
+/** Le logo sans tuile, dans la couleur du texte. `feu` colore les flammes en indigo
     (sinon elles suivent le texte, pour les filigranes). `accent` : haltère couleur d'action. */
 export function LogoDisque({ className, accent, feu }: { className?: string; accent?: boolean; feu?: boolean }) {
   return (
