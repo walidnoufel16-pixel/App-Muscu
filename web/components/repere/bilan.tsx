@@ -160,7 +160,7 @@ function PartagerSeance({ titre, cases }: { titre: string; cases: { n: string; v
     return () => { vivant = false; };
   }, [titre, cle, etat]);
   return (
-    <button disabled={!img} onClick={() => { tactile(10); if (img) partagerImage(img, "repere-seance.png", tr("Ma séance Repère")); }}
+    <button disabled={!img} onClick={() => { tactile(10); if (img) partagerImage(img, "oxa-seance.png", tr("Ma séance Oxa")); }}
       className="mt-1.5 flex w-full animate-[monter_.5s_.85s_ease-out_both] items-center justify-center gap-2 rounded-2xl border bg-card py-3 text-[14.5px] font-semibold disabled:opacity-50">
       <ShareFatIcon className="size-4.5" weight="fill" />{tr("Partager ma séance")}
     </button>
@@ -188,7 +188,7 @@ function DemanderAvis() {
     return <p className="mt-1.5 rounded-2xl bg-plate-soft p-3.5 text-left text-[14px] font-medium">{tr("Merci ! Ton avis est bien arrivé, il compte vraiment pour la suite.")}</p>;
   return (
     <div className="mt-1.5 animate-[monter_.5s_.95s_ease-out_both] rounded-2xl border bg-card p-3.5 text-left">
-      <div className="text-[14px] font-semibold">{tr("Qu'est-ce qui manque à Repère ?")}</div>
+      <div className="text-[14px] font-semibold">{tr("Qu'est-ce qui manque à Oxa ?")}</div>
       <p className="mt-0.5 text-[12.5px] leading-snug text-muted-foreground">{tr("{n} séances déjà : ton avis aide à décider la suite. Une phrase suffit.", { n })}</p>
       <textarea value={texte} onChange={(e) => setTexte(e.target.value)} maxLength={1000} rows={3}
         placeholder={tr("Une fonction, un exercice, un souci…")} className="mt-2.5 w-full resize-none rounded-xl border bg-background p-2.5 text-[16px] outline-none focus:border-foreground" />

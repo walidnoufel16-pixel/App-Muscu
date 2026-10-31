@@ -134,7 +134,7 @@ export default function PageProfil() {
               <Ligne onClick={() => router.push("/questionnaire", AVANT)}>{plan ? tr("Modifier mes réponses") : tr("Construire mon programme")}</Ligne>
             ) : (
               <div aria-disabled="true" className="flex items-center justify-between gap-3 px-4 py-3.5 text-[15px] text-muted-foreground">
-                {tr("Programme sur 8 semaines")}
+                {`Oxa Plan · ${tr("8 semaines")}`}
                 <span className="rounded-full bg-muted px-2.5 py-1 text-[11.5px] font-semibold">{tr("Bientôt disponible")}</span>
               </div>
             )}
@@ -219,7 +219,7 @@ export default function PageProfil() {
 
         {/* faire connaître l'app */}
         <section>
-          <h2 className="eyebrow mb-2 px-1">{tr("Partager Repère")}</h2>
+          <h2 className="eyebrow mb-2 px-1">{tr("Partager Oxa")}</h2>
           <InviterAmi />
         </section>
 
@@ -260,7 +260,7 @@ export default function PageProfil() {
               {tr("Sur le serveur sont gardés ton surnom, ton adresse si tu l'as rattachée, tes réponses au questionnaire, ton programme, tes séances et charges, tes sorties de course, et, si tu les notes, ta forme du jour, ton poids et tes protéines.")}
             </p>
             <p className="mt-2">
-              {tr("L'éditeur de Repère peut les consulter pour suivre l'usage de l'app et l'améliorer. Elles ne sont ni vendues ni partagées. Le suivi du cycle menstruel ne quitte jamais ce téléphone. « Tout effacer », plus bas, supprime tout, ici comme sur le serveur.")}
+              {tr("L'éditeur d'Oxa peut les consulter pour suivre l'usage de l'app et l'améliorer. Elles ne sont ni vendues ni partagées. Le suivi du cycle menstruel ne quitte jamais ce téléphone. « Tout effacer », plus bas, supprime tout, ici comme sur le serveur.")}
             </p>
           </div>
         </section>

@@ -14,8 +14,9 @@ export const RUBRIQUES: Rubrique[] = ["libre", "programme", "street", "course", 
 /** Lien vers une rubrique. */
 export const lienRubrique = (v: Rubrique) => `/entrainement/rubrique?v=${v}` as Route;
 
+/* Les univers de marque (Oxa Plan, Oxa Street, Oxa Run) ne se traduisent pas. */
 export const nomRubrique = (v: Rubrique) =>
-  ({ libre: tr("Séance libre"), programme: tr("Programme 8 semaines"), street: tr("Street workout"), course: tr("Course"), soin: tr("Soin & mobilité") })[v];
+  ({ libre: tr("Séance libre"), programme: "Oxa Plan", street: "Oxa Street", course: "Oxa Run", soin: tr("Soin & mobilité") })[v];
 
 /* photos des exercices (domaine public), en grand ; hors connexion sans elles, la petite */
 const BANNIERES: Record<Rubrique, { photo: string; fond: string; texte: () => string }> = {

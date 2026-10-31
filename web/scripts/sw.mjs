@@ -47,7 +47,7 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("push", (e) => {
   let m = {};
   try { m = e.data ? e.data.json() : {}; } catch {}
-  e.waitUntil(self.registration.showNotification(m.titre || "Repère", {
+  e.waitUntil(self.registration.showNotification(m.titre || "Oxa", {
     body: m.corps || "", tag: m.tag || "rappel", icon: "/icon-192.png", badge: "/icon-192.png", data: { url: m.url || "/entrainement/" },
   }));
 });

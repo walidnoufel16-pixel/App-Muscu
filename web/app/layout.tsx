@@ -20,21 +20,21 @@ const chiffres = localFont({
 
 /* Adresse publique : aperçus de partage (WhatsApp, Instagram…) et référencement. */
 const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "https://repere-soz5.onrender.com").trim();
-const ACCROCHE = "Quels exercices, combien de séries, quel poids : Repère décide avec toi, et ajoute du poids quand tu es prêt. Muscu et street workout, gratuit.";
+const ACCROCHE = "Quels exercices, combien de séries, quel poids : Oxa décide avec toi, et ajoute du poids quand tu es prêt. Muscu et street workout, gratuit.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
-  title: { default: "Repère · Touche un muscle, ta séance est prête", template: "%s · Repère" },
+  title: { default: "Oxa · Touche un muscle, ta séance est prête", template: "%s · Oxa" },
   description: ACCROCHE,
   openGraph: {
-    type: "website", locale: "fr_FR", siteName: "Repère", url: "/",
-    title: "Repère · Touche un muscle, ta séance est prête",
+    type: "website", locale: "fr_FR", siteName: "Oxa", url: "/",
+    title: "Oxa · Touche un muscle, ta séance est prête",
     description: ACCROCHE,
-    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "Repère : touche un muscle, ta séance est prête" }],
+    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "Oxa : touche un muscle, ta séance est prête" }],
   },
-  twitter: { card: "summary_large_image", title: "Repère · Touche un muscle, ta séance est prête", description: ACCROCHE, images: ["/og.jpg"] },
-  applicationName: "Repère",
-  appleWebApp: { capable: true, title: "Repère", statusBarStyle: "black-translucent" },
+  twitter: { card: "summary_large_image", title: "Oxa · Touche un muscle, ta séance est prête", description: ACCROCHE, images: ["/og.jpg"] },
+  applicationName: "Oxa",
+  appleWebApp: { capable: true, title: "Oxa", statusBarStyle: "black-translucent" },
   icons: { icon: "/icon-192.png", apple: "/apple-touch-icon.png" },
 };
 

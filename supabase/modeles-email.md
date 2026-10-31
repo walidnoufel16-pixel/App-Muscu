@@ -18,15 +18,15 @@ L'app utilise deux de ces e-mails :
 **Subject**
 
 ```
-Ton code Repère · Your Repère code: {{ .Token }}
+Ton code Oxa · Your Oxa code: {{ .Token }}
 ```
 
 **Body** (onglet Source)
 
 ```html
 <div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:440px;margin:0 auto;padding:24px;color:#111">
-  <p style="font-size:15px;margin:0 0 6px">Voici ton code pour retrouver ton compte Repère :</p>
-  <p style="font-size:13px;color:#666;margin:0 0 16px">Here is your code to get back into your Repère account:</p>
+  <p style="font-size:15px;margin:0 0 6px">Voici ton code pour retrouver ton compte Oxa :</p>
+  <p style="font-size:13px;color:#666;margin:0 0 16px">Here is your code to get back into your Oxa account:</p>
   <p style="font-size:34px;font-weight:700;letter-spacing:8px;margin:0 0 20px">{{ .Token }}</p>
   <p style="font-size:14px;margin:0 0 4px">Saisis-le dans l'app. Il expire dans une heure.</p>
   <p style="font-size:13px;color:#666;margin:0 0 20px">Enter it in the app. It expires in one hour.</p>
@@ -48,8 +48,8 @@ Confirme ton adresse · Confirm your email: {{ .Token }}
 
 ```html
 <div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:440px;margin:0 auto;padding:24px;color:#111">
-  <p style="font-size:15px;margin:0 0 6px">Voici ton code pour rattacher {{ .NewEmail }} à ton compte Repère :</p>
-  <p style="font-size:13px;color:#666;margin:0 0 16px">Here is your code to link {{ .NewEmail }} to your Repère account:</p>
+  <p style="font-size:15px;margin:0 0 6px">Voici ton code pour rattacher {{ .NewEmail }} à ton compte Oxa :</p>
+  <p style="font-size:13px;color:#666;margin:0 0 16px">Here is your code to link {{ .NewEmail }} to your Oxa account:</p>
   <p style="font-size:34px;font-weight:700;letter-spacing:8px;margin:0 0 20px">{{ .Token }}</p>
   <p style="font-size:14px;margin:0 0 4px">Saisis-le dans l'app. Il expire dans une heure.</p>
   <p style="font-size:13px;color:#666;margin:0 0 20px">Enter it in the app. It expires in one hour.</p>

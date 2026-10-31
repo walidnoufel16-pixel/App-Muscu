@@ -91,7 +91,7 @@ export const BADGES: Badge[] = [
   course("run1", tr("Premiers kilomètres"), tr("Ta première sortie de course notée"), 1, (s) => s.sorties),
   course("km100", tr("100 km"), tr("100 km courus au total"), 100, (s) => s.km),
   course("km500", tr("500 km"), tr("500 km courus au total"), 500, (s) => s.km),
-  course("jourj", tr("Jour J"), tr("Ta course préparée avec Repère, bouclée"), 1, (s) => s.courses),
+  course("jourj", tr("Jour J"), tr("Ta course préparée avec Oxa, bouclée"), 1, (s) => s.courses),
 ];
 export const obtenu = (b: Badge, s: Stats) => b.valeur(s) >= b.cible;
 

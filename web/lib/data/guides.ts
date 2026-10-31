@@ -16,7 +16,7 @@ export const GUIDES: Guide[] = [
     slug: "programme-street-workout-debutant",
     titre: "Programme street workout débutant : 3 séances par semaine",
     description: "Un programme de street workout pour débuter : 3 séances corps entier par semaine, au poids du corps et à la barre de traction, pour ta première traction, tes premiers dips et des pompes propres.",
-    intro: `Tu débutes le street workout ? Inutile d'enchaîner les figures vues sur Instagram : la base, ce sont trois séances corps entier par semaine, avec des exercices que tu peux vraiment réussir et faire progresser. Voici le programme « ${fondations.nom} » de Repère, pensé pour ${fondations.pour.toLowerCase()}.`,
+    intro: `Tu débutes le street workout ? Inutile d'enchaîner les figures vues sur Instagram : la base, ce sont trois séances corps entier par semaine, avec des exercices que tu peux vraiment réussir et faire progresser. Voici le programme « ${fondations.nom} » d'Oxa, pensé pour ${fondations.pour.toLowerCase()}.`,
     blocs: [
       { h: "L'objectif", p: [`${fondations.but} À la fin du cycle : ${fondations.objectif.toLowerCase()}.`] },
       {
@@ -32,9 +32,9 @@ export const GUIDES: Guide[] = [
           "Toutes les 5 à 6 semaines, fais une semaine plus légère (moitié des séries), puis refais ton test de niveau.",
         ],
       },
-      { h: "Et si c'est trop facile ?", p: ["Repère propose un test d'entrée (tractions, pompes, dips et squats au maximum) qui te place dans le bon niveau : Fondations, Force ou Figures."] },
+      { h: "Et si c'est trop facile ?", p: ["Oxa propose un test d'entrée (tractions, pompes, dips et squats au maximum) qui te place dans le bon niveau : Fondations, Force ou Figures."] },
     ],
-    cta: "Fais le test de niveau dans Repère",
+    cta: "Fais le test de niveau dans Oxa",
     lien: "/?src=guide-street",
   },
   {
@@ -65,7 +65,7 @@ export const GUIDES: Guide[] = [
         ],
       },
     ],
-    cta: "Suis la progression dans Repère",
+    cta: "Suis la progression dans Oxa",
     lien: "/?src=guide-traction",
   },
   {
@@ -98,7 +98,7 @@ export const GUIDES: Guide[] = [
         ],
       },
     ],
-    cta: "Crée ta séance sur mesure dans Repère",
+    cta: "Crée ta séance sur mesure dans Oxa",
     lien: "/?src=guide-fullbody",
   },
   {
@@ -127,9 +127,9 @@ export const GUIDES: Guide[] = [
           "Dîner : pâtes, thon ou poulet, légumes, un peu d'huile d'olive.",
         ],
       },
-      { h: "Planifier pour dépenser moins", p: ["Cuisiner en grande quantité deux fois par semaine et acheter en gros conditionnement fait la plus grosse différence. Repère prépare tes repas de la semaine selon ton budget, avec la liste de courses et le coût estimé de chaque jour."] },
+      { h: "Planifier pour dépenser moins", p: ["Cuisiner en grande quantité deux fois par semaine et acheter en gros conditionnement fait la plus grosse différence. Oxa prépare tes repas de la semaine selon ton budget, avec la liste de courses et le coût estimé de chaque jour."] },
     ],
-    cta: "Planifie tes repas avec ton budget dans Repère",
+    cta: "Planifie tes repas avec ton budget dans Oxa",
     lien: "/?src=guide-repas",
   },
 ];

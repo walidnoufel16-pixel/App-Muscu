@@ -22,7 +22,7 @@ export default async function PageGuide({ params }: PageProps<"/guides/[slug]">)
   if (!g) notFound();
   return (
     <article className="px-5 pt-[max(env(safe-area-inset-top),20px)] pb-12">
-      <Link href="/guides" className="flex items-center gap-2 text-[15px] font-semibold"><LogoTuile className="size-7" />Repère · guides</Link>
+      <Link href="/guides" className="flex items-center gap-2 text-[15px] font-semibold"><LogoTuile className="size-7" />Oxa · guides</Link>
       <h1 className="mt-7 text-[32px] leading-[1.08] font-extrabold tracking-[-0.025em]">{g.titre}</h1>
       <p className="mt-4 text-[16.5px] leading-relaxed">{g.intro}</p>
       {g.blocs.map((b) => (
@@ -41,7 +41,7 @@ export default async function PageGuide({ params }: PageProps<"/guides/[slug]">)
       <div className="mt-10 rounded-[26px] bg-plate p-5 text-plate-foreground">
         <p className="text-[20px] font-bold leading-tight">{g.cta}</p>
         <p className="mt-1.5 text-[14.5px] opacity-90">Gratuit, sans abonnement, sans publicité.</p>
-        <a href={g.lien} className="mt-4 block rounded-2xl bg-white py-3.5 text-center text-[16px] font-bold text-plate-ink">Ouvrir Repère</a>
+        <a href={g.lien} className="mt-4 block rounded-2xl bg-white py-3.5 text-center text-[16px] font-bold text-plate-ink">Ouvrir Oxa</a>
       </div>
     </article>
   );

@@ -56,7 +56,7 @@ function TestEntree() {
           <p className="mt-2 text-[13px] opacity-90">{testARefaire(dernier, auj) ? tr("6 semaines depuis ton dernier test : refais-le pour mesurer tes progrès.") : tr("Prochain test dans 6 semaines, après ta semaine légère.")}</p>
         </>
       ) : (
-        <p className="mt-1 text-[14px] leading-relaxed opacity-90">{tr("Fais une fois ton maximum en tractions, pompes, dips et squats : Repère te conseille le bon niveau.")}</p>
+        <p className="mt-1 text-[14px] leading-relaxed opacity-90">{tr("Fais une fois ton maximum en tractions, pompes, dips et squats : Oxa te conseille le bon niveau.")}</p>
       )}
       <button onClick={() => setOuvert(true)} className="mt-3 inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-[14px] font-semibold text-[#2346c4] active:scale-[.97]">
         {dernier ? tr("Refaire le test") : tr("Faire le test")}<ArrowRightIcon className="size-4" weight="bold" />
@@ -214,7 +214,7 @@ export function VueStreet({ onFiche, onglet }: { onFiche: (id: string) => void; 
       <div className="rounded-[22px] bg-plate p-5 text-plate-foreground">
         <SparkleIcon className="size-8" weight="fill" />
         <h3 className="mt-2 text-[22px] leading-tight font-bold">{tr("Une séance street sur mesure")}</h3>
-        <p className="mt-1.5 text-[14px] leading-relaxed opacity-90">{tr("Tu choisis les muscles et la durée, Repère compose avec le poids du corps et la barre.")}</p>
+        <p className="mt-1.5 text-[14px] leading-relaxed opacity-90">{tr("Tu choisis les muscles et la durée, Oxa compose avec le poids du corps et la barre.")}</p>
         <button onClick={surMesure} className="mt-4 inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[15px] font-semibold text-[#2346c4] active:scale-[.97]">
           {tr("Composer ma séance")}<ArrowRightIcon className="size-4" weight="bold" />
         </button>

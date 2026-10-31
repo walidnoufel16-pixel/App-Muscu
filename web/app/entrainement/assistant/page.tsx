@@ -96,14 +96,14 @@ function Assistant() {
       >
         <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
           {type === "muscu"
-            ? tr("Choisis ce que tu veux travailler : Repère te propose une séance, que tu modifies ensuite comme tu veux.")
+            ? tr("Choisis ce que tu veux travailler : Oxa te propose une séance, que tu modifies ensuite comme tu veux.")
             : type === "mixte"
               ? tr("De la musculation et un bloc cardio dans la même séance. Le bloc se place où tu veux : avant, entre deux exercices ou à la fin.")
               : type === "course"
                 ? tr("Un plan de préparation pour ta course : allures calculées sur ton niveau, montée progressive, affûtage avant le jour J, et renfo du coureur.")
                 : type === "exercices"
                   ? tr("Tous les exercices, muscle par muscle, avec ton matériel. Touche un exercice pour voir sa fiche.")
-                  : tr("Une séance guidée : Repère annonce chaque effort et chaque récupération, avec un signal sonore.")}
+                  : tr("Une séance guidée : Oxa annonce chaque effort et chaque récupération, avec un signal sonore.")}
         </p>
         {/* street : pas de séance combinée (muscu en salle + bloc cardio) */}
         {!courseSeule && <Segmente label={tr("Catégorie")} className="mt-4" valeur={type} onChange={setType} options={[{ v: "muscu", n: tr("Muscu") }, { v: "cardio", n: tr("Cardio") }, ...(street ? [] : [{ v: "mixte" as const, n: tr("Combinée") }]), { v: "exercices", n: tr("Exercices") }]} />}

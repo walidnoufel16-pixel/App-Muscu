@@ -6,14 +6,14 @@ import { LogoTuile } from "@/components/repere/logo";
 
 export const metadata: Metadata = {
   title: "Guides muscu et street workout",
-  description: "Programme street workout débutant, première traction, séance sans matériel, repas petit budget : les guides de Repère.",
+  description: "Programme street workout débutant, première traction, séance sans matériel, repas petit budget : les guides d'Oxa.",
   alternates: { canonical: "/guides/" },
 };
 
 export default function PageGuides() {
   return (
     <div className="px-5 pt-[max(env(safe-area-inset-top),20px)] pb-12">
-      <Link href={"/?src=guides" as Route} className="flex items-center gap-2 text-[15px] font-semibold"><LogoTuile className="size-7" />Repère</Link>
+      <Link href={"/?src=guides" as Route} className="flex items-center gap-2 text-[15px] font-semibold"><LogoTuile className="size-7" />Oxa</Link>
       <h1 className="mt-7 text-[32px] leading-[1.08] font-extrabold tracking-[-0.025em]">Guides muscu et street workout</h1>
       <p className="mt-3 text-[16px] leading-relaxed text-muted-foreground">Des réponses courtes et concrètes pour bien commencer.</p>
       <div className="mt-6 flex flex-col gap-2.5">

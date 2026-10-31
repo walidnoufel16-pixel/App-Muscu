@@ -75,9 +75,9 @@ function Contenu() {
           !prog ? <ProgrammeBientot />
           : !plan ? (
             <Hero
-              surtitre={tr("Programme sur 8 semaines")}
+              surtitre={`Oxa Plan · ${tr("8 semaines")}`}
               titre={tr("Construis ton programme")}
-              texte={tr("Une douzaine de questions sur ton objectif, ton matériel et ton rythme : Repère prépare huit semaines de séances et fait monter l'effort semaine après semaine.")}
+              texte={tr("Une douzaine de questions sur ton objectif, ton matériel et ton rythme : Oxa prépare huit semaines de séances et fait monter l'effort semaine après semaine.")}
               bouton={tr("Commencer le questionnaire")}
               onClick={() => router.push("/questionnaire", AVANT)}
             />

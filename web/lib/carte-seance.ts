@@ -34,7 +34,7 @@ export async function imageSeance(c: CarteSeance): Promise<Blob | null> {
   /* logo et nom */
   const logo = await chargerImage("/icon-192.png");
   if (logo) { g.save(); arrondi(g, 78, 100, 84, 84, 20); g.clip(); g.drawImage(logo, 78, 100, 84, 84); g.restore(); }
-  texte(tr("Repère"), 186, 158, 44, 600);
+  texte(tr("Oxa"), 186, 158, 44, 600);
   /* titre */
   texte(`${tr("Séance terminée")} · ${c.jour}`.toUpperCase(), 78, 420, 34, 600, 0.75);
   g.font = `900 104px ${police}`;

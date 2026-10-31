@@ -56,7 +56,7 @@ export function Installer() {
         <div className="flex animate-[monter_.4s_cubic-bezier(.3,1.2,.5,1)_both] items-center gap-3 rounded-[20px] border border-border/70 bg-card/95 p-2.5 pr-1.5 shadow-[0_12px_32px_-14px_rgba(0,0,0,.45)] backdrop-blur-xl">
           <span className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-plate-soft text-plate"><DownloadSimpleIcon className="size-6" weight="bold" /></span>
           <button onClick={ouvrir} className="min-w-0 flex-1 text-left text-[14px] leading-snug text-muted-foreground">
-            {tr("Installe Repère sur ton iPhone.")}{" "}<span className="font-semibold whitespace-nowrap text-plate-ink">{invite ? tr("Installer →") : tr("Voir les étapes →")}</span>
+            {tr("Installe Oxa sur ton iPhone.")}{" "}<span className="font-semibold whitespace-nowrap text-plate-ink">{invite ? tr("Installer →") : tr("Voir les étapes →")}</span>
           </button>
           <button onClick={plusTard} aria-label={tr("Plus tard")} className="grid size-9 shrink-0 place-items-center rounded-full text-muted-foreground active:bg-muted"><XIcon className="size-4" weight="bold" /></button>
         </div>
@@ -64,7 +64,7 @@ export function Installer() {
       <Drawer open={feuille} onOpenChange={setFeuille}>
         <DrawerContent>
           <div className="px-5 pt-2 pb-[max(env(safe-area-inset-bottom),20px)]">
-            <DrawerTitle className="text-[20px] font-bold">{tr("Installer Repère")}</DrawerTitle>
+            <DrawerTitle className="text-[20px] font-bold">{tr("Installer Oxa")}</DrawerTitle>
             <DrawerDescription className="mt-0.5 text-[13.5px] text-muted-foreground">{tr("En plein écran, comme une vraie app, et utilisable hors connexion.")}</DrawerDescription>
             {autreNavigateur() && (
               <p className="mt-3 rounded-2xl bg-muted px-3.5 py-2.5 text-[13.5px]">{tr("D'abord, ouvre cette page dans Safari : sur iPhone, c'est lui qui ajoute les apps à l'écran d'accueil.")}</p>
@@ -72,7 +72,7 @@ export function Installer() {
             <ol className="mt-4 flex flex-col gap-2.5">
               <Etape n={1} icone={<ExportIcon className="size-5" />} texte={tr("Touche le bouton Partager de Safari, en bas de l'écran (ou en haut sur iPad).")} />
               <Etape n={2} icone={<PlusSquareIcon className="size-5" />} texte={tr("Fais défiler et choisis « Sur l'écran d'accueil ».")} />
-              <Etape n={3} icone={<span className="text-[13px] font-bold">{tr("Ajouter")}</span>} texte={tr("Touche « Ajouter » en haut à droite. Repère apparaît avec les autres apps.")} />
+              <Etape n={3} icone={<span className="text-[13px] font-bold">{tr("Ajouter")}</span>} texte={tr("Touche « Ajouter » en haut à droite. Oxa apparaît avec les autres apps.")} />
             </ol>
             <Button variant="plate" size="xl" className="mt-5 w-full" onClick={() => setFeuille(false)}>{tr("C'est compris")}</Button>
           </div>
