@@ -10,8 +10,11 @@ import { ArrowsClockwiseIcon } from "@phosphor-icons/react";
 /* rechargement demandé : la toute première installation prend aussi la main (clients.claim), sans recharger */
 let demande = false;
 
-export function MiseAJour({ visible }: { visible: boolean }) {
+/* `auto` : écran sans tâche en cours (accueil des visiteurs) ; la nouvelle version s'installe sans demander,
+   sinon l'ancienne y resterait indéfiniment (pas de bandeau sur ces écrans). */
+export function MiseAJour({ visible, auto = false }: { visible: boolean; auto?: boolean }) {
   const [attente, setAttente] = useState<ServiceWorker | null>(null);
+  useEffect(() => { if (attente && auto) { demande = true; attente.postMessage("activer"); } }, [attente, auto]);
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return;
