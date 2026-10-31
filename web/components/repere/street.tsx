@@ -40,7 +40,7 @@ function TestEntree() {
     setOuvert(false); setV({ tr: "", po: "", di: "", sq: "" });
   };
   return (
-    <div className="rounded-[22px] bg-bandeau p-4 text-white">
+    <div className="rounded-[22px] bg-bandeau p-4 text-bandeau-foreground">
       <div className="text-[11.5px] font-semibold tracking-[0.12em] uppercase opacity-80">{tr("Test d'entrée")}</div>
       {dernier ? (
         <>
@@ -211,7 +211,7 @@ export function VueStreet({ onFiche, onglet }: { onFiche: (id: string) => void; 
     );
   if (onglet === "mesure")
     return (
-      <div className="rounded-[22px] bg-bandeau p-5 text-white">
+      <div className="rounded-[22px] bg-bandeau p-5 text-bandeau-foreground">
         <SparkleIcon className="size-8" weight="fill" />
         <h3 className="mt-2 text-[22px] leading-tight font-bold">{tr("Une séance street sur mesure")}</h3>
         <p className="mt-1.5 text-[14px] leading-relaxed opacity-90">{tr("Tu choisis les muscles et la durée, Oxa compose avec le poids du corps et la barre.")}</p>

@@ -4,9 +4,9 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================================
-   Oxa — système de design, charte indigo
-   Neutres purs (blanc, gris, noir) et une couleur de marque : l'indigo
-   électrique, celle des flammes du logo. Elle sert à l'action (`plate`),
+   Oxa — système de design, charte turquoise
+   Neutres purs (blanc, gris, noir) et une couleur de marque : le turquoise
+   oxygène, celle des flammes du logo. Clair, il porte du texte noir. Elle sert à l'action (`plate`),
    aux grands bandeaux (`bandeau`) et au progrès (`feu` : records,
    muscles travaillés, graphiques). Les bannières de rubriques gardent
    chacune leur teinte. Le rouge et les couleurs de RPE restent : ce
@@ -35,18 +35,19 @@
   --input: #d7d7dd;
   --ring: #9c9ca6;
 
-  /* action : indigo (les jetons gardent le nom « plate », le disque de fonte) */
-  --plate: #4f46e5;
-  --plate-foreground: #ffffff;
-  --plate-soft: color-mix(in oklab, var(--plate) 12%, transparent);
-  --plate-ink: #4338ca;           /* indigo lisible en texte sur fond clair */
+  /* action : turquoise (les jetons gardent le nom « plate », le disque de fonte) */
+  --plate: #0fb5a3;
+  --plate-foreground: #0a0a0c;    /* le turquoise est clair : texte noir dessus */
+  --plate-soft: color-mix(in oklab, var(--plate) 14%, transparent);
+  --plate-ink: #0f766e;           /* turquoise lisible en texte sur fond clair */
   /* grands bandeaux (séance du moment, vitrine, street…) */
-  --bandeau: #4f46e5;
+  --bandeau: #0fb5a3;
+  --bandeau-foreground: #0a0a0c;
   /* bannière Street : noire en clair, graphite en sombre (sinon noir sur noir) */
   --street: #1d1d1f;
-  /* feu : le progrès (records, muscles travaillés, graphiques), même indigo */
-  --feu: #4f46e5;
-  --feu-ink: #4338ca;
+  /* feu : le progrès (records, muscles travaillés, graphiques), même turquoise */
+  --feu: #0fb5a3;
+  --feu-ink: #0f766e;
   --feu-soft: color-mix(in oklab, var(--feu) 14%, transparent);
   --success: var(--feu-ink);       /* réussite = le progrès, en teinte lisible sur fond clair */
   --success-soft: var(--feu-soft);
@@ -75,14 +76,14 @@
   --input: #34343c;
   --ring: #55555f;
 
-  --plate: #6d63ff;
-  --plate-foreground: #ffffff;
-  --plate-soft: color-mix(in oklab, var(--plate) 18%, transparent);
-  --plate-ink: #a5a0ff;
-  --bandeau: #4f46e5;
+  --plate: #2dd4bf;
+  --plate-foreground: #0a0a0c;
+  --plate-soft: color-mix(in oklab, var(--plate) 16%, transparent);
+  --plate-ink: #5eead4;
+  --bandeau: #0fb5a3;
   --street: #2c2c33;
-  --feu: #6d63ff;
-  --feu-ink: #a5a0ff;
+  --feu: #2dd4bf;
+  --feu-ink: #5eead4;
   --feu-soft: color-mix(in oklab, var(--feu) 18%, transparent);
   --success: var(--feu);
 }
@@ -124,6 +125,7 @@
   --color-plate-soft: var(--plate-soft);
   --color-plate-ink: var(--plate-ink);
   --color-bandeau: var(--bandeau);
+  --color-bandeau-foreground: var(--bandeau-foreground);
   --color-street: var(--street);
   --color-feu: var(--feu);
   --color-feu-ink: var(--feu-ink);

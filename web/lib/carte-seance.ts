@@ -21,7 +21,7 @@ export async function imageSeance(c: CarteSeance): Promise<Blob | null> {
   const police = getComputedStyle(document.body).fontFamily;
   const chiffres = getComputedStyle(document.body).getPropertyValue("--font-chiffres").trim() || police;
   const fond = g.createRadialGradient(W * 0.8, 0, 0, W * 0.8, 0, H * 0.95);
-  fond.addColorStop(0, "#7068ff"); fond.addColorStop(0.45, "#4f46e5"); fond.addColorStop(1, "#2f2899");
+  fond.addColorStop(0, "#14b8a6"); fond.addColorStop(0.45, "#0e9f90"); fond.addColorStop(1, "#064e47");
   g.fillStyle = fond; g.fillRect(0, 0, W, H);
   const texte = (t: string, x: number, y: number, taille: number, poids = 700, alpha = 1, fam = police) => {
     g.globalAlpha = alpha; g.font = `${poids} ${taille}px ${fam}`; g.fillText(t, x, y); g.globalAlpha = 1;

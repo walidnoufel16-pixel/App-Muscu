@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Oxa : un haltère qui décolle sur deux flammes. Tuile noire, haltère blanc, flammes indigo. Réduit à 0,84 pour la zone sûre Android. -->
+  <!-- Oxa : un haltère qui décolle sur deux flammes. Tuile noire, haltère blanc, flammes turquoise. Réduit à 0,84 pour la zone sûre Android. -->
   <defs>
     <linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#25252b"/><stop offset="1" stop-color="#0a0a0c"/></linearGradient>
-    <linearGradient id="t" gradientUnits="userSpaceOnUse" x1="0" y1="270" x2="0" y2="486"><stop offset="0" stop-color="#6366f1" stop-opacity=".95"/><stop offset="1" stop-color="#6366f1" stop-opacity="0"/></linearGradient>
+    <linearGradient id="t" gradientUnits="userSpaceOnUse" x1="0" y1="270" x2="0" y2="486"><stop offset="0" stop-color="#2dd4bf" stop-opacity=".95"/><stop offset="1" stop-color="#2dd4bf" stop-opacity="0"/></linearGradient>
   </defs>
   <rect width="512" height="512" fill="url(#f)"/>
   <g transform="translate(256 256) scale(.84) translate(-256 -256) translate(0 -28)">

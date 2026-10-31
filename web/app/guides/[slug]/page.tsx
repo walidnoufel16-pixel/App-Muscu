@@ -38,7 +38,7 @@ export default async function PageGuide({ params }: PageProps<"/guides/[slug]">)
           ))}
         </section>
       ))}
-      <div className="mt-10 rounded-[26px] bg-bandeau p-5 text-white">
+      <div className="mt-10 rounded-[26px] bg-bandeau p-5 text-bandeau-foreground">
         <p className="text-[20px] font-bold leading-tight">{g.cta}</p>
         <p className="mt-1.5 text-[14.5px] opacity-90">Gratuit, sans abonnement, sans publicité.</p>
         <a href={g.lien} className="mt-4 block rounded-2xl bg-white py-3.5 text-center text-[16px] font-bold text-plate-ink">Ouvrir Oxa</a>
