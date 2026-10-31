@@ -82,7 +82,8 @@ self.addEventListener("fetch", (e) => {
     }))));
     return;
   }
-  if (req.mode === "navigate") {
+  /* pages et manifeste : réseau d'abord, pour qu'un nouveau nom ou une nouvelle icône se voie tout de suite */
+  if (req.mode === "navigate" || new URL(req.url).pathname === "/manifest.webmanifest") {
     e.respondWith(fetch(req).then((r) => { const c = r.clone(); caches.open(C).then((x) => x.put(req, c)); return r; })
       .catch(() => caches.match(req, { ignoreSearch: true }).then((r) => r || caches.match("/"))));
     return;
