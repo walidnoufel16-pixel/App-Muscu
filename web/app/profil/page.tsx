@@ -230,7 +230,7 @@ export default function PageProfil() {
         </section>
 
         {/* apparence */}
-        <section>
+        <section id="apparence" className="scroll-mt-20">
           <h2 className="eyebrow mb-2 px-1">{tr("Apparence")}</h2>
           <Segmente
             label={tr("Apparence")}

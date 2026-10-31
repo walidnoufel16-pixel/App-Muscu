@@ -84,4 +84,4 @@ export type VueRepas = "jour" | "recettes" | "courses";
 export const useVueRepas = create<{ vue: VueRepas }>(() => ({ vue: "jour" }));
 
 /* Menu latéral (☰) et les feuilles qu'il ouvre ailleurs : import d'une séance, installation de l'app. */
-export const useMenu = create<{ ouvert: boolean; importer: boolean; installer: boolean }>(() => ({ ouvert: false, importer: false, installer: false }));
+export const useMenu = create<{ ouvert: boolean; importer: boolean; installer: boolean; avis: boolean }>(() => ({ ouvert: false, importer: false, installer: false, avis: false }));
