@@ -4,9 +4,9 @@
    - Aujourd'hui : mes besoins, mes protéines, trois idées ; le type de journée en pastille.
    - Ma semaine : le budget en une ligne, la semaine jour par jour, et la liste de courses
      qui s'ouvre en grand (bouton fixe en bas). Les réglages de la semaine et du budget sont
-     dans une feuille (« Régler »).
+     dans une feuille (« Paramétrer »).
    - Recettes : un seul rang de filtres, dont « Mon frigo » (ce que j'ai déjà).
-   Les préférences s'ouvrent depuis la roue de l'en-tête. Première ouverture : le questionnaire. */
+   Les préférences s'ouvrent depuis la roue de l'en-tête. Module en orange : une nuance par onglet. Première ouverture : le questionnaire. */
 import { tr } from "@/lib/i18n";
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -71,7 +71,7 @@ function Repas() {
       {!p.fait ? <AccueilRepas /> : (
         <div className="flex flex-col gap-3 px-4">
           <Segmente label={tr("Rubrique repas")} valeur={vue} onChange={(v: VueRepas) => { tactile(4); useVueRepas.setState({ vue: v }); }}
-            options={[{ v: "jour", n: tr("Aujourd'hui") }, { v: "semaine", n: tr("Ma semaine") }, { v: "recettes", n: tr("Recettes") }]} />
+            options={[{ v: "jour", n: tr("Aujourd'hui"), t: "#f7b14a" }, { v: "semaine", n: tr("Ma semaine"), t: "#f08a24" }, { v: "recettes", n: tr("Recettes"), t: "#e2611c" }]} />
           {vue === "jour" && <Jour p={p} seance={seance} setSeance={setSeance} b={b} kcal={kcal} auj={auj} ouvrir={(r, c) => setFiche({ r, c })} />}
           {vue === "semaine" && <Semaine p={p} b={b} kcal={kcal} ouvrir={(r, c) => setFiche({ r, c })} />}
           {vue === "recettes" && <Recettes p={p} b={b} kcal={kcal} majPrefs={majPrefs} ouvrir={(r) => setFiche({ r })} />}
@@ -126,7 +126,6 @@ function Jour({ p, seance, setSeance, b, kcal, auj, ouvrir }: { p: PrefsRepas; s
         className="flex w-fit items-center gap-2 rounded-full bg-card py-1.5 pr-3 pl-2.5 text-[13.5px] font-semibold active:scale-[.97]">
         {seance ? <BarbellIcon className="size-4 text-plate-ink" weight="bold" /> : <CouchIcon className="size-4 text-plate-ink" weight="bold" />}
         {seance ? tr("Jour de séance") : tr("Jour de repos")}
-        <span className="font-medium text-plate-ink">· {tr("changer")}</span>
       </button>
       <CarteBesoins b={b} kcal={kcal} />
       <CarteProteines />
@@ -229,7 +228,7 @@ function Semaine({ p, b, kcal, ouvrir }: { p: PrefsRepas; b: Besoins; kcal: bool
   return (
     <>
       {/* le budget en une ligne : touché, il ouvre les réglages de la semaine */}
-      <button onClick={() => { tactile(5); setReglages(true); }} className="rounded-[22px] bg-card p-4 text-left active:opacity-85" aria-label={tr("Régler ma semaine et mon budget")}>
+      <button onClick={() => { tactile(5); setReglages(true); }} className="rounded-[22px] bg-card p-4 text-left active:opacity-85" aria-label={tr("Paramétrer ma semaine et mon budget")}>
         <span className="flex items-start gap-3">
           <span className="min-w-0 flex-1">
             <span className="flex items-baseline gap-2">
@@ -238,7 +237,7 @@ function Semaine({ p, b, kcal, ouvrir }: { p: PrefsRepas; b: Besoins; kcal: bool
             </span>
             <span className="mt-1.5 block text-[13px] text-muted-foreground">{resume} · {p.conso ? tr("consommé") : tr("en caisse")}</span>
           </span>
-          <span className="flex shrink-0 items-center gap-1 rounded-full bg-muted px-3 py-1.5 text-[13px] font-semibold"><SlidersHorizontalIcon className="size-4" weight="bold" />{tr("Régler")}</span>
+          <span className="flex shrink-0 items-center gap-1 rounded-full bg-muted px-3 py-1.5 text-[13px] font-semibold"><SlidersHorizontalIcon className="size-4" weight="bold" />{tr("Paramétrer")}</span>
         </span>
         {budget ? (
           <>

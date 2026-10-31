@@ -88,8 +88,27 @@
   --success: var(--feu);
 }
 
-/* Oxa Meal prend désormais la même couleur que le reste ; la classe reste posée par la page Repas. */
-.theme-repas {}
+/* Oxa Meal : un autre module de l'app, en orange (page, feuilles et onglet du bas). Ses trois
+   onglets ont chacun leur nuance (ambre, safran, paprika), voir app/repas/page.tsx. Le texte
+   posé sur l'orange est foncé. */
+.theme-repas {
+  --plate: #f08a24;
+  --plate-foreground: #1a1106;
+  --plate-soft: color-mix(in oklab, #f08a24 14%, transparent);
+  --plate-ink: #b45309;           /* orange lisible en texte sur fond clair */
+  --feu: #f08a24;
+  --feu-ink: #b45309;
+  --feu-soft: color-mix(in oklab, #f08a24 14%, transparent);
+  --success: #b45309;
+}
+.dark .theme-repas, .dark.theme-repas {
+  --plate: #f59a3c;
+  --plate-soft: color-mix(in oklab, #f59a3c 18%, transparent);
+  --plate-ink: #ffb066;
+  --feu: #f59a3c;
+  --feu-ink: #ffb066;
+  --success: #ffb066;
+}
 
 @theme inline {
   --font-sans: var(--font-geist-sans), "Geist", ui-sans-serif, system-ui, sans-serif;
