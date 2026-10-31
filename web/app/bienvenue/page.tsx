@@ -3,24 +3,21 @@
 import { tr } from "@/lib/i18n";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRightIcon, BarbellIcon, CalendarDotsIcon, PersonSimpleTaiChiIcon, CaretLeftIcon, ShareNetworkIcon, SparkleIcon, WifiSlashIcon } from "@phosphor-icons/react";
+import { CaretLeftIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { messageErreur, sb, valideMail } from "@/lib/supabase";
 import { useRepere } from "@/lib/store";
 import { toast } from "sonner";
-import { EX } from "@/lib/data/exercices";
 import { AVANT } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 import { SaisieCodeMail } from "@/components/repere/code-mail";
-import { LogoTuile } from "@/components/repere/logo";
-import { useProgrammeActif } from "@/lib/fonctionnalites";
+import { Vitrine } from "@/components/repere/vitrine";
 
 type Etape = "accueil" | "compte" | "confirmer" | "entrer" | "recup" | "code";
 
 function Bienvenue() {
   const router = useRouter();
-  const prog = useProgrammeActif();
   const recup = useSearchParams().get("recup");
   const { user, creerCompte, setUser, apresConnexion } = useRepere();
   const [etape, setEtape] = useState<Etape>(recup ? "recup" : user ? "entrer" : "accueil");
@@ -80,38 +77,7 @@ function Bienvenue() {
         </button>
       )}
 
-      {etape === "accueil" && (
-        <>
-          <div className="mt-6 flex flex-1 flex-col">
-            <LogoTuile className="size-20 animate-[medaille_.8s_cubic-bezier(.3,1.5,.5,1)_both] shadow-[0_18px_40px_-18px_#2346c4]" />
-            <div className="eyebrow mt-7">{tr("Musculation · piloté à l'effort")}</div>
-            <h1 className="mt-2 text-[56px] leading-[.95] font-bold tracking-[-0.04em]">{tr("Repère")}</h1>
-            <p className="mt-3 mb-8 text-[19px] leading-snug font-medium">{tr("Ton point de repère à la salle.")}</p>
-            <ul className="flex flex-col gap-3.5">
-              {[
-                prog ? [CalendarDotsIcon, tr("Un plan sur huit semaines"), tr("Un effort qui monte chaque semaine")]
-                  : [PersonSimpleTaiChiIcon, tr("Street workout et mobilité"), tr("Barre de traction, routines prêtes")],
-                [SparkleIcon, tr("Des séances sur mesure"), tr("Tu choisis les muscles, Repère compose")],
-                [ShareNetworkIcon, tr("Partagées avec tes proches"), tr("Un lien, et ils ont la même séance")],
-                [BarbellIcon, tr("{n} exercices illustrés", { n: Object.keys(EX).length }), tr("Classés par muscle et selon ton matériel")],
-                [WifiSlashIcon, tr("Fonctionne sans réseau"), tr("Même au sous-sol de ta salle")],
-              ].map(([I, t, d]) => {
-                const Icone = I as typeof BarbellIcon;
-                return (
-                  <li key={t as string} className="flex items-center gap-3.5">
-                    <span className="grid size-10 shrink-0 place-items-center rounded-[12px] bg-card"><Icone className="size-5" /></span>
-                    <span><b className="block text-[15px] font-semibold">{t as string}</b><span className="text-[13.5px] text-muted-foreground">{d as string}</span></span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-          <div className="mt-8 flex flex-col gap-2">
-            <Button variant="plate" size="xl" onClick={() => setEtape(user ? "entrer" : "compte")}>{tr("Commencer")}<ArrowRightIcon /></Button>
-            <Button variant="ghost" onClick={() => setEtape("recup")}>{tr("J'ai déjà un compte")}</Button>
-          </div>
-        </>
-      )}
+      {etape === "accueil" && <Vitrine onCommencer={() => setEtape(user ? "entrer" : "compte")} onCompte={() => setEtape("recup")} />}
 
       {etape === "compte" && (
         <Form

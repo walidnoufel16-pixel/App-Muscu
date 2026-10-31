@@ -3,6 +3,7 @@
 import { tr } from "@/lib/i18n";
 import { useEffect, ViewTransition } from "react";
 import { resynchroniserRappels } from "@/lib/rappels";
+import { noterSource } from "@/lib/source";
 import { usePathname } from "next/navigation";
 import { useRepere } from "@/lib/store";
 import { TabBar } from "./tab-bar";
@@ -33,7 +34,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const sens = useSens((s) => s.sens);
 
   useEffect(() => {
-    suivreHistorique(); suivreDefis(); demarrer();
+    noterSource(); suivreHistorique(); suivreDefis(); demarrer();
     /* appareil inscrit aux rappels : remis au nom du compte et de la langue actuels */
     const t = setTimeout(resynchroniserRappels, 8000);
     return () => clearTimeout(t);
@@ -51,6 +52,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     memoriserPhotosAuRepos();
   }, []);
 
+  /* guides publics (référencement) : lisibles tout de suite, sans attendre l'app ni ses onglets */
+  if (chemin.startsWith("/guides")) return <div className="mx-auto min-h-dvh w-full max-w-[480px]">{children}</div>;
   if (!pret)
     return (
       <div className="grid min-h-dvh place-items-center">

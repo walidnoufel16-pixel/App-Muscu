@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useRepere } from "@/lib/store";
+import { noterSource } from "@/lib/source";
 
 /* Aiguillage : un lien de séance partagée (?s=CODE) l'importe, un lien de défi (?d=CODE)
    mène à Progrès pour le rejoindre ; sinon, sans
@@ -14,6 +15,7 @@ export default function Racine() {
   const { user, etat, importer, session } = useRepere();
   const fait = useRef(false);
   useEffect(() => {
+    noterSource(); // avant tout aiguillage, qui efface ?src= de l'adresse
     if (fait.current || session === "inconnue") return;
     fait.current = true;
     const q = new URLSearchParams(window.location.search), code = q.get("s"), defi = q.get("d");

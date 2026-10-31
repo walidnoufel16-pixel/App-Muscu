@@ -26,6 +26,7 @@ import { recap } from "@/lib/logic/questionnaire";
 import { useProgrammeActif } from "@/lib/fonctionnalites";
 import { MonMateriel } from "@/components/repere/mon-materiel";
 import { ReglageRappels } from "@/components/repere/rappels";
+import { InviterAmi } from "@/components/repere/inviter";
 import { cn } from "@/lib/utils";
 
 export default function PageProfil() {
@@ -214,6 +215,12 @@ export default function PageProfil() {
             options={[{ v: 0, n: tr("Homme") }, { v: 1, n: tr("Femme") }]}
           />
           <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{tr("Le schéma du corps prend ta silhouette. Ton choix sert aussi aux prochains programmes.")}</p>
+        </section>
+
+        {/* faire connaître l'app */}
+        <section>
+          <h2 className="eyebrow mb-2 px-1">{tr("Partager Repère")}</h2>
+          <InviterAmi />
         </section>
 
         {/* rappels après quelques jours sans séance */}
