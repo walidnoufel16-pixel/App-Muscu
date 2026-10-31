@@ -178,7 +178,7 @@ export function VueCourse({ onglet }: { onglet: "plan" | "seances" }) {
           <CarteCourse />
         </section>
       ) : (
-        <div className="rounded-[22px] bg-bandeau p-5 text-white">
+        <div className="rounded-[22px] bg-bandeau p-5 text-bandeau-foreground">
           <PersonSimpleRunIcon className="size-8" weight="fill" />
           <h3 className="mt-2 text-[22px] leading-tight font-bold">{tr("Prépare une course")}</h3>
           <p className="mt-1.5 text-[14px] leading-relaxed opacity-90">{tr("10 km, semi-marathon ou marathon : un plan jusqu'au jour J, avec tes allures calculées sur ton niveau.")}</p>

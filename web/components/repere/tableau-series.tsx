@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import { CheckIcon, PlayIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
 import { departCourse, Minuteur, preparer, type Course } from "./minuteur";
 import type { Phase } from "@/lib/logic/cardio";
+import { CHANGE, PREPA, tempsTenu } from "@/lib/logic/tenue";
 import { EX } from "@/lib/data/exercices";
 import { LESTABLE } from "@/lib/data/referentiels";
 import { fmtSerie, maxV, nb, okDe, secondesDe, seriesDe, type Ctx } from "@/lib/logic/core";
@@ -50,9 +51,15 @@ function Champ({ valeur, onValide, label, mode, depuis }: { valeur: string; onVa
   );
 }
 
-/* Exercice tenu en durée : 10 s pour se mettre en place, puis la durée de la série. */
-const PREPA = 10;
-const phasesChrono = (nom: string, cible: number): Phase[] => [
+/* Exercice tenu en durée : 10 s pour se mettre en place, puis la durée de la série. Tenu côté par
+   côté (gainage latéral, étirements d'un côté) : la durée vaut pour chaque côté, le chrono enchaîne
+   le côté gauche, 5 s pour changer de côté, puis le côté droit. */
+const phasesChrono = (nom: string, cible: number, cote?: boolean): Phase[] => cote ? [
+  { type: "pause", titre: tr("Prépare-toi"), duree: PREPA, rpe: "", consigne: tr("Mets-toi en position côté gauche : {nom}", { nom }) },
+  { type: "effort", titre: tr("Côté gauche"), duree: cible, rpe: "", consigne: nom },
+  { type: "pause", titre: tr("Change de côté"), duree: CHANGE, rpe: "", consigne: tr("Passe sur l'autre côté : {nom}", { nom }) },
+  { type: "effort", titre: tr("Côté droit"), duree: cible, rpe: "", consigne: nom },
+] : [
   { type: "pause", titre: tr("Prépare-toi"), duree: PREPA, rpe: "", consigne: tr("Mets-toi en position : {nom}", { nom }) },
   { type: "effort", titre: tr("Tiens"), duree: cible, rpe: "", consigne: nom },
 ];
@@ -93,7 +100,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
   const S: Serie[] = L
     ? seriesDe(structuredClone(L), c.n)
     : Array.from({ length: c.n }, (_, n) => ({ ...c.base, lest: avecLest ? +((Pp[n] || Pp[Pp.length - 1] || ({} as Serie)).lest ?? 0) || 0 : undefined }));
-  const tete = { kg: "kg", lest: "lest", aucune: tr("réps"), temps: "sec", dist: "m" }[x.ch];
+  const tete = { kg: "kg", lest: "lest", aucune: tr("réps"), temps: x.cote ? tr("sec / côté") : "sec", dist: "m" }[x.ch];
   const P2 = c.prev?.series?.length ? c.prev.series : c.prev ? [{ v: maxV(c.prev), reps: c.prev.reps ?? 0 }] : [];
   const why = L ? L.why : c.why, done = !!L?.done;
   const temps = x.ch === "temps";
@@ -102,7 +109,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
     : (temps ? "grid-cols-[22px_minmax(0,1.25fr)_minmax(0,1.4fr)_40px_40px]" : "grid-cols-[22px_minmax(0,1.25fr)_minmax(0,1.4fr)_40px]");
   /* fin du chrono : le temps tenu est inscrit dans la série, qui est validée */
   const finChrono = (n: number, s: Serie, e: number) => {
-    const tenu = Math.max(1, Math.round(Math.min(s.v, e - PREPA)));
+    const tenu = tempsTenu(s.v, e, !!x.cote);
     muter((E) => act.serVal(E, c, n, "v", String(tenu)));
     const el = boutons.current[n];
     if (el) valider(n, { ...s, v: tenu }, el);
@@ -209,7 +216,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
       )}
       {chrono && createPortal(
         <Minuteur
-          phases={phasesChrono(x.n, chrono.s.v)} titre={tr("Série {a}", { a: chrono.n + 1 })}
+          phases={phasesChrono(x.n, chrono.s.v, !!x.cote)} titre={tr("Série {a}", { a: chrono.n + 1 })}
           course={chrono.course} setCourse={(co) => setChrono((ch) => (co && ch ? { ...ch, course: co } : null))}
           seuil={PREPA + 1} arret={{ titre: tr("Arrêter le chrono ?"), texte: tr("Le temps tenu est inscrit dans la série.") }}
           onFin={(e) => finChrono(chrono.n, chrono.s, e)}

@@ -262,7 +262,7 @@ function CarteCompo({
   onFiche: () => void; onRemplacer: () => void; onRetirer: () => void;
 }) {
   const x = EX[e.id], mus = musclesDe([e.id]), pas = x.ch === "temps" ? 5 : x.ch === "dist" ? 50 : 1;
-  const prescr = x.ch === "temps" ? `${e.s} × ${e.r}s` : x.ch === "dist" ? `${e.s} × ${e.r}m` : `${e.s} × ${e.r}`;
+  const prescr = x.ch === "temps" ? `${e.s} × ${e.r}s${x.cote ? tr(" / côté") : ""}` : x.ch === "dist" ? `${e.s} × ${e.r}m` : `${e.s} × ${e.r}`;
   return (
     <div data-carte={e.id} className={cn("overflow-hidden rounded-[20px] border bg-card transition-shadow", glisse ? "z-10 border-plate shadow-[0_14px_34px_-14px_rgba(0,0,0,.45)]" : "border-border/80")}>
       <div className="flex items-center">

@@ -14,7 +14,7 @@ import { Vignette } from "./exercice-carte";
 /** Durée d'une routine en minutes : séries × (effort + repos), plus le temps de s'installer. */
 export function minutesRoutine(r: RoutineSoin) {
   const sec = r.ex.reduce((t, e) => {
-    const effort = EX[e.id]?.ch === "temps" ? e.r : e.r * 3, repos = (parseInt(e.p) || 0) * (/min/.test(e.p) ? 60 : 1);
+    const effort = EX[e.id]?.ch === "temps" ? e.r * (EX[e.id]?.cote ? 2 : 1) : e.r * 3, repos = (parseInt(e.p) || 0) * (/min/.test(e.p) ? 60 : 1);
     return t + e.s * (effort + repos) + 20;
   }, 0);
   return Math.max(5, Math.round(sec / 60));

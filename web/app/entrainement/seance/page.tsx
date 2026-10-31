@@ -133,7 +133,7 @@ function SeancePlan() {
               {(S.x || []).map((e, i) => {
                 const c = ctxPlan(etat, i, W)!, x = EX[c.id], k = c.k, L: Journal | undefined = etat.LOG[k];
                 const r = noRPE(c.id) ? 0 : rpeOf(etat.A, wk, c.id, e[4]);
-                const prescr = x.ch === "temps" ? `${e[1]} × ${e[2]}s` : x.ch === "dist" ? `${e[1]} × ${e[2]}m` : `${e[1]} × ${e[2]}`;
+                const prescr = x.ch === "temps" ? `${e[1]} × ${e[2]}s${x.cote ? tr(" / côté") : ""}` : x.ch === "dist" ? `${e[1]} × ${e[2]}m` : `${e[1]} × ${e[2]}`;
                 const badge = etat.SWAP[k] ? "aujourd'hui" : etat.SWAPP[day + "|" + i] ? tr("remplacé") : undefined;
                 const fini = () => enchainer({ k, cles, titre: titreSeance(S.t), setOuvert });
                 return (
@@ -255,7 +255,7 @@ function SeanceLibre({ i }: { i: number }) {
     /* un journal laissé là par un autre exercice n'est pas le sien */
     const x = EX[e.id], L = etat.LOG[c.k]?.ex === e.id ? etat.LOG[c.k] : undefined, r = noRPE(e.id) ? 0 : 8;
     const fini = () => enchainer({ k: c.k, cles, titre: S.nom, setOuvert });
-    const prescr = x.ch === "temps" ? `${e.s} × ${e.r}s` : x.ch === "dist" ? `${e.s} × ${e.r}m` : `${e.s} × ${e.r}`;
+    const prescr = x.ch === "temps" ? `${e.s} × ${e.r}s${x.cote ? tr(" / côté") : ""}` : x.ch === "dist" ? `${e.s} × ${e.r}m` : `${e.s} × ${e.r}`;
     return (
       <ExerciceCarte
         key={c.k} ancre={c.k}

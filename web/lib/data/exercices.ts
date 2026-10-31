@@ -517,6 +517,7 @@ export const EX: Record<string, Exercice> = {
   "pat2": "ft",
   "eq": 3,
   "ch": "temps",
+  "cote": 1,
   "d": 30
  },
  "crp": {
@@ -2345,6 +2346,7 @@ export const EX: Record<string, Exercice> = {
   "pat": "soin",
   "eq": 3,
   "ch": "temps",
+  "cote": 1,
   "d": 30,
   "soin": "epaules"
  },
@@ -2385,6 +2387,7 @@ export const EX: Record<string, Exercice> = {
   "pat": "soin",
   "eq": 3,
   "ch": "temps",
+  "cote": 1,
   "d": 30,
   "soin": "hanches"
  },
@@ -2405,6 +2408,7 @@ export const EX: Record<string, Exercice> = {
   "pat": "soin",
   "eq": 3,
   "ch": "temps",
+  "cote": 1,
   "d": 30,
   "soin": "hanches"
  },
@@ -2467,6 +2471,7 @@ export const EX: Record<string, Exercice> = {
   "pat": "soin",
   "eq": 3,
   "ch": "temps",
+  "cote": 1,
   "d": 30,
   "soin": "dos"
  },
@@ -2497,6 +2502,7 @@ export const EX: Record<string, Exercice> = {
   "pat": "soin",
   "eq": 3,
   "ch": "temps",
+  "cote": 1,
   "d": 30,
   "soin": "genoux"
  },
@@ -2517,6 +2523,7 @@ export const EX: Record<string, Exercice> = {
   "pat": "soin",
   "eq": 3,
   "ch": "temps",
+  "cote": 1,
   "d": 30,
   "soin": "chevilles"
  },
@@ -2527,6 +2534,7 @@ export const EX: Record<string, Exercice> = {
   "pat": "soin",
   "eq": 3,
   "ch": "temps",
+  "cote": 1,
   "d": 30,
   "soin": "chevilles"
  },
@@ -2567,6 +2575,7 @@ export const EX: Record<string, Exercice> = {
   "pat": "soin",
   "eq": 3,
   "ch": "temps",
+  "cote": 1,
   "d": 20,
   "soin": "nuque"
  },

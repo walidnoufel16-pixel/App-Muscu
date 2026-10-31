@@ -21,15 +21,15 @@ export async function imageSeance(c: CarteSeance): Promise<Blob | null> {
   const police = getComputedStyle(document.body).fontFamily;
   const chiffres = getComputedStyle(document.body).getPropertyValue("--font-chiffres").trim() || police;
   const fond = g.createRadialGradient(W * 0.8, 0, 0, W * 0.8, 0, H * 0.95);
-  fond.addColorStop(0, "#2a2a31"); fond.addColorStop(0.45, "#17171c"); fond.addColorStop(1, "#0a0a0c");
+  fond.addColorStop(0, "#14b8a6"); fond.addColorStop(0.45, "#0e9f90"); fond.addColorStop(1, "#064e47");
   g.fillStyle = fond; g.fillRect(0, 0, W, H);
   const texte = (t: string, x: number, y: number, taille: number, poids = 700, alpha = 1, fam = police) => {
     g.globalAlpha = alpha; g.font = `${poids} ${taille}px ${fam}`; g.fillText(t, x, y); g.globalAlpha = 1;
   };
   /* le disque du logo, en grand et en filigrane (comme le bilan du mois) */
   g.lineCap = "round"; g.lineWidth = 120;
-  g.strokeStyle = "rgba(255,106,26,.10)"; g.beginPath(); g.arc(W - 120, H - 420, 420, 0, Math.PI * 2); g.stroke();
-  g.strokeStyle = "rgba(255,106,26,.24)"; g.beginPath(); g.arc(W - 120, H - 420, 420, -Math.PI / 2, Math.PI); g.stroke();
+  g.strokeStyle = "rgba(255,255,255,.08)"; g.beginPath(); g.arc(W - 120, H - 420, 420, 0, Math.PI * 2); g.stroke();
+  g.strokeStyle = "rgba(255,255,255,.16)"; g.beginPath(); g.arc(W - 120, H - 420, 420, -Math.PI / 2, Math.PI); g.stroke();
   g.fillStyle = "#fff";
   /* logo et nom */
   const logo = await chargerImage("/icon-192.png");

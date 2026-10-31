@@ -23,7 +23,7 @@ const AUSSI = [
 export function Vitrine({ onCommencer, onCompte }: { onCommencer: () => void; onCompte: () => void }) {
   return (
     <div className="-mx-6 -mt-[max(env(safe-area-inset-top),24px)]">
-      <header className="overflow-hidden rounded-b-[34px] bg-bandeau px-6 pt-[max(env(safe-area-inset-top),22px)] text-white">
+      <header className="overflow-hidden rounded-b-[34px] bg-bandeau px-6 pt-[max(env(safe-area-inset-top),22px)] text-bandeau-foreground">
         <div className="flex items-center gap-2.5 text-[18px] font-bold">
           <LogoTuile className="size-9" />{tr("Oxa")}
           <button onClick={onCompte} className="ml-auto text-[14px] font-semibold opacity-90">{tr("J'ai déjà un compte")}</button>

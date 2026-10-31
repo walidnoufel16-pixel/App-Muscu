@@ -36,7 +36,7 @@ export function useProgramme() {
 /* Grand bandeau noir : l'action du moment. Le disque du logo en filigrane. */
 export function Hero({ surtitre, titre, texte, bouton, onClick, icone }: { surtitre: string; titre: string; texte: string; bouton: string; onClick: () => void; icone?: React.ReactNode }) {
   return (
-    <div className="relative isolate overflow-hidden rounded-[26px] bg-bandeau p-5 text-white shadow-[0_18px_40px_-22px_var(--bandeau)]">
+    <div className="relative isolate overflow-hidden rounded-[26px] bg-bandeau p-5 text-bandeau-foreground shadow-[0_18px_40px_-22px_var(--bandeau)]">
       <LogoDisque className="pointer-events-none absolute -right-10 -bottom-12 -z-10 size-52 text-white/[.13]" />
       <div className="flex items-center gap-2 text-[11.5px] font-semibold tracking-[0.12em] uppercase opacity-80">{icone}{surtitre}</div>
       <h2 className="mt-2 text-[26px] leading-[1.1] font-bold tracking-[-0.02em] text-balance">{titre}</h2>
