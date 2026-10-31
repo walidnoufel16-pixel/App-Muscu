@@ -45,13 +45,13 @@ async function image(r: Recap): Promise<Blob | null> {
   if (!g) return null;
   const police = getComputedStyle(document.body).fontFamily;
   const fond = g.createLinearGradient(0, 0, 0, H);
-  fond.addColorStop(0, "#3b67f5"); fond.addColorStop(1, "#1b36a0");
+  fond.addColorStop(0, "#25252b"); fond.addColorStop(1, "#0a0a0c");
   g.fillStyle = fond; g.fillRect(0, 0, W, H);
   /* le disque du logo, en grand et en filigrane */
   g.lineCap = "round";
-  g.strokeStyle = "rgba(255,255,255,.08)"; g.lineWidth = 120;
+  g.strokeStyle = "rgba(255,106,26,.10)"; g.lineWidth = 120;
   g.beginPath(); g.arc(W - 120, H - 260, 420, 0, Math.PI * 2); g.stroke();
-  g.strokeStyle = "rgba(255,255,255,.16)";
+  g.strokeStyle = "rgba(255,106,26,.24)";
   g.beginPath(); g.arc(W - 120, H - 260, 420, -Math.PI / 2, Math.PI); g.stroke();
   g.fillStyle = "#fff";
   const texte = (t: string, x: number, y: number, taille: number, poids = 700, alpha = 1) => {
@@ -105,7 +105,7 @@ function BilanPeriode() {
 
   if (!r || !r.seances)
     return (
-      <div className="grid min-h-dvh place-items-center bg-plate p-8 text-center text-plate-foreground">
+      <div className="grid min-h-dvh place-items-center bg-bandeau p-8 text-center text-white">
         <div>
           <p className="text-[18px] font-semibold">{tr("Pas encore d'entraînement sur cette période.")}</p>
           <Button variant="secondary" className="mt-4" onClick={retour}>{tr("Revenir")}</Button>
@@ -123,7 +123,7 @@ function BilanPeriode() {
   };
   const e = E[i];
   return (
-    <div className="relative isolate min-h-dvh overflow-hidden bg-gradient-to-b from-[#3b67f5] to-[#1b36a0] text-white select-none">
+    <div className="relative isolate min-h-dvh overflow-hidden bg-gradient-to-b from-[#25252b] to-[#0a0a0c] text-white select-none">
       <LogoDisque className="pointer-events-none absolute -right-24 -bottom-24 -z-10 size-[420px] text-white/[.09]" />
       <div className="flex gap-1 px-4 pt-[max(env(safe-area-inset-top),14px)]" aria-hidden>
         {Array.from({ length: total }, (_, k) => (
@@ -153,7 +153,7 @@ function BilanPeriode() {
             {img && <img src={img.url} alt={tr("Ton bilan en image")} className="size-full animate-[monter_.5s_ease-out_both] object-cover" />}
           </div>
           <div className="flex w-full max-w-[340px] flex-col gap-2">
-            <Button size="xl" className="w-full bg-white text-[#2346c4] hover:bg-white/90" onClick={partager} disabled={!img}>
+            <Button size="xl" className="w-full bg-white text-[#0a0a0c] hover:bg-white/90" onClick={partager} disabled={!img}>
               {typeof navigator !== "undefined" && "canShare" in navigator ? <PaperPlaneTiltIcon weight="fill" /> : <DownloadSimpleIcon weight="bold" />}{tr("Partager l'image")}
             </Button>
             <Button variant="ghost" className="w-full text-white hover:bg-white/10" onClick={() => setI(0)}>{tr("Revoir")}</Button>

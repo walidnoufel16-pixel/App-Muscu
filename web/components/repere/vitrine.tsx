@@ -23,7 +23,7 @@ const AUSSI = [
 export function Vitrine({ onCommencer, onCompte }: { onCommencer: () => void; onCompte: () => void }) {
   return (
     <div className="-mx-6 -mt-[max(env(safe-area-inset-top),24px)]">
-      <header className="overflow-hidden rounded-b-[34px] bg-plate px-6 pt-[max(env(safe-area-inset-top),22px)] text-plate-foreground">
+      <header className="overflow-hidden rounded-b-[34px] bg-bandeau px-6 pt-[max(env(safe-area-inset-top),22px)] text-white">
         <div className="flex items-center gap-2.5 text-[18px] font-bold">
           <LogoTuile className="size-9" />{tr("Oxa")}
           <button onClick={onCompte} className="ml-auto text-[14px] font-semibold opacity-90">{tr("J'ai déjà un compte")}</button>
@@ -32,7 +32,7 @@ export function Vitrine({ onCommencer, onCompte }: { onCommencer: () => void; on
         <p className="mt-3.5 text-[16.5px] leading-relaxed opacity-90">
           {tr("Quels exercices, combien de séries, quel poids : Oxa décide avec toi, et ajoute du poids quand tu es prêt.")}
         </p>
-        <Button size="xl" onClick={onCommencer} className="mt-6 w-full bg-white text-plate-ink hover:bg-white/90">{tr("Commencer gratuitement")}<ArrowRightIcon /></Button>
+        <Button size="xl" onClick={onCommencer} className="mt-6 w-full bg-white text-[#0a0a0c] hover:bg-white/90">{tr("Commencer gratuitement")}<ArrowRightIcon /></Button>
         <p className="mt-3 text-center text-[13.5px] font-medium opacity-90">{tr("Pas d'App Store : ajoute-la à ton écran d'accueil en 2 gestes")}</p>
         <div className="mt-3.5 flex flex-wrap justify-center gap-1.5">
           {[tr("Salle"), tr("Street workout"), tr("Course"), tr("Repas")].map((b) => <span key={b} className="rounded-full bg-white/15 px-2.5 py-1 text-[12px] font-semibold">{b}</span>)}

@@ -1,52 +1,61 @@
-/* Logo d'Oxa : un haltère soulevé, avec deux traînées sous les disques (il décolle : tu progresses).
-   L'haltère et les traînées ont chacun leur couleur (`haltere`, `trainee`), pour pouvoir les
-   distinguer plus tard. Source de l'icône : public/icone-source.svg (même dessin). */
+/* Logo d'Oxa : un haltère qui décolle, propulsé par deux flammes de fusée (tu progresses).
+   Charte « Flamme seule » : tuile noire, haltère blanc, flammes orange. L'haltère et les
+   flammes ont chacun leur couleur. Source de l'icône : public/icone-source.svg (même dessin). */
 import { useId } from "react";
 import { tr } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-/** Icône d'app : l'haltère blanc sur une tuile cobalt. Le dessin est réduit (0,84) pour tenir dans
-    la zone sûre des icônes Android, rognées en cercle. */
+/** Icône d'app : tuile noire, haltère blanc, flammes orange. Le dessin est réduit (0,84) pour
+    tenir dans la zone sûre des icônes Android, rognées en cercle. */
 export function LogoTuile({ className }: { className?: string }) {
   const id = useId();
   return (
     <svg viewBox="0 0 512 512" className={cn("rounded-[22.37%]", className)} role="img" aria-label={tr("Oxa")}>
       <defs>
         <linearGradient id={`${id}fond`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#3b67f5" />
-          <stop offset="1" stopColor="#2346c4" />
+          <stop offset="0" stopColor="#25252b" />
+          <stop offset="1" stopColor="#0a0a0c" />
         </linearGradient>
       </defs>
       <rect width="512" height="512" fill={`url(#${id}fond)`} />
       <g transform="translate(256 256) scale(.84) translate(-256 -256)">
-        <Marque haltere="#fff" trainee="#fff" />
+        <Marque haltere="#fff" flamme="#ff6a1a" />
       </g>
     </svg>
   );
 }
 
-/** L'haltère seul, dans la couleur du texte (ou cobalt avec `accent`). */
-export function LogoDisque({ className, accent }: { className?: string; accent?: boolean }) {
+/** Le logo sans tuile, dans la couleur du texte. `feu` colore les flammes en orange
+    (sinon elles suivent le texte, pour les filigranes). `accent` : haltère couleur d'action. */
+export function LogoDisque({ className, accent, feu }: { className?: string; accent?: boolean; feu?: boolean }) {
   return (
     <svg viewBox="64 64 384 384" className={cn(accent ? "text-plate" : "", className)} role="img" aria-label={tr("Oxa")}>
-      <Marque haltere="currentColor" trainee="currentColor" />
+      <Marque haltere="currentColor" flamme={feu ? "var(--feu)" : "currentColor"} />
     </svg>
   );
 }
 
+/* une flamme sous le disque d'abscisse x : large à la sortie de la tuyère, pointue en bas */
+const flamme = (x: number) => `M${x - 24} 270 C${x - 54} 318 ${x - 38} 410 ${x} 486 C${x + 38} 410 ${x + 54} 318 ${x + 24} 270 Z`;
+const tuyere = (x: number) => `M${x - 18} 242 H${x + 18} L${x + 26} 272 H${x - 26} Z`;
+
 /** Le dessin, centré dans un carré de 512. */
-function Marque({ haltere, trainee }: { haltere: string; trainee: string }) {
+function Marque({ haltere, flamme: couleur }: { haltere: string; flamme: string }) {
   const id = useId();
   return (
     <g transform="translate(0 -28)">
       <defs>
-        <linearGradient id={`${id}t`} gradientUnits="userSpaceOnUse" x1="0" y1="252" x2="0" y2="470">
-          <stop offset="0" stopColor={trainee} stopOpacity=".9" />
-          <stop offset="1" stopColor={trainee} stopOpacity="0" />
+        <linearGradient id={`${id}f`} gradientUnits="userSpaceOnUse" x1="0" y1="270" x2="0" y2="486">
+          <stop offset="0" stopColor={couleur} stopOpacity=".95" />
+          <stop offset="1" stopColor={couleur} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <rect x="119" y="252" width="58" height="218" rx="29" fill={`url(#${id}t)`} />
-      <rect x="335" y="252" width="58" height="218" rx="29" fill={`url(#${id}t)`} />
+      {[153, 359].map((x) => (
+        <g key={x}>
+          <path d={tuyere(x)} fill={haltere} />
+          <path d={flamme(x)} fill={`url(#${id}f)`} />
+        </g>
+      ))}
       <g fill={haltere} transform="translate(256 170) scale(.86)">
         <rect x="-120" y="-15" width="240" height="30" rx="8" />
         <rect x="-142" y="-80" width="44" height="160" rx="16" />

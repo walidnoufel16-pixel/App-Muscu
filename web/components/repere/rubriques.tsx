@@ -20,11 +20,11 @@ export const nomRubrique = (v: Rubrique) =>
 
 /* photos des exercices (domaine public), en grand ; hors connexion sans elles, la petite */
 const BANNIERES: Record<Rubrique, { photo: string; fond: string; texte: () => string }> = {
-  libre: { photo: "Dumbbell_Lunges_0", fond: "#2346c4", texte: () => tr("Muscu, cardio ou combinée : crée ta séance, compose-la, ou parcours les exercices.") },
-  programme: { photo: "Barbell_Squat_0", fond: "#0e7490", texte: () => tr("Huit semaines de séances qui font monter l'effort semaine après semaine.") },
-  street: { photo: "Chin-Up_1", fond: "#1d1d1f", texte: () => tr("Poids du corps et barre : programmes par niveau, du plus facile au plus dur.") },
-  course: { photo: "Running_Treadmill_0", fond: "#9a4a1c", texte: () => tr("10 km, semi ou marathon : un plan jusqu'au jour J, à ton allure.") },
-  soin: { photo: "Hamstring_Stretch_0", fond: "#5d6b55", texte: () => tr("Routines courtes par zone, pour bouger sans douleur.") },
+  libre: { photo: "Dumbbell_Lunges_0", fond: "#17171c", texte: () => tr("Muscu, cardio ou combinée : crée ta séance, compose-la, ou parcours les exercices.") },
+  programme: { photo: "Barbell_Squat_0", fond: "#17171c", texte: () => tr("Huit semaines de séances qui font monter l'effort semaine après semaine.") },
+  street: { photo: "Chin-Up_1", fond: "#17171c", texte: () => tr("Poids du corps et barre : programmes par niveau, du plus facile au plus dur.") },
+  course: { photo: "Running_Treadmill_0", fond: "#17171c", texte: () => tr("10 km, semi ou marathon : un plan jusqu'au jour J, à ton allure.") },
+  soin: { photo: "Hamstring_Stretch_0", fond: "#17171c", texte: () => tr("Routines courtes par zone, pour bouger sans douleur.") },
 };
 
 function Photo({ nom, className }: { nom: string; className?: string }) {
