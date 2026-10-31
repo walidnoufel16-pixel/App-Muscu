@@ -57,7 +57,7 @@ async function image(r: Recap): Promise<Blob | null> {
   const texte = (t: string, x: number, y: number, taille: number, poids = 700, alpha = 1) => {
     g.globalAlpha = alpha; g.font = `${poids} ${taille}px ${police}`; g.fillText(t, x, y); g.globalAlpha = 1;
   };
-  texte(tr("REPÈRE"), 90, 150, 40, 700, 0.85);
+  texte(tr("OXA"), 90, 150, 40, 700, 0.85);
   texte(r.p.annee ? tr("Mon année {nom}", { nom: r.p.nom }) : tr("Mon mois de {a}", { a: r.p.nom.split(" ")[0] }), 90, 330, 76, 800);
   const lignes: [string, string][] = [
     [String(r.seances), tr(pluriel(r.seances) ? "séances" : "séance")],
@@ -115,9 +115,9 @@ function BilanPeriode() {
 
   const partager = async () => {
     if (!img) return;
-    const f = new File([img.blob], `repere-${r.p.id}.png`, { type: "image/png" });
+    const f = new File([img.blob], `oxa-${r.p.id}.png`, { type: "image/png" });
     try {
-      if (navigator.canShare?.({ files: [f] })) await navigator.share({ files: [f], title: tr("Mon bilan Repère") });
+      if (navigator.canShare?.({ files: [f] })) await navigator.share({ files: [f], title: tr("Mon bilan Oxa") });
       else { const a = document.createElement("a"); a.href = img.url; a.download = f.name; a.click(); }
     } catch {}
   };

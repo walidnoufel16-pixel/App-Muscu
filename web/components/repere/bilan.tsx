@@ -3,7 +3,9 @@
 import { loc, pluriel, tr } from "@/lib/i18n";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BellRingingIcon, ChartLineUpIcon, FlameIcon, TrophyIcon } from "@phosphor-icons/react";
+import { BellRingingIcon, ChartLineUpIcon, FlameIcon, ShareFatIcon, TrophyIcon } from "@phosphor-icons/react";
+import { imageSeance, partagerImage } from "@/lib/carte-seance";
+import { sb } from "@/lib/supabase";
 import { activerRappels, dejaPropose, etatRappels, noterPropose } from "@/lib/rappels";
 import { ajouterAuSuivi } from "@/lib/suivi";
 import { tactile } from "@/lib/repos";
@@ -71,7 +73,9 @@ export function Bilan() {
               ))}
             </div>
             <Suite />
+            <PartagerSeance titre={bilan.titre} cases={stats} />
             <ProposerRappels />
+            <DemanderAvis />
             {libre != null ? (
               <>
                 <Button variant="plate" size="xl" className="mt-6 w-full" onClick={suivre}><ChartLineUpIcon weight="bold" />{tr("Ajouter à mon suivi")}</Button>
@@ -130,6 +134,68 @@ function ProposerRappels() {
             <Button size="sm" variant="ghost" className="rounded-xl text-muted-foreground" onClick={non}>{tr("Non merci")}</Button>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* La carte « Séance terminée » à partager en story : préparée dès l'ouverture du bilan, pour que
+   le partage parte directement du geste (Safari l'exige). */
+function PartagerSeance({ titre, cases }: { titre: string; cases: { n: string; v: number }[] }) {
+  const etat = useRepere((x) => x.etat);
+  const [img, setImg] = useState<Blob | null>(null);
+  /* les cases arrivent recréées à chaque rendu : on suit leur contenu, pas leur identité */
+  const cle = JSON.stringify(cases);
+  useEffect(() => {
+    let vivant = true;
+    const H = etat.HIST || [], auj = jourDe(Date.now());
+    const S = serie(H, avecSorties(etat.CARDIO, etat.SORTIES), objectifHebdo(etat.A), auj);
+    const jour = new Date().toLocaleDateString(loc(), { weekday: "long" });
+    imageSeance({
+      titre, jour, cases: JSON.parse(cle),
+      semaine: S.cetteSemaine >= S.objectif ? tr("Objectif de la semaine atteint")
+        : tr("{cetteSemaine} séance{a} sur {objectif} cette semaine", { cetteSemaine: S.cetteSemaine, a: pluriel(S.cetteSemaine) ? "s" : "", objectif: S.objectif }),
+      serie: S.semaines > 1 ? tr("{semaines} semaines d'affilée", { semaines: S.semaines }) : undefined,
+    }).then((b) => { if (vivant) setImg(b); });
+    return () => { vivant = false; };
+  }, [titre, cle, etat]);
+  return (
+    <button disabled={!img} onClick={() => { tactile(10); if (img) partagerImage(img, "oxa-seance.png", tr("Ma séance Oxa")); }}
+      className="mt-1.5 flex w-full animate-[monter_.5s_.85s_ease-out_both] items-center justify-center gap-2 rounded-2xl border bg-card py-3 text-[14.5px] font-semibold disabled:opacity-50">
+      <ShareFatIcon className="size-4.5" weight="fill" />{tr("Partager ma séance")}
+    </button>
+  );
+}
+
+/* Une seule fois, à partir de la 5e séance : ce qui manque à Repère (table avis, lue dans Admin). */
+const AVIS = "repere.avis";
+function DemanderAvis() {
+  const n = useRepere((x) => (x.etat.HIST || []).length);
+  const [ferme, setFerme] = useState(() => { try { return !!localStorage.getItem(AVIS); } catch { return true; } });
+  const [texte, setTexte] = useState("");
+  const [etat, setEtat] = useState<"" | "envoi" | "merci" | "erreur">("");
+  if (n < 5 || (ferme && etat !== "merci")) return null;
+  const noter = () => { try { localStorage.setItem(AVIS, String(Date.now())); } catch {} };
+  const envoyer = async () => {
+    const t = texte.trim().slice(0, 1000);
+    if (!t) return;
+    setEtat("envoi");
+    const c = await sb(), { error } = (await c?.from("avis").insert({ texte: t, seances: n })) ?? { error: true };
+    if (error) { setEtat("erreur"); return; }
+    noter(); setEtat("merci"); setFerme(true);
+  };
+  if (etat === "merci")
+    return <p className="mt-1.5 rounded-2xl bg-plate-soft p-3.5 text-left text-[14px] font-medium">{tr("Merci ! Ton avis est bien arrivé, il compte vraiment pour la suite.")}</p>;
+  return (
+    <div className="mt-1.5 animate-[monter_.5s_.95s_ease-out_both] rounded-2xl border bg-card p-3.5 text-left">
+      <div className="text-[14px] font-semibold">{tr("Qu'est-ce qui manque à Oxa ?")}</div>
+      <p className="mt-0.5 text-[12.5px] leading-snug text-muted-foreground">{tr("{n} séances déjà : ton avis aide à décider la suite. Une phrase suffit.", { n })}</p>
+      <textarea value={texte} onChange={(e) => setTexte(e.target.value)} maxLength={1000} rows={3}
+        placeholder={tr("Une fonction, un exercice, un souci…")} className="mt-2.5 w-full resize-none rounded-xl border bg-background p-2.5 text-[16px] outline-none focus:border-foreground" />
+      {etat === "erreur" && <p className="mt-1 text-[12.5px] text-destructive">{tr("Envoi impossible pour l'instant, réessaie plus tard.")}</p>}
+      <div className="mt-2 flex gap-2">
+        <Button size="sm" className="rounded-xl" disabled={!texte.trim() || etat === "envoi"} onClick={envoyer}>{etat === "envoi" ? tr("Envoi…") : tr("Envoyer")}</Button>
+        <Button size="sm" variant="ghost" className="rounded-xl text-muted-foreground" onClick={() => { noter(); setFerme(true); }}>{tr("Non merci")}</Button>
       </div>
     </div>
   );

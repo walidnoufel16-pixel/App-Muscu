@@ -3,6 +3,7 @@
 import { tr } from "@/lib/i18n";
 import { useEffect, ViewTransition } from "react";
 import { resynchroniserRappels } from "@/lib/rappels";
+import { noterSource } from "@/lib/source";
 import { usePathname } from "next/navigation";
 import { useRepere } from "@/lib/store";
 import { TabBar } from "./tab-bar";
@@ -19,6 +20,7 @@ import { suivreDefis } from "@/lib/defis";
 import { useVerifierAccesProgramme } from "@/lib/fonctionnalites";
 import { memoriserPhotosAuRepos } from "@/lib/photos-hors-ligne";
 import { MiseAJour } from "./mise-a-jour";
+import { Demenagement } from "./demenagement";
 
 /* Démarre l'app une fois (session Supabase, état local) et pose la barre
    d'onglets. Les écrans plein écran (accueil, questionnaire) et les tâches
@@ -33,7 +35,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const sens = useSens((s) => s.sens);
 
   useEffect(() => {
-    suivreHistorique(); suivreDefis(); demarrer();
+    noterSource(); suivreHistorique(); suivreDefis(); demarrer();
     /* appareil inscrit aux rappels : remis au nom du compte et de la langue actuels */
     const t = setTimeout(resynchroniserRappels, 8000);
     return () => clearTimeout(t);
@@ -51,12 +53,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     memoriserPhotosAuRepos();
   }, []);
 
+  /* guides publics (référencement) : lisibles tout de suite, sans attendre l'app ni ses onglets */
+  if (chemin.startsWith("/guides")) return <div className="mx-auto min-h-dvh w-full max-w-[480px]">{children}</div>;
   if (!pret)
     return (
       <div className="grid min-h-dvh place-items-center">
         <div className="flex flex-col items-center gap-3 text-muted-foreground">
           <LogoDisque accent className="size-12 animate-pulse" />
-          <span className="eyebrow">{tr("Repère")}</span>
+          <span className="eyebrow">{tr("Oxa")}</span>
         </div>
       </div>
     );
@@ -79,6 +83,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <MiseAJour visible={onglets} />
       <Confirmateur />
       <Bilan />
+      {/* ancienne adresse (*.onrender.com) : comment retrouver son compte sur la nouvelle */}
+      {onglets && <Demenagement />}
       <SurveillantBadges />
       {/* app de test (repere-test) : impossible à confondre avec la vraie */}
       {process.env.NEXT_PUBLIC_APP_TEST === "1" && (

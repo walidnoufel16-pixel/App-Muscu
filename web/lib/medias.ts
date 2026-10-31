@@ -13,14 +13,14 @@ export const SOURCES = {
     nom: "free-exercise-db",
     licence: tr("Domaine public (Unlicense)"),
     lien: "https://github.com/yuhonas/free-exercise-db",
-    mention: tr("Illustrations · free-exercise-db · domaine public · retouche Repère"),
+    mention: tr("Illustrations · free-exercise-db · domaine public · retouche Oxa"),
   },
   /* photos de la base d'exercices wger, une par auteur (licence CC BY-SA : auteur cité) */
   wgerWakanda: {
     nom: "wakanda90 · wger",
     licence: "CC BY-SA 4.0",
     lien: "https://wger.de/en/exercise/456/view",
-    mention: tr("Photo · wakanda90 sur wger · CC BY-SA 4.0 · retouche Repère"),
+    mention: tr("Photo · wakanda90 sur wger · CC BY-SA 4.0 · retouche Oxa"),
   },
 } satisfies Record<string, Source>;
 

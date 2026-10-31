@@ -22,6 +22,9 @@ export type StatsAdmin = {
   defis: { code: string; nom: string; type: string; cible: number; debut: string; fin: string; participants: number }[];
   partages: number;
   partages_recents: { nom: string; cree: string }[];
+  /* absents tant que la migration sources_avis n'est pas passée */
+  sources?: { source: string; comptes: number; actifs7: number }[];
+  avis?: { texte: string; seances: number | null; cree: string; pseudo: string | null }[];
 };
 
 /* Plafond quotidien de générations par IA, tous comptes confondus (secret QUOTA_TOTAL de generer). */

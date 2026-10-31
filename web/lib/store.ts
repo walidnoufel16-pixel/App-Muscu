@@ -20,6 +20,7 @@ import { MAX_HIST, reconstruire, redater } from "@/lib/logic/historique";
 import { ROUTINES_SOIN } from "@/lib/data/soin";
 import { rattacherJournaux } from "@/lib/logic/actions";
 import { fusionner } from "@/lib/logic/fusion";
+import { sourceNotee } from "@/lib/source";
 
 export const SKEY = "palier.state.v1";
 /* date (ts) de la dernière sauvegarde du compte que cet appareil a vue : si le compte a été
@@ -179,7 +180,9 @@ export const useRepere = create<Store>((set, get) => ({
         envoi = instantane(etat);
         try { localStorage.setItem(SKEY, JSON.stringify(envoi)); } catch {}
       }
-      const { error } = await c.from("etats").upsert({ user_id: u.id, pseudo: get().pseudo, etat: envoi, maj: new Date().toISOString() });
+      /* l'étiquette du lien d'arrivée (?src=…), si l'appareil en a une */
+      const src = sourceNotee();
+      const { error } = await c.from("etats").upsert({ user_id: u.id, pseudo: get().pseudo, etat: envoi, maj: new Date().toISOString(), ...(src ? { source: src } : {}) });
       if (!error) noterBase(envoi.ts);
       set({ sync: !error });
     } catch {

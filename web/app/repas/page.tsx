@@ -49,7 +49,7 @@ function Repas() {
   return (
     <div className="theme-repas">
       <EnTete
-        surtitre={tr("Nutrition")} titre={tr("Repas")}
+        surtitre={tr("Repas")} titre="Oxa Meal"
         actions={<ChoixLangue />}
       />
       {!p.fait ? <AccueilRepas /> : (
@@ -173,7 +173,7 @@ function Courses({ p, b, kcal, ouvrir }: { p: PrefsRepas; b: ReturnType<typeof b
   const restants = liste.reduce((n, r) => n + r.l.filter((x) => !S.coches.includes(x.id)).length, 0) + articles.filter((a) => !S.coches.includes(a.id)).length;
   const cocher = (id: string) => { tactile(5); maj((s) => ({ ...s, coches: s.coches.includes(id) ? s.coches.filter((y) => y !== id) : [...s.coches, id] })); };
   const partager = async () => {
-    const texte = tr("Liste de courses Repère") + "\n\n" + texteCourses(liste, S.coches, S.articles) + "\n\n" + tr("Budget estimé : environ {e}", { e: euros(est.total) });
+    const texte = tr("Liste de courses Oxa") + "\n\n" + texteCourses(liste, S.coches, S.articles) + "\n\n" + tr("Budget estimé : environ {e}", { e: euros(est.total) });
     tactile(8);
     try {
       if (navigator.share) await navigator.share({ title: tr("Liste de courses"), text: texte });

@@ -35,7 +35,7 @@ function Contenu({ nom, code, defi }: Partage) {
     }
   };
   const envoyer = async () => {
-    try { await navigator.share({ title: nom, text: defi ? tr("Rejoins mon défi « {nom} » sur Repère. Code : {code}", { nom, code }) : tr("Ma séance « {nom} » sur Repère. Code : {code}", { nom, code }), url: lien }); } catch {}
+    try { await navigator.share({ title: nom, text: defi ? tr("Rejoins mon défi « {nom} » sur Oxa. Code : {code}", { nom, code }) : tr("Ma séance « {nom} » sur Oxa. Code : {code}", { nom, code }), url: lien }); } catch {}
   };
   return (
     <div className="px-5 pt-2 pb-[max(env(safe-area-inset-bottom),20px)]">

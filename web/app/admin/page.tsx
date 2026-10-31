@@ -101,6 +101,20 @@ function Tableau({ L, S }: { L: CompteAdmin[]; S: StatsAdmin }) {
           <Chiffre v={T.semaines.at(-1)?.seances ?? 0} n={tr("séances cette semaine")} d={tp(T.semaines.at(-1)?.comptes ?? 0, "{n} compte actif", "{n} comptes actifs")} />
         </div>
       </Carte>
+      <Carte titre={tr("D'où viennent les comptes")}>
+        {S.sources?.length ? S.sources.map((x) => (
+          <Jauge key={x.source} n={x.source || tr("lien direct ou inconnu")} v={x.comptes} max={S.sources![0].comptes} d={tr("{n} actifs sur 7 jours", { n: x.actifs7 })} />
+        )) : <p className="text-[14px] text-muted-foreground">{tr("Pas encore de source enregistrée.")}</p>}
+        <p className="mt-2 text-[12.5px] text-muted-foreground">{tr("Ajoute ?src=tiktok (ou insta, yt, reddit…) au lien que tu publies.")}</p>
+      </Carte>
+      <Carte titre={tr("Avis des utilisateurs · {n}", { n: S.avis?.length ?? 0 })}>
+        {S.avis?.length ? S.avis.slice(0, 20).map((a, i) => (
+          <div key={i} className="border-t border-border/60 py-2 text-[14px] first:border-t-0">
+            <p className="leading-snug">{a.texte}</p>
+            <p className="mt-0.5 text-[12.5px] text-muted-foreground">{a.pseudo || "—"} · {jourIso(a.cree) ? court(jourIso(a.cree)!) : "—"}{a.seances ? ` · ${pl(a.seances, tr("séance"))}` : ""}</p>
+          </div>
+        )) : <p className="text-[14px] text-muted-foreground">{tr("Aucun avis pour l'instant.")}</p>}
+      </Carte>
       <Carte titre={tr("Séances par semaine, tous comptes")}>
         <Barres valeurs={T.semaines.map((s) => ({ x: court(s.lundi), y: s.seances }))} unite={tr("séances")} />
       </Carte>
