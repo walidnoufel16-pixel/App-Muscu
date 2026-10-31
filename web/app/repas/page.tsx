@@ -49,7 +49,7 @@ function Repas() {
   return (
     <div className="theme-repas">
       <EnTete
-        surtitre={tr("Nutrition")} titre={tr("Repas")}
+        surtitre={tr("Repas")} titre="Oxa Meal"
         actions={<ChoixLangue />}
       />
       {!p.fait ? <AccueilRepas /> : (
