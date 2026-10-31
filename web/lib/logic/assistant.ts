@@ -75,7 +75,7 @@ export const nomSeance = (m: string[]) =>
    le repos entre les séries, une minute de mise en place par exercice. */
 export function dureeEstimee(ex: ExLibre[]) {
   const sec = ex.reduce((a, e) => {
-    const x = EX[e.id], t = x?.ch === "temps" ? +e.r || 45 : 40;
+    const x = EX[e.id], t = x?.ch === "temps" ? (+e.r || 45) * (x.cote ? 2 : 1) : 40;
     return a + e.s * t + Math.max(0, e.s - 1) * secondesDe(e.p) + 60;
   }, 0);
   return Math.max(5, Math.round(sec / 300) * 5);

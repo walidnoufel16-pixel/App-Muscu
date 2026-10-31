@@ -157,7 +157,7 @@ function ApercuProgramme({ p, k, setK, deja, onAjouter, onFiche }: { p: Programm
               {s.ex.map((e, i) => {
                 const x = EX[e.id];
                 if (!x) return null;
-                const prescr = x.ch === "temps" ? `${e.s} × ${e.r} s` : x.ch === "dist" ? `${e.s} × ${e.r} m` : `${e.s} × ${e.r}`;
+                const prescr = x.ch === "temps" ? `${e.s} × ${e.r} s${x.cote ? tr(" / côté") : ""}` : x.ch === "dist" ? `${e.s} × ${e.r} m` : `${e.s} × ${e.r}`;
                 return (
                   <li key={e.id + i}>
                     <button onClick={() => onFiche(e.id)} className="flex w-full items-center gap-3 rounded-[18px] border border-border/80 bg-card p-2.5 text-left active:scale-[.99]">
