@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { Route } from "next";
 import { CaretLeftIcon } from "@phosphor-icons/react/dist/ssr";
-import { BILLETS, GUIDES, aLireAussi, adresse, dateTxt, nomCategorie, tempsLecture, texte, type Article, type Langue } from "@/lib/data/blog";
+import { BILLETS, GUIDES, aLireAussi, adresse, dateTxt, nomCategorie, programme, tempsLecture, texte, type Article, type Langue } from "@/lib/data/blog";
 import { ProposerAnglais } from "./anglais";
 import { LogoTuile } from "@/components/repere/logo";
 import { ListeBlog } from "./liste";
@@ -93,6 +93,7 @@ export function VueArticle({ a, l }: { a: Article; l: Langue }) {
       <div className="px-5">
         {a.credit && <p className="mt-1.5 text-[11.5px] text-muted-foreground">{D.photo} <a href={a.credit.lien} className="underline">{a.credit.nom}</a> {D.sur}</p>}
         <p className="mt-4 text-[12px] font-bold tracking-[0.06em] text-plate-ink uppercase">{a.type === "guide" ? `${D.guide} · ` : ""}{nomCategorie(a.categorie, l)} · {tempsLecture(a, l)} {D.min}{a.type === "article" ? ` · ${dateTxt(a.date, l)}` : ""}</p>
+        {programme(a) && <p className="mt-3 rounded-xl bg-amber-500/15 px-3 py-2 text-[13px] font-semibold">{l === "en" ? "Scheduled" : "Programmé"} · {dateTxt(a.date, l)} ({l === "en" ? "visible on the test app only" : "visible seulement sur l'app test"})</p>}
         <h1 className="mt-2 text-[29px] leading-[1.08] font-extrabold tracking-[-0.025em]">{t.titre}</h1>
         <p className="mt-4 text-[16.5px] leading-relaxed">{t.intro}</p>
         {t.blocs.map((b) => (

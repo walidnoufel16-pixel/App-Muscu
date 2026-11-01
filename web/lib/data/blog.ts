@@ -308,8 +308,14 @@ const LISTE: Article[] = [
   ...NOUVEAUX,
 ];
 
-/** Les articles, du plus récent au plus ancien. */
-export const ARTICLES: Article[] = [...LISTE].sort((a, b) => b.date.localeCompare(a.date));
+/* Publication programmée : un article daté dans le futur n'est pas encore en ligne sur oxafit.app
+   (le site, statique, est reconstruit le jour de sa sortie). L'app test les montre tous, pour la relecture. */
+const TEST = process.env.NEXT_PUBLIC_APP_TEST === "1";
+/** Jour de la construction du site (AAAA-MM-JJ). */
+export const AUJ = new Date().toISOString().slice(0, 10);
+export const programme = (a: Pick<Article, "date">) => a.date > AUJ;
+/** Les articles en ligne, du plus récent au plus ancien (sur l'app test : aussi ceux à venir). */
+export const ARTICLES: Article[] = [...LISTE].filter((a) => TEST || !programme(a)).sort((a, b) => b.date.localeCompare(a.date));
 /** Textes d'un article dans une langue (l'anglais est dans lib/data/blog-en.ts, rangé sous l'identifiant français). */
 export const texte = (a: Article, l: Langue): Texte => (l === "en" ? BLOG_EN[a.slug] : a);
 /** Adresse d'un article dans une langue. */
