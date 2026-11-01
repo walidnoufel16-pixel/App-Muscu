@@ -64,6 +64,7 @@ export function TabBar() {
             <Link
               key={href}
               href={href}
+              data-visite={href.slice(1)}
               scroll={false}
               onClick={(e) => toucher(e, href, actif)}
               aria-current={actif ? "page" : undefined}
