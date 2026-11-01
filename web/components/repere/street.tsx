@@ -186,7 +186,7 @@ function ApercuProgramme({ p, k, setK, deja, onAjouter, onFiche }: { p: Programm
 }
 
 /* Onglet « Street » de la bibliothèque : programmes par niveau, séance sur mesure, familles d'exercices. */
-export type OngletStreet = "programmes" | "mesure" | "familles";
+export type OngletStreet = "programmes" | "familles";
 
 export function VueStreet({ onFiche, onglet }: { onFiche: (id: string) => void; onglet: OngletStreet }) {
   const router = useRouter();
@@ -198,6 +198,15 @@ export function VueStreet({ onFiche, onglet }: { onFiche: (id: string) => void; 
     return (
       <section aria-label={tr("Programmes street workout")} className="flex flex-col gap-2.5">
         <TestEntree />
+        {/* une séance street composée pour soi : un bouton ici plutôt qu'un onglet à part */}
+        <button onClick={surMesure} className="flex items-center gap-3 rounded-[20px] bg-card p-3.5 text-left active:scale-[.99]">
+          <span className="grid size-10 shrink-0 place-items-center rounded-[12px] bg-plate-soft text-plate-ink"><SparkleIcon className="size-5" weight="fill" /></span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[15px] font-semibold">{tr("Une séance street sur mesure")}</span>
+            <span className="block text-[12.5px] leading-snug text-muted-foreground">{tr("Tu choisis les muscles et la durée, Oxa compose avec le poids du corps et la barre.")}</span>
+          </span>
+          <ArrowRightIcon className="size-4 shrink-0 text-muted-foreground" weight="bold" />
+        </button>
         {PROGRAMMES_STREET.map((p) => <CarteProgramme key={p.niv} p={p} onFiche={onFiche} conseille={p.niv === conseil} />)}
         <div className="rounded-[18px] bg-plate-soft p-3.5 text-[13px] leading-relaxed">
           <b className="font-semibold">{tr("Comment progresser")}</b>
@@ -208,17 +217,6 @@ export function VueStreet({ onFiche, onglet }: { onFiche: (id: string) => void; 
           </ul>
         </div>
       </section>
-    );
-  if (onglet === "mesure")
-    return (
-      <div className="rounded-[22px] bg-bandeau p-5 text-bandeau-foreground">
-        <SparkleIcon className="size-8" weight="fill" />
-        <h3 className="mt-2 text-[22px] leading-tight font-bold">{tr("Une séance street sur mesure")}</h3>
-        <p className="mt-1.5 text-[14px] leading-relaxed opacity-90">{tr("Tu choisis les muscles et la durée, Oxa compose avec le poids du corps et la barre.")}</p>
-        <button onClick={surMesure} className="mt-4 inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[15px] font-semibold text-[#0a0a0c] active:scale-[.97]">
-          {tr("Composer ma séance")}<ArrowRightIcon className="size-4" weight="bold" />
-        </button>
-      </div>
     );
   return (
     <div className="flex flex-col gap-6">

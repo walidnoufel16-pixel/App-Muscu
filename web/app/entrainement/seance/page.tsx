@@ -5,7 +5,7 @@
 import { pluriel, tr } from "@/lib/i18n";
 import { Fragment, Suspense, useMemo, useState, ViewTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChartLineUpIcon, CheckIcon, HeartbeatIcon, InfoIcon, PencilSimpleIcon, PlayIcon, PlusIcon } from "@phosphor-icons/react";
+import { BowlFoodIcon, ChartLineUpIcon, CheckIcon, FlameIcon, HeartbeatIcon, InfoIcon, PencilSimpleIcon, PlayIcon, PlusIcon } from "@phosphor-icons/react";
 import { FeuilleAjout } from "@/components/repere/ajout-exercice";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
@@ -15,7 +15,6 @@ import { ExerciceCarte, Vignette } from "@/components/repere/exercice-carte";
 import { FormeDuJour } from "@/components/repere/forme";
 import { FicheExercice, type FicheOuverte } from "@/components/repere/fiche-exercice";
 import { Collation, Echauffement, Remplacer } from "@/components/repere/seance-vues";
-import { Segmente } from "@/components/repere/segmente";
 import { TableauSeries } from "@/components/repere/tableau-series";
 import { CarteSport } from "@/components/repere/carte-sport";
 import { EX } from "@/lib/data/exercices";
@@ -43,7 +42,22 @@ import { cn } from "@/lib/utils";
 
 type Partie = 0 | 1 | 2;
 
-/* Habillage commun : retour, titre, avancement, parties de la séance. */
+/* Échauffement ou collation, dans une feuille par-dessus la séance. */
+function PartieEnFeuille({ ouvert, onClose, titre, children }: { ouvert: boolean; onClose: () => void; titre: string; children: React.ReactNode }) {
+  return (
+    <Drawer open={ouvert} onOpenChange={(o) => !o && onClose()}>
+      <DrawerContent className="max-h-[90dvh]">
+        <div className="overflow-y-auto overscroll-contain pt-2 pb-[max(env(safe-area-inset-bottom),20px)]">
+          <DrawerTitle className="mb-3 px-5 text-[22px] font-bold">{titre}</DrawerTitle>
+          <DrawerDescription className="sr-only">{titre}</DrawerDescription>
+          {children}
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}
+
+/* Habillage commun : retour, titre, avancement, accès à l'échauffement et à la collation. */
 function Cadre({
   surtitre, titre, actions, faits, total, sect, setSect, children, entete,
 }: {
@@ -64,7 +78,15 @@ function Cadre({
         )}
       </EnTete>
       <div className="px-4 pb-3">
-        <Segmente label={tr("Parties de la séance")} valeur={sect} onChange={setSect} options={[{ v: 0, n: tr("Échauffement") }, { v: 1, n: tr("Séance") }, { v: 2, n: tr("Collation") }]} />
+        {/* la séance d'abord ; l'échauffement et la collation s'ouvrent en feuille, sans quitter les exercices */}
+        <div className="flex gap-2">
+          <button onClick={() => { tactile(5); setSect(0); }} className="flex h-9 items-center gap-1.5 rounded-full bg-card px-3.5 text-[13.5px] font-semibold active:scale-[.97]">
+            <FlameIcon className="size-4 text-plate-ink" weight="fill" />{tr("Échauffement")}
+          </button>
+          <button onClick={() => { tactile(5); setSect(2); }} className="flex h-9 items-center gap-1.5 rounded-full bg-card px-3.5 text-[13.5px] font-semibold active:scale-[.97]">
+            <BowlFoodIcon className="size-4 text-plate-ink" weight="fill" />{tr("Collation")}
+          </button>
+        </div>
       </div>
       {children}
     </>
@@ -125,9 +147,13 @@ function SeancePlan() {
         <CarteSport />
       ) : (
         <>
-          {sect === 0 && <Echauffement ids={ids} bonus={!!S.b} onFiche={(id) => setFiche({ id, idx: -1, pres: [1, 10, "—"], libelle: tr("échauffement") })} />}
-          {sect === 2 && <Collation obj={etat.A.objectif ?? 0} />}
-          {sect === 1 && (
+          <PartieEnFeuille ouvert={sect === 0} onClose={() => setSect(1)} titre={tr("Échauffement")}>
+            <Echauffement ids={ids} bonus={!!S.b} onFiche={(id) => { setSect(1); setFiche({ id, idx: -1, pres: [1, 10, "—"], libelle: tr("échauffement") }); }} />
+          </PartieEnFeuille>
+          <PartieEnFeuille ouvert={sect === 2} onClose={() => setSect(1)} titre={tr("Collation")}>
+            <Collation obj={etat.A.objectif ?? 0} />
+          </PartieEnFeuille>
+          {(
             <div className={cn("flex flex-col gap-2.5 px-4", premiere && "entree")}>
               <FormeDuJour cles={cles} />
               {(S.x || []).map((e, i) => {
@@ -272,7 +298,7 @@ function SeanceLibre({ i }: { i: number }) {
 
   return (
     <Cadre
-      surtitre={tr("{a} · {length} exercice{a1}{a2} · environ {a3} min", { a: blocs.length ? tr("Séance combinée") : tr("Séance libre"), length: S.ex.length, a1: pluriel(S.ex.length) ? "s" : "", a2: blocs.length ? tr(" + {length} cardio", { length: blocs.length }) : "", a3: dureeSeance(S) })}
+      surtitre={tr("{a} · {length} exercice{a1}{a2} · environ {a3} min", { a: blocs.length ? tr("Séance combinée") : tr("Ma séance"), length: S.ex.length, a1: pluriel(S.ex.length) ? "s" : "", a2: blocs.length ? tr(" + {length} cardio", { length: blocs.length }) : "", a3: dureeSeance(S) })}
       titre={S.nom}
       faits={faits} total={cles.length + blocs.length}
       sect={sect} setSect={setSect}
@@ -288,9 +314,13 @@ function SeanceLibre({ i }: { i: number }) {
         </>
       }
     >
-      {sect === 0 && <Echauffement ids={S.ex.map((e) => e.id)} avecSoin={!S.soin} onFiche={(id) => setFiche({ id, idx: -1, pres: [1, 10, "—"], libelle: tr("échauffement") })} />}
-      {sect === 2 && <Collation obj={objCollation(etat.A, S)} onChanger={(o) => muter((E) => { E.SEANCES[i].colObj = o; })} />}
-      {sect === 1 && (
+      <PartieEnFeuille ouvert={sect === 0} onClose={() => setSect(1)} titre={tr("Échauffement")}>
+        <Echauffement ids={S.ex.map((e) => e.id)} avecSoin={!S.soin} onFiche={(id) => { setSect(1); setFiche({ id, idx: -1, pres: [1, 10, "—"], libelle: tr("échauffement") }); }} />
+      </PartieEnFeuille>
+      <PartieEnFeuille ouvert={sect === 2} onClose={() => setSect(1)} titre={tr("Collation")}>
+        <Collation obj={objCollation(etat.A, S)} onChanger={(o) => muter((E) => { E.SEANCES[i].colObj = o; })} />
+      </PartieEnFeuille>
+      {(
         <div className={cn("flex flex-col gap-2.5 px-4", premiere && "entree")}>
           <FormeDuJour cles={cles} />
           {ordre(S).map((el, k) => {

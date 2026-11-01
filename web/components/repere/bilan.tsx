@@ -3,7 +3,7 @@
 import { loc, pluriel, tr } from "@/lib/i18n";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BellRingingIcon, ChartLineUpIcon, FlameIcon, ShareFatIcon, TrophyIcon } from "@phosphor-icons/react";
+import { BellRingingIcon, FlameIcon, ShareFatIcon, TrophyIcon } from "@phosphor-icons/react";
 import { imageSeance, partagerImage } from "@/lib/carte-seance";
 import { sb } from "@/lib/supabase";
 import { activerRappels, dejaPropose, etatRappels, noterPropose } from "@/lib/rappels";
@@ -35,14 +35,16 @@ function Compteur({ valeur, delai = 0 }: { valeur: number; delai?: number }) {
   return <span ref={monter}>0</span>;
 }
 
-/* Fin de séance : un bilan qui se compte sous tes yeux. */
+/* Fin de séance : un bilan qui se compte sous tes yeux, la semaine, une seule proposition en plus
+   (rappels, sinon avis), « Terminer », et le partage en action secondaire.
+   Séance libre : fermer le bilan la range dans Progrès et la remet à zéro pour la prochaine fois. */
 export function Bilan() {
   const bilan = useCelebrer((s) => s.bilan);
-  const fermer = useCelebrer((s) => s.fermerBilan);
-  const router = useRouter();
-  /* séance libre : on la range dans le suivi, elle repart vierge */
+  const fermerBilan = useCelebrer((s) => s.fermerBilan);
   const libre = bilan?.s?.startsWith("L|") ? +bilan.s.slice(2) : null;
-  const suivre = () => { tactile(12); ajouterAuSuivi(libre!); fermer(); router.push("/progres"); };
+  const router = useRouter();
+  /* séance libre : rangée dans Progrès (elle repart vierge), et on y va pour la voir */
+  const fermer = () => { fermerBilan(); if (libre != null) { ajouterAuSuivi(libre); router.push("/progres"); } };
   const stats = !bilan ? [] : bilan.cases ? bilan.cases : [
         { n: tr("exercices"), v: bilan.exercices },
         { n: tr("séries validées"), v: bilan.series },
@@ -73,16 +75,10 @@ export function Bilan() {
               ))}
             </div>
             <Suite />
+            <UnePropositionDePlus />
+            <Button variant="plate" size="xl" className="mt-6 w-full" onClick={() => { tactile(12); fermer(); }}>{tr("Terminer")}</Button>
+            {libre != null && <p className="mt-2 text-[12.5px] text-muted-foreground">{tr("Elle s'enregistre dans Progrès et repart à zéro pour la prochaine fois.")}</p>}
             <PartagerSeance titre={bilan.titre} cases={stats} />
-            <ProposerRappels />
-            <DemanderAvis />
-            {libre != null ? (
-              <>
-                <Button variant="plate" size="xl" className="mt-6 w-full" onClick={suivre}><ChartLineUpIcon weight="bold" />{tr("Ajouter à mon suivi")}</Button>
-                <p className="mt-2 text-[12.5px] text-muted-foreground">{tr("Elle s'enregistre dans Progrès et repart à zéro pour la prochaine fois.")}</p>
-                <button onClick={fermer} className="mt-2 w-full py-2 text-[14px] font-medium text-muted-foreground">{tr("Plus tard")}</button>
-              </>
-            ) : <Button variant="plate" size="xl" className="mt-6 w-full" onClick={fermer}>{tr("Terminer")}</Button>}
           </div>
         )}
       </DrawerContent>
@@ -108,11 +104,19 @@ function Suite() {
   );
 }
 
+/* Une seule proposition en plus par bilan : les rappels tant qu'ils n'ont pas été proposés,
+   sinon (à partir de la 5e séance, une fois) la demande d'avis. */
+function UnePropositionDePlus() {
+  const [rappels, setRappels] = useState<boolean | null>(null);
+  useEffect(() => { if (dejaPropose()) setRappels(false); else etatRappels().then((e) => setRappels(e === "inactif")).catch(() => setRappels(false)); }, []);
+  if (rappels === null) return null;
+  return rappels ? <ProposerRappels /> : <DemanderAvis />;
+}
+
 /* Une seule fois, à la fin d'une séance : proposer les rappels après quelques jours sans séance. */
 function ProposerRappels() {
-  const [voir, setVoir] = useState(false);
+  const [voir, setVoir] = useState(true);
   const [msg, setMsg] = useState<string | null>(null);
-  useEffect(() => { if (!dejaPropose()) etatRappels().then((e) => setVoir(e === "inactif")); }, []);
   if (!voir) return null;
   const oui = async () => {
     tactile(10);
@@ -161,7 +165,7 @@ function PartagerSeance({ titre, cases }: { titre: string; cases: { n: string; v
   }, [titre, cle, etat]);
   return (
     <button disabled={!img} onClick={() => { tactile(10); if (img) partagerImage(img, "oxa-seance.png", tr("Ma séance Oxa")); }}
-      className="mt-1.5 flex w-full animate-[monter_.5s_.85s_ease-out_both] items-center justify-center gap-2 rounded-2xl border bg-card py-3 text-[14.5px] font-semibold disabled:opacity-50">
+      className="mt-1 flex w-full items-center justify-center gap-2 py-2.5 text-[14.5px] font-semibold text-plate-ink disabled:opacity-50">
       <ShareFatIcon className="size-4.5" weight="fill" />{tr("Partager ma séance")}
     </button>
   );

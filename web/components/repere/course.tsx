@@ -6,7 +6,7 @@ import { loc, tr } from "@/lib/i18n";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { ArrowRightIcon, CaretRightIcon, PauseCircleIcon, PersonSimpleRunIcon, WarningIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, CaretDownIcon, CaretRightIcon, PauseCircleIcon, PersonSimpleRunIcon, WarningIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
@@ -165,14 +165,14 @@ const SORTIES_PLAN: [string, string][] = [
 ];
 
 /** Rubrique Course : ton plan s'il y en a un, sinon de quoi en préparer un ; les séances qu'il contient. */
-export function VueCourse({ onglet }: { onglet: "plan" | "seances" }) {
+export function VueCourse() {
   const router = useRouter();
   const etat = useRepere((s) => s.etat);
   const [auj] = useState(() => jourDe(Date.now()));
   const enCours = !!etat.COURSE && joursAvantCourse(etat.COURSE, auj) >= -7;
   return (
     <div className="flex flex-col gap-5">
-      {onglet === "plan" && (enCours ? (
+      {enCours ? (
         <section className="flex flex-col gap-2">
           <h3 className="px-1 text-[19px] font-bold">{tr("Ton plan")}</h3>
           <CarteCourse />
@@ -186,10 +186,15 @@ export function VueCourse({ onglet }: { onglet: "plan" | "seances" }) {
             {tr("Créer mon plan")}<ArrowRightIcon className="size-4" weight="bold" />
           </button>
         </div>
-      ))}
-      {onglet === "seances" && <section>
-        <p className="mb-3 rounded-[18px] bg-plate-soft p-3.5 text-[13.5px] leading-relaxed">{tr("Les séances qu'un plan enchaîne jusqu'au jour J.")}</p>
-        <ul className="flex flex-col gap-1.5">
+      )}
+      {/* les types de séances d'un plan : à déplier, plutôt qu'un onglet à part */}
+      <details className="group rounded-[20px] bg-card">
+        <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3.5 text-[15px] font-semibold">
+          {tr("Les séances d'un plan")}
+          <CaretDownIcon className="size-4 text-muted-foreground transition-transform group-open:rotate-180" />
+        </summary>
+        <p className="mx-3 mb-2 rounded-[14px] bg-plate-soft p-3 text-[13px] leading-relaxed">{tr("Les séances qu'un plan enchaîne jusqu'au jour J.")}</p>
+        <ul className="flex flex-col gap-1.5 px-3 pb-3">
           {SORTIES_PLAN.map(([n, d]) => (
             <li key={n} className="flex items-start gap-3 rounded-[18px] bg-card p-3">
               <span className="grid size-9 shrink-0 place-items-center rounded-[11px] bg-plate-soft text-plate-ink"><PersonSimpleRunIcon className="size-5" weight="fill" /></span>
@@ -200,7 +205,7 @@ export function VueCourse({ onglet }: { onglet: "plan" | "seances" }) {
             </li>
           ))}
         </ul>
-      </section>}
+      </details>
     </div>
   );
 }

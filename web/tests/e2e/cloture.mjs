@@ -40,11 +40,11 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
     await pg.waitForTimeout(900);
   }
   const bilan = pg.getByRole("dialog");
-  await bilan.getByRole("button", { name: "Ajouter à mon suivi" }).waitFor({ timeout: 8000 });
-  ok(await bilan.getByRole("button", { name: "Plus tard" }).count() === 1, "bilan d'une séance libre : « Ajouter à mon suivi » et « Plus tard »");
+  await bilan.getByRole("button", { name: "Terminer" }).waitFor({ timeout: 8000 });
+  ok(await bilan.getByRole("button", { name: "Plus tard" }).count() === 0, "bilan d'une séance libre : un seul bouton « Terminer », rangement automatique");
   await cap(pg, "cloture-bilan");
   const avant = (await etatLu(pg)).HIST.length;
-  await bilan.getByRole("button", { name: "Ajouter à mon suivi" }).click();
+  await bilan.getByRole("button", { name: "Terminer" }).click();
   await pg.waitForURL(/\/progres\/?$/);
   ok(true, "le bouton ouvre Progrès");
   await pg.waitForTimeout(800);

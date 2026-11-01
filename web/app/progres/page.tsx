@@ -4,7 +4,7 @@
    Tout vient de l'historique (HIST) et du cardio (CARDIO), rien n'est envoyé ailleurs. */
 import { loc, pct, pluriel, tr } from "@/lib/i18n";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { ArrowDownIcon, ArrowUpIcon, CaretDownIcon, CaretRightIcon, ChartLineUpIcon, ScalesIcon, SparkleIcon, TrophyIcon } from "@phosphor-icons/react";
+import { ArrowDownIcon, ArrowUpIcon, CaretDownIcon, CaretRightIcon, ChartLineUpIcon, GearSixIcon, ScalesIcon, SparkleIcon, TrophyIcon } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LogoDisque } from "@/components/repere/logo";
 import { moisPrecedent, recap } from "@/lib/logic/recap";
@@ -49,6 +49,10 @@ function Progres() {
   const C = useMemo(() => avecSorties(etat.CARDIO, etat.SORTIES), [etat.CARDIO, etat.SORTIES]);
   const [auj] = useState(() => jourDe(Date.now()));
   const [jour, setJour] = useState<string | null>(null);
+  const [objectif, setObjectif] = useState(false);
+  /* exercice suivi dans « Ma progression » (?ex= : ouvert depuis la fiche d'un exercice) */
+  const qex = q.get("ex");
+  const [exo, setExo] = useState<string | null>(qex && EX[qex] ? qex : null);
   /* deux onglets : ton évolution, et les défis et badges (ouverts d'office par un lien de défi) */
   const onglet = q.get("o") === "defis" || codeDefi ? "defis" : "evolution";
   const changer = (o: string) => { remplacement(); router.replace((o === "defis" ? "/progres?o=defis" : "/progres") as Route); };
@@ -75,24 +79,26 @@ function Progres() {
           </div>
         ) : (
           <>
-            <CetteSemaine H={H} C={C} auj={auj} />
-            <Section titre={tr("Muscles travaillés · 7 derniers jours")}>
-              <Muscles H={H} auj={auj} />
-            </Section>
-            <Section titre={tr("Régularité")}>
+            {/* la semaine en un bloc : série et objectif, chiffres, calendrier ; l'objectif se règle à part */}
+            <Section titre={tr("Cette semaine")} action={(
+              <button onClick={() => setObjectif(true)} className="flex items-center gap-1 text-[13px] font-semibold text-plate-ink"><GearSixIcon className="size-4" weight="bold" />{tr("Objectif")}</button>
+            )}>
               <div className="flex flex-col gap-2">
-                <CarteRegularite reglable />
+                <CarteRegularite />
+                <CetteSemaine H={H} C={C} auj={auj} />
                 <Activite H={H} C={C} auj={auj} onJour={setJour} />
               </div>
             </Section>
+            <Section titre={tr("Muscles travaillés · 7 derniers jours")}>
+              <Muscles H={H} auj={auj} />
+            </Section>
             <Bilans auj={auj} />
-            <Records H={H} />
+            {/* progression par exercice et records, ensemble : toucher un record ouvre sa courbe */}
             <Section titre={tr("Ma progression par exercice")}>
-              <ParExercice H={H} />
+              <ParExercice H={H} id={exo} setId={setExo} />
+              <Records H={H} onChoisir={(id) => { setExo(id); requestAnimationFrame(() => document.getElementById("par-exercice")?.scrollIntoView({ block: "center", behavior: "smooth" })); }} />
             </Section>
-            <Section titre={tr("Poids du corps")}>
-              <Poids />
-            </Section>
+            <SectionPoids />
             <SectionCourse />
             {C.length > 0 && (
               <Section titre={tr("Cardio · minutes par semaine")}>
@@ -103,6 +109,15 @@ function Progres() {
         )}
       </div>
       <DetailJour jour={jour} onClose={() => setJour(null)} H={H} C={C} />
+      <Drawer open={objectif} onOpenChange={setObjectif}>
+        <DrawerContent>
+          <div className="px-4 pt-2 pb-[max(env(safe-area-inset-bottom),20px)]">
+            <DrawerTitle className="px-1 text-[20px] font-bold">{tr("Objectif de la semaine")}</DrawerTitle>
+            <DrawerDescription className="mt-0.5 mb-3 px-1 text-[13.5px] text-muted-foreground">{tr("Le nombre de séances qui compte pour ta série, et le joker du mois.")}</DrawerDescription>
+            <CarteRegularite reglable />
+          </div>
+        </DrawerContent>
+      </Drawer>
     </>
   );
 }
@@ -136,16 +151,15 @@ function Ecart({ v, avant }: { v: number; avant: number }) {
 
 function CetteSemaine({ H, C, auj }: { H: LigneHist[]; C: NonNullable<ReturnType<typeof useRepere.getState>["etat"]["CARDIO"]>; auj: string }) {
   const [a, b] = semaines(H, C, 2, auj);
+  /* les séances de la semaine sont dans la carte de régularité juste au-dessus */
   const cases = [
-    { n: tr(pluriel(b.seances) ? "séances" : "séance"), v: b.seances, a: a.seances, f: (x: number) => String(x) },
     { n: tr(pluriel(b.ser) ? "séries" : "série"), v: b.ser, a: a.ser, f: (x: number) => String(x) },
     { n: tr("min de cardio"), v: b.cardio, a: a.cardio, f: (x: number) => String(Math.round(x)) },
   ];
   return (
-    <section>
-      <h2 className="eyebrow mb-2 px-1">{tr("Cette semaine")}</h2>
-      {/* une ligne : séances, séries, minutes de cardio */}
-      <div className="grid grid-cols-3 divide-x divide-border/80 overflow-hidden rounded-[18px] border border-border/80 bg-card">
+    <section aria-label={tr("Séries et cardio cette semaine")}>
+      {/* une ligne : séries et minutes de cardio, comparées à la semaine d'avant */}
+      <div className="grid grid-cols-2 divide-x divide-border/80 overflow-hidden rounded-[18px] border border-border/80 bg-card">
         {cases.map((c) => (
           <div key={c.n} className="px-3 py-2.5">
             <div className="num text-[24px] leading-none font-bold">{c.f(c.v)}</div>
@@ -168,8 +182,8 @@ function Activite({ H, C, auj, onJour }: { H: LigneHist[]; C: Parameters<typeof 
   const douze = jours(12), actifs = douze.filter((j) => act.has(j)).length;
   const legende = (
     <span className="flex items-center gap-3">
-      <span className="flex items-center gap-1"><i className="size-2.5 rounded-[3px] bg-plate" />{tr("Muscu")}</span>
-      <span className="flex items-center gap-1"><i className="size-2.5 rounded-[3px] bg-success" />{tr("Cardio")}</span>
+      <span className="flex items-center gap-1"><i className="size-2.5 rounded-[3px] bg-feu" />{tr("Muscu")}</span>
+      <span className="flex items-center gap-1"><i className="size-2.5 rounded-[3px] bg-foreground/45" />{tr("Cardio")}</span>
     </span>
   );
   return (
@@ -221,20 +235,22 @@ function Muscles({ H, auj }: { H: LigneHist[]; auj: string }) {
 /* les grands groupes, pour « pas encore cette semaine » */
 const PRINCIPAUX = ["pec", "dos", "epa", "bic", "tri", "qua", "isc", "mol", "abd"];
 
-function Records({ H }: { H: LigneHist[] }) {
+function Records({ H, onChoisir }: { H: LigneHist[]; onChoisir: (id: string) => void }) {
   const R = useMemo(() => records(H), [H]);
   const [tout, setTout] = useState(false);
   if (!R.length) return null;
   const vus = tout ? R.slice(0, 40) : R.slice(0, 5);
   return (
-    <Section titre={tr("Records · {length}", { length: R.length })} action={R.length > 5 && (
-      <button onClick={() => setTout(!tout)} className="text-[13px] font-semibold text-plate-ink">{tout ? tr("Moins") : tr("Voir tout")}</button>
-    )}>
+    <div className="mt-4">
+      <div className="mb-2 flex items-baseline justify-between px-1">
+        <h3 className="eyebrow">{tr("Records · {length}", { length: R.length })}</h3>
+        {R.length > 5 && <button onClick={() => setTout(!tout)} className="text-[13px] font-semibold text-plate-ink">{tout ? tr("Moins") : tr("Voir tout")}</button>}
+      </div>
       <div className="overflow-hidden rounded-[20px] border border-border/80 bg-card">
         {vus.map((r, i) => {
           const x = EX[r.id];
           return (
-            <div key={r.d + r.id} className={cn("flex items-center gap-3 px-4 py-2.5", i && "border-t border-border/70")}>
+            <button key={r.d + r.id} onClick={() => onChoisir(r.id)} className={cn("flex w-full items-center gap-3 px-4 py-2.5 text-left active:bg-muted", i && "border-t border-border/70")}>
               <span className="grid size-9 shrink-0 place-items-center rounded-full bg-plate-soft text-plate-ink"><TrophyIcon className="size-[18px]" weight="fill" /></span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[14.5px] font-medium">{x?.n || r.id}</span>
@@ -243,19 +259,18 @@ function Records({ H }: { H: LigneHist[] }) {
                 </span>
               </span>
               {x?.ch === "kg" && r.rm > 0 && <span className="num text-right text-[17px] font-bold">{nb(Math.round(r.rm))}<span className="block text-[10px] font-medium text-muted-foreground">{tr("1RM est.")}</span></span>}
-            </div>
+            </button>
           );
         })}
       </div>
-    </Section>
+    </div>
   );
 }
 
-function ParExercice({ H }: { H: LigneHist[] }) {
+function ParExercice({ H, id, setId }: { H: LigneHist[]; id: string | null; setId: (id: string) => void }) {
   const faits = useMemo(() => exercicesFaits(H).filter((e) => EX[e.id]), [H]);
   /* ?ex= : ouvert depuis la fiche d'un exercice */
   const q = useSearchParams().get("ex");
-  const [id, setId] = useState<string | null>(q && EX[q] ? q : null);
   const [choix, setChoix] = useState(false);
   useEffect(() => {
     if (q) requestAnimationFrame(() => document.getElementById("par-exercice")?.scrollIntoView({ block: "center" }));
@@ -310,6 +325,22 @@ function ParExercice({ H }: { H: LigneHist[] }) {
       </Drawer>
     </Carte>
   );
+}
+
+/* Poids du corps : la section n'apparaît qu'une fois une pesée notée ; avant, une ligne pour commencer. */
+function SectionPoids() {
+  const A = useRepere((s) => s.etat.A);
+  const [ouvert, setOuvert] = useState(false);
+  const suivi = (Array.isArray(A.poids) && A.poids.length > 0) || ouvert;
+  if (!suivi)
+    return (
+      <button onClick={() => setOuvert(true)} className="flex items-center gap-3 rounded-[18px] bg-card px-4 py-3 text-left active:opacity-80">
+        <ScalesIcon className="size-5 shrink-0 text-muted-foreground" />
+        <span className="flex-1 text-[15px] font-medium">{tr("Suivre mon poids")}</span>
+        <CaretRightIcon className="size-4 text-muted-foreground" />
+      </button>
+    );
+  return <Section titre={tr("Poids du corps")}><Poids /></Section>;
 }
 
 /* Poids du corps : on part du poids déclaré au questionnaire, puis chaque pesée s'ajoute (une par jour). */

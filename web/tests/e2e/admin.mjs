@@ -85,7 +85,8 @@ async function contexte(admin, acces = false) {
   await pg.getByText("Confidentialité").waitFor({ timeout: 8000 });
   await pg.waitForTimeout(800);
   ok(appels.includes("est_admin") && !(await pg.getByRole("button", { name: "Admin" }).isVisible()), "compte normal : pas d'entrée Admin");
-  ok(await pg.getByText(/L'éditeur de Repère peut les consulter/).isVisible(), "Profil : section Confidentialité");
+  await pg.getByRole("button", { name: "Confidentialité" }).click();
+  ok(await pg.getByText(/L'éditeur d'Oxa peut les consulter/).isVisible(), "Profil : Confidentialité en feuille");
   await pg.goto(U + "/admin/");
   await pg.waitForURL(/\/profil\/?$/, { timeout: 8000 });
   ok(!appels.includes("admin_utilisateurs"), "compte normal : /admin redirige vers Profil sans rien demander");
