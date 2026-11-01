@@ -23,6 +23,7 @@ export type Phase = {
   rpe: string;
   tour?: number; tours?: number; bloc?: number; blocs?: number;
   consigne?: string; // exercice ou rappel affiché sous le chrono
+  libre?: string; // phase sans fin fixe (Hyrox : un km, un atelier) : elle dure jusqu'au bouton qui porte ce texte ; `duree` est l'objectif
 };
 
 export const FORMATS: Record<FormatCardio, { nom: string; court: string; texte: string }> = {

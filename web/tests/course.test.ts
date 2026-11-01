@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
-  adapter, allures, avertissement, calendrier, estimation, genererPlan, reprendre, riegel, semaineDe, tempsPrevu, vdot, type PlanCourse,
+  adapter, allureHyrox, allures, ATELIERS, avertissement, calendrier, chronoPrevu, consigneAtelier, estimation, genererPlan, reprendre, riegel, seancesRenfoHyrox,
+  semaineDe, tempsAteliers, tempsPrevu, vdot, type PlanCourse,
 } from "@/lib/logic/course";
+import { EX } from "@/lib/data/exercices";
 import { scoreDe } from "@/lib/logic/defis";
 import { BADGES, stats } from "@/lib/logic/motivation";
 import type { Etat } from "@/lib/logic/types";
@@ -115,5 +117,66 @@ describe("suivi course", () => {
     const s = stats(E, "2026-10-05"), ok = BADGES.filter((b) => b.valeur(s) >= b.cible).map((b) => b.id);
     expect(ok).toEqual(expect.arrayContaining(["run1", "km100", "jourj"]));
     expect(ok).not.toContain("km500");
+  });
+});
+
+describe("Hyrox", () => {
+  const hx = (x: Partial<PlanCourse> = {}) => plan({ obj: "hyrox", date: "2027-01-10", cat: "h", salle: true, ...x });
+  it("plan de 8 à 12 semaines, une séance « Course + ateliers » par semaine qui monte en tours", () => {
+    const p = hx(), P = genererPlan(p);
+    expect(P.length).toBeGreaterThanOrEqual(8);
+    expect(P.length).toBeLessThanOrEqual(12);
+    const tours = P.slice(0, -1).map((W) => W.seances.filter((x) => x.type === "hyrox"));
+    for (const t of tours) expect(t.length).toBe(1);
+    const n = tours.map((t) => t[0].tours!.length);
+    expect(n[0]).toBe(4); // fondation : 4 tours de 500 m
+    expect(tours[0][0].tours![0].km).toBe(0.5);
+    expect(Math.max(...n)).toBe(8); // simulation complète en phase spécifique
+    expect(n.at(-1)).toBe(4); // affûtage
+    /* chaque tour : un km libre puis un atelier libre, entre échauffement et retour au calme */
+    const ph = tours.find((t) => t[0].tours!.length === 8)![0].phases!;
+    expect(ph[0].type).toBe("echauf");
+    expect(ph.at(-1)!.type).toBe("calme");
+    expect(ph.filter((x) => x.libre).length).toBe(16);
+    expect(ph.map((x) => x.titre)).toEqual(expect.arrayContaining(["SkiErg", "Wall balls", "Farmer's carry"]));
+  });
+  it("jour J : Hyrox, chrono = 8 km à l'allure Hyrox + ateliers", () => {
+    const P = genererPlan(hx()), J = P.at(-1)!.seances.find((x) => x.type === "course")!;
+    expect(J.titre).toMatch(/Hyrox/);
+    expect(J.km).toBe(8);
+    const A = allures(vdot(10, 3000));
+    expect(chronoPrevu("hyrox", vdot(10, 3000))).toBe(Math.round(8 * allureHyrox(A) + tempsAteliers(vdot(10, 3000))));
+    expect(allureHyrox(A)).toBe(A.dix + 30);
+    expect(estimation(hx(), [], "2026-10-05").sec).toBe(chronoPrevu("hyrox", vdot(10, 3000)));
+  });
+  it("charges de la catégorie, et remplaçants sans machine", () => {
+    const wall = ATELIERS.find((a) => a.k === "wall")!, ski = ATELIERS.find((a) => a.k === "ski")!;
+    expect(consigneAtelier(wall, 1, { cat: "h", salle: true }).dose).toBe("× 100 · 6 kg");
+    expect(consigneAtelier(wall, 1, { cat: "f", salle: true }).dose).toBe("× 100 · 4 kg");
+    expect(consigneAtelier(ski, 0.75, { salle: true }).dose).toBe("750 m");
+    expect(consigneAtelier(ski, 1, { salle: false }).texte).toMatch(/Sans machine/);
+    const P = genererPlan(hx({ salle: false })), seance = P.flatMap((W) => W.seances).find((x) => x.type === "hyrox" && x.tours!.length === 8)!;
+    expect(seance.phases!.find((x) => x.titre === "SkiErg")!.consigne).toMatch(/Sans machine/);
+  });
+  it("renfo Hyrox A et B, adaptés au matériel ; les plans de course ne changent pas", () => {
+    const tout = seancesRenfoHyrox(() => true), rien = seancesRenfoHyrox((id) => ["fepc", "jsq", "burpsl", "gai", "sqpc", "pont", "ra", "fsaut"].includes(id));
+    expect(tout.map((s) => s.nom)).toEqual(["Renfo Hyrox A", "Renfo Hyrox B"]);
+    expect(tout[1].ex.map((e) => e.id)).toContain("trpush");
+    expect(rien[1].ex.map((e) => e.id)).not.toContain("trpush");
+    for (const s of [...tout, ...rien]) for (const e of s.ex) expect(EX[e.id], e.id).toBeTruthy();
+    expect(genererPlan(hx()).flatMap((W) => W.seances).filter((x) => x.type === "renfo")[0].titre).toBe("Renfo Hyrox A");
+    expect(genererPlan(plan()).flatMap((W) => W.seances).some((x) => x.type === "hyrox")).toBe(false);
+  });
+});
+describe("Hyrox : charges réduites", () => {
+  it("traîneau à 70 % tant que la dose est partielle, charge de course à pleine dose", () => {
+    const push = ATELIERS.find((a) => a.k === "push")!;
+    expect(consigneAtelier(push, 0.5, { cat: "h", salle: true }).dose).toBe("30 m · 105 kg");
+    expect(consigneAtelier(push, 1, { cat: "f", salle: true }).dose).toBe("50 m · 102 kg");
+  });
+  it("chrono réaliste : 50 min au 10 km donne un premier Hyrox entre 1 h 15 et 1 h 35", () => {
+    const t = chronoPrevu("hyrox", vdot(10, 3000));
+    expect(t).toBeGreaterThan(75 * 60);
+    expect(t).toBeLessThan(95 * 60);
   });
 });

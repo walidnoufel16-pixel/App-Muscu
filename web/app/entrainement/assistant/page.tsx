@@ -100,7 +100,7 @@ function Assistant() {
             : type === "mixte"
               ? tr("De la musculation et un bloc cardio dans la même séance. Le bloc se place où tu veux : avant, entre deux exercices ou à la fin.")
               : type === "course"
-                ? tr("Un plan de préparation pour ta course : allures calculées sur ton niveau, montée progressive, affûtage avant le jour J, et renfo du coureur.")
+                ? tr("Un plan de préparation pour ta course ou ton Hyrox : allures calculées sur ton niveau, montée progressive, affûtage avant le jour J, et renfo.")
                 : type === "exercices"
                   ? tr("Tous les exercices, muscle par muscle, avec ton matériel. Touche un exercice pour voir sa fiche.")
                   : tr("Une séance guidée : Oxa annonce chaque effort et chaque récupération, avec un signal sonore.")}

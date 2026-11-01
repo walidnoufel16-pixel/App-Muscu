@@ -4,7 +4,7 @@
    carte sur Entraînement, rubrique Course de l'onglet Exercices, et feuille de saisie d'une sortie. */
 import { loc, tr } from "@/lib/i18n";
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Route } from "next";
 import { ArrowRightIcon, CaretDownIcon, CaretRightIcon, PauseCircleIcon, PersonSimpleRunIcon, WarningIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
@@ -13,9 +13,8 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/compone
 import { Segmente } from "./segmente";
 import { confirmer } from "./confirmer";
 import {
-  adapter, allures, allureTxt, avertissement, calendrier, chronoTxt, DISTANCES, enPause, estimation, genererPlan, joursAvantCourse, semaineDe, seancesRenfo,
-  tempsPrevu, vdotDe, NOMS_PHASE, type ObjectifCourse, type PlanCourse, type SeanceCourse,
-  NOMS_RENFO,
+  adapter, allureHyrox, allures, allureTxt, ATELIERS, avertissement, calendrier, chronoPrevu, chronoTxt, DISTANCES, enPause, estimation, genererPlan, joursAvantCourse, nomsRenfo,
+  semaineDe, seancesRenfo, seancesRenfoHyrox, tempsAteliers, vdotDe, NOMS_PHASE, type ObjectifCourse, type PlanCourse, type SeanceCourse,
 } from "@/lib/logic/course";
 import { dispoDeclare, nb } from "@/lib/logic/core";
 import { decaler, jourDe, lundiDe } from "@/lib/logic/historique";
@@ -35,7 +34,10 @@ export function QuestionnaireCourse() {
   const etat = useRepere((s) => s.etat);
   const muter = useRepere((s) => s.muter);
   const [auj] = useState(() => jourDe(Date.now()));
-  const [obj, setObj] = useState<ObjectifCourse>("semi");
+  const objUrl = useSearchParams().get("obj");
+  const [obj, setObj] = useState<ObjectifCourse>(objUrl === "hyrox" || objUrl === "10k" || objUrl === "marathon" ? objUrl : "semi");
+  const [cat, setCat] = useState<"h" | "f">("h");
+  const hyrox = obj === "hyrox";
   const [date, setDate] = useState(() => decaler(auj, 7 * 14));
   const [debutant, setDebutant] = useState(false);
   const [refKm, setRefKm] = useState(10);
@@ -46,19 +48,21 @@ export function QuestionnaireCourse() {
   const ref = debutant || sec < 600 ? null : { km: refKm, sec };
   const cal = calendrier(obj, date, auj);
   const alerte = date > auj ? avertissement(obj, ref, cal.dispo) : tr("Choisis une date de course à venir.");
-  const V = vdotDe({ ref }), A = allures(V), prevu = tempsPrevu(V, DISTANCES[obj].km);
+  const V = vdotDe({ ref }), A = allures(V), prevu = chronoPrevu(obj, V);
   const peut = date > decaler(auj, 6) && (debutant || sec >= 600);
 
   const creer = async () => {
     if (etat.COURSE && !(await confirmer({ titre: tr("Remplacer ta préparation en cours ?"), texte: tr("Ton plan {a} sera remplacé. Tes sorties déjà notées restent dans ton historique.", { a: DISTANCES[etat.COURSE.obj].nom.toLowerCase() }), ok: tr("Remplacer") }))) return;
     tactile(10);
-    const plan: PlanCourse = { obj, date, debut: cal.debut, jours, renfo, ref, pauses: [], ajust: {}, cree: auj };
+    const plan: PlanCourse = { obj, date, debut: cal.debut, jours, renfo, ref, pauses: [], ajust: {}, cree: auj, ...(hyrox ? { cat, salle: (etat.A.materiel ?? 0) === 0 } : {}) };
     muter((E) => {
       E.COURSE = plan;
-      /* séances de renfo du coureur : ajoutées une fois à « Mes séances » (groupe Musculation) */
-      seancesRenfo((id) => dispoDeclare(E.A, id)).slice(0, renfo).forEach((r, i) => { if (!E.SEANCES.some((x) => NOMS_RENFO[i].includes(x.nom))) E.SEANCES.push({ nom: r.nom, ex: r.ex }); });
+      /* séances de renfo (coureur ou Hyrox) : ajoutées une fois à « Mes séances » (groupe Musculation) */
+      (hyrox ? seancesRenfoHyrox : seancesRenfo)((id) => dispoDeclare(E.A, id)).slice(0, renfo).forEach((r, i) => {
+        if (!E.SEANCES.some((x) => nomsRenfo(obj, i as 0 | 1).includes(x.nom))) E.SEANCES.push({ nom: r.nom, ex: r.ex });
+      });
     });
-    toast.success(tr("Plan {a} créé : {semaines} semaines", { a: DISTANCES[obj].nom.toLowerCase(), semaines: cal.semaines }));
+    toast.success(tr("Plan {a} créé : {semaines} semaines", { a: hyrox ? "Hyrox" : DISTANCES[obj].nom.toLowerCase(), semaines: cal.semaines }));
     remplacement();
     router.replace("/entrainement/course", AVANT);
   };
@@ -68,15 +72,39 @@ export function QuestionnaireCourse() {
       <div className="flex flex-col gap-6 px-4 pb-28">
         <section>
           <div className="eyebrow mb-2 px-1">{tr("Ta course")}</div>
-          <Segmente label={tr("Distance")} valeur={obj} onChange={setObj} options={(Object.keys(DISTANCES) as ObjectifCourse[]).map((o) => ({ v: o, n: DISTANCES[o].nom }))} />
+          <Segmente label={tr("Distance")} valeur={obj} onChange={setObj} options={(Object.keys(DISTANCES) as ObjectifCourse[]).map((o) => ({ v: o, n: o === "semi" ? tr("Semi") : DISTANCES[o].nom }))} />
+          {hyrox && (
+            <div className="mt-3 rounded-[20px] bg-[#0a0a0c] p-3.5 text-white">
+              <b className="text-[15px]">{tr("Le format Hyrox")}</b>
+              <p className="mt-0.5 text-[12.5px] text-white/70">{tr("8 × 1 km de course, chaque km suivi d'un atelier.")}</p>
+              <ol className="mt-2.5 grid grid-cols-2 gap-1.5">
+                {ATELIERS.map((a, i) => (
+                  <li key={a.k} className="rounded-[10px] bg-white/10 px-2.5 py-1.5 text-[12px] leading-tight">
+                    <b className="mr-1 text-[#2dd4bf]">{i + 1}</b>{a.nom} {a.unite === "reps" ? `× ${a.dose}` : `${a.dose} m`}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
           <label className="mt-3 flex items-center justify-between gap-3 rounded-2xl border bg-card px-4 py-3 text-[15px]">
             {tr("Date de la course")}
             <input type="date" aria-label={tr("Date de la course")} value={date} min={decaler(auj, 7)} onChange={(e) => e.target.value && setDate(e.target.value)} className="rounded-lg border bg-background px-2 py-1.5 text-[15px]" />
           </label>
         </section>
 
+        {hyrox && (
+          <section>
+            <div className="eyebrow mb-2 px-1">{tr("Catégorie")}</div>
+            <Segmente label={tr("Catégorie")} valeur={cat} onChange={setCat} options={[{ v: "h", n: tr("Open hommes") }, { v: "f", n: tr("Open femmes") }]} />
+            <p className="mt-2 px-1 text-[12.5px] leading-snug text-muted-foreground">
+              {cat === "h" ? tr("Charges des consignes : wall ball 6 kg, farmer's carry 2 × 24 kg, sac 20 kg.") : tr("Charges des consignes : wall ball 4 kg, farmer's carry 2 × 16 kg, sac 10 kg.")}
+              {(etat.A.materiel ?? 0) > 0 && " " + tr("Sans salle, chaque machine (SkiErg, traîneau, rameur) a son remplaçant.")}
+            </p>
+          </section>
+        )}
+
         <section>
-          <div className="eyebrow mb-2 px-1">{tr("Ton niveau")}</div>
+          <div className="eyebrow mb-2 px-1">{hyrox ? tr("Ton niveau en course") : tr("Ton niveau")}</div>
           <Segmente label={tr("Niveau")} valeur={debutant ? 1 : 0} onChange={(v) => setDebutant(v === 1)} options={[{ v: 0, n: tr("J'ai un chrono récent") }, { v: 1, n: tr("Je débute") }]} />
           {!debutant ? (
             <div className="mt-3 rounded-2xl border bg-card p-3.5">
@@ -94,13 +122,15 @@ export function QuestionnaireCourse() {
         </section>
 
         <section>
-          <div className="eyebrow mb-2 px-1">{tr("Sorties par semaine")}</div>
-          <Segmente label={tr("Sorties par semaine")} valeur={jours} onChange={setJours} options={[3, 4, 5].map((j) => ({ v: j, n: `${j} sorties` }))} />
+          <div className="eyebrow mb-2 px-1">{hyrox ? tr("Séances par semaine") : tr("Sorties par semaine")}</div>
+          <Segmente label={tr("Sorties par semaine")} valeur={jours} onChange={setJours} options={[3, 4, 5].map((j) => ({ v: j, n: hyrox ? `${j}` : `${j} sorties` }))} />
         </section>
         <section>
-          <div className="eyebrow mb-2 px-1">{tr("Renforcement du coureur")}</div>
+          <div className="eyebrow mb-2 px-1">{hyrox ? tr("Renfo Hyrox") : tr("Renforcement du coureur")}</div>
           <Segmente label={tr("Renforcement")} valeur={renfo} onChange={setRenfo} options={[{ v: 0, n: tr("Aucun") }, { v: 1, n: tr("1 par semaine") }, { v: 2, n: tr("2 par semaine") }]} />
-          <p className="mt-2 px-1 text-[12.5px] leading-snug text-muted-foreground">{tr("25 min de mollets, fessiers, ischios et gainage : c'est ce qui protège le plus des blessures quand on le fait régulièrement.")}</p>
+          <p className="mt-2 px-1 text-[12.5px] leading-snug text-muted-foreground">{hyrox
+            ? tr("35 min de force pour les ateliers : fentes, port de charges, thrusters, squat, rowing. Elles arrivent dans Mes séances.")
+            : tr("25 min de mollets, fessiers, ischios et gainage : c'est ce qui protège le plus des blessures quand on le fait régulièrement.")}</p>
         </section>
 
         <section className="rounded-[24px] border border-plate/40 bg-plate-soft/60 p-4">
@@ -111,9 +141,14 @@ export function QuestionnaireCourse() {
           {cal.debut > auj && <p className="mt-1 text-[13px] text-muted-foreground">{tr("Il démarre le lundi {a}. D'ici là, 2 ou 3 footings faciles par semaine.", { a: new Date(cal.debut + "T12:00").toLocaleDateString(loc(), { day: "numeric", month: "long" }) })}</p>}
           <div className="mt-3 grid grid-cols-2 gap-2 text-[13px]">
             <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Chrono estimé")}</div><div className="num text-[19px] font-bold">{chronoTxt(prevu)}</div></div>
+            {hyrox ? (
+              <>
+                <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Allure Hyrox")}</div><div className="num text-[19px] font-bold">{allureTxt(allureHyrox(A))}</div></div>
+                <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Ateliers")}</div><div className="num text-[19px] font-bold">≈ {Math.round(tempsAteliers(V) / 60)} min</div></div>
+              </>
+            ) : <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Seuil")}</div><div className="num text-[19px] font-bold">{allureTxt(A.seuil)}</div></div>}
             <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Footing")}</div><div className="num text-[19px] font-bold">{allureTxt(A.facile)}</div></div>
-            <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Seuil")}</div><div className="num text-[19px] font-bold">{allureTxt(A.seuil)}</div></div>
-            <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Fractionné")}</div><div className="num text-[19px] font-bold">{allureTxt(A.vma)}</div></div>
+            {!hyrox && <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Fractionné")}</div><div className="num text-[19px] font-bold">{allureTxt(A.vma)}</div></div>}
           </div>
           {alerte && <p className="mt-3 flex gap-2 rounded-xl bg-amber-500/12 p-2.5 text-[12.5px] leading-snug"><WarningIcon className="mt-0.5 size-4 shrink-0 text-amber-600" weight="fill" />{alerte}</p>}
         </section>
@@ -162,6 +197,7 @@ const SORTIES_PLAN: [string, string][] = [
   [tr("Sortie longue"), tr("La plus longue de la semaine, en douceur. Elle augmente de 10 % au plus d'une semaine à l'autre.")],
   [tr("Allure spécifique"), tr("Des blocs à ton allure du jour J, pour qu'elle devienne naturelle.")],
   [tr("Renfo du coureur"), tr("25 minutes de renforcement pour courir mieux et éviter les blessures.")],
+  [tr("Course + ateliers"), tr("Hyrox : des tours de course suivis d'un atelier (SkiErg, traîneau, burpees, wall balls…), jusqu'à la simulation complète.")],
 ];
 
 /** Rubrique Course : ton plan s'il y en a un, sinon de quoi en préparer un ; les séances qu'il contient. */
@@ -181,7 +217,7 @@ export function VueCourse() {
         <div className="rounded-[22px] bg-bandeau p-5 text-bandeau-foreground">
           <PersonSimpleRunIcon className="size-8" weight="fill" />
           <h3 className="mt-2 text-[22px] leading-tight font-bold">{tr("Prépare une course")}</h3>
-          <p className="mt-1.5 text-[14px] leading-relaxed opacity-90">{tr("10 km, semi-marathon ou marathon : un plan jusqu'au jour J, avec tes allures calculées sur ton niveau.")}</p>
+          <p className="mt-1.5 text-[14px] leading-relaxed opacity-90">{tr("10 km, semi-marathon, marathon ou Hyrox : un plan jusqu'au jour J, avec tes allures calculées sur ton niveau.")}</p>
           <button onClick={() => router.push("/entrainement/assistant?type=course" as Route, AVANT)} className="mt-4 inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[15px] font-semibold text-[#0a0a0c] active:scale-[.97]">
             {tr("Créer mon plan")}<ArrowRightIcon className="size-4" weight="bold" />
           </button>
@@ -308,7 +344,7 @@ export function SectionCourse() {
         {c && est && (
           <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-plate-soft px-3.5 py-2.5">
             <span className="text-[13px] leading-snug">
-              {tr("Chrono estimé au")}{" "}{DISTANCES[c.obj].nom.toLowerCase()}
+              {tr("Chrono estimé au")}{" "}{c.obj === "hyrox" ? "Hyrox" : DISTANCES[c.obj].nom.toLowerCase()}
               <span className="block text-[11.5px] text-muted-foreground">{est.depuis ? tr("d'après ta sortie du {a}", { a: new Date(est.depuis.d + "T12:00").toLocaleDateString(loc(), { day: "numeric", month: "long" }) }) : tr("d'après ton chrono de référence")}</span>
             </span>
             <b className="num shrink-0 text-[22px]">{chronoTxt(est.sec)}</b>
