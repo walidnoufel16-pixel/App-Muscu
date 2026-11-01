@@ -16,7 +16,7 @@ export function EnTetePhoto({ photo, position = "center", surtitre, titre, sous,
       <div className="safe-top pointer-events-none fixed inset-x-0 top-0 z-30 mx-auto max-w-[480px]">
         <div className="flex h-11 items-center px-3">
           <span className="pointer-events-auto">
-            <Retour repli={repli} className="ml-0 h-8 rounded-full bg-black/40 px-3 text-white backdrop-blur-md hover:bg-black/50 hover:text-white" />
+            <Retour repli={repli} className="ml-0 h-8 rounded-full bg-[#0a0a0c]/70 px-3 text-white shadow-sm backdrop-blur-md hover:bg-[#0a0a0c]/80 hover:text-white" />
           </span>
         </div>
       </div>
