@@ -82,10 +82,13 @@ self.addEventListener("fetch", (e) => {
     }))));
     return;
   }
-  /* pages et manifeste : réseau d'abord, pour qu'un nouveau nom ou une nouvelle icône se voie tout de suite ;
-     guides et blog aussi pour leurs données de navigation (un article corrigé se voit sans recharger) */
-  const chemin = new URL(req.url).pathname;
-  if (req.mode === "navigate" || chemin === "/manifest.webmanifest" || /^\/(en\/)?(blog|guides)(\/|$)/.test(chemin)) {
+  /* pages, manifeste et données de navigation de Next (fichiers .txt, ?_rsc=) : réseau d'abord, cache en
+     secours hors ligne. Ces données doivent venir de la même version que la page : servies depuis le cache
+     d'un ancien déploiement, elles bloquaient la navigation (toutes les bannières ouvraient la même rubrique,
+     les onglets revenaient en arrière) tant que l'ancienne version restait installée. */
+  const u = new URL(req.url), chemin = u.pathname;
+  const donneesNav = chemin.endsWith(".txt") || u.searchParams.has("_rsc") || req.headers.get("RSC") === "1";
+  if (req.mode === "navigate" || chemin === "/manifest.webmanifest" || donneesNav || ["/blog", "/guides", "/en/blog", "/en/guides"].some((d) => chemin === d || chemin.startsWith(d + "/"))) {
     e.respondWith(fetch(req).then((r) => { const c = r.clone(); caches.open(C).then((x) => x.put(req, c)); return r; })
       .catch(() => caches.match(req, { ignoreSearch: true }).then((r) => r || caches.match("/"))));
     return;
@@ -97,4 +100,7 @@ self.addEventListener("fetch", (e) => {
 });
 `;
 writeFileSync(join(OUT, "sw.js"), sw);
+/* un sw.js invalide ne s'installe jamais : les téléphones restent alors sur l'ancienne version.
+   On vérifie sa syntaxe ici, pour que le build échoue plutôt que de le publier. */
+execSync(`node --check "${join(OUT, "sw.js")}"`, { stdio: "inherit" });
 console.log(`sw.js : cache repere-${v}, ${liste.length} fichiers`);

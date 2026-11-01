@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ARTICLES, BILLETS, CATEGORIES, GUIDES, aLireAussi, adresse, article, tempsLecture, texte } from "@/lib/data/blog";
+import { ARTICLES, AUJ, BILLETS, CATEGORIES, GUIDES, aLireAussi, adresse, article, programme, tempsLecture, texte } from "@/lib/data/blog";
 import fs from "node:fs";
 import path from "node:path";
 import { EX } from "@/lib/data/exercices";
@@ -61,5 +61,10 @@ describe("blog public", () => {
     expect(BILLETS.length).toBe(3);
     for (const b of BILLETS) expect(adresse(b, "fr")).toMatch(/^\/blog\//);
     expect(GUIDES.length + BILLETS.length).toBe(ARTICLES.length);
+  });
+  it("publication programmée : un article daté plus tard que le jour de construction n'est pas en ligne", () => {
+    expect(programme({ date: "2999-01-01" })).toBe(true);
+    expect(programme({ date: AUJ })).toBe(false);
+    for (const a of ARTICLES) expect(programme(a)).toBe(false); // hors app test
   });
 });
