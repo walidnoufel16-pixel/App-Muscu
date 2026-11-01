@@ -7,7 +7,7 @@
 import { tr } from "@/lib/i18n";
 import { usePathname, useRouter } from "next/navigation";
 import type { Route } from "next";
-import { BellIcon, CalendarDotsIcon, CaretRightIcon, ChatCircleTextIcon, CircleHalfIcon, DeviceMobileIcon, DownloadSimpleIcon, ForkKnifeIcon, ListIcon, ToolboxIcon, TrophyIcon, UserPlusIcon, WrenchIcon, type Icon } from "@phosphor-icons/react";
+import { BellIcon, CalendarDotsIcon, CompassIcon, CaretRightIcon, ChatCircleTextIcon, CircleHalfIcon, DeviceMobileIcon, DownloadSimpleIcon, ForkKnifeIcon, ListIcon, ToolboxIcon, TrophyIcon, UserPlusIcon, WrenchIcon, type Icon } from "@phosphor-icons/react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { useRepere } from "@/lib/store";
 import { useEstAdmin } from "@/lib/admin";
@@ -16,6 +16,7 @@ import { lienRubrique } from "./rubriques";
 import { tactile } from "@/lib/repos";
 import { appInstallee } from "./installer";
 import { inviterAmi } from "./inviter";
+import { revoirVisite } from "./visite";
 import { useProgrammeActif } from "@/lib/fonctionnalites";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +28,7 @@ export const estRacine = (chemin: string) => RACINES.includes(chemin.replace(/\/
 export function BoutonMenu() {
   const sync = useRepere((s) => s.sync);
   return (
-    <button onClick={() => { tactile(6); useMenu.setState({ ouvert: true }); }} aria-label={tr("Menu")} className="relative -ml-1.5 grid size-10 place-items-center rounded-full active:bg-muted">
+    <button data-visite="menu" onClick={() => { tactile(6); useMenu.setState({ ouvert: true }); }} aria-label={tr("Menu")} className="relative -ml-1.5 grid size-10 place-items-center rounded-full active:bg-muted">
       <ListIcon className="size-6" weight="bold" />
       {sync !== null && <span className={cn("absolute top-2 right-1.5 size-2 rounded-full ring-2 ring-background", sync ? "bg-success" : "bg-muted-foreground")} aria-label={sync ? tr("Synchronisé") : tr("Hors ligne")} />}
     </button>
@@ -82,6 +83,7 @@ export function MenuLateral() {
       titre: tr("Aide"),
       l: [
         { Icone: ChatCircleTextIcon, n: tr("Donner mon avis"), onClick: ouvrir("avis") },
+        { Icone: CompassIcon, n: tr("Revoir la visite"), onClick: () => { tactile(5); fermer(); setTimeout(revoirVisite, 300); } },
         { Icone: DeviceMobileIcon, n: tr("Installer l'app"), onClick: ouvrir("installer"), cache: appInstallee() && !admin },
         { Icone: WrenchIcon, n: tr("Administration"), onClick: va("/admin"), cache: !admin },
       ],

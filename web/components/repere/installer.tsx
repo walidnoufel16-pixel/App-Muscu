@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useEstAdmin } from "@/lib/admin";
 import { useMenu } from "@/lib/nav";
 import { useCelebrer } from "@/lib/celebrer";
+import { useVisite } from "./visite";
 
 /** L'app est-elle déjà sur l'écran d'accueil ? (le menu cache alors « Installer l'app ») */
 export const appInstallee = () => typeof window !== "undefined" && installee();
@@ -46,7 +47,8 @@ export function Installer() {
   /* jamais par-dessus le bilan d'une séance, ni sur l'ancienne adresse (la feuille de déménagement explique l'installation) */
   const bilan = useCelebrer((s) => !!s.bilan);
   const ancienne = typeof location !== "undefined" && location.hostname.endsWith(".onrender.com") && !!process.env.NEXT_PUBLIC_NOUVELLE_ADRESSE;
-  const carte = (visible || (admin && !ferme && !repousse())) && !bilan && !ancienne;
+  const visite = useVisite((s) => s.etape !== null);
+  const carte = (visible || (admin && !ferme && !repousse())) && !bilan && !ancienne && !visite;
   const plusTard = () => { try { localStorage.setItem(CLE, String(Date.now())); } catch {} setVisible(false); setFerme(true); };
   const ouvrir = async () => {
     if (invite) { await invite.prompt(); const r = await invite.userChoice; if (r.outcome === "accepted") setVisible(false); return; }
