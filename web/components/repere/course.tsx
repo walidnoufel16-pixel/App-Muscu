@@ -6,11 +6,15 @@ import { loc, tr } from "@/lib/i18n";
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Route } from "next";
-import { ArrowRightIcon, CaretDownIcon, CaretRightIcon, PauseCircleIcon, PersonSimpleRunIcon, WarningIcon } from "@phosphor-icons/react";
+import {
+  ArrowFatLeftIcon, ArrowFatRightIcon, ArrowRightIcon, BasketballIcon, BoatIcon, CaretDownIcon, CaretRightIcon, PauseCircleIcon, PersonArmsSpreadIcon, PersonSimpleRunIcon,
+  PersonSimpleSkiIcon, PersonSimpleWalkIcon, SuitcaseSimpleIcon, WarningIcon, type Icon,
+} from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { Segmente } from "./segmente";
+import { EnTetePhoto } from "./en-tete-photo";
 import { confirmer } from "./confirmer";
 import {
   adapter, allureHyrox, allures, allureTxt, ATELIERS, avertissement, calendrier, chronoPrevu, chronoTxt, DISTANCES, enPause, estimation, genererPlan, joursAvantCourse, nomsRenfo,
@@ -25,6 +29,11 @@ import { ARRIERE, AVANT, remplacement } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 
+/* photos des écrans Oxa Run (public/img) : la préparation, le plan, la séance « Course + ateliers » */
+export const PHOTOS_RUN = { prepa: "course-relais", plan: "course-piste", stade: "course-stade", hyrox: "hyrox-traineau", ateliers: "hyrox-burpees" };
+const ICONES_ATELIER: Record<string, Icon> = {
+  ski: PersonSimpleSkiIcon, push: ArrowFatRightIcon, pull: ArrowFatLeftIcon, burpee: PersonArmsSpreadIcon, row: BoatIcon, farmer: SuitcaseSimpleIcon, lunge: PersonSimpleWalkIcon, wall: BasketballIcon,
+};
 const REFS = [{ km: 5, n: tr("5 km") }, { km: 10, n: tr("10 km") }, { km: 21.0975, n: tr("Semi") }];
 const champ = "h-12 w-full rounded-xl border bg-background px-3 text-center text-[18px] font-semibold outline-none focus:border-plate num";
 
@@ -93,22 +102,26 @@ export function QuestionnaireCourse() {
 
   return (
     <>
+      <EnTetePhoto photo={hyrox ? PHOTOS_RUN.hyrox : PHOTOS_RUN.prepa} position={hyrox ? "center 35%" : "center 20%"} repli="/entrainement"
+        surtitre={hyrox ? "Oxa Run · Hyrox" : "Oxa Run"}
+        titre={ex ? tr("Modifier mon plan") : hyrox ? tr("Prépare ton Hyrox") : tr("Prépare ta course")}
+        sous={ex ? tr("Change tes réglages : tes sorties notées, tes pauses et ta progression sont gardées.") : hyrox ? tr("8 × 1 km de course, chaque km suivi d'un atelier.") : tr("Allures calculées sur ton niveau, montée progressive, affûtage avant le jour J.")} />
       <div className="flex flex-col gap-6 px-4 pb-28">
         <section>
           <div className="eyebrow mb-2 px-1">{tr("Ta course")}</div>
           <Segmente label={tr("Distance")} valeur={obj} onChange={setObj} options={(Object.keys(DISTANCES) as ObjectifCourse[]).map((o) => ({ v: o, n: o === "semi" ? tr("Semi") : DISTANCES[o].nom }))} />
           {hyrox && (
-            <div className="mt-3 rounded-[20px] bg-[#0a0a0c] p-3.5 text-white">
-              <b className="text-[15px]">{tr("Le format Hyrox")}</b>
-              <p className="mt-0.5 text-[12.5px] text-white/70">{tr("8 × 1 km de course, chaque km suivi d'un atelier.")}</p>
-              <ol className="mt-2.5 grid grid-cols-2 gap-1.5">
-                {ATELIERS.map((a, i) => (
-                  <li key={a.k} className="rounded-[10px] bg-white/10 px-2.5 py-1.5 text-[12px] leading-tight">
-                    <b className="mr-1 text-[#2dd4bf]">{i + 1}</b>{a.nom} {a.unite === "reps" ? `× ${a.dose}` : `${a.dose} m`}
+            <ol aria-label={tr("Le format Hyrox")} className="mt-3 grid grid-cols-2 gap-1.5">
+              {ATELIERS.map((a) => {
+                const I = ICONES_ATELIER[a.k];
+                return (
+                  <li key={a.k} className="flex items-center gap-2 rounded-[14px] bg-card px-2 py-2 text-[12.5px] leading-tight">
+                    <span className="grid size-7 shrink-0 place-items-center rounded-[9px] bg-plate text-plate-foreground"><I className="size-4" weight="bold" /></span>
+                    <span className="min-w-0">{a.nom} {a.unite === "reps" ? `× ${a.dose}` : `${a.dose} m`}</span>
                   </li>
-                ))}
-              </ol>
-            </div>
+                );
+              })}
+            </ol>
           )}
           <label className="mt-3 flex items-center justify-between gap-3 rounded-2xl border bg-card px-4 py-3 text-[15px]">
             {tr("Date de la course")}
@@ -242,9 +255,12 @@ export function VueCourse() {
           <CarteCourse />
         </section>
       ) : (
-        <div className="rounded-[22px] bg-bandeau p-5 text-bandeau-foreground">
-          <PersonSimpleRunIcon className="size-8" weight="fill" />
-          <h3 className="mt-2 text-[22px] leading-tight font-bold">{tr("Prépare une course")}</h3>
+        <div className="relative isolate overflow-hidden rounded-[22px] bg-[#0a0a0c] p-5 pt-28 text-white">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`/img/grand/${PHOTOS_RUN.stade}.avif`} alt="" loading="lazy" className="absolute inset-0 -z-10 size-full object-cover"
+            onError={(e) => { const p = `/img/${PHOTOS_RUN.stade}.avif`; if (!e.currentTarget.src.endsWith(p)) e.currentTarget.src = p; }} />
+          <span aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(10,10,12,0)_10%,rgba(10,10,12,.9)_70%)]" />
+          <h3 className="text-[22px] leading-tight font-bold">{tr("Prépare une course")}</h3>
           <p className="mt-1.5 text-[14px] leading-relaxed opacity-90">{tr("10 km, semi-marathon, marathon ou Hyrox : un plan jusqu'au jour J, avec tes allures calculées sur ton niveau.")}</p>
           <button onClick={() => router.push("/entrainement/assistant?type=course" as Route, AVANT)} className="mt-4 inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[15px] font-semibold text-[#0a0a0c] active:scale-[.97]">
             {tr("Créer mon plan")}<ArrowRightIcon className="size-4" weight="bold" />

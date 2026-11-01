@@ -91,7 +91,8 @@ function Assistant() {
 
   return (
     <>
-      <EnTete
+      {/* préparation de course : l'en-tête en photo est dans le questionnaire (il suit la course choisie) */}
+      {!courseSeule && <EnTete
         surtitre={courseSeule ? tr("Course") : street ? tr("Street workout") : tr("Créer ma séance")}
         titre={courseSeule ? (modif ? tr("Modifier mon plan") : tr("Prépare une course")) : tr("Créer une séance pour moi")}
         gauche={<Retour repli="/entrainement" />}
@@ -109,7 +110,7 @@ function Assistant() {
         </p>
         {/* street : pas de séance combinée (muscu en salle + bloc cardio) */}
         {!courseSeule && <Segmente label={tr("Catégorie")} className="mt-4" valeur={type} onChange={setType} options={[{ v: "muscu", n: tr("Muscu") }, { v: "cardio", n: tr("Cardio") }, ...(street ? [] : [{ v: "mixte" as const, n: tr("Combinée") }]), { v: "exercices", n: tr("Exercices") }]} />}
-      </EnTete>
+      </EnTete>}
 
       {type === "course" ? (
         <QuestionnaireCourse />

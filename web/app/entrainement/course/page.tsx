@@ -16,7 +16,8 @@ import { EnTete } from "@/components/repere/en-tete";
 import { Retour, useRetour } from "@/components/repere/retour";
 import { confirmer } from "@/components/repere/confirmer";
 import { Minuteur, departCourse, preparer, type Course } from "@/components/repere/minuteur";
-import { SaisieSortie } from "@/components/repere/course";
+import { PHOTOS_RUN, SaisieSortie } from "@/components/repere/course";
+import { EnTetePhoto } from "@/components/repere/en-tete-photo";
 import { mmss } from "@/components/repere/reglages-cardio";
 import {
   allureCourse, allures, allureDe, allureTxt, chronoTxt, DISTANCES, enPause, estimation, genererPlan, joursAvantCourse, NOMS_PHASE, nomsRenfo, reprendre, semaineDe, vdotDe,
@@ -100,10 +101,10 @@ function Plan() {
 
   return (
     <>
-      <EnTete
+      <EnTetePhoto photo={c.obj === "hyrox" ? PHOTOS_RUN.hyrox : PHOTOS_RUN.plan} position={c.obj === "hyrox" ? "center 35%" : "center"} repli="/entrainement"
         surtitre={`${DISTANCES[c.obj].nom} · ${new Date(c.date + "T12:00").toLocaleDateString(loc(), { weekday: "long", day: "numeric", month: "long" })}`}
         titre={J > 0 ? tr(J === 1 ? "J-1" : "J-{n}", { n: J }) : J === 0 ? tr("C'est aujourd'hui") : tr("Course passée")}
-        gauche={<Retour repli="/entrainement" />}
+        sous={tr("Semaine {a} sur {length} · {a1}", { a: k + 1, length: P.length, a1: NOMS_PHASE[P[k].phase] })}
       />
       <div className="flex flex-col gap-5 px-4 pb-10">
         <div className="grid grid-cols-2 gap-2">
@@ -229,7 +230,9 @@ function Seance({ cle }: { cle: string }) {
   const r = x.type === "renfo" ? renfo(W, x.renfo!) : null;
   return (
     <>
-      <EnTete surtitre={tr("Semaine {a} · {a1}", { a: k + 1, a1: NOMS_PHASE[W.phase] })} titre={x.titre} gauche={<Retour repli="/entrainement/course" />} />
+      {x.type === "hyrox"
+        ? <EnTetePhoto photo={PHOTOS_RUN.ateliers} repli="/entrainement/course" surtitre={tr("Semaine {a} · {a1}", { a: k + 1, a1: NOMS_PHASE[W.phase] })} titre={x.titre} sous={resume(x)} />
+        : <EnTete surtitre={tr("Semaine {a} · {a1}", { a: k + 1, a1: NOMS_PHASE[W.phase] })} titre={x.titre} gauche={<Retour repli="/entrainement/course" />} />}
       <div className="flex flex-col gap-4 px-4 pb-32">
         <div className="flex gap-3 rounded-[20px] border border-border/80 bg-card p-4">
           <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-plate-soft text-plate-ink"><I className="size-6" weight="fill" /></span>
