@@ -8,7 +8,7 @@
    - Recettes : un seul rang de filtres, dont « Mon frigo » (ce que j'ai déjà).
    Les préférences s'ouvrent depuis la roue de l'en-tête. Module en orange : une nuance par onglet. Première ouverture : le questionnaire. */
 import { tr } from "@/lib/i18n";
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowsClockwiseIcon, BarbellIcon, CaretDownIcon, CaretRightIcon, CouchIcon, GearSixIcon, MinusIcon, PencilSimpleIcon, PlusIcon, ShareNetworkIcon, ShoppingCartIcon, SlidersHorizontalIcon, XIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
@@ -51,6 +51,12 @@ function Repas() {
   /* le questionnaire, rouvert depuis la roue de l'en-tête ou depuis le menu (?prefs=1) */
   const [brouillon, setBrouillon] = useState<PrefsRepas | null>(() => (params.get("prefs") && p.fait ? p : null));
   const majPrefs = (q: PrefsRepas) => muter((E) => { E.A.repas = { ...q, fait: true }; });
+  /* tout l'écran passe aux couleurs du module (fond, barre d'onglets, feuilles), une nuance par onglet */
+  useEffect(() => {
+    const c = document.body.classList, onglet = `repas-${p.fait ? vue : "semaine"}`;
+    c.add("theme-repas", onglet);
+    return () => c.remove("theme-repas", onglet);
+  }, [vue, p.fait]);
 
   return (
     <div className="theme-repas">
