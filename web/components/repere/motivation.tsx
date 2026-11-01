@@ -171,7 +171,9 @@ export function SurveillantBadges() {
   const [bilanPrec, setBilanPrec] = useState(bilan);
   if (bilan !== bilanPrec) { setBilanPrec(bilan); if (bilanPrec && !bilan) setApresBilan(true); }
   if (!fete.length && apresBilan) setApresBilan(false);
-  const b = !bilan && (!enSeance || apresBilan) ? fete[0] : undefined;
+  /* tous les badges gagnés d'un coup dans une seule feuille */
+  const lot = !bilan && (!enSeance || apresBilan) ? fete : [];
+  const b = lot[0];
   useEffect(() => {
     if (!b) return;
     const t = setTimeout(() => gerbe(innerWidth / 2, innerHeight * 0.55), 350);
@@ -179,15 +181,34 @@ export function SurveillantBadges() {
     return () => clearTimeout(t);
   }, [b]);
   return (
-    <Drawer open={!!b} onOpenChange={(o) => !o && setFete((f) => f.slice(1))}>
+    <Drawer open={!!b} onOpenChange={(o) => !o && setFete([])}>
       <DrawerContent>
-        {b && (
+        {b && lot.length === 1 && (
           <div className="px-5 pt-4 pb-[max(env(safe-area-inset-bottom),20px)] text-center">
             <IconeBadge b={b} on className="mx-auto size-24 animate-[medaille_.8s_cubic-bezier(.3,1.5,.5,1)_both]" />
             <div className="eyebrow mt-5 animate-[monter_.5s_.15s_ease-out_both]">{tr("Nouveau badge")}</div>
             <DrawerTitle className="mt-1 animate-[monter_.5s_.22s_ease-out_both] text-[26px] font-bold tracking-[-0.02em]">{b.nom}</DrawerTitle>
             <DrawerDescription className="mt-1 animate-[monter_.5s_.3s_ease-out_both] text-[15px] text-muted-foreground">{b.texte}</DrawerDescription>
-            <Button variant="plate" size="xl" className="mt-6 w-full" onClick={() => setFete((f) => f.slice(1))}>{tr("Super")}</Button>
+            <Button variant="plate" size="xl" className="mt-6 w-full" onClick={() => setFete([])}>{tr("Super")}</Button>
+          </div>
+        )}
+        {b && lot.length > 1 && (
+          <div className="px-5 pt-4 pb-[max(env(safe-area-inset-bottom),20px)] text-center">
+            <div className="eyebrow animate-[monter_.5s_.1s_ease-out_both]">{tr("{n} nouveaux badges", { n: lot.length })}</div>
+            <DrawerTitle className="mt-1 text-[24px] font-bold tracking-[-0.02em]">{tr("Bien joué !")}</DrawerTitle>
+            <DrawerDescription className="sr-only">{lot.map((x) => x.nom).join(", ")}</DrawerDescription>
+            <ul className="mt-4 flex flex-col gap-2 text-left">
+              {lot.map((x, i) => (
+                <li key={x.id} className="flex animate-[monter_.5s_ease-out_both] items-center gap-3 rounded-2xl bg-card p-3" style={{ animationDelay: 150 + i * 80 + "ms" }}>
+                  <IconeBadge b={x} on className="size-12 shrink-0" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[15.5px] font-semibold">{x.nom}</span>
+                    <span className="block text-[13px] leading-snug text-muted-foreground">{x.texte}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <Button variant="plate" size="xl" className="mt-5 w-full" onClick={() => setFete([])}>{tr("Super")}</Button>
           </div>
         )}
       </DrawerContent>

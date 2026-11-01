@@ -29,14 +29,14 @@ export function Demenagement() {
   const [ouvert, setOuvert] = useState(false);
   /* sur Android, on installe depuis Chrome (menu ⋮), pas depuis Safari */
   const [android, setAndroid] = useState(false);
-  /* une fois par lancement : « Plus tard » la referme jusqu'à la prochaine ouverture de l'app */
+  /* « Plus tard » la referme pour 3 jours */
   useEffect(() => {
     let vu = false;
-    try { vu = !!sessionStorage.getItem(VU); } catch {}
+    try { vu = Date.now() - +(localStorage.getItem(VU) || 0) < 3 * 864e5; } catch {}
     setAndroid(/Android/i.test(navigator.userAgent));
     if (!vu && ancienneAdresse()) { const t = setTimeout(() => setOuvert(true), 1200); return () => clearTimeout(t); }
   }, []);
-  const plusTard = () => { try { sessionStorage.setItem(VU, "1"); } catch {} setOuvert(false); };
+  const plusTard = () => { try { localStorage.setItem(VU, String(Date.now())); } catch {} setOuvert(false); };
   const email = user?.email;
   const adresse = (NOUVELLE || "https://oxafit.app").replace(/^https:\/\//, "");
   return (
