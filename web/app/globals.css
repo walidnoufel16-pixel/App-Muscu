@@ -91,10 +91,10 @@
 /* Oxa Meal : un autre module de l'app, tout en orange. Le fond, les cartes et les bordures
    prennent des nuances d'orange ; chaque onglet a la sienne (ambre, safran, paprika), posée
    sur <body> par app/repas/page.tsx (classes repas-jour, repas-semaine, repas-recettes).
-   En clair : oranges pâles et texte noir ; en sombre : oranges brûlés et texte blanc. */
-body.repas-jour { --fond-repas: #fff3df; --fond-repas-sombre: #241606; }
-body.repas-semaine { --fond-repas: #ffecd9; --fond-repas-sombre: #241307; }
-body.repas-recettes { --fond-repas: #ffe6d8; --fond-repas-sombre: #251009; }
+   En clair : oranges pâles et texte noir ; en sombre : les fonds sombres habituels, l'orange en accent. */
+body.repas-jour { --fond-repas: #fff3df; }
+body.repas-semaine { --fond-repas: #ffecd9; }
+body.repas-recettes { --fond-repas: #ffe6d8; }
 .theme-repas {
   --background: var(--fond-repas, #ffecd9);
   --foreground: #1a1106;
@@ -117,19 +117,20 @@ body.repas-recettes { --fond-repas: #ffe6d8; --fond-repas-sombre: #251009; }
   --feu-soft: color-mix(in oklab, #f08a24 14%, transparent);
   --success: #b45309;
 }
+/* en sombre, le module garde les fonds sombres de l'app : seul l'orange marque Oxa Meal */
 .dark .theme-repas, .dark.theme-repas {
-  --background: var(--fond-repas-sombre, #241307);
-  --foreground: #fff6ec;
-  --card: #34200d;
-  --card-foreground: #fff6ec;
-  --popover: #3a2410;
-  --popover-foreground: #fff6ec;
-  --secondary: #472c13;
-  --muted: #472c13;
-  --accent: #533418;
-  --muted-foreground: #e2b78d;
-  --border: #553719;
-  --input: #64421f;
+  --background: #0a0a0c;
+  --foreground: #f5f5f7;
+  --card: #1c1c22;
+  --card-foreground: #f5f5f7;
+  --popover: #1c1c22;
+  --popover-foreground: #f5f5f7;
+  --secondary: #222228;
+  --muted: #1f1f25;
+  --accent: #26262d;
+  --muted-foreground: #95959f;
+  --border: #29292f;
+  --input: #34343c;
   --plate: #f59a3c;
   --plate-soft: color-mix(in oklab, #f59a3c 18%, transparent);
   --plate-ink: #ffb066;
