@@ -5,10 +5,14 @@
 import { EX } from "./exercices";
 import { FAMILLES_STREET, PROGRAMMES_STREET } from "./street";
 import { auteurRecette, imgExGrand, imgRecette } from "@/lib/medias";
+import { BLOG_EN, type Texte } from "./blog-en";
 
 export type Bloc = { h: string; p?: string[]; liste?: string[]; tableau?: { titre: string; lignes: string[] }[] };
 export type Categorie = "Street" | "Course" | "Muscu" | "Nutrition";
 export const CATEGORIES: Categorie[] = ["Street", "Course", "Muscu", "Nutrition"];
+export type Langue = "fr" | "en";
+/** Nom affiché d'une catégorie (les catégories restent en français dans les données). */
+export const nomCategorie = (c: Categorie, l: Langue) => (l === "en" ? { Street: "Calisthenics", Course: "Running", Muscu: "Strength", Nutrition: "Nutrition" }[c] : c);
 export type Article = {
   slug: string; titre: string; description: string; intro: string; blocs: Bloc[]; cta: string; lien: string;
   categorie: Categorie; date: string; // AAAA-MM-JJ
@@ -297,17 +301,22 @@ const LISTE: Article[] = [
 
 /** Les articles, du plus récent au plus ancien. */
 export const ARTICLES: Article[] = [...LISTE].sort((a, b) => b.date.localeCompare(a.date));
-export const article = (slug: string) => ARTICLES.find((a) => a.slug === slug);
+/** Textes d'un article dans une langue (l'anglais est dans lib/data/blog-en.ts, rangé sous l'identifiant français). */
+export const texte = (a: Article, l: Langue): Texte => (l === "en" ? BLOG_EN[a.slug] : a);
+/** Adresse d'un article dans une langue. */
+export const adresse = (a: Article, l: Langue) => (l === "en" ? `/en/blog/${BLOG_EN[a.slug].slug}/` : `/blog/${a.slug}/`);
+export const article = (slug: string, l: Langue = "fr") => ARTICLES.find((a) => texte(a, l).slug === slug);
 /** Minutes de lecture (environ 200 mots par minute). */
-export function tempsLecture(a: Article) {
-  const texte = [a.intro, ...a.blocs.flatMap((b) => [b.h, ...(b.p ?? []), ...(b.liste ?? []), ...(b.tableau ?? []).flatMap((t) => [t.titre, ...t.lignes])])].join(" ");
-  return Math.max(1, Math.round(texte.split(/\s+/).filter(Boolean).length / 200));
+export function tempsLecture(a0: Article, l: Langue = "fr") {
+  const a = texte(a0, l);
+  const texteBrut = [a.intro, ...a.blocs.flatMap((b) => [b.h, ...(b.p ?? []), ...(b.liste ?? []), ...(b.tableau ?? []).flatMap((t) => [t.titre, ...t.lignes])])].join(" ");
+  return Math.max(1, Math.round(texteBrut.split(/\s+/).filter(Boolean).length / 200));
 }
 /** Deux articles à lire ensuite : de la même catégorie d'abord, puis les plus récents. */
-export function aLireAussi(slug: string, n = 2) {
-  const a = article(slug);
-  const autres = ARTICLES.filter((x) => x.slug !== slug);
+export function aLireAussi(slug: string, n = 2, l: Langue = "fr") {
+  const a = article(slug, l);
+  const autres = ARTICLES.filter((x) => x !== a);
   return [...autres.filter((x) => x.categorie === a?.categorie), ...autres.filter((x) => x.categorie !== a?.categorie)].slice(0, n);
 }
-/** Date lisible : « 12 oct. 2026 ». */
-export const dateTxt = (d: string) => new Date(d + "T12:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+/** Date lisible : « 12 oct. 2026 », « 12 Oct 2026 ». */
+export const dateTxt = (d: string, l: Langue = "fr") => new Date(d + "T12:00").toLocaleDateString(l === "en" ? "en-GB" : "fr-FR", { day: "numeric", month: "short", year: "numeric" });

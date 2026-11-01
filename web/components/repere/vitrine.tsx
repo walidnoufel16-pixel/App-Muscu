@@ -3,7 +3,7 @@
 /* Page d'accueil des visiteurs sans compte (écran « accueil » de /bienvenue) : la promesse,
    trois arguments illustrés par de vraies captures de l'app (public/img/vitrine, recadrées depuis
    l'app de test), le reste en une liste, et deux appels à commencer. */
-import { tr } from "@/lib/i18n";
+import { tr, langue } from "@/lib/i18n";
 import { ArrowRightIcon, CheckIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { LogoTuile } from "./logo";
@@ -72,11 +72,11 @@ export function Vitrine({ onCommencer, onCompte }: { onCommencer: () => void; on
 
       <section className="mx-6 mt-8 rounded-[28px] bg-[#0f1218] px-5.5 py-6.5 text-white">
         <h2 className="text-[26px] leading-tight font-extrabold tracking-[-0.02em]">{tr("Ta première séance dans 2 minutes.")}</h2>
-        <p className="mt-2 text-[15px] opacity-75">{tr("Sans carte bancaire, sans pub.")}</p>
+        <p className="mt-2 text-[15px] opacity-75">{tr("Prête en 2 minutes, sans carte bancaire.")}</p>
         <Button variant="plate" size="xl" onClick={onCommencer} className="mt-5 w-full">{tr("Commencer gratuitement")}<ArrowRightIcon /></Button>
       </section>
       <p className="pt-5 pb-2 text-center text-[12.5px] text-muted-foreground">
-        {tr("Oxa · gratuit, sans publicité")} · <a href="/blog/" className="font-semibold text-plate-ink underline-offset-2 hover:underline">{tr("Le blog Oxa")}</a>
+        {tr("Oxa · ton coach de poche")} · <a href={langue() === "en" ? "/en/blog/" : "/blog/"} className="font-semibold text-plate-ink underline-offset-2 hover:underline">{tr("Le blog Oxa")}</a>
       </p>
     </div>
   );

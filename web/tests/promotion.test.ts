@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { ARTICLES, CATEGORIES, aLireAussi, article, tempsLecture } from "@/lib/data/blog";
+import { ARTICLES, CATEGORIES, aLireAussi, adresse, article, tempsLecture, texte } from "@/lib/data/blog";
+import fs from "node:fs";
+import path from "node:path";
 import { EX } from "@/lib/data/exercices";
 
 describe("blog public", () => {
@@ -36,5 +38,21 @@ describe("blog public", () => {
     expect(l.length).toBe(2);
     expect(l.map((x) => x.slug)).not.toContain("creatine-a-quoi-ca-sert");
     expect(l[0].categorie).toBe("Nutrition");
+  });
+  it("chaque article a sa version anglaise, avec une adresse unique, et les deux langues se répondent", () => {
+    const en = ARTICLES.map((a) => texte(a, "en"));
+    for (const t of en) { expect(t?.titre, "anglais manquant").toBeTruthy(); expect(t.blocs.length).toBeGreaterThan(0); expect(t.description.length).toBeLessThan(200); }
+    expect(new Set(en.map((t) => t.slug)).size).toBe(ARTICLES.length);
+    for (const a of ARTICLES) {
+      expect(article(texte(a, "en").slug, "en")).toBe(a);
+      expect(adresse(a, "en")).toMatch(/^\/en\/blog\/[a-z0-9-]+\/$/);
+      expect(aLireAussi(texte(a, "en").slug, 2, "en")).not.toContain(a);
+    }
+  });
+  it("plus d'argument « sans pub » ni « sans abonnement » affiché", () => {
+    const dirs = ["app", "components"], trouve: string[] = [];
+    const lire = (d: string) => { for (const f of fs.readdirSync(d)) { const p = path.join(d, f); if (fs.statSync(p).isDirectory()) lire(p); else if (/\.tsx?$/.test(f) && /sans pub|sans abonnement/i.test(fs.readFileSync(p, "utf8"))) trouve.push(p); } };
+    for (const d of dirs) lire(path.join(__dirname, "..", d));
+    expect(trouve).toEqual([]);
   });
 });
