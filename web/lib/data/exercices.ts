@@ -3,7 +3,7 @@ import type { Exercice } from "./types";
 import { langue } from "@/lib/i18n";
 import EX_EN from "@/lib/i18n/exercices.en.json";
 
-/* 231 exercices — photos free-exercise-db (domaine public) dans public/img/.
+/* 234 exercices — photos free-exercise-db (domaine public) dans public/img/.
    Les textes des fiches (exécution, erreurs, progression) sont à part, dans
    public/data/fiches.json, chargés seulement à l'ouverture d'une fiche. */
 export const EX: Record<string, Exercice> = {
@@ -3179,6 +3179,39 @@ export const EX: Record<string, Exercice> = {
   "eq": 3,
   "ch": "temps",
   "d": 15,
+  "horsIA": 1
+ },
+ "trpush": {
+  "n": "Poussée de traîneau",
+  "m": "Quadriceps, fessiers, mollets",
+  "img": "Sled_Push",
+  "pat": "eg",
+  "pat2": "mol",
+  "eq": 0,
+  "ch": "kg",
+  "d": 60,
+  "horsIA": 1
+ },
+ "trpull": {
+  "n": "Tirage de traîneau à la corde",
+  "m": "Dos, biceps, avant-bras, fessiers",
+  "img": "Sled_Row",
+  "pat": "th",
+  "pat2": "avb",
+  "eq": 0,
+  "ch": "kg",
+  "d": 40,
+  "horsIA": 1
+ },
+ "burpsl": {
+  "n": "Burpees sautés en longueur",
+  "m": "Cardio, cuisses, pectoraux",
+  "img": "",
+  "pat": "ca",
+  "pat2": "eg",
+  "eq": 3,
+  "ch": "aucune",
+  "d": 0,
   "horsIA": 1
  }
 };

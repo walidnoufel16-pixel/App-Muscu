@@ -8,7 +8,7 @@ import { Suspense, useMemo, useState } from "react";
 import type { Route } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  ArrowRightIcon, BarbellIcon, CaretDownIcon, CaretRightIcon, CheckIcon, FlagCheckeredIcon, PauseIcon, PencilSimpleIcon, PersonSimpleRunIcon, PlayIcon, TimerIcon, TrashIcon,
+  ArrowRightIcon, BarbellIcon, CaretDownIcon, LightningIcon, CaretRightIcon, CheckIcon, FlagCheckeredIcon, PauseIcon, PencilSimpleIcon, PersonSimpleRunIcon, PlayIcon, SlidersHorizontalIcon, TimerIcon, TrashIcon,
 } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -16,12 +16,12 @@ import { EnTete } from "@/components/repere/en-tete";
 import { Retour, useRetour } from "@/components/repere/retour";
 import { confirmer } from "@/components/repere/confirmer";
 import { Minuteur, departCourse, preparer, type Course } from "@/components/repere/minuteur";
-import { SaisieSortie } from "@/components/repere/course";
+import { PHOTOS_RUN, SaisieSortie } from "@/components/repere/course";
+import { EnTetePhoto } from "@/components/repere/en-tete-photo";
 import { mmss } from "@/components/repere/reglages-cardio";
 import {
-  allures, allureDe, allureTxt, chronoTxt, DISTANCES, enPause, estimation, genererPlan, joursAvantCourse, NOMS_PHASE, reprendre, semaineDe, vdotDe,
+  allureCourse, allures, allureDe, allureTxt, chronoTxt, DISTANCES, enPause, estimation, genererPlan, joursAvantCourse, NOMS_PHASE, nomsRenfo, reprendre, semaineDe, vdotDe,
   type SeanceCourse, type SemaineCourse, type Sortie, type TypeSeance,
-  NOMS_RENFO,
 } from "@/lib/logic/course";
 import { dureeTotale } from "@/lib/logic/cardio";
 import { decaler, jourDe } from "@/lib/logic/historique";
@@ -31,7 +31,7 @@ import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 
 const ICONES: Record<TypeSeance, typeof PersonSimpleRunIcon> = {
-  footing: PersonSimpleRunIcon, lignes: PersonSimpleRunIcon, longue: PersonSimpleRunIcon, seuil: TimerIcon, vma: TimerIcon, allure: TimerIcon, course: FlagCheckeredIcon, renfo: BarbellIcon,
+  footing: PersonSimpleRunIcon, lignes: PersonSimpleRunIcon, longue: PersonSimpleRunIcon, seuil: TimerIcon, vma: TimerIcon, allure: TimerIcon, course: FlagCheckeredIcon, renfo: BarbellIcon, hyrox: LightningIcon,
 };
 const court = (j: string) => new Date(j + "T12:00").toLocaleDateString(loc(), { day: "numeric", month: "short" }).replace(".", "");
 const kmTxt = (km: number) => nb(Math.round(km * 10) / 10);
@@ -45,11 +45,12 @@ function Preparation() {
   return s ? <Seance cle={s} /> : <Plan />;
 }
 
-/* séance de renfo faite cette semaine-là ? (historique de la séance libre « Renfo coureur ») */
+/* séance de renfo faite cette semaine-là ? (historique de la séance libre « Renfo coureur » ou « Renfo Hyrox ») */
 function useRenfo() {
   const etat = useRepere((x) => x.etat);
   return (S: SemaineCourse, r: 0 | 1) => {
-    const idx = etat.SEANCES.findIndex((x) => NOMS_RENFO[r].includes(x.nom));
+    const noms = nomsRenfo(etat.COURSE?.obj, r);
+    const idx = etat.SEANCES.findIndex((x) => noms.includes(x.nom));
     const fin = decaler(S.lundi, 6);
     return { idx, faite: idx >= 0 && (etat.HIST || []).some((l) => l.s === `L|${idx}` && l.d >= S.lundi && l.d <= fin) };
   };
@@ -100,14 +101,14 @@ function Plan() {
 
   return (
     <>
-      <EnTete
+      <EnTetePhoto photo={c.obj === "hyrox" ? PHOTOS_RUN.hyrox : PHOTOS_RUN.plan} position={c.obj === "hyrox" ? "center 35%" : "center"} repli="/entrainement"
         surtitre={`${DISTANCES[c.obj].nom} · ${new Date(c.date + "T12:00").toLocaleDateString(loc(), { weekday: "long", day: "numeric", month: "long" })}`}
         titre={J > 0 ? tr(J === 1 ? "J-1" : "J-{n}", { n: J }) : J === 0 ? tr("C'est aujourd'hui") : tr("Course passée")}
-        gauche={<Retour repli="/entrainement" />}
+        sous={tr("Semaine {a} sur {length} · {a1}", { a: k + 1, length: P.length, a1: NOMS_PHASE[P[k].phase] })}
       />
       <div className="flex flex-col gap-5 px-4 pb-10">
         <div className="grid grid-cols-2 gap-2">
-          {[[tr("Chrono estimé"), chronoTxt(estimation(c, S, auj).sec)], [tr("Allure course"), allureTxt(c.obj === "10k" ? A.dix : c.obj === "semi" ? A.semi : A.marathon)], [tr("Footing"), allureTxt(A.facile)], [tr("Seuil"), allureTxt(A.seuil)]].map(([n, v]) => (
+          {[[tr("Chrono estimé"), chronoTxt(estimation(c, S, auj).sec)], [c.obj === "hyrox" ? tr("Allure Hyrox") : tr("Allure course"), allureTxt(allureCourse(c.obj, A))], [tr("Footing"), allureTxt(A.facile)], [tr("Seuil"), allureTxt(A.seuil)]].map(([n, v]) => (
             <div key={n} className="rounded-[18px] border border-border/80 bg-card p-3">
               <div className="text-[12px] text-muted-foreground">{n}</div>
               <div className="num text-[22px] leading-tight font-bold">{v}</div>
@@ -142,7 +143,7 @@ function Plan() {
               return (
                 <button key={j} disabled={pause} onClick={() => router.push(`/entrainement/course?s=${k}|${j}` as Route, AVANT)}
                   className={cn("flex w-full items-center gap-3 px-4 py-3 text-left active:bg-muted disabled:opacity-50", j && "border-t border-border/70")}>
-                  <span className={cn("grid size-9 shrink-0 place-items-center rounded-[11px]", f ? "bg-plate text-plate-foreground" : "bg-muted text-muted-foreground")}>
+                  <span className={cn("grid size-9 shrink-0 place-items-center rounded-[11px]", f || x.type === "hyrox" ? "bg-plate text-plate-foreground" : "bg-muted text-muted-foreground")}>
                     {f ? <CheckIcon className="size-4" weight="bold" /> : <I className="size-[18px]" weight="fill" />}
                   </span>
                   <span className="min-w-0 flex-1">
@@ -157,6 +158,7 @@ function Plan() {
           <div className="mt-2 grid grid-cols-2 gap-2">
             <Button variant="soft" className="h-11 rounded-xl border border-border/80 bg-card" onClick={() => setLibre(true)}><PencilSimpleIcon />{tr("Sortie libre")}</Button>
             {!pause && <Button variant="soft" className="h-11 rounded-xl border border-border/80 bg-card" onClick={basculerPause}><PauseIcon weight="fill" />{tr("Mettre en pause")}</Button>}
+            <Button variant="soft" className="col-span-2 h-11 rounded-xl border border-border/80 bg-card" onClick={() => router.push("/entrainement/assistant?type=course&modif=1" as Route, AVANT)}><SlidersHorizontalIcon />{tr("Modifier mon plan")}</Button>
           </div>
         </section>
 
@@ -196,7 +198,8 @@ function Plan() {
 }
 
 function resume(x: SeanceCourse) {
-  if (x.type === "renfo") return tr("25 min · mollets, fessiers, gainage");
+  if (x.type === "renfo") return x.min > 25 ? tr("{min} min · force pour les ateliers", { min: x.min }) : tr("25 min · mollets, fessiers, gainage");
+  if (x.type === "hyrox") return tr("{n} tours · {a} + atelier · ≈ {min} min", { n: x.tours!.length, a: x.tours![0].km < 1 ? "500 m" : "1 km", min: x.min });
   if (x.type === "course") return tr("{a} km · objectif {a1}", { a: kmTxt(x.km!), a1: allureTxt(x.allure!) });
   if (x.type === "longue") return tr("{a} km · environ {min} min", { a: kmTxt(x.km!), min: x.min });
   return `${x.min} min${x.allure ? ` · ${allureTxt(x.allure)}` : ""}`;
@@ -227,7 +230,9 @@ function Seance({ cle }: { cle: string }) {
   const r = x.type === "renfo" ? renfo(W, x.renfo!) : null;
   return (
     <>
-      <EnTete surtitre={tr("Semaine {a} · {a1}", { a: k + 1, a1: NOMS_PHASE[W.phase] })} titre={x.titre} gauche={<Retour repli="/entrainement/course" />} />
+      {x.type === "hyrox"
+        ? <EnTetePhoto photo={PHOTOS_RUN.ateliers} repli="/entrainement/course" surtitre={tr("Semaine {a} · {a1}", { a: k + 1, a1: NOMS_PHASE[W.phase] })} titre={x.titre} sous={resume(x)} />
+        : <EnTete surtitre={tr("Semaine {a} · {a1}", { a: k + 1, a1: NOMS_PHASE[W.phase] })} titre={x.titre} gauche={<Retour repli="/entrainement/course" />} />}
       <div className="flex flex-col gap-4 px-4 pb-32">
         <div className="flex gap-3 rounded-[20px] border border-border/80 bg-card p-4">
           <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-plate-soft text-plate-ink"><I className="size-6" weight="fill" /></span>
@@ -274,9 +279,18 @@ function Seance({ cle }: { cle: string }) {
   );
 }
 
-/* « 6 × 3 min à 4:05 /km · récup 2 min » plutôt que 11 lignes */
+/* « 6 × 3 min à 4:05 /km · récup 2 min » plutôt que 11 lignes ; Hyrox : un tour par ligne */
 function regrouper(P: NonNullable<SeanceCourse["phases"]>) {
   const out: { n: string; v: string }[] = [];
+  if (P.some((p) => p.libre)) {
+    for (let i = 0; i < P.length; i++) {
+      const p = P[i];
+      if (p.type === "echauf") out.push({ n: tr("Échauffement"), v: mmss(p.duree) });
+      else if (p.type === "calme") out.push({ n: tr("Retour au calme"), v: mmss(p.duree) });
+      else if (p.libre && P[i + 1]?.libre) { out.push({ n: tr("Tour {t} · {a} → {b}", { t: p.tour ?? 0, a: (p.titre ?? "").replace(/^.*· /, ""), b: P[i + 1].titre ?? "" }), v: P[i + 1].rpe }); i++; }
+    }
+    return out;
+  }
   const efforts = P.filter((p) => p.type === "effort"), recup = P.find((p) => p.type === "recup");
   for (const p of P) {
     if (p.type === "echauf") out.push({ n: tr("Échauffement"), v: mmss(p.duree) });

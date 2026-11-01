@@ -47,7 +47,6 @@ const PHOTOS_POSTES: Record<string, { img: string; auteur: string; profil: strin
   chaise: { img: "photo-1434656742621-5c4a7d73d0e7", auteur: "Scott Webb", profil: "scottwebb" },
   airbike: { img: "photo-1685633224623-7551691bb604", auteur: "Ambitious Studio* | Rick Barrett", profil: "weareambitious" },
   velosa: { img: "photo-1637714102098-6514a99eefd3", auteur: "Intenza Fitness", profil: "intenzafitness" },
-  traineau: { img: "photo-1751456357786-68c278e9063c", auteur: "TSquared Lab", profil: "tsquaredlab" },
 };
 
 /* Photos sous licence libre (Creative Commons), copiées dans public/img, recadrées au carré. */

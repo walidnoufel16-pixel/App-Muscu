@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { CaretLeftIcon } from "@phosphor-icons/react";
@@ -8,7 +9,7 @@ import { ARRIERE, titreDe, usePile, useSens } from "@/lib/nav";
 
 /* Bouton retour : il porte le nom de l'écran précédent et y ramène.
    Ouvert directement (lien partagé, rechargement) : il mène à `repli`. */
-export function Retour({ repli }: { repli: Route }) {
+export function Retour({ repli, className }: { repli: Route; className?: string }) {
   const router = useRouter();
   const pile = usePile((s) => s.pile);
   const prec = pile.length > 1 ? pile[pile.length - 2] : null;
@@ -18,7 +19,7 @@ export function Retour({ repli }: { repli: Route }) {
     requestAnimationFrame(() => router.back());
   };
   return (
-    <Button variant="ghost" size="sm" className="-ml-2 text-[15px] text-plate-ink" onClick={retour}>
+    <Button variant="ghost" size="sm" className={cn("-ml-2 text-[15px] text-plate-ink", className)} onClick={retour}>
       <CaretLeftIcon className="size-5" weight="bold" />
       <span className="max-w-[26vw] truncate">{titreDe(prec ?? repli)}</span>
     </Button>

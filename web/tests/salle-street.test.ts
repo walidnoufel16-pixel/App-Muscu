@@ -31,7 +31,7 @@ describe("Ma salle", () => {
   });
   it("photo Unsplash : affichée depuis leurs serveurs, photographe cité dans Crédits", () => {
     const unsplash = POSTES.filter((p) => imgPoste(p)?.startsWith("https://images.unsplash.com/"));
-    expect(unsplash.length).toBe(7);
+    expect(unsplash.length).toBe(6);
     for (const p of unsplash) {
       expect(imgPoste(p), p.id).toMatch(/^https:\/\/images\.unsplash\.com\//);
       const c = CREDITS.find((x) => x.quoi.includes(p.n));
@@ -63,7 +63,7 @@ describe("Ma salle", () => {
   });
   it("hors connexion : la liste des photos à garder ne contient que des photos Unsplash, sans doublon", () => {
     const l = photosDistantes();
-    expect(l.length).toBe(63 * 2 + 7 * 2);
+    expect(l.length).toBe(63 * 2 + 6 * 2);
     expect(new Set(l).size).toBe(l.length);
     for (const u of l) expect(u).toMatch(/^https:\/\/images\.unsplash\.com\/photo-/);
   });
@@ -149,7 +149,7 @@ describe("street workout", () => {
     expect(testARefaire({ d: "2026-10-01", tr: 1, po: 1, di: 1, sq: 1 }, "2026-10-30")).toBe(false);
     expect(testARefaire({ d: "2026-09-10", tr: 1, po: 1, di: 1, sq: 1 }, "2026-10-30")).toBe(true);
   });
-  const PHOTO_A_VENIR = ["curlpc", "curlel", "pompk", "susp", "lsit"];
+  const PHOTO_A_VENIR = ["curlpc", "curlel", "pompk", "susp", "lsit", "burpsl"];
   it("les nouveaux exercices ont fiche, traduction et photos", () => {
     const nouveaux = Object.keys(EX).filter((o) => EX[o].horsIA);
     expect(nouveaux.length).toBeGreaterThanOrEqual(10);

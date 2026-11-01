@@ -4,18 +4,21 @@
    carte sur Entraînement, rubrique Course de l'onglet Exercices, et feuille de saisie d'une sortie. */
 import { loc, tr } from "@/lib/i18n";
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Route } from "next";
-import { ArrowRightIcon, CaretDownIcon, CaretRightIcon, PauseCircleIcon, PersonSimpleRunIcon, WarningIcon } from "@phosphor-icons/react";
+import {
+  ArrowFatLeftIcon, ArrowFatRightIcon, ArrowRightIcon, BasketballIcon, BoatIcon, CaretDownIcon, CaretRightIcon, PauseCircleIcon, PersonArmsSpreadIcon, PersonSimpleRunIcon,
+  PersonSimpleSkiIcon, PersonSimpleWalkIcon, SuitcaseSimpleIcon, WarningIcon, type Icon,
+} from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { Segmente } from "./segmente";
+import { EnTetePhoto } from "./en-tete-photo";
 import { confirmer } from "./confirmer";
 import {
-  adapter, allures, allureTxt, avertissement, calendrier, chronoTxt, DISTANCES, enPause, estimation, genererPlan, joursAvantCourse, semaineDe, seancesRenfo,
-  tempsPrevu, vdotDe, NOMS_PHASE, type ObjectifCourse, type PlanCourse, type SeanceCourse,
-  NOMS_RENFO,
+  adapter, allureHyrox, allures, allureTxt, ATELIERS, avertissement, calendrier, chronoPrevu, chronoTxt, DISTANCES, enPause, estimation, genererPlan, joursAvantCourse, nomsRenfo,
+  decalerCle, modifierPlan, semaineDe, seancesRenfo, seancesRenfoHyrox, tempsAteliers, vdotDe, NOMS_PHASE, type ObjectifCourse, type PlanCourse, type SeanceCourse,
 } from "@/lib/logic/course";
 import { dispoDeclare, nb } from "@/lib/logic/core";
 import { decaler, jourDe, lundiDe } from "@/lib/logic/historique";
@@ -26,6 +29,11 @@ import { ARRIERE, AVANT, remplacement } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 
+/* photos des écrans Oxa Run (public/img) : la préparation, le plan, la séance « Course + ateliers » */
+export const PHOTOS_RUN = { prepa: "course-relais", plan: "course-piste", stade: "course-stade", hyrox: "hyrox-traineau", ateliers: "hyrox-burpees" };
+const ICONES_ATELIER: Record<string, Icon> = {
+  ski: PersonSimpleSkiIcon, push: ArrowFatRightIcon, pull: ArrowFatLeftIcon, burpee: PersonArmsSpreadIcon, row: BoatIcon, farmer: SuitcaseSimpleIcon, lunge: PersonSimpleWalkIcon, wall: BasketballIcon,
+};
 const REFS = [{ km: 5, n: tr("5 km") }, { km: 10, n: tr("10 km") }, { km: 21.0975, n: tr("Semi") }];
 const champ = "h-12 w-full rounded-xl border bg-background px-3 text-center text-[18px] font-semibold outline-none focus:border-plate num";
 
@@ -35,48 +43,109 @@ export function QuestionnaireCourse() {
   const etat = useRepere((s) => s.etat);
   const muter = useRepere((s) => s.muter);
   const [auj] = useState(() => jourDe(Date.now()));
-  const [obj, setObj] = useState<ObjectifCourse>("semi");
-  const [date, setDate] = useState(() => decaler(auj, 7 * 14));
-  const [debutant, setDebutant] = useState(false);
-  const [refKm, setRefKm] = useState(10);
-  const [h, setH] = useState(""), [m, setM] = useState(""), [s, setS] = useState("");
-  const [jours, setJours] = useState(4);
-  const [renfo, setRenfo] = useState(1);
+  const params = useSearchParams(), objUrl = params.get("obj"), modif = params.get("modif") === "1";
+  /* ?modif=1 : le formulaire s'ouvre avec les réglages du plan en cours, pour les changer */
+  const [ex] = useState(() => (modif ? etat.COURSE : null));
+  const r0 = ex?.ref, sec0 = r0?.sec ?? 0;
+  const [obj, setObj] = useState<ObjectifCourse>(ex?.obj ?? (objUrl === "hyrox" || objUrl === "10k" || objUrl === "marathon" ? objUrl : "semi"));
+  const [cat, setCat] = useState<"h" | "f">(ex?.cat ?? "h");
+  const [salle, setSalle] = useState(ex?.salle ?? (etat.A.materiel ?? 0) === 0);
+  const hyrox = obj === "hyrox";
+  const [date, setDate] = useState(() => ex?.date ?? decaler(auj, 7 * 14));
+  const [debutant, setDebutant] = useState(!!ex && !r0);
+  const [refKm, setRefKm] = useState(r0?.km ?? 10);
+  const [h, setH] = useState(sec0 >= 3600 ? String(Math.floor(sec0 / 3600)) : ""), [m, setM] = useState(r0 ? String(Math.floor((sec0 % 3600) / 60)) : ""), [s, setS] = useState(r0 ? String(Math.round(sec0 % 60)).padStart(2, "0") : "");
+  const [jours, setJours] = useState(ex?.jours ?? 4);
+  const [renfo, setRenfo] = useState(ex?.renfo ?? 1);
   const sec = (+h || 0) * 3600 + (+m || 0) * 60 + (+s || 0);
   const ref = debutant || sec < 600 ? null : { km: refKm, sec };
   const cal = calendrier(obj, date, auj);
   const alerte = date > auj ? avertissement(obj, ref, cal.dispo) : tr("Choisis une date de course à venir.");
-  const V = vdotDe({ ref }), A = allures(V), prevu = tempsPrevu(V, DISTANCES[obj].km);
+  const V = vdotDe({ ref }), A = allures(V), prevu = chronoPrevu(obj, V);
   const peut = date > decaler(auj, 6) && (debutant || sec >= 600);
 
+  /* renfo : les séances manquantes rejoignent « Mes séances » ; rien n'en est retiré */
+  const ajouterRenfos = (E: typeof etat) =>
+    (hyrox ? seancesRenfoHyrox : seancesRenfo)((id) => dispoDeclare(E.A, id)).slice(0, renfo).forEach((r, i) => {
+      if (!E.SEANCES.some((x) => nomsRenfo(obj, i as 0 | 1).includes(x.nom))) E.SEANCES.push({ nom: r.nom, ex: r.ex });
+    });
+
+  const enregistrer = () => {
+    if (!ex) return;
+    tactile(10);
+    muter((E) => {
+      if (!E.COURSE) return;
+      const { plan, decalage } = modifierPlan(E.COURSE, { obj, date, debut: cal.debut, jours, renfo, ref, ...(hyrox ? { cat, salle } : {}) });
+      E.COURSE = plan;
+      /* les sorties du plan suivent leur semaine du calendrier */
+      if (decalage) for (const o of E.SORTIES || []) { const c = decalerCle(o.s, decalage); if (c) o.s = c; else delete o.s; }
+      ajouterRenfos(E);
+    });
+    toast.success(tr("Plan modifié"), { description: tr("{semaines} semaines jusqu'au jour J.", { semaines: cal.semaines }) });
+    router.back();
+  };
+
   const creer = async () => {
+    if (ex) return enregistrer();
     if (etat.COURSE && !(await confirmer({ titre: tr("Remplacer ta préparation en cours ?"), texte: tr("Ton plan {a} sera remplacé. Tes sorties déjà notées restent dans ton historique.", { a: DISTANCES[etat.COURSE.obj].nom.toLowerCase() }), ok: tr("Remplacer") }))) return;
     tactile(10);
-    const plan: PlanCourse = { obj, date, debut: cal.debut, jours, renfo, ref, pauses: [], ajust: {}, cree: auj };
+    const plan: PlanCourse = { obj, date, debut: cal.debut, jours, renfo, ref, pauses: [], ajust: {}, cree: auj, ...(hyrox ? { cat, salle } : {}) };
     muter((E) => {
       E.COURSE = plan;
-      /* séances de renfo du coureur : ajoutées une fois à « Mes séances » (groupe Musculation) */
-      seancesRenfo((id) => dispoDeclare(E.A, id)).slice(0, renfo).forEach((r, i) => { if (!E.SEANCES.some((x) => NOMS_RENFO[i].includes(x.nom))) E.SEANCES.push({ nom: r.nom, ex: r.ex }); });
+      /* séances de renfo (coureur ou Hyrox) : ajoutées une fois à « Mes séances » (groupe Musculation) */
+      ajouterRenfos(E);
     });
-    toast.success(tr("Plan {a} créé : {semaines} semaines", { a: DISTANCES[obj].nom.toLowerCase(), semaines: cal.semaines }));
+    toast.success(tr("Plan {a} créé : {semaines} semaines", { a: hyrox ? "Hyrox" : DISTANCES[obj].nom.toLowerCase(), semaines: cal.semaines }));
     remplacement();
     router.replace("/entrainement/course", AVANT);
   };
 
   return (
     <>
+      <EnTetePhoto photo={hyrox ? PHOTOS_RUN.hyrox : PHOTOS_RUN.prepa} position={hyrox ? "center 35%" : "center 20%"} repli="/entrainement"
+        surtitre={hyrox ? "Oxa Run · Hyrox" : "Oxa Run"}
+        titre={ex ? tr("Modifier mon plan") : hyrox ? tr("Prépare ton Hyrox") : tr("Prépare ta course")}
+        sous={ex ? tr("Change tes réglages : tes sorties notées, tes pauses et ta progression sont gardées.") : hyrox ? tr("8 × 1 km de course, chaque km suivi d'un atelier.") : tr("Allures calculées sur ton niveau, montée progressive, affûtage avant le jour J.")} />
       <div className="flex flex-col gap-6 px-4 pb-28">
         <section>
           <div className="eyebrow mb-2 px-1">{tr("Ta course")}</div>
-          <Segmente label={tr("Distance")} valeur={obj} onChange={setObj} options={(Object.keys(DISTANCES) as ObjectifCourse[]).map((o) => ({ v: o, n: DISTANCES[o].nom }))} />
+          <Segmente label={tr("Distance")} valeur={obj} onChange={setObj} options={(Object.keys(DISTANCES) as ObjectifCourse[]).map((o) => ({ v: o, n: o === "semi" ? tr("Semi") : DISTANCES[o].nom }))} />
+          {hyrox && (
+            <ol aria-label={tr("Le format Hyrox")} className="mt-3 grid grid-cols-2 gap-1.5">
+              {ATELIERS.map((a) => {
+                const I = ICONES_ATELIER[a.k];
+                return (
+                  <li key={a.k} className="flex items-center gap-2 rounded-[14px] bg-card px-2 py-2 text-[12.5px] leading-tight">
+                    <span className="grid size-7 shrink-0 place-items-center rounded-[9px] bg-plate text-plate-foreground"><I className="size-4" weight="bold" /></span>
+                    <span className="min-w-0">{a.nom} {a.unite === "reps" ? `× ${a.dose}` : `${a.dose} m`}</span>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
           <label className="mt-3 flex items-center justify-between gap-3 rounded-2xl border bg-card px-4 py-3 text-[15px]">
             {tr("Date de la course")}
             <input type="date" aria-label={tr("Date de la course")} value={date} min={decaler(auj, 7)} onChange={(e) => e.target.value && setDate(e.target.value)} className="rounded-lg border bg-background px-2 py-1.5 text-[15px]" />
           </label>
         </section>
 
+        {hyrox && (
+          <section>
+            <div className="eyebrow mb-2 px-1">{tr("Catégorie")}</div>
+            <Segmente label={tr("Catégorie")} valeur={cat} onChange={setCat} options={[{ v: "h", n: tr("Open hommes") }, { v: "f", n: tr("Open femmes") }]} />
+            <p className="mt-2 px-1 text-[12.5px] leading-snug text-muted-foreground">
+              {cat === "h" ? tr("Charges des consignes : wall ball 6 kg, farmer's carry 2 × 24 kg, sac 20 kg.") : tr("Charges des consignes : wall ball 4 kg, farmer's carry 2 × 16 kg, sac 10 kg.")}
+            </p>
+            <div className="eyebrow mt-5 mb-2 px-1">{tr("Machines")}</div>
+            <Segmente label={tr("Machines")} valeur={salle ? 1 : 0} onChange={(v) => setSalle(v === 1)} options={[{ v: 1, n: tr("En salle") }, { v: 0, n: tr("Sans machines") }]} />
+            <p className="mt-2 px-1 text-[12.5px] leading-snug text-muted-foreground">
+              {salle ? tr("SkiErg, traîneau et rameur dans les séances, comme le jour J.") : tr("Chaque machine (SkiErg, traîneau, rameur) est remplacée par un exercice sans matériel de salle.")}
+            </p>
+          </section>
+        )}
+
         <section>
-          <div className="eyebrow mb-2 px-1">{tr("Ton niveau")}</div>
+          <div className="eyebrow mb-2 px-1">{hyrox ? tr("Ton niveau en course") : tr("Ton niveau")}</div>
           <Segmente label={tr("Niveau")} valeur={debutant ? 1 : 0} onChange={(v) => setDebutant(v === 1)} options={[{ v: 0, n: tr("J'ai un chrono récent") }, { v: 1, n: tr("Je débute") }]} />
           {!debutant ? (
             <div className="mt-3 rounded-2xl border bg-card p-3.5">
@@ -94,13 +163,15 @@ export function QuestionnaireCourse() {
         </section>
 
         <section>
-          <div className="eyebrow mb-2 px-1">{tr("Sorties par semaine")}</div>
-          <Segmente label={tr("Sorties par semaine")} valeur={jours} onChange={setJours} options={[3, 4, 5].map((j) => ({ v: j, n: `${j} sorties` }))} />
+          <div className="eyebrow mb-2 px-1">{hyrox ? tr("Séances par semaine") : tr("Sorties par semaine")}</div>
+          <Segmente label={tr("Sorties par semaine")} valeur={jours} onChange={setJours} options={[3, 4, 5].map((j) => ({ v: j, n: hyrox ? `${j}` : `${j} sorties` }))} />
         </section>
         <section>
-          <div className="eyebrow mb-2 px-1">{tr("Renforcement du coureur")}</div>
+          <div className="eyebrow mb-2 px-1">{hyrox ? tr("Renfo Hyrox") : tr("Renforcement du coureur")}</div>
           <Segmente label={tr("Renforcement")} valeur={renfo} onChange={setRenfo} options={[{ v: 0, n: tr("Aucun") }, { v: 1, n: tr("1 par semaine") }, { v: 2, n: tr("2 par semaine") }]} />
-          <p className="mt-2 px-1 text-[12.5px] leading-snug text-muted-foreground">{tr("25 min de mollets, fessiers, ischios et gainage : c'est ce qui protège le plus des blessures quand on le fait régulièrement.")}</p>
+          <p className="mt-2 px-1 text-[12.5px] leading-snug text-muted-foreground">{hyrox
+            ? tr("35 min de force pour les ateliers : fentes, port de charges, thrusters, squat, rowing. Elles arrivent dans Mes séances.")
+            : tr("25 min de mollets, fessiers, ischios et gainage : c'est ce qui protège le plus des blessures quand on le fait régulièrement.")}</p>
         </section>
 
         <section className="rounded-[24px] border border-plate/40 bg-plate-soft/60 p-4">
@@ -111,15 +182,20 @@ export function QuestionnaireCourse() {
           {cal.debut > auj && <p className="mt-1 text-[13px] text-muted-foreground">{tr("Il démarre le lundi {a}. D'ici là, 2 ou 3 footings faciles par semaine.", { a: new Date(cal.debut + "T12:00").toLocaleDateString(loc(), { day: "numeric", month: "long" }) })}</p>}
           <div className="mt-3 grid grid-cols-2 gap-2 text-[13px]">
             <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Chrono estimé")}</div><div className="num text-[19px] font-bold">{chronoTxt(prevu)}</div></div>
+            {hyrox ? (
+              <>
+                <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Allure Hyrox")}</div><div className="num text-[19px] font-bold">{allureTxt(allureHyrox(A))}</div></div>
+                <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Ateliers")}</div><div className="num text-[19px] font-bold">≈ {Math.round(tempsAteliers(V) / 60)} min</div></div>
+              </>
+            ) : <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Seuil")}</div><div className="num text-[19px] font-bold">{allureTxt(A.seuil)}</div></div>}
             <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Footing")}</div><div className="num text-[19px] font-bold">{allureTxt(A.facile)}</div></div>
-            <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Seuil")}</div><div className="num text-[19px] font-bold">{allureTxt(A.seuil)}</div></div>
-            <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Fractionné")}</div><div className="num text-[19px] font-bold">{allureTxt(A.vma)}</div></div>
+            {!hyrox && <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Fractionné")}</div><div className="num text-[19px] font-bold">{allureTxt(A.vma)}</div></div>}
           </div>
           {alerte && <p className="mt-3 flex gap-2 rounded-xl bg-amber-500/12 p-2.5 text-[12.5px] leading-snug"><WarningIcon className="mt-0.5 size-4 shrink-0 text-amber-600" weight="fill" />{alerte}</p>}
         </section>
       </div>
       <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
-        <Button variant="plate" size="xl" className="w-full" disabled={!peut} onClick={creer}>{tr("Créer mon plan")}<ArrowRightIcon /></Button>
+        <Button variant="plate" size="xl" className="w-full" disabled={!peut} onClick={creer}>{ex ? tr("Enregistrer les modifications") : tr("Créer mon plan")}{!ex && <ArrowRightIcon />}</Button>
       </div>
     </>
   );
@@ -162,6 +238,7 @@ const SORTIES_PLAN: [string, string][] = [
   [tr("Sortie longue"), tr("La plus longue de la semaine, en douceur. Elle augmente de 10 % au plus d'une semaine à l'autre.")],
   [tr("Allure spécifique"), tr("Des blocs à ton allure du jour J, pour qu'elle devienne naturelle.")],
   [tr("Renfo du coureur"), tr("25 minutes de renforcement pour courir mieux et éviter les blessures.")],
+  [tr("Course + ateliers"), tr("Hyrox : des tours de course suivis d'un atelier (SkiErg, traîneau, burpees, wall balls…), jusqu'à la simulation complète.")],
 ];
 
 /** Rubrique Course : ton plan s'il y en a un, sinon de quoi en préparer un ; les séances qu'il contient. */
@@ -178,10 +255,13 @@ export function VueCourse() {
           <CarteCourse />
         </section>
       ) : (
-        <div className="rounded-[22px] bg-bandeau p-5 text-bandeau-foreground">
-          <PersonSimpleRunIcon className="size-8" weight="fill" />
-          <h3 className="mt-2 text-[22px] leading-tight font-bold">{tr("Prépare une course")}</h3>
-          <p className="mt-1.5 text-[14px] leading-relaxed opacity-90">{tr("10 km, semi-marathon ou marathon : un plan jusqu'au jour J, avec tes allures calculées sur ton niveau.")}</p>
+        <div className="relative isolate overflow-hidden rounded-[22px] bg-[#0a0a0c] p-5 pt-28 text-white">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`/img/grand/${PHOTOS_RUN.stade}.avif`} alt="" loading="lazy" className="absolute inset-0 -z-10 size-full object-cover"
+            onError={(e) => { const p = `/img/${PHOTOS_RUN.stade}.avif`; if (!e.currentTarget.src.endsWith(p)) e.currentTarget.src = p; }} />
+          <span aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(10,10,12,0)_10%,rgba(10,10,12,.9)_70%)]" />
+          <h3 className="text-[22px] leading-tight font-bold">{tr("Prépare une course")}</h3>
+          <p className="mt-1.5 text-[14px] leading-relaxed opacity-90">{tr("10 km, semi-marathon, marathon ou Hyrox : un plan jusqu'au jour J, avec tes allures calculées sur ton niveau.")}</p>
           <button onClick={() => router.push("/entrainement/assistant?type=course" as Route, AVANT)} className="mt-4 inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[15px] font-semibold text-[#0a0a0c] active:scale-[.97]">
             {tr("Créer mon plan")}<ArrowRightIcon className="size-4" weight="bold" />
           </button>
@@ -308,7 +388,7 @@ export function SectionCourse() {
         {c && est && (
           <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-plate-soft px-3.5 py-2.5">
             <span className="text-[13px] leading-snug">
-              {tr("Chrono estimé au")}{" "}{DISTANCES[c.obj].nom.toLowerCase()}
+              {tr("Chrono estimé au")}{" "}{c.obj === "hyrox" ? "Hyrox" : DISTANCES[c.obj].nom.toLowerCase()}
               <span className="block text-[11.5px] text-muted-foreground">{est.depuis ? tr("d'après ta sortie du {a}", { a: new Date(est.depuis.d + "T12:00").toLocaleDateString(loc(), { day: "numeric", month: "long" }) }) : tr("d'après ton chrono de référence")}</span>
             </span>
             <b className="num shrink-0 text-[22px]">{chronoTxt(est.sec)}</b>

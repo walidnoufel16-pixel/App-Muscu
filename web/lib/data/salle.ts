@@ -58,7 +58,7 @@ export const POSTES: Poste[] = [
   { id: "tapis", n: "Tapis de course", zone: "cardio", img: "tapis", ex: ["tapis"] },
   { id: "airbike", n: "Air bike", zone: "cardio", ex: [] },
   { id: "velosa", n: "Vélo semi-allongé", zone: "cardio", ex: [] },
-  { id: "traineau", n: "Traîneau", zone: "cardio", ex: [] },
+  { id: "traineau", n: "Traîneau", zone: "poly", img: "trpush", ex: ["trpush", "trpull"] },
   { id: "rack", n: "Rack à squat", zone: "barre", img: "sq", ex: ["sq", "sqf", "dm", "fb", "gm", "sql", "sqlat", "pp", "rkp"] },
   { id: "banc", n: "Banc de développé", zone: "barre", img: "dc", ex: ["dc", "dci", "dcd", "dcs", "seal", "ht", "montb", "bfront", "spid", "molab"] },
   { id: "pupitre", n: "Pupitre à biceps", zone: "barre", img: "pup", ex: ["pup"] },

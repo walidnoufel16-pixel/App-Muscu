@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
-  adapter, allures, avertissement, calendrier, estimation, genererPlan, reprendre, riegel, semaineDe, tempsPrevu, vdot, type PlanCourse,
+  adapter, allureHyrox, allures, ATELIERS, avertissement, calendrier, chronoPrevu, consigneAtelier, decalerCle, estimation, genererPlan, modifierPlan, reprendre, riegel, seancesRenfoHyrox,
+  semaineDe, tempsAteliers, tempsPrevu, vdot, type PlanCourse,
 } from "@/lib/logic/course";
+import { EX } from "@/lib/data/exercices";
 import { scoreDe } from "@/lib/logic/defis";
 import { BADGES, stats } from "@/lib/logic/motivation";
 import type { Etat } from "@/lib/logic/types";
@@ -115,5 +117,99 @@ describe("suivi course", () => {
     const s = stats(E, "2026-10-05"), ok = BADGES.filter((b) => b.valeur(s) >= b.cible).map((b) => b.id);
     expect(ok).toEqual(expect.arrayContaining(["run1", "km100", "jourj"]));
     expect(ok).not.toContain("km500");
+  });
+});
+
+describe("Hyrox", () => {
+  const hx = (x: Partial<PlanCourse> = {}) => plan({ obj: "hyrox", date: "2027-01-10", cat: "h", salle: true, ...x });
+  it("plan de 8 à 12 semaines, une séance « Course + ateliers » par semaine qui monte en tours", () => {
+    const p = hx(), P = genererPlan(p);
+    expect(P.length).toBeGreaterThanOrEqual(8);
+    expect(P.length).toBeLessThanOrEqual(12);
+    const tours = P.slice(0, -1).map((W) => W.seances.filter((x) => x.type === "hyrox"));
+    for (const t of tours) expect(t.length).toBe(1);
+    const n = tours.map((t) => t[0].tours!.length);
+    expect(n[0]).toBe(4); // fondation : 4 tours de 500 m
+    expect(tours[0][0].tours![0].km).toBe(0.5);
+    expect(Math.max(...n)).toBe(8); // simulation complète en phase spécifique
+    expect(n.at(-1)).toBe(4); // affûtage
+    /* chaque tour : un km libre puis un atelier libre, entre échauffement et retour au calme */
+    const ph = tours.find((t) => t[0].tours!.length === 8)![0].phases!;
+    expect(ph[0].type).toBe("echauf");
+    expect(ph.at(-1)!.type).toBe("calme");
+    expect(ph.filter((x) => x.libre).length).toBe(16);
+    expect(ph.map((x) => x.titre)).toEqual(expect.arrayContaining(["SkiErg", "Wall balls", "Farmer's carry"]));
+  });
+  it("jour J : Hyrox, chrono = 8 km à l'allure Hyrox + ateliers", () => {
+    const P = genererPlan(hx()), J = P.at(-1)!.seances.find((x) => x.type === "course")!;
+    expect(J.titre).toMatch(/Hyrox/);
+    expect(J.km).toBe(8);
+    const A = allures(vdot(10, 3000));
+    expect(chronoPrevu("hyrox", vdot(10, 3000))).toBe(Math.round(8 * allureHyrox(A) + tempsAteliers(vdot(10, 3000))));
+    expect(allureHyrox(A)).toBe(A.dix + 30);
+    expect(estimation(hx(), [], "2026-10-05").sec).toBe(chronoPrevu("hyrox", vdot(10, 3000)));
+  });
+  it("charges de la catégorie, et remplaçants sans machine", () => {
+    const wall = ATELIERS.find((a) => a.k === "wall")!, ski = ATELIERS.find((a) => a.k === "ski")!;
+    expect(consigneAtelier(wall, 1, { cat: "h", salle: true }).dose).toBe("× 100 · 6 kg");
+    expect(consigneAtelier(wall, 1, { cat: "f", salle: true }).dose).toBe("× 100 · 4 kg");
+    expect(consigneAtelier(ski, 0.75, { salle: true }).dose).toBe("750 m");
+    expect(consigneAtelier(ski, 1, { salle: false }).texte).toMatch(/Sans machine/);
+    const P = genererPlan(hx({ salle: false })), seance = P.flatMap((W) => W.seances).find((x) => x.type === "hyrox" && x.tours!.length === 8)!;
+    expect(seance.phases!.find((x) => x.titre === "SkiErg")!.consigne).toMatch(/Sans machine/);
+  });
+  it("renfo Hyrox A et B, adaptés au matériel ; les plans de course ne changent pas", () => {
+    const tout = seancesRenfoHyrox(() => true), rien = seancesRenfoHyrox((id) => ["fepc", "jsq", "burpsl", "gai", "sqpc", "pont", "ra", "fsaut"].includes(id));
+    expect(tout.map((s) => s.nom)).toEqual(["Renfo Hyrox A", "Renfo Hyrox B"]);
+    expect(tout[1].ex.map((e) => e.id)).toContain("trpush");
+    expect(rien[1].ex.map((e) => e.id)).not.toContain("trpush");
+    for (const s of [...tout, ...rien]) for (const e of s.ex) expect(EX[e.id], e.id).toBeTruthy();
+    expect(genererPlan(hx()).flatMap((W) => W.seances).filter((x) => x.type === "renfo")[0].titre).toBe("Renfo Hyrox A");
+    expect(genererPlan(plan()).flatMap((W) => W.seances).some((x) => x.type === "hyrox")).toBe(false);
+  });
+});
+describe("Hyrox : charges réduites", () => {
+  it("traîneau à 70 % tant que la dose est partielle, charge de course à pleine dose", () => {
+    const push = ATELIERS.find((a) => a.k === "push")!;
+    expect(consigneAtelier(push, 0.5, { cat: "h", salle: true }).dose).toBe("30 m · 105 kg");
+    expect(consigneAtelier(push, 1, { cat: "f", salle: true }).dose).toBe("50 m · 102 kg");
+  });
+  it("chrono réaliste : 50 min au 10 km donne un premier Hyrox entre 1 h 15 et 1 h 35", () => {
+    const t = chronoPrevu("hyrox", vdot(10, 3000));
+    expect(t).toBeGreaterThan(75 * 60);
+    expect(t).toBeLessThan(95 * 60);
+  });
+});
+
+describe("modifier un plan en cours", () => {
+  it("garde pauses, allègements et date de création ; change catégorie et machines", () => {
+    const a = plan({ obj: "hyrox", date: "2027-01-10", cat: "h", salle: true, pauses: [{ de: "2026-11-20", a: "2026-11-25" }], ajust: { 3: 0.8 } });
+    const { plan: b, decalage } = modifierPlan(a, { obj: "hyrox", date: a.date, debut: a.debut, jours: 3, renfo: 2, ref: a.ref, cat: "f", salle: false });
+    expect(decalage).toBe(0);
+    expect(b.pauses).toEqual(a.pauses);
+    expect(b.ajust).toEqual({ 3: 0.8 });
+    expect(b.cree).toBe(a.cree);
+    expect([b.cat, b.salle, b.jours, b.renfo]).toEqual(["f", false, 3, 2]);
+    const seance = genererPlan(b).flatMap((W) => W.seances).find((x) => x.type === "hyrox" && x.tours!.length === 8)!;
+    expect(seance.phases!.find((x) => x.titre === "SkiErg")!.consigne).toMatch(/Sans machine/);
+    expect(seance.tours!.some((t) => t.atelier.includes("4 kg"))).toBe(true);
+  });
+  it("date décalée : les semaines déjà faites gardent leurs séances", () => {
+    const a = plan({ obj: "hyrox", date: "2027-01-10", ajust: { 2: 0.9 } });
+    const c = calendrier("hyrox", "2027-01-24", "2026-10-05"); // deux semaines plus tard
+    const { plan: b, decalage } = modifierPlan(a, { obj: "hyrox", date: "2027-01-24", debut: c.debut, jours: a.jours, renfo: a.renfo, ref: a.ref });
+    expect(decalage).toBe(Math.round((new Date(a.debut).getTime() - new Date(c.debut).getTime()) / (7 * 864e5)));
+    expect(b.ajust[2 + decalage]).toBe(0.9);
+    expect(decalerCle("2|1", decalage)).toBe(`${2 + decalage}|1`);
+    expect(decalerCle("1|0", 0)).toBe("1|0");
+    expect(decalerCle("0|0", -1)).toBeNull();
+  });
+  it("un plan inchangé reste identique ; passer à une course efface les réglages Hyrox", () => {
+    const a = plan();
+    expect(modifierPlan(a, { obj: a.obj, date: a.date, debut: a.debut, jours: a.jours, renfo: a.renfo, ref: a.ref }).plan).toEqual(a);
+    const h = plan({ obj: "hyrox", cat: "h", salle: true });
+    const b = modifierPlan(h, { obj: "10k", date: h.date, debut: h.debut, jours: 4, renfo: 1, ref: h.ref, cat: "h", salle: true }).plan;
+    expect(b.cat).toBeUndefined();
+    expect(b.salle).toBeUndefined();
   });
 });

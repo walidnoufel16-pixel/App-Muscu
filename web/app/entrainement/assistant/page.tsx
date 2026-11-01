@@ -48,6 +48,8 @@ function Assistant() {
   const typeUrl = useSearchParams().get("type");
   /* venu de la rubrique Course : la préparation d'une course seulement */
   const courseSeule = typeUrl === "course";
+  /* venu de « Modifier mon plan » : le même questionnaire, prérempli */
+  const modifUrl = useSearchParams().get("modif") === "1", modif = courseSeule && modifUrl;
   /* venu du street workout (onglet Sur mesure) : le matériel du street seulement, pas de séance combinée */
   const street = useSearchParams().get("street") === "1";
   const [type, setType] = useState<"muscu" | "cardio" | "mixte" | "exercices" | "course">(typeUrl === "cardio" || typeUrl === "mixte" || typeUrl === "exercices" || typeUrl === "course" ? typeUrl : "muscu");
@@ -89,9 +91,10 @@ function Assistant() {
 
   return (
     <>
-      <EnTete
+      {/* préparation de course : l'en-tête en photo est dans le questionnaire (il suit la course choisie) */}
+      {!courseSeule && <EnTete
         surtitre={courseSeule ? tr("Course") : street ? tr("Street workout") : tr("Créer ma séance")}
-        titre={courseSeule ? tr("Prépare une course") : tr("Créer une séance pour moi")}
+        titre={courseSeule ? (modif ? tr("Modifier mon plan") : tr("Prépare une course")) : tr("Créer une séance pour moi")}
         gauche={<Retour repli="/entrainement" />}
       >
         <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
@@ -100,14 +103,14 @@ function Assistant() {
             : type === "mixte"
               ? tr("De la musculation et un bloc cardio dans la même séance. Le bloc se place où tu veux : avant, entre deux exercices ou à la fin.")
               : type === "course"
-                ? tr("Un plan de préparation pour ta course : allures calculées sur ton niveau, montée progressive, affûtage avant le jour J, et renfo du coureur.")
+                ? (modif ? tr("Change tes réglages : tes sorties notées, tes pauses et ta progression sont gardées.") : tr("Un plan de préparation pour ta course ou ton Hyrox : allures calculées sur ton niveau, montée progressive, affûtage avant le jour J, et renfo."))
                 : type === "exercices"
                   ? tr("Tous les exercices, muscle par muscle, avec ton matériel. Touche un exercice pour voir sa fiche.")
                   : tr("Une séance guidée : Oxa annonce chaque effort et chaque récupération, avec un signal sonore.")}
         </p>
         {/* street : pas de séance combinée (muscu en salle + bloc cardio) */}
         {!courseSeule && <Segmente label={tr("Catégorie")} className="mt-4" valeur={type} onChange={setType} options={[{ v: "muscu", n: tr("Muscu") }, { v: "cardio", n: tr("Cardio") }, ...(street ? [] : [{ v: "mixte" as const, n: tr("Combinée") }]), { v: "exercices", n: tr("Exercices") }]} />}
-      </EnTete>
+      </EnTete>}
 
       {type === "course" ? (
         <QuestionnaireCourse />

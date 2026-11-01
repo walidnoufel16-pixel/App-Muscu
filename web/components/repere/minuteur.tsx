@@ -4,7 +4,7 @@
    écran maintenu allumé. Le temps est calculé à partir de l'heure de départ et des
    pauses : il reste juste après un passage en arrière-plan. */
 import { tr } from "@/lib/i18n";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PauseIcon, PlayIcon, SkipForwardIcon, XIcon } from "@phosphor-icons/react";
 import { confirmer } from "@/components/repere/confirmer";
 import { mmss } from "@/components/repere/reglages-cardio";
@@ -28,6 +28,7 @@ function bipsDe(P: Phase[], ecoule: number): Bip[] {
   ch.forEach((t, i) => {
     const dans = t - ecoule;
     if (dans <= 0) return;
+    if (P[i].libre) return; // phase libre : elle finit quand on touche le bouton, pas au chrono
     if (P[i].duree >= 8) b.push(...decompte(dans).filter((x) => x.dans > 0));
     b.push(...(i === ch.length - 1 ? [...sonFin(dans), { dans: dans + 0.44, f: 1760 }] : sonFin(dans)));
   });
@@ -43,11 +44,14 @@ export function Minuteur({ phases, titre, course, setCourse, onFin, seuil = 60, 
   seuil?: number; arret?: { titre: string; texte: string };
 }) {
   const [maintenant, setMaintenant] = useState(course.debut);
+  /* phases libres : prolongées de 30 s tant qu'on n'a pas touché leur bouton */
+  const [ext, setExt] = useState<Record<number, number>>({});
+  const P = useMemo(() => phases.map((p, i) => (ext[i] ? { ...p, duree: p.duree + ext[i] } : p)), [phases, ext]);
   const termine = useRef(false);
   const verrou = useRef<{ release: () => Promise<void> } | null>(null);
-  const total = dureeTotale(phases);
+  const total = dureeTotale(P);
   const ecoule = Math.max(0, ecouleDe(course, maintenant));
-  const o = ou(phases, ecoule);
+  const o = ou(P, ecoule);
 
   /* Fin de séance (ou arrêt) : historique, bilan, retour à la préparation. */
   const finir = (fin: number) => {
@@ -67,20 +71,22 @@ export function Minuteur({ phases, titre, course, setCourse, onFin, seuil = 60, 
     const pas = () => {
       const t = Date.now();
       setMaintenant(t);
+      const q = ou(P, ecouleDe(course, t));
+      if (q.phase?.libre && q.reste < 1) { setExt((x) => ({ ...x, [q.i]: (x[q.i] ?? 0) + 30 })); return; }
       if (ecouleDe(course, t) >= total) finir(t);
     };
     const raf = requestAnimationFrame(pas);
     const id = setInterval(pas, 250);
     return () => { clearInterval(id); cancelAnimationFrame(raf); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [course, total]);
+  }, [course, total, P]);
 
   /* sons : reprogrammés au départ, à la reprise et quand on passe une phase */
   useEffect(() => {
     if (course.pause) { couper("cardio"); return; }
-    programmer("cardio", bipsDe(phases, ecouleDe(course, Date.now())));
+    programmer("cardio", bipsDe(P, ecouleDe(course, Date.now())));
     return () => couper("cardio");
-  }, [course, phases]);
+  }, [course, P]);
 
   /* vibration à chaque changement de phase */
   const iPrec = useRef(o.i);
@@ -102,7 +108,9 @@ export function Minuteur({ phases, titre, course, setCourse, onFin, seuil = 60, 
 
   const p = o.phase;
   const effort = p?.type === "effort";
-  const R = 118, C = 2 * Math.PI * R, part = p ? o.reste / p.duree : 0;
+  /* phase libre : le chrono monte (temps passé), l'anneau se remplit vers l'objectif */
+  const objectif = p?.libre ? phases[o.i].duree : 0, passe = p ? o.depuis : 0;
+  const R = 118, C = 2 * Math.PI * R, part = p ? (p.libre ? Math.min(1, passe / objectif) : o.reste / p.duree) : 0;
   const pause = () => {
     preparer();
     const t = Date.now();
@@ -150,14 +158,15 @@ export function Minuteur({ phases, titre, course, setCourse, onFin, seuil = 60, 
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
             <span key={o.i} className="animate-[pop_.45s_cubic-bezier(.3,1.6,.5,1)] text-[22px] font-bold tracking-[-0.01em]">{p ? p.titre ?? NOM_PHASE[p.type] : tr("Terminé")}</span>
-            <span className={cn("num text-[78px] leading-none font-bold", !effort && o.reste <= 3 && "text-plate")}>{mmss(Math.ceil(o.reste))}</span>
+            <span className={cn("num text-[78px] leading-none font-bold", !effort && !p?.libre && o.reste <= 3 && "text-plate")}>{mmss(p?.libre ? Math.floor(passe) : Math.ceil(o.reste))}</span>
+            {p?.libre && <span className="mt-1 text-[12.5px] opacity-80">{tr("objectif {a}", { a: mmss(objectif) })}</span>}
             {p?.rpe && <span className={cn("mt-1 rounded-full px-2.5 py-0.5 text-[12.5px] font-semibold", effort ? "bg-white/15" : "bg-muted text-muted-foreground")}>{p.rpe}</span>}
           </div>
         </div>
         {p?.consigne && <p className={cn("max-w-[30ch] text-center text-[17px] leading-snug font-medium", !effort && "text-foreground/85")}>{p.consigne}</p>}
         {o.suivante && (
           <p className={cn("text-[14px]", effort ? "opacity-80" : "text-muted-foreground")}>
-            {tr("Ensuite :")}{" "}<b className="font-semibold">{o.suivante.titre ?? NOM_PHASE[o.suivante.type]}</b> · {mmss(o.suivante.duree)}
+            {tr("Ensuite :")}{" "}<b className="font-semibold">{o.suivante.titre ?? NOM_PHASE[o.suivante.type]}</b> · {o.suivante.libre ? o.suivante.rpe : mmss(o.suivante.duree)}
           </p>
         )}
       </div>
@@ -170,6 +179,11 @@ export function Minuteur({ phases, titre, course, setCourse, onFin, seuil = 60, 
           </span>
           <span className={cn("num w-11 text-right text-[15px] font-semibold", effort ? "opacity-80" : "text-muted-foreground")}>{mmss(total)}</span>
         </div>
+        {p?.libre && (
+          <button onClick={passer} className={cn("h-14 w-full rounded-2xl text-[17px] font-bold active:scale-[.98]", effort ? "bg-white text-[#0a0a0c]" : "bg-plate text-plate-foreground")}>
+            {p.libre} →
+          </button>
+        )}
         <div className="flex items-center justify-center gap-6">
           <span className="size-14" />
           <button
