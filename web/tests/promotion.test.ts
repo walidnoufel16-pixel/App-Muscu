@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ARTICLES, CATEGORIES, aLireAussi, adresse, article, tempsLecture, texte } from "@/lib/data/blog";
+import { ARTICLES, BILLETS, CATEGORIES, GUIDES, aLireAussi, adresse, article, tempsLecture, texte } from "@/lib/data/blog";
 import fs from "node:fs";
 import path from "node:path";
 import { EX } from "@/lib/data/exercices";
@@ -45,7 +45,7 @@ describe("blog public", () => {
     expect(new Set(en.map((t) => t.slug)).size).toBe(ARTICLES.length);
     for (const a of ARTICLES) {
       expect(article(texte(a, "en").slug, "en")).toBe(a);
-      expect(adresse(a, "en")).toMatch(/^\/en\/blog\/[a-z0-9-]+\/$/);
+      expect(adresse(a, "en")).toMatch(/^\/en\/(blog|guides)\/[a-z0-9-]+\/$/);
       expect(aLireAussi(texte(a, "en").slug, 2, "en")).not.toContain(a);
     }
   });
@@ -54,5 +54,12 @@ describe("blog public", () => {
     const lire = (d: string) => { for (const f of fs.readdirSync(d)) { const p = path.join(d, f); if (fs.statSync(p).isDirectory()) lire(p); else if (/\.tsx?$/.test(f) && /sans pub|sans abonnement/i.test(fs.readFileSync(p, "utf8"))) trouve.push(p); } };
     for (const d of dirs) lire(path.join(__dirname, "..", d));
     expect(trouve).toEqual([]);
+  });
+  it("guides en tête (5, Hyrox d'abord, aux adresses /guides) et articles du blog (/blog)", () => {
+    expect(GUIDES.map((g) => g.slug)).toEqual(["preparer-premier-hyrox", "programme-street-workout-debutant", "premiere-traction", "seance-full-body-sans-materiel", "repas-prise-de-muscle-petit-budget"]);
+    for (const g of GUIDES) expect(adresse(g, "fr")).toBe(`/guides/${g.slug}/`);
+    expect(BILLETS.length).toBe(3);
+    for (const b of BILLETS) expect(adresse(b, "fr")).toMatch(/^\/blog\//);
+    expect(GUIDES.length + BILLETS.length).toBe(ARTICLES.length);
   });
 });

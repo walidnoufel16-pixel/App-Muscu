@@ -3,14 +3,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { Route } from "next";
 import { CaretLeftIcon } from "@phosphor-icons/react/dist/ssr";
-import { ARTICLES, aLireAussi, adresse, dateTxt, nomCategorie, tempsLecture, texte, type Article, type Langue } from "@/lib/data/blog";
+import { BILLETS, GUIDES, aLireAussi, adresse, dateTxt, nomCategorie, tempsLecture, texte, type Article, type Langue } from "@/lib/data/blog";
+import { ProposerAnglais } from "./anglais";
 import { LogoTuile } from "@/components/repere/logo";
 import { ListeBlog } from "./liste";
 
 const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "https://repere-soz5.onrender.com").trim();
 const T = {
-  fr: { titre: "Le blog Oxa", sous: "Muscu, street workout, course et nutrition : des conseils concrets, sans bla-bla.", autre: "English", autreLien: "/en/blog/", lireAussi: "À lire aussi", ouvrir: "Ouvrir Oxa", fin: "Tes séances, tes charges et ta progression, au même endroit.", photo: "Photo :", sur: "sur Unsplash", min: "min" },
-  en: { titre: "The Oxa blog", sous: "Strength, calisthenics, running and nutrition: practical advice, no fluff.", autre: "Français", autreLien: "/blog/", lireAussi: "Keep reading", ouvrir: "Open Oxa", fin: "Your sessions, your weights and your progress, in one place.", photo: "Photo:", sur: "on Unsplash", min: "min" },
+  fr: { titre: "Guides et blog Oxa", sous: "Les guides pour bien démarrer, puis des articles qui s'ajoutent chaque semaine.", guides: "Les guides", guidesSous: "Les essentiels, à lire dans l'ordre que tu veux.", blog: "Le blog", blogSous: "De nouveaux articles chaque semaine.", guide: "Guide", retour: "Guides et blog", autre: "English", autreLien: "/en/blog/", lireAussi: "À lire aussi", ouvrir: "Ouvrir Oxa", fin: "Tes séances, tes charges et ta progression, au même endroit.", photo: "Photo :", sur: "sur Unsplash", min: "min" },
+  en: { titre: "Oxa guides and blog", sous: "Guides to get started, then new articles every week.", guides: "Guides", guidesSous: "The essentials, read them in any order.", blog: "Blog", blogSous: "New articles every week.", guide: "Guide", retour: "Guides and blog", autre: "Français", autreLien: "/blog/", lireAussi: "Keep reading", ouvrir: "Open Oxa", fin: "Your sessions, your weights and your progress, in one place.", photo: "Photo:", sur: "on Unsplash", min: "min" },
 };
 
 export const metaListe = (l: Langue): Metadata => ({
@@ -20,11 +21,13 @@ export const metaListe = (l: Langue): Metadata => ({
   openGraph: { title: T[l].titre, url: l === "en" ? "/en/blog/" : "/blog/", images: ["/og.jpg"], locale: l === "en" ? "en_GB" : "fr_FR" },
 });
 
+const carte = (a: Article, l: Langue) => {
+  const t = texte(a, l);
+  return { href: adresse(a, l), titre: t.titre, categorie: a.categorie, nomCat: nomCategorie(a.categorie, l), couverture: a.couverture, date: dateTxt(a.date, l), lecture: tempsLecture(a, l) };
+};
+
 export function VueListe({ l }: { l: Langue }) {
-  const items = ARTICLES.map((a) => {
-    const t = texte(a, l);
-    return { href: adresse(a, l), titre: t.titre, categorie: a.categorie, nomCat: nomCategorie(a.categorie, l), couverture: a.couverture, date: dateTxt(a.date, l), lecture: tempsLecture(a, l) };
-  });
+  const D = T[l];
   return (
     <div lang={l} className="px-5 pt-[max(env(safe-area-inset-top),20px)] pb-12">
       <div className="flex items-center justify-between">
@@ -33,7 +36,30 @@ export function VueListe({ l }: { l: Langue }) {
       </div>
       <h1 className="mt-7 text-[32px] leading-[1.06] font-extrabold tracking-[-0.025em]">{T[l].titre}</h1>
       <p className="mt-2 text-[15.5px] leading-relaxed text-muted-foreground">{T[l].sous}</p>
-      <ListeBlog articles={items} l={l} />
+      {/* les guides : les essentiels, fixes, en cartes à faire défiler */}
+      <h2 className="mt-7 text-[12px] font-bold tracking-[0.1em] text-muted-foreground uppercase">{D.guides}</h2>
+      <p className="mt-0.5 text-[14px] text-muted-foreground">{D.guidesSous}</p>
+      <div className="no-scrollbar -mx-5 mt-3 flex snap-x gap-2.5 overflow-x-auto px-5 pb-1">
+        {GUIDES.map((g, i) => {
+          const c = carte(g, l);
+          return (
+            <Link key={c.href} href={c.href as Route} className="w-[232px] shrink-0 snap-start overflow-hidden rounded-[20px] bg-card active:opacity-85">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={c.couverture} alt="" loading={i < 2 ? undefined : "lazy"} className="h-[136px] w-full bg-muted object-cover" />
+              <div className="px-3.5 pt-2.5 pb-3.5">
+                <div className="text-[11.5px] font-bold tracking-[0.06em] text-plate-ink uppercase">{D.guide} {i + 1}</div>
+                <h3 className="mt-0.5 text-[15.5px] leading-snug font-bold">{c.titre}</h3>
+                <p className="mt-1 text-[12.5px] text-muted-foreground">{c.lecture} {l === "en" ? "min read" : "min de lecture"}</p>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+      {/* le blog : ce qui s'ajoute avec le temps */}
+      <h2 className="mt-8 text-[12px] font-bold tracking-[0.1em] text-muted-foreground uppercase">{D.blog}</h2>
+      <p className="mt-0.5 text-[14px] text-muted-foreground">{D.blogSous}</p>
+      <ListeBlog articles={BILLETS.map((a) => carte(a, l))} l={l} />
+      {l === "fr" && <ProposerAnglais href="/en/blog/" />}
     </div>
   );
 }
@@ -60,13 +86,13 @@ export function VueArticle({ a, l }: { a: Article; l: Langue }) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={a.couverture} alt="" className="size-full object-cover" />
         <Link href={(l === "en" ? "/en/blog/" : "/blog/") as Route} className="absolute top-[max(env(safe-area-inset-top),14px)] left-3 flex items-center gap-1 rounded-full bg-[#0a0a0c]/70 py-1.5 pr-3.5 pl-2.5 text-[14px] font-semibold text-white backdrop-blur-md">
-          <CaretLeftIcon className="size-4" weight="bold" />Blog
+          <CaretLeftIcon className="size-4" weight="bold" />{D.retour}
         </Link>
         <Link href={adresse(a, autre) as Route} hrefLang={autre} className="absolute top-[max(env(safe-area-inset-top),14px)] right-3 rounded-full bg-[#0a0a0c]/70 px-3 py-1.5 text-[13px] font-semibold text-white backdrop-blur-md">{D.autre}</Link>
       </div>
       <div className="px-5">
         {a.credit && <p className="mt-1.5 text-[11.5px] text-muted-foreground">{D.photo} <a href={a.credit.lien} className="underline">{a.credit.nom}</a> {D.sur}</p>}
-        <p className="mt-4 text-[12px] font-bold tracking-[0.06em] text-plate-ink uppercase">{nomCategorie(a.categorie, l)} · {tempsLecture(a, l)} {D.min} · {dateTxt(a.date, l)}</p>
+        <p className="mt-4 text-[12px] font-bold tracking-[0.06em] text-plate-ink uppercase">{a.type === "guide" ? `${D.guide} · ` : ""}{nomCategorie(a.categorie, l)} · {tempsLecture(a, l)} {D.min}{a.type === "article" ? ` · ${dateTxt(a.date, l)}` : ""}</p>
         <h1 className="mt-2 text-[29px] leading-[1.08] font-extrabold tracking-[-0.025em]">{t.titre}</h1>
         <p className="mt-4 text-[16.5px] leading-relaxed">{t.intro}</p>
         {t.blocs.map((b) => (
@@ -94,13 +120,14 @@ export function VueArticle({ a, l }: { a: Article; l: Langue }) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={x.couverture} alt="" loading="lazy" className="size-[84px] shrink-0 rounded-[14px] bg-muted object-cover" />
               <div className="min-w-0">
-                <div className="text-[11.5px] font-bold tracking-[0.06em] text-plate-ink uppercase">{nomCategorie(x.categorie, l)}</div>
+                <div className="text-[11.5px] font-bold tracking-[0.06em] text-plate-ink uppercase">{x.type === "guide" ? `${D.guide} · ` : ""}{nomCategorie(x.categorie, l)}</div>
                 <h3 className="mt-0.5 line-clamp-3 text-[15px] leading-snug font-bold">{texte(x, l).titre}</h3>
               </div>
             </Link>
           ))}
         </div>
       </div>
+      {l === "fr" && <ProposerAnglais href={adresse(a, "en")} />}
     </article>
   );
 }

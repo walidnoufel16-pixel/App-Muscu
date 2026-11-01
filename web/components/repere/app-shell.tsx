@@ -56,7 +56,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   /* blog public (référencement) et anciennes adresses des guides : lisibles tout de suite, sans attendre l'app ni ses onglets */
-  if (chemin.startsWith("/blog") || chemin.startsWith("/en/blog") || chemin.startsWith("/guides")) return <div className="mx-auto min-h-dvh w-full max-w-[480px]">{children}</div>;
+  if (chemin.startsWith("/blog") || chemin.startsWith("/guides") || chemin.startsWith("/en/")) return <div className="mx-auto min-h-dvh w-full max-w-[480px]">{children}</div>;
   if (!pret)
     return (
       <div className="grid min-h-dvh place-items-center">

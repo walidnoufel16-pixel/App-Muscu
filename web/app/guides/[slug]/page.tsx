@@ -1,26 +1,16 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import type { Route } from "next";
 import { notFound } from "next/navigation";
-import { article } from "@/lib/data/blog";
+import { ARTICLES, article, texte } from "@/lib/data/blog";
+import { VueArticle, metaArticle } from "../../blog/vues";
 
-/* Anciennes adresses des guides : chacune renvoie vers son article du blog (même identifiant). */
-const ANCIENS = ["programme-street-workout-debutant", "premiere-traction", "seance-full-body-sans-materiel", "repas-prise-de-muscle-petit-budget"];
+/* /guides/[slug] : un guide (les essentiels, fixes), en français ; mêmes adresses que les anciens guides. */
 export const dynamicParams = false;
-export const generateStaticParams = () => ANCIENS.map((slug) => ({ slug }));
-
+export const generateStaticParams = () => ARTICLES.filter((a) => a.type === "guide").map((a) => ({ slug: texte(a, "fr").slug }));
 export async function generateMetadata({ params }: PageProps<"/guides/[slug]">): Promise<Metadata> {
-  const a = article((await params).slug);
-  return a ? { title: a.titre, alternates: { canonical: `/blog/${a.slug}/` }, robots: { index: false } } : {};
+  return metaArticle(article((await params).slug, "fr", "guide"), "fr");
 }
-
-export default async function AncienGuide({ params }: PageProps<"/guides/[slug]">) {
-  const a = article((await params).slug);
+export default async function Page({ params }: PageProps<"/guides/[slug]">) {
+  const a = article((await params).slug, "fr", "guide");
   if (!a) notFound();
-  return (
-    <div className="px-5 pt-10">
-      <meta httpEquiv="refresh" content={`0;url=/blog/${a.slug}/`} />
-      <p className="text-[15px]">Cet article a déménagé : <Link href={`/blog/${a.slug}/` as Route} className="font-semibold text-plate-ink underline">{a.titre}</Link>.</p>
-    </div>
-  );
+  return <VueArticle a={a} l="fr" />;
 }

@@ -15,6 +15,7 @@ export type Langue = "fr" | "en";
 export const nomCategorie = (c: Categorie, l: Langue) => (l === "en" ? { Street: "Calisthenics", Course: "Running", Muscu: "Strength", Nutrition: "Nutrition" }[c] : c);
 export type Article = {
   slug: string; titre: string; description: string; intro: string; blocs: Bloc[]; cta: string; lien: string;
+  type: "guide" | "article"; // guide : les essentiels, fixes (/guides) ; article : le blog, qui s'enrichit (/blog)
   categorie: Categorie; date: string; // AAAA-MM-JJ
   couverture: string; // photo (public/img, ou Unsplash)
   credit?: { nom: string; lien: string }; // photographe (photos Unsplash)
@@ -31,6 +32,7 @@ const recette = (id: string) => ({ couverture: imgRecette(id, "large")!, credit:
 const NOUVEAUX: Article[] = [
   {
     slug: "preparer-premier-hyrox",
+    type: "guide",
     categorie: "Course", date: "2026-11-01", couverture: "/img/grand/hyrox-traineau.avif",
     titre: "Hyrox : comment préparer ton premier Hyrox (plan débutant)",
     description: "Le format Hyrox expliqué, les 8 ateliers et leurs charges, combien de semaines pour se préparer, une semaine type et les erreurs qui coûtent cher le jour J.",
@@ -78,6 +80,7 @@ const NOUVEAUX: Article[] = [
   },
   {
     slug: "creatine-a-quoi-ca-sert",
+    type: "article",
     categorie: "Nutrition", date: "2026-10-30", ...recette("shaker-banane"),
     titre: "Créatine : à quoi ça sert vraiment, combien en prendre, est-ce sans danger ?",
     description: "Ce que fait la créatine, la dose qui fonctionne (3 à 5 g par jour), ce qu'on sait sur les reins, les cheveux et la rétention d'eau, et pour qui elle a un intérêt.",
@@ -108,6 +111,7 @@ const NOUVEAUX: Article[] = [
   },
   {
     slug: "combien-de-proteines-par-jour",
+    type: "article",
     categorie: "Nutrition", date: "2026-10-28", ...recette("omelette-epinards"),
     titre: "Combien de protéines par jour pour prendre du muscle ?",
     description: "Le besoin réel en protéines quand on fait de la musculation, comment les répartir dans la journée, et combien en apportent les aliments du quotidien.",
@@ -141,6 +145,7 @@ const NOUVEAUX: Article[] = [
   },
   {
     slug: "entrainement-hybride-muscu-course",
+    type: "article",
     categorie: "Muscu", date: "2026-10-25", couverture: "/img/grand/course-relais.avif",
     titre: "Entraînement hybride : muscu et course dans la même semaine sans se cramer",
     description: "Faire de la musculation et de la course à pied ensemble : l'effet d'interférence, comment placer les séances, et deux semaines types selon ta priorité.",
@@ -174,6 +179,7 @@ const NOUVEAUX: Article[] = [
 const LISTE: Article[] = [
   {
     slug: "programme-street-workout-debutant",
+    type: "guide",
     categorie: "Street", date: "2026-10-12", couverture: "/img/grand/rubrique-street.avif",
     titre: "Programme street workout débutant : 3 séances par semaine",
     description: "Un programme de street workout pour débuter : 3 séances corps entier par semaine, au poids du corps et à la barre de traction, pour ta première traction, tes premiers dips et des pompes propres.",
@@ -200,6 +206,7 @@ const LISTE: Article[] = [
   },
   {
     slug: "premiere-traction",
+    type: "guide",
     categorie: "Street", date: "2026-10-14", couverture: imgExGrand("tr", 1),
     titre: "Réussir sa première traction : la progression étape par étape",
     description: "Tu n'arrives pas encore à faire une traction ? La progression complète, de la suspension à la barre à la traction stricte, avec combien de temps rester à chaque étape.",
@@ -232,6 +239,7 @@ const LISTE: Article[] = [
   },
   {
     slug: "seance-full-body-sans-materiel",
+    type: "guide",
     categorie: "Muscu", date: "2026-10-16", couverture: imgExGrand("pomp", 0),
     titre: "Séance full body sans matériel : 30 minutes à la maison",
     description: "Une séance complète au poids du corps, sans aucun matériel : jambes, pectoraux, dos, abdos, en 30 minutes. Avec les variantes pour débuter ou corser.",
@@ -266,6 +274,7 @@ const LISTE: Article[] = [
   },
   {
     slug: "repas-prise-de-muscle-petit-budget",
+    type: "guide",
     categorie: "Nutrition", date: "2026-10-18", ...recette("bolognaise-lentilles"),
     titre: "Repas prise de muscle petit budget : manger assez de protéines sans se ruiner",
     description: "Combien de protéines pour prendre du muscle, quels aliments sont les moins chers par gramme de protéines, et une journée type à petit budget.",
@@ -304,8 +313,13 @@ export const ARTICLES: Article[] = [...LISTE].sort((a, b) => b.date.localeCompar
 /** Textes d'un article dans une langue (l'anglais est dans lib/data/blog-en.ts, rangé sous l'identifiant français). */
 export const texte = (a: Article, l: Langue): Texte => (l === "en" ? BLOG_EN[a.slug] : a);
 /** Adresse d'un article dans une langue. */
-export const adresse = (a: Article, l: Langue) => (l === "en" ? `/en/blog/${BLOG_EN[a.slug].slug}/` : `/blog/${a.slug}/`);
-export const article = (slug: string, l: Langue = "fr") => ARTICLES.find((a) => texte(a, l).slug === slug);
+export const adresse = (a: Article, l: Langue) => `${l === "en" ? "/en" : ""}/${a.type === "guide" ? "guides" : "blog"}/${texte(a, l).slug}/`;
+export const article = (slug: string, l: Langue = "fr", type?: Article["type"]) => ARTICLES.find((a) => texte(a, l).slug === slug && (!type || a.type === type));
+/** Les guides, dans l'ordre de lecture conseillé (du plus récent au plus ancien ne veut rien dire pour eux). */
+const ORDRE_GUIDES = ["preparer-premier-hyrox", "programme-street-workout-debutant", "premiere-traction", "seance-full-body-sans-materiel", "repas-prise-de-muscle-petit-budget"];
+export const GUIDES = ORDRE_GUIDES.map((s) => ARTICLES.find((a) => a.slug === s)!).filter(Boolean);
+/** Les articles du blog, du plus récent au plus ancien. */
+export const BILLETS = ARTICLES.filter((a) => a.type === "article");
 /** Minutes de lecture (environ 200 mots par minute). */
 export function tempsLecture(a0: Article, l: Langue = "fr") {
   const a = texte(a0, l);

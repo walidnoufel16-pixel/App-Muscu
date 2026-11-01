@@ -15,8 +15,8 @@ export function ListeBlog({ articles, l }: { articles: Item[]; l: Langue }) {
   const [une, ...autres] = liste;
   return (
     <>
-      <div className="no-scrollbar -mx-5 mt-5 flex gap-2 overflow-x-auto px-5" role="tablist" aria-label={l === "en" ? "Categories" : "Catégories"}>
-        {[null, ...CATEGORIES].map((c) => (
+      <div className="no-scrollbar -mx-5 mt-3 flex gap-2 overflow-x-auto px-5" role="tablist" aria-label={l === "en" ? "Categories" : "Catégories"}>
+        {[null, ...CATEGORIES.filter((c) => articles.some((a) => a.categorie === c))].map((c) => (
           <button key={c ?? "tout"} role="tab" aria-selected={cat === c} onClick={() => setCat(c)}
             className={cn("shrink-0 rounded-full px-4 py-2 text-[14px] font-semibold", cat === c ? "bg-plate text-plate-foreground" : "bg-muted text-foreground")}>
             {c ? nomCategorie(c, l) : l === "en" ? "All" : "Tout"}
@@ -24,11 +24,11 @@ export function ListeBlog({ articles, l }: { articles: Item[]; l: Langue }) {
         ))}
       </div>
       {une && (
-        <Link href={une.href as Route} className="mt-5 block overflow-hidden rounded-[24px] bg-card active:opacity-85">
+        <Link href={une.href as Route} className="mt-3 block overflow-hidden rounded-[24px] bg-card active:opacity-85">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={une.couverture} alt="" className="aspect-[16/10] w-full bg-muted object-cover" />
           <div className="px-4 pt-3.5 pb-4">
-            <div className="text-[12px] font-bold tracking-[0.06em] text-plate-ink uppercase">{une.nomCat}{une === articles[0] && (l === "en" ? " · New" : " · Nouveau")}</div>
+            <div className="text-[12px] font-bold tracking-[0.06em] text-plate-ink uppercase">{une.nomCat}{une === articles[0] && (l === "en" ? " · Latest" : " · Le plus récent")}</div>
             <h2 className="mt-1.5 text-[21px] leading-[1.15] font-extrabold tracking-[-0.01em]">{une.titre}</h2>
             <p className="mt-1.5 text-[13px] text-muted-foreground">{une.lecture} {l === "en" ? "min read" : "min de lecture"} · {une.date}</p>
           </div>
