@@ -133,9 +133,9 @@ export function MenuLateral() {
           ))}
 
           <p className="mt-auto pt-6 text-center text-[13px] text-muted-foreground">
-            <button onClick={va("/profil", "confidentialite")} className="px-1.5 py-1 underline-offset-2 active:underline">{tr("Confidentialité")}</button>
+            <button onClick={va("/profil?voir=confidentialite")} className="px-1.5 py-1 underline-offset-2 active:underline">{tr("Confidentialité")}</button>
             ·
-            <button onClick={va("/profil", "credits")} className="px-1.5 py-1 underline-offset-2 active:underline">{tr("Crédits")}</button>
+            <button onClick={va("/profil?voir=credits")} className="px-1.5 py-1 underline-offset-2 active:underline">{tr("Crédits")}</button>
           </p>
         </div>
       </DrawerContent>

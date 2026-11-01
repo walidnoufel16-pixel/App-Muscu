@@ -111,12 +111,12 @@ async function ecran(pg, chemin, nom, attendu) {
   const pg = await ctx.newPage();
   pg.on("pageerror", (e) => errs.push(e.message));
   let partout = true;
-  for (const c of ["/entrainement/", "/exercices/", "/repas/", "/progres/", "/profil/"]) {
+  for (const c of ["/entrainement/", "/exercices/", "/repas/", "/progres/"]) {
     await pg.goto(U + c);
     await pg.waitForTimeout(1000);
     partout &&= (await pg.getByRole("button", { name: "Langue : Français" }).count()) === 1;
   }
-  ok(partout, "liste de langue sur les cinq onglets");
+  ok(partout, "liste de langue sur les onglets (Profil a sa section Langue)");
   await pg.goto(U + "/progres/");
   await pg.getByRole("heading", { name: "Progrès" }).waitFor();
   await pg.waitForTimeout(1200);
