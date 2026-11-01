@@ -80,7 +80,7 @@ export const useOngletsExercices = create<Record<string, string>>(() => ({}));
 
 
 /* Vue de l'onglet Repas : aujourd'hui (par défaut), recettes, courses. */
-export type VueRepas = "jour" | "recettes" | "courses";
+export type VueRepas = "jour" | "semaine" | "recettes";
 export const useVueRepas = create<{ vue: VueRepas }>(() => ({ vue: "jour" }));
 
 /* Menu latéral (☰) et les feuilles qu'il ouvre ailleurs : import d'une séance, installation de l'app. */

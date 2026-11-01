@@ -88,8 +88,56 @@
   --success: var(--feu);
 }
 
-/* Oxa Meal prend désormais la même couleur que le reste ; la classe reste posée par la page Repas. */
-.theme-repas {}
+/* Oxa Meal : un autre module de l'app, tout en orange. Le fond, les cartes et les bordures
+   prennent des nuances d'orange ; chaque onglet a la sienne (ambre, safran, paprika), posée
+   sur <body> par app/repas/page.tsx (classes repas-jour, repas-semaine, repas-recettes).
+   En clair : oranges pâles et texte noir ; en sombre : les fonds sombres habituels, l'orange en accent. */
+body.repas-jour { --fond-repas: #fff3df; }
+body.repas-semaine { --fond-repas: #ffecd9; }
+body.repas-recettes { --fond-repas: #ffe6d8; }
+.theme-repas {
+  --background: var(--fond-repas, #ffecd9);
+  --foreground: #1a1106;
+  --card: #fffaf4;
+  --card-foreground: #1a1106;
+  --popover: #fffaf4;
+  --popover-foreground: #1a1106;
+  --secondary: #fde3c8;
+  --muted: #fde3c8;
+  --accent: #fbd8b5;
+  --muted-foreground: #85542b;
+  --border: #f3d0ad;
+  --input: #ecc29a;
+  --plate: #f08a24;
+  --plate-foreground: #1a1106;
+  --plate-soft: color-mix(in oklab, #f08a24 14%, transparent);
+  --plate-ink: #b45309;           /* orange lisible en texte sur fond clair */
+  --feu: #f08a24;
+  --feu-ink: #b45309;
+  --feu-soft: color-mix(in oklab, #f08a24 14%, transparent);
+  --success: #b45309;
+}
+/* en sombre, le module garde les fonds sombres de l'app : seul l'orange marque Oxa Meal */
+.dark .theme-repas, .dark.theme-repas {
+  --background: #0a0a0c;
+  --foreground: #f5f5f7;
+  --card: #1c1c22;
+  --card-foreground: #f5f5f7;
+  --popover: #1c1c22;
+  --popover-foreground: #f5f5f7;
+  --secondary: #222228;
+  --muted: #1f1f25;
+  --accent: #26262d;
+  --muted-foreground: #95959f;
+  --border: #29292f;
+  --input: #34343c;
+  --plate: #f59a3c;
+  --plate-soft: color-mix(in oklab, #f59a3c 18%, transparent);
+  --plate-ink: #ffb066;
+  --feu: #f59a3c;
+  --feu-ink: #ffb066;
+  --success: #ffb066;
+}
 
 @theme inline {
   --font-sans: var(--font-geist-sans), "Geist", ui-sans-serif, system-ui, sans-serif;
