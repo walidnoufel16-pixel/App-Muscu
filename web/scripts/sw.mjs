@@ -82,8 +82,10 @@ self.addEventListener("fetch", (e) => {
     }))));
     return;
   }
-  /* pages et manifeste : réseau d'abord, pour qu'un nouveau nom ou une nouvelle icône se voie tout de suite */
-  if (req.mode === "navigate" || new URL(req.url).pathname === "/manifest.webmanifest") {
+  /* pages et manifeste : réseau d'abord, pour qu'un nouveau nom ou une nouvelle icône se voie tout de suite ;
+     guides et blog aussi pour leurs données de navigation (un article corrigé se voit sans recharger) */
+  const chemin = new URL(req.url).pathname;
+  if (req.mode === "navigate" || chemin === "/manifest.webmanifest" || /^\/(en\/)?(blog|guides)(\/|$)/.test(chemin)) {
     e.respondWith(fetch(req).then((r) => { const c = r.clone(); caches.open(C).then((x) => x.put(req, c)); return r; })
       .catch(() => caches.match(req, { ignoreSearch: true }).then((r) => r || caches.match("/"))));
     return;
