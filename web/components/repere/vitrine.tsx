@@ -75,7 +75,9 @@ export function Vitrine({ onCommencer, onCompte }: { onCommencer: () => void; on
         <p className="mt-2 text-[15px] opacity-75">{tr("Sans carte bancaire, sans pub.")}</p>
         <Button variant="plate" size="xl" onClick={onCommencer} className="mt-5 w-full">{tr("Commencer gratuitement")}<ArrowRightIcon /></Button>
       </section>
-      <p className="pt-5 pb-2 text-center text-[12.5px] text-muted-foreground">{tr("Oxa · gratuit, sans publicité")}</p>
+      <p className="pt-5 pb-2 text-center text-[12.5px] text-muted-foreground">
+        {tr("Oxa · gratuit, sans publicité")} · <a href="/blog/" className="font-semibold text-plate-ink underline-offset-2 hover:underline">{tr("Le blog Oxa")}</a>
+      </p>
     </div>
   );
 }
