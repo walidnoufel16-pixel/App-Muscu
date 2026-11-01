@@ -4,10 +4,10 @@
    l'entraînement, les repas et les progrès ; ici, le compte, l'invitation d'un ami, les défis,
    les réglages (matériel, rappels, repas, apparence), l'avis et l'installation de l'app.
    Confidentialité et crédits en petits liens, en bas. */
-import { tr } from "@/lib/i18n";
+import { langue, tr } from "@/lib/i18n";
 import { usePathname, useRouter } from "next/navigation";
 import type { Route } from "next";
-import { BellIcon, CalendarDotsIcon, CompassIcon, CaretRightIcon, ChatCircleTextIcon, CircleHalfIcon, DeviceMobileIcon, DownloadSimpleIcon, ForkKnifeIcon, ListIcon, ToolboxIcon, TrophyIcon, UserPlusIcon, WrenchIcon, type Icon } from "@phosphor-icons/react";
+import { BellIcon, CalendarDotsIcon, CompassIcon, CaretRightIcon, ChatCircleTextIcon, CircleHalfIcon, DeviceMobileIcon, DownloadSimpleIcon, ForkKnifeIcon, ListIcon, NewspaperIcon, ToolboxIcon, TrophyIcon, UserPlusIcon, WrenchIcon, type Icon } from "@phosphor-icons/react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { useRepere } from "@/lib/store";
 import { useEstAdmin } from "@/lib/admin";
@@ -83,6 +83,7 @@ export function MenuLateral() {
       titre: tr("Aide"),
       l: [
         { Icone: ChatCircleTextIcon, n: tr("Donner mon avis"), onClick: ouvrir("avis") },
+        { Icone: NewspaperIcon, n: tr("Le blog Oxa"), onClick: va(langue() === "en" ? "/en/blog" : "/blog") },
         { Icone: CompassIcon, n: tr("Revoir la visite"), onClick: () => { tactile(5); fermer(); setTimeout(revoirVisite, 300); } },
         { Icone: DeviceMobileIcon, n: tr("Installer l'app"), onClick: ouvrir("installer"), cache: appInstallee() && !admin },
         { Icone: WrenchIcon, n: tr("Administration"), onClick: va("/admin"), cache: !admin },

@@ -8,5 +8,5 @@ const TEST = process.env.NEXT_PUBLIC_APP_TEST === "1";
 export default function robots(): MetadataRoute.Robots {
   return TEST
     ? { rules: { userAgent: "*", disallow: "/" } }
-    : { rules: { userAgent: "*", allow: ["/", "/guides/"], disallow: ["/admin/"] }, sitemap: `${SITE}/sitemap.xml` };
+    : { rules: { userAgent: "*", allow: ["/", "/blog/", "/guides/", "/en/"], disallow: ["/admin/"] }, sitemap: `${SITE}/sitemap.xml` };
 }

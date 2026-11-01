@@ -20,7 +20,7 @@ const chiffres = localFont({
 
 /* Adresse publique : aperçus de partage (WhatsApp, Instagram…) et référencement. */
 const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "https://repere-soz5.onrender.com").trim();
-const ACCROCHE = "Quels exercices, combien de séries, quel poids : Oxa décide avec toi, et ajoute du poids quand tu es prêt. Muscu et street workout, gratuit.";
+const ACCROCHE = "Quels exercices, combien de séries, quel poids : Oxa décide avec toi, et ajoute du poids quand tu es prêt. Muscu, street workout, course et Hyrox.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),

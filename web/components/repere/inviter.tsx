@@ -10,7 +10,7 @@ import { tactile } from "@/lib/repos";
 export async function inviterAmi() {
   tactile(8);
   const url = `${location.origin}/?src=ami`;
-  const text = tr("Je m'entraîne avec Oxa : il crée mes séances et fait monter mes charges tout seul. Gratuit, sans abonnement.");
+  const text = tr("Je m'entraîne avec Oxa : il crée mes séances et fait monter mes charges tout seul.");
   try {
     if (navigator.share) { await navigator.share({ title: tr("Oxa"), text, url }); return; }
     await navigator.clipboard.writeText(`${text} ${url}`);
