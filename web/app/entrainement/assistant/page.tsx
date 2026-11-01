@@ -90,7 +90,7 @@ function Assistant() {
   return (
     <>
       <EnTete
-        surtitre={courseSeule ? tr("Course") : street ? tr("Street workout") : tr("Séance sur mesure")}
+        surtitre={courseSeule ? tr("Course") : street ? tr("Street workout") : tr("Créer ma séance")}
         titre={courseSeule ? tr("Prépare une course") : tr("Créer une séance pour moi")}
         gauche={<Retour repli="/entrainement" />}
       >

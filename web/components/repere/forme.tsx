@@ -26,6 +26,16 @@ export function FormeDuJour({ cles }: { cles: string[] }) {
   const [rep, setRep] = useState<Partial<Forme>>(() => f || { douleur: [] });
   if (!f && (entamee || etat.A.formePassee === auj) && !ouvert) return null;
 
+  /* pas encore répondu : une ligne qui s'ouvre, au lieu d'un grand questionnaire au-dessus des exercices */
+  if (!f && !ouvert)
+    return (
+      <button onClick={() => { tactile(5); setOuvert(true); }} className="flex items-center gap-2.5 rounded-2xl border border-dashed border-plate/50 bg-card px-3.5 py-2.5 text-left active:bg-muted">
+        <BatteryMediumIcon className="size-5 shrink-0 text-plate-ink" weight="fill" />
+        <span className="min-w-0 flex-1 text-[13.5px]"><b className="font-semibold">{tr("Comment tu te sens ?")}</b>{" "}<span className="text-muted-foreground">{tr("· les charges s'adaptent")}</span></span>
+        <span className="text-[12.5px] font-semibold text-plate-ink">{tr("Répondre")}</span>
+      </button>
+    );
+
   if (f && !ouvert) {
     const n = niveau(f);
     return (

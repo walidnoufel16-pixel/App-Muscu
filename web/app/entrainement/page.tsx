@@ -38,7 +38,7 @@ export default function PageEntrainement() {
   return (
     <>
       <EnTete
-        surtitre={enProgramme && !etat.FINI ? tr("Semaine {a} sur 8", { a: wk + 1 }) : habitue ? tr("Séances à la carte") : tr("Bienvenue")}
+        surtitre={enProgramme && !etat.FINI ? tr("Semaine {a} sur 8", { a: wk + 1 }) : habitue ? tr("Ton entraînement") : tr("Bienvenue")}
         titre={tr("Entraînement")}
         actions={<ChoixLangue />}
       />

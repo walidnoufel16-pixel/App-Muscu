@@ -35,7 +35,7 @@ export const remplacement = () => usePile.setState({ remplace: true });
 
 const TITRES: [RegExp, string][] = [
   [/^\/entrainement\/programme/, tr("Programme")],
-  [/^\/entrainement\/rubrique\?v=libre/, tr("Séance libre")],
+  [/^\/entrainement\/rubrique\?v=libre/, tr("Mes séances")],
   [/^\/entrainement\/rubrique\?v=programme/, tr("Programme")],
   [/^\/entrainement\/rubrique\?v=street/, tr("Street workout")],
   [/^\/entrainement\/rubrique\?v=course/, tr("Course")],

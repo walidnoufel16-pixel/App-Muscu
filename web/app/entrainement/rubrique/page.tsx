@@ -47,8 +47,8 @@ function Contenu() {
   const options: { v: string; n: string }[] =
     v === "libre" ? []
     : v === "programme" ? (prog && plan ? [{ v: "semaine", n: tr("Ma semaine") }, { v: "tout", n: tr("Tout le programme") }] : [])
-    : v === "street" ? [{ v: "programmes", n: tr("Programmes") }, { v: "mesure", n: tr("Sur mesure") }, { v: "familles", n: tr("Familles") }]
-    : v === "course" ? [{ v: "plan", n: tr("Mon plan") }, { v: "seances", n: tr("Les séances") }]
+    : v === "street" ? [{ v: "programmes", n: tr("Programmes") }, { v: "familles", n: tr("Familles") }]
+    : v === "course" ? []
     : ZONES_SOIN.map(([z]) => ({ v: z, n: zonesSoinCourt()[z] }));
   const memo = useOngletsExercices((s) => s[v]);
   const valide = (o: string | null | undefined) => (o && options.some((x) => x.v === o) ? o : null);
@@ -83,7 +83,7 @@ function Contenu() {
             />
           ) : onglet === "tout" ? <ToutLeProgramme /> : <MaSemaine />
         ) : v === "street" ? <VueStreet onFiche={ouvrir} onglet={onglet as OngletStreet} />
-          : v === "course" ? <VueCourse onglet={onglet as "plan" | "seances"} />
+          : v === "course" ? <VueCourse />
           : <VueSoin onFiche={ouvrir} zone={onglet as ZoneSoin} />}
       </div>
       <FicheExercice fiche={fiche} onClose={() => setFiche(null)} />
