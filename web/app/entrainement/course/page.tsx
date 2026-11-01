@@ -8,7 +8,7 @@ import { Suspense, useMemo, useState } from "react";
 import type { Route } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  ArrowRightIcon, BarbellIcon, CaretDownIcon, LightningIcon, CaretRightIcon, CheckIcon, FlagCheckeredIcon, PauseIcon, PencilSimpleIcon, PersonSimpleRunIcon, PlayIcon, TimerIcon, TrashIcon,
+  ArrowRightIcon, BarbellIcon, CaretDownIcon, LightningIcon, CaretRightIcon, CheckIcon, FlagCheckeredIcon, PauseIcon, PencilSimpleIcon, PersonSimpleRunIcon, PlayIcon, SlidersHorizontalIcon, TimerIcon, TrashIcon,
 } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -157,6 +157,7 @@ function Plan() {
           <div className="mt-2 grid grid-cols-2 gap-2">
             <Button variant="soft" className="h-11 rounded-xl border border-border/80 bg-card" onClick={() => setLibre(true)}><PencilSimpleIcon />{tr("Sortie libre")}</Button>
             {!pause && <Button variant="soft" className="h-11 rounded-xl border border-border/80 bg-card" onClick={basculerPause}><PauseIcon weight="fill" />{tr("Mettre en pause")}</Button>}
+            <Button variant="soft" className="col-span-2 h-11 rounded-xl border border-border/80 bg-card" onClick={() => router.push("/entrainement/assistant?type=course&modif=1" as Route, AVANT)}><SlidersHorizontalIcon />{tr("Modifier mon plan")}</Button>
           </div>
         </section>
 

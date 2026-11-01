@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  adapter, allureHyrox, allures, ATELIERS, avertissement, calendrier, chronoPrevu, consigneAtelier, estimation, genererPlan, reprendre, riegel, seancesRenfoHyrox,
+  adapter, allureHyrox, allures, ATELIERS, avertissement, calendrier, chronoPrevu, consigneAtelier, decalerCle, estimation, genererPlan, modifierPlan, reprendre, riegel, seancesRenfoHyrox,
   semaineDe, tempsAteliers, tempsPrevu, vdot, type PlanCourse,
 } from "@/lib/logic/course";
 import { EX } from "@/lib/data/exercices";
@@ -178,5 +178,38 @@ describe("Hyrox : charges réduites", () => {
     const t = chronoPrevu("hyrox", vdot(10, 3000));
     expect(t).toBeGreaterThan(75 * 60);
     expect(t).toBeLessThan(95 * 60);
+  });
+});
+
+describe("modifier un plan en cours", () => {
+  it("garde pauses, allègements et date de création ; change catégorie et machines", () => {
+    const a = plan({ obj: "hyrox", date: "2027-01-10", cat: "h", salle: true, pauses: [{ de: "2026-11-20", a: "2026-11-25" }], ajust: { 3: 0.8 } });
+    const { plan: b, decalage } = modifierPlan(a, { obj: "hyrox", date: a.date, debut: a.debut, jours: 3, renfo: 2, ref: a.ref, cat: "f", salle: false });
+    expect(decalage).toBe(0);
+    expect(b.pauses).toEqual(a.pauses);
+    expect(b.ajust).toEqual({ 3: 0.8 });
+    expect(b.cree).toBe(a.cree);
+    expect([b.cat, b.salle, b.jours, b.renfo]).toEqual(["f", false, 3, 2]);
+    const seance = genererPlan(b).flatMap((W) => W.seances).find((x) => x.type === "hyrox" && x.tours!.length === 8)!;
+    expect(seance.phases!.find((x) => x.titre === "SkiErg")!.consigne).toMatch(/Sans machine/);
+    expect(seance.tours!.some((t) => t.atelier.includes("4 kg"))).toBe(true);
+  });
+  it("date décalée : les semaines déjà faites gardent leurs séances", () => {
+    const a = plan({ obj: "hyrox", date: "2027-01-10", ajust: { 2: 0.9 } });
+    const c = calendrier("hyrox", "2027-01-24", "2026-10-05"); // deux semaines plus tard
+    const { plan: b, decalage } = modifierPlan(a, { obj: "hyrox", date: "2027-01-24", debut: c.debut, jours: a.jours, renfo: a.renfo, ref: a.ref });
+    expect(decalage).toBe(Math.round((new Date(a.debut).getTime() - new Date(c.debut).getTime()) / (7 * 864e5)));
+    expect(b.ajust[2 + decalage]).toBe(0.9);
+    expect(decalerCle("2|1", decalage)).toBe(`${2 + decalage}|1`);
+    expect(decalerCle("1|0", 0)).toBe("1|0");
+    expect(decalerCle("0|0", -1)).toBeNull();
+  });
+  it("un plan inchangé reste identique ; passer à une course efface les réglages Hyrox", () => {
+    const a = plan();
+    expect(modifierPlan(a, { obj: a.obj, date: a.date, debut: a.debut, jours: a.jours, renfo: a.renfo, ref: a.ref }).plan).toEqual(a);
+    const h = plan({ obj: "hyrox", cat: "h", salle: true });
+    const b = modifierPlan(h, { obj: "10k", date: h.date, debut: h.debut, jours: 4, renfo: 1, ref: h.ref, cat: "h", salle: true }).plan;
+    expect(b.cat).toBeUndefined();
+    expect(b.salle).toBeUndefined();
   });
 });

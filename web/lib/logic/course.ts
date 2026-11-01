@@ -359,6 +359,26 @@ export function avertissement(obj: ObjectifCourse, ref: PlanCourse["ref"], semai
   return null;
 }
 
+/* ---------------- modification d'un plan en cours ---------------- */
+export type ReglagesPlan = Pick<PlanCourse, "obj" | "date" | "debut" | "jours" | "renfo" | "ref" | "cat" | "salle">;
+/** Nouveaux réglages d'un plan en cours : pauses, allègements et date de création sont gardés.
+    `decalage` : semaines à ajouter aux numéros de semaine (sorties, allègements) quand le début bouge,
+    pour qu'une semaine du calendrier garde ses séances faites. */
+export function modifierPlan(a: PlanCourse, r: ReglagesPlan): { plan: PlanCourse; decalage: number } {
+  const decalage = Math.round((dateDe(a.debut).getTime() - dateDe(r.debut).getTime()) / (7 * 864e5));
+  const ajust: Record<number, number> = {};
+  for (const [k, v] of Object.entries(a.ajust)) if (+k + decalage >= 0) ajust[+k + decalage] = v;
+  const plan: PlanCourse = { ...a, ...r, ajust, pauses: a.pauses, cree: a.cree };
+  if (r.obj !== "hyrox") { delete plan.cat; delete plan.salle; }
+  return { plan, decalage };
+}
+/** Clé « semaine|séance » d'une sortie après décalage du plan (null : la semaine n'existe plus). */
+export function decalerCle(cle: string | undefined, decalage: number): string | null | undefined {
+  if (!cle || !decalage) return cle;
+  const [k, j] = cle.split("|").map(Number);
+  return k + decalage >= 0 ? `${k + decalage}|${j}` : null;
+}
+
 /** Séance du plan déjà faite ? */
 export const faite = (S: Sortie[], k: number, j: number) => S.some((x) => x.s === `${k}|${j}`);
 /** Allure d'une sortie, en s/km. */

@@ -14,7 +14,7 @@ import { Segmente } from "./segmente";
 import { confirmer } from "./confirmer";
 import {
   adapter, allureHyrox, allures, allureTxt, ATELIERS, avertissement, calendrier, chronoPrevu, chronoTxt, DISTANCES, enPause, estimation, genererPlan, joursAvantCourse, nomsRenfo,
-  semaineDe, seancesRenfo, seancesRenfoHyrox, tempsAteliers, vdotDe, NOMS_PHASE, type ObjectifCourse, type PlanCourse, type SeanceCourse,
+  decalerCle, modifierPlan, semaineDe, seancesRenfo, seancesRenfoHyrox, tempsAteliers, vdotDe, NOMS_PHASE, type ObjectifCourse, type PlanCourse, type SeanceCourse,
 } from "@/lib/logic/course";
 import { dispoDeclare, nb } from "@/lib/logic/core";
 import { decaler, jourDe, lundiDe } from "@/lib/logic/historique";
@@ -34,16 +34,20 @@ export function QuestionnaireCourse() {
   const etat = useRepere((s) => s.etat);
   const muter = useRepere((s) => s.muter);
   const [auj] = useState(() => jourDe(Date.now()));
-  const objUrl = useSearchParams().get("obj");
-  const [obj, setObj] = useState<ObjectifCourse>(objUrl === "hyrox" || objUrl === "10k" || objUrl === "marathon" ? objUrl : "semi");
-  const [cat, setCat] = useState<"h" | "f">("h");
+  const params = useSearchParams(), objUrl = params.get("obj"), modif = params.get("modif") === "1";
+  /* ?modif=1 : le formulaire s'ouvre avec les réglages du plan en cours, pour les changer */
+  const [ex] = useState(() => (modif ? etat.COURSE : null));
+  const r0 = ex?.ref, sec0 = r0?.sec ?? 0;
+  const [obj, setObj] = useState<ObjectifCourse>(ex?.obj ?? (objUrl === "hyrox" || objUrl === "10k" || objUrl === "marathon" ? objUrl : "semi"));
+  const [cat, setCat] = useState<"h" | "f">(ex?.cat ?? "h");
+  const [salle, setSalle] = useState(ex?.salle ?? (etat.A.materiel ?? 0) === 0);
   const hyrox = obj === "hyrox";
-  const [date, setDate] = useState(() => decaler(auj, 7 * 14));
-  const [debutant, setDebutant] = useState(false);
-  const [refKm, setRefKm] = useState(10);
-  const [h, setH] = useState(""), [m, setM] = useState(""), [s, setS] = useState("");
-  const [jours, setJours] = useState(4);
-  const [renfo, setRenfo] = useState(1);
+  const [date, setDate] = useState(() => ex?.date ?? decaler(auj, 7 * 14));
+  const [debutant, setDebutant] = useState(!!ex && !r0);
+  const [refKm, setRefKm] = useState(r0?.km ?? 10);
+  const [h, setH] = useState(sec0 >= 3600 ? String(Math.floor(sec0 / 3600)) : ""), [m, setM] = useState(r0 ? String(Math.floor((sec0 % 3600) / 60)) : ""), [s, setS] = useState(r0 ? String(Math.round(sec0 % 60)).padStart(2, "0") : "");
+  const [jours, setJours] = useState(ex?.jours ?? 4);
+  const [renfo, setRenfo] = useState(ex?.renfo ?? 1);
   const sec = (+h || 0) * 3600 + (+m || 0) * 60 + (+s || 0);
   const ref = debutant || sec < 600 ? null : { km: refKm, sec };
   const cal = calendrier(obj, date, auj);
@@ -51,16 +55,36 @@ export function QuestionnaireCourse() {
   const V = vdotDe({ ref }), A = allures(V), prevu = chronoPrevu(obj, V);
   const peut = date > decaler(auj, 6) && (debutant || sec >= 600);
 
+  /* renfo : les séances manquantes rejoignent « Mes séances » ; rien n'en est retiré */
+  const ajouterRenfos = (E: typeof etat) =>
+    (hyrox ? seancesRenfoHyrox : seancesRenfo)((id) => dispoDeclare(E.A, id)).slice(0, renfo).forEach((r, i) => {
+      if (!E.SEANCES.some((x) => nomsRenfo(obj, i as 0 | 1).includes(x.nom))) E.SEANCES.push({ nom: r.nom, ex: r.ex });
+    });
+
+  const enregistrer = () => {
+    if (!ex) return;
+    tactile(10);
+    muter((E) => {
+      if (!E.COURSE) return;
+      const { plan, decalage } = modifierPlan(E.COURSE, { obj, date, debut: cal.debut, jours, renfo, ref, ...(hyrox ? { cat, salle } : {}) });
+      E.COURSE = plan;
+      /* les sorties du plan suivent leur semaine du calendrier */
+      if (decalage) for (const o of E.SORTIES || []) { const c = decalerCle(o.s, decalage); if (c) o.s = c; else delete o.s; }
+      ajouterRenfos(E);
+    });
+    toast.success(tr("Plan modifié"), { description: tr("{semaines} semaines jusqu'au jour J.", { semaines: cal.semaines }) });
+    router.back();
+  };
+
   const creer = async () => {
+    if (ex) return enregistrer();
     if (etat.COURSE && !(await confirmer({ titre: tr("Remplacer ta préparation en cours ?"), texte: tr("Ton plan {a} sera remplacé. Tes sorties déjà notées restent dans ton historique.", { a: DISTANCES[etat.COURSE.obj].nom.toLowerCase() }), ok: tr("Remplacer") }))) return;
     tactile(10);
-    const plan: PlanCourse = { obj, date, debut: cal.debut, jours, renfo, ref, pauses: [], ajust: {}, cree: auj, ...(hyrox ? { cat, salle: (etat.A.materiel ?? 0) === 0 } : {}) };
+    const plan: PlanCourse = { obj, date, debut: cal.debut, jours, renfo, ref, pauses: [], ajust: {}, cree: auj, ...(hyrox ? { cat, salle } : {}) };
     muter((E) => {
       E.COURSE = plan;
       /* séances de renfo (coureur ou Hyrox) : ajoutées une fois à « Mes séances » (groupe Musculation) */
-      (hyrox ? seancesRenfoHyrox : seancesRenfo)((id) => dispoDeclare(E.A, id)).slice(0, renfo).forEach((r, i) => {
-        if (!E.SEANCES.some((x) => nomsRenfo(obj, i as 0 | 1).includes(x.nom))) E.SEANCES.push({ nom: r.nom, ex: r.ex });
-      });
+      ajouterRenfos(E);
     });
     toast.success(tr("Plan {a} créé : {semaines} semaines", { a: hyrox ? "Hyrox" : DISTANCES[obj].nom.toLowerCase(), semaines: cal.semaines }));
     remplacement();
@@ -98,7 +122,11 @@ export function QuestionnaireCourse() {
             <Segmente label={tr("Catégorie")} valeur={cat} onChange={setCat} options={[{ v: "h", n: tr("Open hommes") }, { v: "f", n: tr("Open femmes") }]} />
             <p className="mt-2 px-1 text-[12.5px] leading-snug text-muted-foreground">
               {cat === "h" ? tr("Charges des consignes : wall ball 6 kg, farmer's carry 2 × 24 kg, sac 20 kg.") : tr("Charges des consignes : wall ball 4 kg, farmer's carry 2 × 16 kg, sac 10 kg.")}
-              {(etat.A.materiel ?? 0) > 0 && " " + tr("Sans salle, chaque machine (SkiErg, traîneau, rameur) a son remplaçant.")}
+            </p>
+            <div className="eyebrow mt-5 mb-2 px-1">{tr("Machines")}</div>
+            <Segmente label={tr("Machines")} valeur={salle ? 1 : 0} onChange={(v) => setSalle(v === 1)} options={[{ v: 1, n: tr("En salle") }, { v: 0, n: tr("Sans machines") }]} />
+            <p className="mt-2 px-1 text-[12.5px] leading-snug text-muted-foreground">
+              {salle ? tr("SkiErg, traîneau et rameur dans les séances, comme le jour J.") : tr("Chaque machine (SkiErg, traîneau, rameur) est remplacée par un exercice sans matériel de salle.")}
             </p>
           </section>
         )}
@@ -154,7 +182,7 @@ export function QuestionnaireCourse() {
         </section>
       </div>
       <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
-        <Button variant="plate" size="xl" className="w-full" disabled={!peut} onClick={creer}>{tr("Créer mon plan")}<ArrowRightIcon /></Button>
+        <Button variant="plate" size="xl" className="w-full" disabled={!peut} onClick={creer}>{ex ? tr("Enregistrer les modifications") : tr("Créer mon plan")}{!ex && <ArrowRightIcon />}</Button>
       </div>
     </>
   );
