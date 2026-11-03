@@ -76,6 +76,8 @@ export type Reponses = {
   prio?: number[];
   prefs?: Record<string, number[]>;
   exclus?: string[];
+  /** Zones que « Ma recommandation du jour » ne propose plus (lib/logic/recommandation.ts). */
+  recoSans?: ("pec" | "dos" | "epa" | "bras" | "abd" | "jambes")[];
   actuel?: number;
   /** Langue choisie dans Profil (suit le compte sur un autre appareil). */
   langue?: "fr" | "en";

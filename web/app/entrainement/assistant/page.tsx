@@ -31,6 +31,7 @@ import { useBrouillon } from "@/lib/brouillon";
 import { lienRubrique } from "@/components/repere/rubriques";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
+import { Recommandation } from "@/components/repere/recommandation";
 
 export default function PageAssistant() {
   return (
@@ -135,6 +136,7 @@ function Assistant() {
       ) : (
       <>
       <div className="flex flex-col gap-6 px-4 pb-24">
+        {type === "muscu" && !street && !mUrl && <Recommandation onAppliquer={setM} />}
         <section>
           <div className="mb-2 flex items-baseline justify-between px-1">
             <span className="eyebrow">{tr("Muscles{a}", { a: m.length ? ` · ${m.length}` : "" })}</span>
