@@ -7,12 +7,13 @@
      dans une feuille (« Paramétrer »).
    - Recettes : un seul rang de filtres, dont « Mon frigo » (ce que j'ai déjà).
    Les préférences s'ouvrent depuis la roue de l'en-tête. Module en orange : une nuance par onglet. Première ouverture : le questionnaire. */
+import { AvatarProfil } from "@/components/repere/avatar-profil";
 import { tr } from "@/lib/i18n";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import type { Route } from "next";
 import { ArrowsClockwiseIcon, BarbellIcon, CaretDownIcon, CaretRightIcon, CouchIcon, GearSixIcon, MinusIcon, PencilSimpleIcon, PlusIcon, ShareNetworkIcon, ShoppingCartIcon, SlidersHorizontalIcon, XIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
-import { ChoixLangue } from "@/components/repere/choix-langue";
 import { EnTete } from "@/components/repere/en-tete";
 import { Segmente } from "@/components/repere/segmente";
 import { CarteProteines } from "@/components/repere/proteines";
@@ -29,7 +30,7 @@ import { ajuster, appliquer, coutsParJour, echanges, emballage, estimer, estimer
 import { PRIX } from "@/lib/data/prix";
 import type { ArticleLibre, CreneauRepas, PrefsRepas, SemaineRepas } from "@/lib/logic/types";
 import { useRepere } from "@/lib/store";
-import { useVueRepas, type VueRepas } from "@/lib/nav";
+import { remplacement, useVueRepas, type VueRepas } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 
@@ -39,7 +40,12 @@ type Besoins = ReturnType<typeof besoins>;
 function Repas() {
   const etat = useRepere((s) => s.etat), muter = useRepere((s) => s.muter);
   const p = prefsDe(etat.A);
-  const vue = useVueRepas((s) => s.vue);
+  /* la vue suit l'adresse (?v=semaine…) : le retour la retrouve, un lien ou un rappel y mène directement */
+  const vueUrl = useSearchParams().get("v");
+  const vueMemo = useVueRepas((s) => s.vue);
+  const vue: VueRepas = vueUrl === "jour" || vueUrl === "semaine" || vueUrl === "recettes" ? vueUrl : vueMemo;
+  const router = useRouter();
+  const changerVue = (v: VueRepas) => { tactile(4); useVueRepas.setState({ vue: v }); remplacement(); router.replace(`/repas?v=${v}` as Route); };
   const [auj] = useState(() => jourDe(Date.now()));
   /* jour de séance : déjà entraîné aujourd'hui, sinon au choix */
   const actif = (etat.HIST || []).some((l) => l.d === auj) || (etat.CARDIO || []).some((c) => jourDe(c.ts) === auj);
@@ -70,13 +76,13 @@ function Repas() {
                 <GearSixIcon className="size-[18px]" weight="bold" />
               </button>
             )}
-            <ChoixLangue />
+            <AvatarProfil />
           </span>
         )}
       />
       {!p.fait ? <AccueilRepas /> : (
         <div className="flex flex-col gap-3 px-4">
-          <Segmente label={tr("Rubrique repas")} valeur={vue} onChange={(v: VueRepas) => { tactile(4); useVueRepas.setState({ vue: v }); }}
+          <Segmente label={tr("Rubrique repas")} valeur={vue} onChange={changerVue}
             options={[{ v: "jour", n: tr("Aujourd'hui"), t: "#f7b14a" }, { v: "semaine", n: tr("Ma semaine"), t: "#f08a24" }, { v: "recettes", n: tr("Recettes"), t: "#e2611c" }]} />
           {vue === "jour" && <Jour p={p} seance={seance} setSeance={setSeance} b={b} kcal={kcal} auj={auj} ouvrir={(r, c) => setFiche({ r, c })} />}
           {vue === "semaine" && <Semaine p={p} b={b} kcal={kcal} ouvrir={(r, c) => setFiche({ r, c })} />}

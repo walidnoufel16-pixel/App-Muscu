@@ -3,10 +3,10 @@
 /* Entraînement : la semaine en anneaux, la séance du jour en grand, trois raccourcis pour créer,
    « À venir » (et l'écran Agenda), puis les rubriques en mosaïque. Le bouton + ouvre « Nouvelle
    séance ». Oxa Plan ne s'ouvre que par sa rubrique. */
+import { AvatarProfil } from "@/components/repere/avatar-profil";
 import { loc, tr } from "@/lib/i18n";
 import { useState } from "react";
 import { PlusIcon } from "@phosphor-icons/react";
-import { ChoixLangue } from "@/components/repere/choix-langue";
 import { EnTete } from "@/components/repere/en-tete";
 import { Reprise } from "@/components/repere/motivation";
 import { FeuillesAgenda, type Feuille } from "@/components/repere/agenda";
@@ -45,7 +45,7 @@ export default function PageEntrainement() {
         titre={tr("Entraînement")}
         actions={
           <>
-            <ChoixLangue />
+            <AvatarProfil />
             <button aria-label={tr("Nouvelle séance")} onClick={() => { tactile(8); setF({ m: "nouvelle", d: auj }); }}
               className="ml-1 grid size-9 place-items-center rounded-full bg-plate text-plate-foreground active:scale-95">
               <PlusIcon className="size-5" weight="bold" />
