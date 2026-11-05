@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import type { Moment, Recette } from "@/lib/data/recettes";
 import {
-  ALLERGIES, alimentsParRayon, allergenesDe, chercherAliments, CULTES, EMOJIS_RAYON, estPerso, MATERIELS, nouvelAliment, macros, mains, nomAliment, nomRecette, NOM_CRENEAU, portion, prefsDe, quantite, regimeDe, REGIMES, TEMPS, type Besoins,
+  ALLERGIES, alimentsParRayon, allergenesDe, chercherAliments, CULTES, EMOJIS_RAYON, estPerso, MATERIELS, nouvelAliment, macros, mains, nomAliment, nomRecette, NOM_CRENEAU, portion, prefsDe, protManquantes, quantite, regimeDe, REGIMES, TEMPS, type Besoins,
 } from "@/lib/logic/repas";
 import type { AlimentPerso, CreneauRepas, PrefsRepas } from "@/lib/logic/types";
 import { emojiDe, RAYONS } from "@/lib/data/aliments";
@@ -288,7 +288,7 @@ export function CarteRecette({ r, b, c, kcal, onOuvrir, droite, sous }: { r: Rec
           <span className="block truncate text-[15.5px] leading-tight font-semibold">{nomRecette(r)}</span>
           <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[12.5px] text-muted-foreground">
             <span className="flex items-center gap-1"><ClockIcon className="size-3.5" />{tr("{n} min", { n: r.min })}</span>
-            <span className="font-semibold text-plate-ink">{tr("{p} g de protéines", { p: m.p })}</span>
+            <span className="font-semibold text-plate-ink">{tr("{p} g de protéines", { p: m.p })}{protManquantes(r, b, c) > 0 ? " " + tr("+ {g} g à ajouter", { g: protManquantes(r, b, c) }) : ""}</span>
             {kcal && <span>{m.kcal}{" "}{tr("kcal")}</span>}
             <span aria-label={tr("Environ {e} la portion", { e: euros(coutRecette(r, f, perso)) })}>{"≈ " + euros(coutRecette(r, f, perso))}</span>
           </span>
@@ -329,6 +329,11 @@ function Fiche({ r, b, c, kcal, pers0 }: { r: Recette; b: Besoins; c?: CreneauRe
         <Macro v={m.p} n={tr("protéines")} accent />
         {kcal ? <><Macro v={m.g} n={tr("glucides")} /><Macro v={m.l} n={tr("lipides")} /><Macro v={m.kcal} n={tr("kcal")} u="" /></> : <span className="col-span-3 self-center px-2 text-left text-[12.5px] leading-snug text-muted-foreground">{tr("Pour une portion à ta mesure (×{f} la recette de base).", { f: String(f).replace(".", EN() ? "." : ",") })}</span>}
       </div>
+      {protManquantes(r, b, c) > 0 && (
+        <p className="mt-2 rounded-xl bg-plate-soft px-3 py-2 text-[13px] leading-snug text-plate-ink dark:text-plate">
+          {tr("Pour tenir ton objectif à ce repas, ajoute environ {g} g de protéines : un skyr, deux œufs ou un verre de lait.", { g: protManquantes(r, b, c) })}
+        </p>
+      )}
       <div className="mt-5 flex items-center justify-between px-1">
         <h3 className="text-[17px] font-bold">{tr("Ingrédients")}</h3>
         <span className="flex items-center gap-1.5">
@@ -341,12 +346,12 @@ function Fiche({ r, b, c, kcal, pers0 }: { r: Recette; b: Besoins; c?: CreneauRe
         {r.ing.map(([id, g]) => (
           <li key={id} className="flex items-baseline justify-between gap-3 border-t border-border/60 px-4 py-2.5 text-[14.5px] first:border-t-0">
             <span><span aria-hidden className="mr-2">{emojiDe(id)}</span>{nomAliment(id)}</span>
-            <span className="num shrink-0 font-semibold">{quantite(id, g * f * pers)}</span>
+            <span className="num shrink-0 font-semibold">{quantite(id, g * (f + pers - 1))}</span>
           </li>
         ))}
       </ul>
       <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">
-        {pers > 1 ? tr("Coût estimé : environ {e} pour {n} personnes, prix moyens en supermarché.", { e: euros(coutRecette(r, f * pers, prixPerso)), n: pers }) : tr("Coût estimé : environ {e} la portion, prix moyens en supermarché.", { e: euros(coutRecette(r, f, prixPerso)) })}
+        {pers > 1 ? tr("Coût estimé : environ {e} pour {n} personnes, prix moyens en supermarché.", { e: euros(coutRecette(r, f + pers - 1, prixPerso)), n: pers }) : tr("Coût estimé : environ {e} la portion, prix moyens en supermarché.", { e: euros(coutRecette(r, f, prixPerso)) })}
       </p>
       {culte > 0 && reg === 0 && <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{culte === 1 ? tr("Prends une viande certifiée halal.") : tr("Prends une viande certifiée casher.")}</p>}
       <h3 className="mt-5 px-1 text-[17px] font-bold">{tr("Préparation")}</h3>

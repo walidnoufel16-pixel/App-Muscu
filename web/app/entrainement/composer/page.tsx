@@ -3,6 +3,7 @@
 import { pluriel, tr } from "@/lib/i18n";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { Route } from "next";
 import { ArrowsClockwiseIcon, ArrowsLeftRightIcon, CaretDownIcon, CaretRightIcon, DotsSixVerticalIcon, HeartbeatIcon, InfoIcon, MinusIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,8 @@ import { FORMATS, MACHINES, niveauDe } from "@/lib/logic/cardio";
 import { ICONE_FORMAT, ReglagesCardio } from "@/components/repere/reglages-cardio";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { useRepere } from "@/lib/store";
-import { ARRIERE, revenirA } from "@/lib/nav";
+import { ARRIERE, AVANT, remplacement, revenirA } from "@/lib/nav";
+import { preparer } from "@/lib/sons";
 import { Retour, useRetour } from "@/components/repere/retour";
 import { useBrouillon } from "@/lib/brouillon";
 import { remplacerLe } from "@/lib/logic/agenda";
@@ -110,7 +112,7 @@ export default function PageComposer() {
   const majBloc = (id: string, c: Partial<BlocCardio>) => majLibre((l) => { const b = l.blocs?.find((x) => x.id === id); if (b) Object.assign(b, c); });
   const retirerBloc = (id: string) => { majLibre((l) => { l.blocs = (l.blocs || []).filter((x) => x.id !== id); }); setBlocOuvert(null); };
 
-  const enregistrer = async () => {
+  const enregistrer = async (commencer = false) => {
     let nom = L.nom.trim() || tr("Séance libre");
     const s = { nom, ex: L.ex.map((e) => { const c = { ...e }; delete c.o; return c; }), ...(L.blocs?.length ? { blocs: L.blocs } : {}), ...(L.obj != null ? { obj: L.obj } : {}), ...(L.colObj != null ? { colObj: L.colObj } : {}), ...(L.gen ? { gen: L.gen } : {}), ...(L.code ? { code: L.code } : {}), ...(L.avisIgnores?.length ? { avisIgnores: L.avisIgnores } : {}) };
     /* modifiée depuis « Mon agenda » : la séance elle-même, ou une variante pour ce jour-là seulement */
@@ -137,6 +139,12 @@ export default function PageComposer() {
       });
     part.current = true;
     setLibre(null);
+    /* « Enregistrer et commencer » : la séance s'ouvre à la place du composeur */
+    if (commencer && L.idx == null && !variante) {
+      preparer(); remplacement();
+      router.replace(`/entrainement/seance?l=${useRepere.getState().etat.SEANCES.length - 1}` as Route, AVANT);
+      return;
+    }
     /* modification : retour à la séance ; création : retour à Entraînement, où elle apparaît */
     if (L.idx != null) retour(); else versEntrainement();
   };
@@ -235,7 +243,14 @@ export default function PageComposer() {
         onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") })}
       />
       <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
-        <Button variant="plate" size="xl" className="w-full" disabled={!L.ex.length} onClick={enregistrer}>{tr("Enregistrer la séance")}</Button>
+        {L.idx == null && !L.agenda ? (
+          <div className="flex gap-2">
+            <Button variant="outline" size="xl" className="flex-1 bg-background" disabled={!L.ex.length} onClick={() => enregistrer()}>{tr("Enregistrer")}</Button>
+            <Button variant="plate" size="xl" className="flex-[1.6]" disabled={!L.ex.length} onClick={() => enregistrer(true)}>{tr("Enregistrer et commencer")}</Button>
+          </div>
+        ) : (
+          <Button variant="plate" size="xl" className="w-full" disabled={!L.ex.length} onClick={() => enregistrer()}>{tr("Enregistrer la séance")}</Button>
+        )}
       </div>
 
       <FicheExercice fiche={fiche} onClose={() => setFiche(null)} />

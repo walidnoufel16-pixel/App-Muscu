@@ -112,9 +112,14 @@ export function besoins(E: Etat, seance: boolean): Besoins {
   const nap = Math.min(1.75, 1.4 + 0.05 * joursActifs(E)) * (seance ? 1.08 : 0.97);
   const objectif = [1.1, 1.05, 0.85, 1][A.objectif ?? 3] ?? 1;
   const kcal = Math.max(base * 1.1, base * nap * objectif);
-  const p = objectifProteines(A), l = Math.max(0.8 * kg, (0.27 * kcal) / 9), g = Math.max(2 * kg, (kcal - p * 4 - l * 9) / 4);
-  const r5 = (x: number) => Math.round(x / 5) * 5;
-  return { kcal: Math.round(kcal / 10) * 10, p, g: r5(g), l: r5(l), seance };
+  /* lipides ≥ 0,8 g/kg (27 % de l'énergie), le reste en glucides, au moins 2 g/kg : si les glucides
+     manquent, les lipides descendent jusqu'à 0,6 g/kg ; sinon l'énergie est relevée d'autant,
+     pour que le total affiché soit bien la somme des macros. */
+  const p = objectifProteines(A);
+  let l = Math.max(0.8 * kg, (0.27 * kcal) / 9), g = (kcal - p * 4 - l * 9) / 4;
+  if (g < 2 * kg) { l = Math.max(0.6 * kg, (kcal - p * 4 - 8 * kg) / 9); g = Math.max(2 * kg, (kcal - p * 4 - l * 9) / 4); }
+  const r5 = (x: number) => Math.round(x / 5) * 5, total = Math.max(kcal, p * 4 + r5(l) * 9 + r5(g) * 4);
+  return { kcal: Math.round(total / 10) * 10, p, g: r5(g), l: r5(l), seance };
 }
 
 /** Méthode de la main pour un repas : paumes de protéines (~25 g), poings de féculents
@@ -124,13 +129,24 @@ export function mains(b: Besoins, c: CreneauRepas) {
   return { paumes: demi((b.p * s) / 25), poings: demi((b.g * s) / 30), pouces: demi((b.l * s) / 8), legumes: c === "dejeuner" || c === "diner" ? 2 : c === "matin" ? 0.5 : 0 };
 }
 
-/** Portions d'une recette pour une personne : de quoi atteindre les protéines visées à ce repas
-    (entre ¾ et 1¾ de la recette de base, par quarts ; les desserts restent à une portion). */
+/** Portions d'une recette pour une personne : de quoi couvrir l'énergie visée à ce repas, en
+    montant jusqu'à +25 % s'il le faut pour atteindre 90 % des protéines visées (entre ¾ et 1¾ de
+    la recette de base, par quarts ; les desserts restent à une portion). */
 export function portion(r: Recette, b: Besoins, c: CreneauRepas = creneauDe(r.m)) {
   if (r.t.includes("dessert")) return 1;
-  const vise = b.p * part(c, b.seance), a = macros(r).p || 1;
+  const s = part(c, b.seance), m = macros(r);
+  const fKcal = (b.kcal * s) / (m.kcal || 1), fProt = (b.p * s) / (m.p || 1);
+  const f = fKcal * m.p >= 0.9 * b.p * s ? fKcal : Math.min(fProt * 0.9, fKcal * 1.25);
   const [mn, mx] = r.m === "collation" ? [0.75, 1.5] : [0.75, 1.75];
-  return Math.min(mx, Math.max(mn, Math.round((vise / a) * 4) / 4));
+  return Math.min(mx, Math.max(mn, Math.round(f * 4) / 4));
+}
+
+/** Ce qui manque en protéines à un repas, une fois la portion choisie (0 si la cible est tenue) :
+    de quoi proposer un complément (skyr, œufs, whey…). */
+export function protManquantes(r: Recette, b: Besoins, c: CreneauRepas = creneauDe(r.m)) {
+  if (r.t.includes("dessert")) return 0;
+  const manque = b.p * part(c, b.seance) - macros(r, portion(r, b, c)).p;
+  return manque >= 8 ? Math.round(manque / 5) * 5 : 0;
 }
 
 /* ---------------- quantités affichées ---------------- */
@@ -251,14 +267,15 @@ export function autreRecette(p: PrefsRepas, cases: CaseSemaine[], k: CaseSemaine
 
 /* ---------------- liste de courses ---------------- */
 export type LigneCourses = { id: string; g: number; texte: string };
-/** Quantités additionnées sur la semaine (portions de chacun × personnes), rangées par rayon,
+/** Quantités additionnées sur la semaine (ta portion + une portion de base par autre personne), rangées par rayon,
     sans les produits de base ni ce qui est déjà en stock. Les restes ne s'achètent pas deux fois :
     la recette du dîner est comptée pour deux repas. */
 export function listeCourses(cases: CaseSemaine[], b: Besoins, pers: number, stock: string[]) {
   const tot: Record<string, number> = {}, s = new Set(stock);
   for (const k of cases) {
     if (k.reste) continue;
-    const f = portion(k.r, b, k.c) * pers * (cases.some((x) => x.reste && x.r.id === k.r.id && x.jour === k.jour + 1) ? 2 : 1);
+    /* ta portion ajustée, et une portion de base pour chacun des autres */
+    const f = (portion(k.r, b, k.c) + Math.max(0, pers - 1)) * (cases.some((x) => x.reste && x.r.id === k.r.id && x.jour === k.jour + 1) ? 2 : 1);
     for (const [id, g] of k.r.ing) if (ALIM[id] && ALIM[id].ray !== "base" && !s.has(id)) tot[id] = (tot[id] || 0) + g * f;
   }
   return RAYONS.filter((x) => x.k !== "base")

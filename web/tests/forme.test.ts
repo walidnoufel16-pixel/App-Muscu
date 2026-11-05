@@ -31,11 +31,11 @@ describe("forme du jour", () => {
     const E = {
       A: { forme: F(0, 0, 0) }, SWAP: {}, SWAPP: {}, PLAN: null, wk: 0, day: 0, FINI: false,
       SEANCES: [{ nom: "Push", ex: [{ id: "dc", s: 3, r: 8, p: "2 min" }] }],
-      LOG: { "L|9|0": { done: true, feel: 1, ex: "dc", ts: 1, v: 60, reps: 8, series: [{ v: 60, reps: 8, ok: true }] } },
+      LOG: { "L|9|0": { done: true, feel: 1, ex: "dc", ts: Date.now() - 2 * 864e5, v: 60, reps: 8, series: [{ v: 60, reps: 8, ok: true }] } },
     } as unknown as Etat;
     const c = ctxLibre(E, 0, 0)!;
     expect(c.base.v).toBe(55);
-    expect(c.why).toContain("Reprise de ta dernière séance");
+    expect(c.why).toContain("Même charge");
     expect(c.why).toContain("Forme du jour basse");
   });
 });

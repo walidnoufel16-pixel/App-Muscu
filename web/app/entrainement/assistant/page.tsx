@@ -99,14 +99,23 @@ function Assistant() {
   const budget = Math.round((DUREES.find((x) => x[0] === d) || DUREES[1])[1] / 3);
   const peut = m.length > 0 && obj != null && sel.some((t) => !t.startsWith("x:"));
 
-  const creer = () => {
+  const creer = (commencer = false) => {
     if (obj == null) return;
     const zones = zonesActives(A);
     const ex = construireSeance(m, d, obj, sel, Math.random, (o) => zonesDe(o, zones).length > 0);
     if (!ex.length) { dire(tr("Pas d'exercice disponible"), tr("Aucun exercice ne correspond à ces muscles avec le matériel coché. Ajoute du matériel ou choisis d'autres muscles.")); return; }
     /* combinée : le bloc cardio arrive à la fin, sans échauffement ; il se déplace ensuite dans le composeur */
     const blocs = type === "mixte" ? [{ ...nouveauBloc(ex.length, choix.f, choix.m, choix.n), r: { ...choix.r, echauf: 0 } }] : undefined;
-    setLibre({ nom: nomSeance(m) + (blocs ? tr(" + cardio") : ""), ex, idx: null, obj, gen: { m: [...m], d, obj }, ...(blocs ? { blocs } : {}), ...(refus.length ? { avisIgnores: [...refus] } : {}) });
+    const seance = { nom: nomSeance(m) + (blocs ? tr(" + cardio") : ""), ex, obj, gen: { m: [...m], d, obj }, ...(blocs ? { blocs } : {}), ...(refus.length ? { avisIgnores: [...refus] } : {}) };
+    /* « Créer et commencer » : enregistrée dans Mes séances et lancée tout de suite */
+    if (commencer) {
+      const i = useRepere.getState().etat.SEANCES.length;
+      muter((E) => { E.SEANCES.push(seance); });
+      preparer(); remplacement();
+      router.replace(`/entrainement/seance?l=${i}` as Route, AVANT);
+      return;
+    }
+    setLibre({ ...seance, idx: null });
     router.push("/entrainement/composer", AVANT);
   };
 
@@ -270,9 +279,14 @@ function Assistant() {
       </div>
 
       <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
-        <Button variant="plate" size="xl" className="w-full" disabled={!peut} onClick={creer}>
-          {tr("Créer ma séance")}
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="xl" className="flex-1 bg-background" disabled={!peut} onClick={() => creer()}>
+            {tr("Ajuster")}
+          </Button>
+          <Button variant="plate" size="xl" className="flex-[1.6]" disabled={!peut} onClick={() => creer(true)}>
+            {tr("Créer et commencer")}
+          </Button>
+        </div>
       </div>
       </>
       )}
