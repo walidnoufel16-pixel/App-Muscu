@@ -143,3 +143,16 @@ export function lister(l: string[]) {
 
 /** Une liste de muscles dans une phrase : « Dos et biceps ». */
 export const phrase = (l: string[]) => { const t = lister(l).toLowerCase(); return t.charAt(0).toUpperCase() + t.slice(1); };
+
+/** La recommandation pour un jour donné, avec un repli quand Oxa manque de recul (aucune séance
+    sur les 14 derniers jours) : un full body pour démarrer. Sert à l'agenda. */
+export function recoDuJour(H: LigneHist[], d: string, ecartes: ZoneEcartable[] = []): Recommandation & { debut?: boolean } {
+  const r = recommander(H, d, ecartes);
+  if (r) return r;
+  const exclus = groupesEcartes(ecartes), full = MODELES.find((m) => m.id === "full")!;
+  const muscles = full.g.filter((g) => !exclus.has(g));
+  return { faits: [], type: "seance", debut: true, propositions: [{ id: "full", nom: full.nom(), muscles: muscles.length ? muscles : full.g, raison: tr("Idéal pour démarrer.") }] };
+}
+
+/** Les muscles à cocher pour lancer la recommandation de ce jour (séance conseillée, sinon celle de demain). */
+export const musclesRecommandes = (r: Recommandation) => (r.propositions[0] ?? r.demain)?.muscles ?? null;
