@@ -3,6 +3,8 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Drawer as DrawerPrimitive } from "vaul"
+import { XIcon } from "@phosphor-icons/react"
+import { tr } from "@/lib/i18n"
 
 function Drawer({
   ...props
@@ -47,8 +49,9 @@ function DrawerOverlay({
 function DrawerContent({
   className,
   children,
+  sansFermer,
   ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Content>) {
+}: React.ComponentProps<typeof DrawerPrimitive.Content> & { sansFermer?: boolean }) {
   return (
     <DrawerPortal data-slot="drawer-portal">
       <DrawerOverlay />
@@ -65,6 +68,12 @@ function DrawerContent({
         {...props}
       >
         <div className="mx-auto mt-4 hidden h-2 w-[100px] shrink-0 rounded-full bg-muted group-data-[vaul-drawer-direction=bottom]/drawer-content:block" />
+        {/* une croix pour fermer, en plus du geste vers le bas (que tout le monde ne connaît pas) */}
+        {!sansFermer && (
+          <DrawerPrimitive.Close aria-label={tr("Fermer")} className="absolute top-2 right-3 z-10 grid size-7 group-data-[vaul-drawer-direction=left]/drawer-content:top-[max(env(safe-area-inset-top),12px)] place-items-center rounded-full bg-muted/80 text-muted-foreground active:scale-95">
+            <XIcon className="size-4" weight="bold" />
+          </DrawerPrimitive.Close>
+        )}
         {children}
       </DrawerPrimitive.Content>
     </DrawerPortal>

@@ -93,7 +93,7 @@ export function MenuLateral() {
 
   return (
     <Drawer open={ouvert} onOpenChange={(o) => useMenu.setState({ ouvert: o })} direction="left">
-      <DrawerContent className="w-[82%] max-w-[340px] rounded-r-[26px] border-r-0 bg-background">
+      <DrawerContent sansFermer className="w-[82%] max-w-[340px] rounded-r-[26px] border-r-0 bg-background">
         <div className="flex h-full flex-col overflow-y-auto overscroll-contain px-3 pt-[max(env(safe-area-inset-top),16px)] pb-[max(env(safe-area-inset-bottom),16px)]">
           <DrawerTitle className="sr-only">{tr("Menu")}</DrawerTitle>
           <DrawerDescription className="sr-only">{tr("Compte, réglages, défis, badges et plus")}</DrawerDescription>
