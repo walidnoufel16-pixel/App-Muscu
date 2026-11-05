@@ -47,7 +47,7 @@ export function Bannieres({ rubriques, texte = {}, detail = {} }: {
       {rubriques.map((v) => {
         const b = BANNIERES[v];
         return (
-          <button key={v} onClick={() => router.push(lienRubrique(v), AVANT)}
+          <button key={v} data-visite={`rubrique-${v}`} onClick={() => router.push(lienRubrique(v), AVANT)}
             className="relative isolate flex min-h-[150px] overflow-hidden rounded-[22px] text-left text-white active:scale-[.99]" style={{ background: b.fond }}>
             {/* la photo occupe la droite et se fond dans l'aplat */}
             <span className="absolute inset-y-0 right-0 -z-10 w-[58%]">
@@ -85,7 +85,7 @@ export function Mosaique({ rubriques, detail = {} }: { rubriques: Rubrique[]; de
       {rubriques.map((v, i) => {
         const b = BANNIERES[v], large = i === 0 || (reste % 2 === 1 && i === rubriques.length - 1);
         return (
-          <button key={v} onClick={() => router.push(lienRubrique(v), AVANT)}
+          <button key={v} data-visite={`rubrique-${v}`} onClick={() => router.push(lienRubrique(v), AVANT)}
             className={cn("relative isolate overflow-hidden rounded-[20px] text-left text-white active:scale-[.98]", large ? "col-span-2 h-[140px]" : "h-[124px]")} style={{ background: b.fond }}>
             <Photo nom={b.photo} className="absolute inset-0 -z-10 size-full" />
             <span className="absolute inset-0 -z-10" style={{ background: `linear-gradient(180deg, transparent 30%, color-mix(in oklab, ${b.fond} 92%, transparent) 90%)` }} />
