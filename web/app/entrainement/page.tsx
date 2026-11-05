@@ -1,49 +1,72 @@
 "use client";
 
-/* Entraînement : en tête, « Mon agenda » (deux semaines de séances faites et prévues, et la
-   séance du jour), puis une bannière par rubrique. */
-import { tr } from "@/lib/i18n";
+/* Entraînement : la semaine en anneaux, la séance du jour en grand, trois raccourcis pour créer,
+   « À venir » (et l'écran Agenda), puis les rubriques en mosaïque. Le bouton + ouvre « Nouvelle
+   séance ». Oxa Plan ne s'ouvre que par sa rubrique. */
+import { loc, tr } from "@/lib/i18n";
+import { useState } from "react";
+import { PlusIcon } from "@phosphor-icons/react";
 import { ChoixLangue } from "@/components/repere/choix-langue";
 import { EnTete } from "@/components/repere/en-tete";
 import { Reprise } from "@/components/repere/motivation";
-import { MonAgenda } from "@/components/repere/agenda";
+import { FeuillesAgenda, type Feuille } from "@/components/repere/agenda";
+import { AVenir, CarteDuJour, Raccourcis, SemaineAnneaux } from "@/components/repere/accueil-entrainement";
+import { FeuilleImport } from "@/components/repere/mes-seances";
 import { ProgrammeBientot } from "@/components/repere/bientot";
-import { Bannieres, type Rubrique } from "@/components/repere/rubriques";
+import { Mosaique, type Rubrique } from "@/components/repere/rubriques";
 import { useProgramme } from "@/components/repere/programme-vues";
+import { jourDe } from "@/lib/logic/historique";
 import { useRepere } from "@/lib/store";
 import { usePremiereVisite } from "@/lib/entree";
+import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 import { useProgrammeActif } from "@/lib/fonctionnalites";
 
 export default function PageEntrainement() {
   const etat = useRepere((s) => s.etat);
   const premiere = usePremiereVisite();
-  /* programme sur 8 semaines : ouvert compte par compte */
+  const [auj] = useState(() => jourDe(Date.now()));
+  const [f, setF] = useState<Feuille | null>(null);
+  /* programme sur 8 semaines : ouvert compte par compte, accessible par sa rubrique seulement */
   const prog = useProgrammeActif();
   const { plan, wk, socle, faites } = useProgramme();
   const enProgramme = prog && plan;
-  const habitue = enProgramme || !!etat.SEANCES.length || !!etat.HIST?.length || !!etat.CARDIO?.length || !!etat.COURSE;
+  /* nouvel utilisateur : ni séance faite ni séance programmée, pas de semaine à montrer */
+  const debutant = !etat.HIST?.length && !etat.CARDIO?.length && !etat.SORTIES?.length && !etat.AGENDA?.length;
 
   const rubriques: Rubrique[] = ["libre", ...(prog ? (["programme"] as const) : []), "street", "course", "soin"];
-  const detailProgramme = enProgramme && !etat.FINI ? tr("Semaine {a} sur 8 · {b} séance{c} sur {d}", { a: wk + 1, b: faites, c: faites > 1 ? "s" : "", d: socle.length }) : undefined;
+  const detail = enProgramme && !etat.FINI ? { programme: tr("Semaine {a} sur 8 · {b}/{c}", { a: wk + 1, b: faites, c: socle.length }) } : {};
+  const date = new Date(auj + "T12:00").toLocaleDateString(loc(), { weekday: "long", day: "numeric", month: "long" });
 
   return (
     <>
       <EnTete
-        surtitre={enProgramme && !etat.FINI ? tr("Semaine {a} sur 8", { a: wk + 1 }) : habitue ? tr("Ton entraînement") : tr("Bienvenue")}
+        surtitre={debutant ? tr("Bienvenue") : date}
         titre={tr("Entraînement")}
-        actions={<ChoixLangue />}
+        actions={
+          <>
+            <ChoixLangue />
+            <button aria-label={tr("Nouvelle séance")} onClick={() => { tactile(8); setF({ m: "nouvelle", d: auj }); }}
+              className="ml-1 grid size-9 place-items-center rounded-full bg-plate text-plate-foreground active:scale-95">
+              <PlusIcon className="size-5" weight="bold" />
+            </button>
+          </>
+        }
       />
       <div className={cn("flex flex-col gap-3 px-4", premiere && "entree")}>
-        {/* deux semaines de séances (faites et prévues), et la séance du jour */}
-        <MonAgenda />
+        {!debutant && <SemaineAnneaux auj={auj} setF={setF} />}
+        <CarteDuJour auj={auj} setF={setF} />
         <Reprise />
-        <section className="mt-4">
-          <h2 className="eyebrow mb-2 px-1">{habitue ? tr("Rubriques") : tr("Par où commencer")}</h2>
-          <Bannieres rubriques={rubriques} texte={enProgramme ? {} : { programme: tr("Construis ton programme : une douzaine de questions, puis huit semaines de séances.") }} detail={detailProgramme ? { programme: detailProgramme } : {}} />
+        <Raccourcis />
+        <div className="mt-2"><AVenir auj={auj} setF={setF} /></div>
+        <section className="mt-2">
+          <h2 className="mb-2 px-1 text-[20px] font-extrabold tracking-[-0.015em]">{debutant ? tr("Par où commencer") : tr("Explorer")}</h2>
+          <Mosaique rubriques={rubriques} detail={detail} />
         </section>
         {!prog && <ProgrammeBientot className="mt-1" />}
       </div>
+      <FeuillesAgenda f={f} setF={setF} auj={auj} />
+      <FeuilleImport />
     </>
   );
 }
