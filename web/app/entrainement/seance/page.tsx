@@ -31,7 +31,7 @@ import { TitrePartie } from "@/components/repere/parties";
 import { FORMATS, MACHINES } from "@/lib/logic/cardio";
 import { ICONE_FORMAT } from "@/components/repere/reglages-cardio";
 import { useRepere } from "@/lib/store";
-import { AVANT } from "@/lib/nav";
+import { AVANT, parOnglet } from "@/lib/nav";
 import { useBrouillon } from "@/lib/brouillon";
 import { tactile } from "@/lib/repos";
 import { enchainer } from "@/lib/enchainement";
@@ -259,7 +259,8 @@ function SeanceLibre({ i }: { i: number }) {
     if (restants && !(await confirmer({ titre: tr("Ajouter à mon suivi ?"), texte: tr(pluriel(restants) ? "{n} exercices ne sont pas terminés : seules les séries validées comptent." : "{n} exercice n'est pas terminé : seules les séries validées comptent.", { n: restants }), ok: tr("Ajouter") }))) return;
     tactile(12);
     ajouterAuSuivi(i);
-    router.push("/progres");
+    /* la séance finie ne reste pas dans la pile : Progrès s'ouvre comme depuis son onglet */
+    parOnglet(); router.replace("/progres");
   };
   /* chaque exercice garde sa position d'origine : ses séries le suivront (reattacherJournaux) */
   const modifier = () => { setLibre({ ...structuredClone(S), ex: S.ex.map((e, o) => ({ ...e, o })), idx: i }); router.push("/entrainement/composer", AVANT); };

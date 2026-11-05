@@ -291,19 +291,24 @@ export function precedentDe(LOG: Record<string, Journal>, id: string, sauf?: str
    (sa ligne du jour, tant que son journal a des séries validées). */
 const jourLocal = (ts: number) => { const d = new Date(ts), z = (n: number) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`; };
 export function precedentHist(E: Etat, id: string, k: string): Journal | null {
+  return historiqueEx(E, id, k, 1)[0] ?? null;
+}
+/** Les n dernières fois où l'exercice figure dans Progrès, de la plus récente à la plus ancienne
+    (séance en cours exclue, comme precedentHist). */
+export function historiqueEx(E: Etat, id: string, k: string, n = 3): Journal[] {
   const s = k.split("|").slice(0, 2).join("|"), cur = E.LOG[k];
   const auj = cur?.ts && (cur.series || []).some((x) => okDe(cur, x)) ? jourLocal(cur.ts) : null;
-  const H: LigneHist[] = E.HIST || [];
-  for (let i = H.length - 1; i >= 0; i--) {
+  const H: LigneHist[] = E.HIST || [], out: Journal[] = [];
+  for (let i = H.length - 1; i >= 0 && out.length < n; i--) {
     const l = H[i];
     if (l.s === s && l.d === auj) continue;
     const det = (l.det || []).filter((x) => x.id === id && x.s.length).at(-1);
     if (!det) continue;
     const series: Serie[] = det.s.map(([v, reps, lest]) => ({ v, reps, ok: true, ...(lest ? { lest } : {}) }));
     const [a, m, j] = l.d.split("-").map(Number);
-    return { ex: id, done: true, nb: series.length, feel: det.f ?? null, ts: new Date(a, m - 1, j, 12).getTime(), series, v: Math.max(...series.map((x) => x.v)), reps: series.at(-1)!.reps, lest: series.some((x) => +(x.lest ?? 0) > 0) };
+    out.push({ ex: id, done: true, nb: series.length, feel: det.f ?? null, ts: new Date(a, m - 1, j, 12).getTime(), series, v: Math.max(...series.map((x) => x.v)), reps: series.at(-1)!.reps, lest: series.some((x) => +(x.lest ?? 0) > 0) });
   }
-  return null;
+  return out;
 }
 /** Le précédent d'un exercice : d'abord ce que montre Progrès, sinon le journal. */
 export const precedent = (E: Etat, id: string, k: string) => precedentHist(E, id, k) ?? precedentDe(E.LOG, id, k);
@@ -318,6 +323,26 @@ export function pasDe(x: Exercice) {
   if (PAS_MOYEN.has(x.pat)) return 2.5;
   return 1;
 }
+/* Palier de charge d'un exercice en séance libre : selon le matériel et le mouvement, pour des sauts
+   réalisables (barre et machine des gros mouvements de jambes 5 kg, autres barres et machines 2,5 kg,
+   haltères 2 kg, petits muscles aux haltères 1 kg). Le plan (Oxa Plan) garde pasDe, pour la parité. */
+const PETITS = new Set(["re", "ep", "fc", "ec", "avb", "tra", "mol", "add", "ae", "soin"]);
+export function pasExercice(x: Exercice) {
+  if (x.ch !== "kg") return pasDe(x);
+  const jambesLourdes = PAS_LOURD.has(x.pat) && !!x.pat2;
+  if (x.eq === 1) return jambesLourdes ? 5 : 2.5;
+  if (x.eq === 0) return jambesLourdes ? 5 : 2.5;
+  if (x.eq === 2) return PETITS.has(x.pat) || !x.pat2 ? 1 : 2;
+  return 2.5;
+}
+/** Charge arrondie au palier inférieur. */
+const auPalier = (v: number, pas: number) => Math.max(0, Math.round(Math.floor(v / pas + 1e-9) * pas * 100) / 100);
+/** Fourchette de répétitions autour de l'objectif d'un exercice : ±1 en force, ±2 sinon
+    (10 → 8 à 12 en prise de muscle, 6 → 5 à 7 en force, 12 → 10 à 14 pour s'affiner). */
+export const fourchette = (r: number, obj?: number) => {
+  const w = obj === 1 ? 1 : 2;
+  return { bas: Math.max(1, r - w), haut: r + w };
+};
 export type Suggestion = { v: number; reps: number; t: string };
 export function suggere(E: Etat, w: number, s: number, i: number, id: string, W = week(E)): Suggestion | null {
   const x = EX[id];
@@ -408,25 +433,67 @@ export function ctxPlan(E: Etat, i: number, W = week(E)): Ctx | null {
 }
 export const kLibre = (idx: number, j: number) => `L|${idx}|${j}`;
 /* Forme du jour et douleur signalée : charge de départ ajustée, et dite (lib/logic/forme.ts). */
-function selonForme(A: Reponses, x: Exercice, id: string, base: { v: number; reps: number }) {
+function selonForme(A: Reponses, x: Exercice, id: string, base: { v: number; reps: number }, pas = pasDe(x)) {
   const f = formeDuJour(A);
-  return ajuster(x, base, pasDe(x), f, zonesDe(id, f?.douleur || []).length > 0);
+  return ajuster(x, base, pas, f, zonesDe(id, f?.douleur || []).length > 0);
 }
 const joindre = (...t: (string | undefined)[]) => t.filter(Boolean).join(" ") || undefined;
-/* Séance libre : double progression. Toutes les séries prévues réussies à l'objectif la
-   dernière fois (et pas jugées trop dures) → un cran de plus : la charge, une répétition ou
-   quelques secondes. Sinon, on reprend la dernière séance telle quelle. */
-export function progressionLibre(x: Exercice, cible: { s: number; r: number }, d: Journal): { v: number; reps: number; t: string } | null {
-  const ok = (d.series || []).filter((s) => okDe(d, s)), pas = pasDe(x), dbl = x.ch === "kg" || x.ch === "lest";
+/* Séance libre : double progression dans une fourchette de répétitions (fourchette()).
+   - Toutes les séries en haut de la fourchette → un palier de plus, et on repart en bas.
+   - Toutes dans la fourchette → même charge, une répétition de plus à viser.
+   - Sous le bas de la fourchette → même charge ; deux séances de suite → −10 %.
+   - Après une pause (10 jours : −10 %, 21 jours : −20 %), la charge est réduite pour reprendre.
+   - Trois séances à la même charge sans atteindre le haut : on suggère une variante.
+   Poids du corps, gainage et lest sans charge : un cran de plus quand l'objectif est atteint.
+   `avant` : les séances précédentes à d, de la plus récente à la plus ancienne. */
+const minReps = (d: Journal, dbl: boolean) => {
+  const ok = (d.series || []).filter((s) => okDe(d, s));
+  return ok.length ? Math.min(...ok.map((s) => (dbl ? s.reps : s.v))) : 0;
+};
+export function progressionLibre(
+  x: Exercice, cible: { s: number; r: number }, d: Journal,
+  o: { obj?: number; avant?: Journal[]; maintenant?: number } = {},
+): { v: number; reps: number; t: string } | null {
+  const ok = (d.series || []).filter((s) => okDe(d, s)), dbl = x.ch === "kg" || x.ch === "lest";
   const v = maxV(d), reps = d.reps ?? cible.r;
+  const chargee = x.ch === "kg" || (x.ch === "lest" && v > 0);
+  /* une pause : on reprend plus léger, quoi qu'il se soit passé la dernière fois */
+  const jours = d.ts ? Math.floor(((o.maintenant ?? Date.now()) - d.ts) / 864e5) : 0;
+  if (chargee && jours >= 10) {
+    const pas = pasExercice(x), pc = jours >= 21 ? 20 : 10, nv = auPalier(v * (1 - pc / 100), pas);
+    if (nv < v) return { v: nv, reps: cible.r, t: tr("Reprise après {n} jours sans cet exercice : −{p} % pour réhabituer tes muscles.", { n: jours, p: pc }) };
+  }
   if (d.feel === 2) return { v, reps, t: tr("Même charge : la dernière fois était au-dessus de la cible.") };
+  if (x.ch === "dist") return null;
+
+  if (chargee) {
+    const pas = pasExercice(x), { bas, haut } = fourchette(cible.r, o.obj), m = minReps(d, dbl), complet = ok.length >= cible.s;
+    if (complet && m >= haut)
+      return { v: Math.round((v + pas) * 100) / 100, reps: bas, t: tr("Toutes tes séries à {h} répétitions ou plus : +{a} kg, et tu repars à {b} répétitions.", { h: haut, a: nb(pas), b: bas }) };
+    /* sous le bas de la fourchette (ou séries manquantes) */
+    if (!complet || m < bas) {
+      const p = o.avant?.[0];
+      if (p && maxV(p) >= v && (minReps(p, dbl) < bas || (p.series || []).filter((s) => okDe(p, s)).length < cible.s)) {
+        const nv = auPalier(v * 0.9, pas);
+        if (nv < v) return { v: nv, reps: bas, t: tr("Deux séances sous {b} répétitions : −10 % pour repartir sur de bonnes bases.", { b: bas }) };
+      }
+      return { v, reps: bas, t: tr("Même charge : vise au moins {b} répétitions sur chaque série.", { b: bas }) };
+    }
+    /* dans la fourchette : même charge, une répétition de plus */
+    const vise = Math.min(haut, m + 1);
+    const stagne = (o.avant || []).length >= 2 && o.avant!.slice(0, 2).every((p) => maxV(p) === v && minReps(p, dbl) < haut);
+    return {
+      v, reps: vise,
+      t: tr("Même charge, vise {r} répétitions : à {h} sur toutes tes séries, on ajoute {a} kg.", { r: vise, h: haut, a: nb(pas) })
+        + (stagne ? " " + tr("Ça stagne depuis trois séances : essaie une variante de l'exercice.") : ""),
+    };
+  }
+
   const atteint = ok.length >= cible.s && ok.every((s) => (dbl ? s.reps : s.v) >= cible.r);
-  if (!atteint || x.ch === "dist") return null;
-  if (x.ch === "kg" || (x.ch === "lest" && v > 0))
-    return { v: v + pas, reps: cible.r, t: tr("Toutes tes séries réussies à {r} répétitions la dernière fois : +{a} kg.", { r: cible.r, a: nb(pas) }) };
+  if (!atteint) return null;
   if (x.ch === "lest") return { v, reps: reps + 1, t: tr("Toutes tes séries réussies la dernière fois : une répétition de plus, ou un lest de 2,5 kg.") };
   /* répétitions ou secondes : on part de la série la plus faible, pour que toutes suivent */
-  const bas = Math.min(...ok.map((s) => s.v));
+  const bas = Math.min(...ok.map((s) => s.v)), pas = pasDe(x);
   if (x.ch === "temps") return { v: bas + pas, reps, t: tr("Toutes tes séries tenues la dernière fois : +{a} s.", { a: pas }) };
   return { v: bas + 1, reps, t: tr("Toutes tes séries réussies la dernière fois : une répétition de plus.") };
 }
@@ -434,9 +501,9 @@ export function progressionLibre(x: Exercice, cible: { s: number; r: number }, d
 export function ctxLibre(E: Etat, idx: number, j: number): Ctx | null {
   const S = E.SEANCES[idx], e = S?.ex[j];
   if (!e || !EX[e.id]) return null;
-  const x = EX[e.id], k = kLibre(idx, j), d = precedent(E, e.id, k);
-  const pr = d ? progressionLibre(x, e, d) : null;
-  const aj = selonForme(E.A, x, e.id, pr ? { v: pr.v, reps: pr.reps } : d ? { v: maxV(d), reps: d.reps ?? e.r } : { v: x.d, reps: e.r });
+  const x = EX[e.id], k = kLibre(idx, j), h = historiqueEx(E, e.id, k, 3), d = h[0] ?? precedentDe(E.LOG, e.id, k);
+  const pr = d ? progressionLibre(x, e, d, { obj: S.obj ?? S.gen?.obj, avant: h.slice(1) }) : null;
+  const aj = selonForme(E.A, x, e.id, pr ? { v: pr.v, reps: pr.reps } : d ? { v: maxV(d), reps: d.reps ?? e.r } : { v: x.d, reps: e.r }, pasExercice(x));
   return {
     k, id: e.id, n: e.s,
     base: aj.base,

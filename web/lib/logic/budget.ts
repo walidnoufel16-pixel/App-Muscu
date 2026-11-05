@@ -72,7 +72,7 @@ export function estimer(liste: ReturnType<typeof listeCourses>, articles: Articl
 export function coutsParJour(cases: CaseSemaine[], b: Besoins, pers: number, jours: number, stock: string[] = [], perso?: Perso) {
   const s = new Set(stock), t = Array.from({ length: jours }, () => 0);
   for (const k of cases) {
-    const f = portion(k.r, b, k.reste ? "diner" : k.c) * pers;
+    const f = portion(k.r, b, k.reste ? "diner" : k.c) + Math.max(0, pers - 1);
     for (const [id, g] of k.r.ing) if (ALIM[id] && ALIM[id].ray !== "base" && !s.has(id)) t[k.jour] += coutAliment(id, g * f, false, perso);
   }
   return t;

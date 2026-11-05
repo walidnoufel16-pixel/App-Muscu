@@ -1,5 +1,6 @@
 "use client";
 
+import { parOnglet } from "@/lib/nav";
 import { loc, pluriel, tr } from "@/lib/i18n";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -44,7 +45,7 @@ export function Bilan() {
   const libre = bilan?.s?.startsWith("L|") ? +bilan.s.slice(2) : null;
   const router = useRouter();
   /* séance libre : rangée dans Progrès (elle repart vierge), et on y va pour la voir */
-  const fermer = () => { fermerBilan(); if (libre != null) { ajouterAuSuivi(libre); router.push("/progres"); } };
+  const fermer = () => { fermerBilan(); if (libre != null) { ajouterAuSuivi(libre); parOnglet(); router.replace("/progres"); } };
   const stats = !bilan ? [] : bilan.cases ? bilan.cases : [
         { n: tr("exercices"), v: bilan.exercices },
         { n: tr("séries validées"), v: bilan.series },
