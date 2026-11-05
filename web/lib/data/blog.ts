@@ -31,6 +31,48 @@ const recette = (id: string) => ({ couverture: imgRecette(id, "large")!, credit:
 /* Les articles écrits pour le blog (après les quatre guides d'origine). */
 const NOUVEAUX: Article[] = [
   {
+    slug: "winter-arc-programme-8-semaines",
+    type: "article",
+    categorie: "Muscu", date: "2026-11-08", couverture: imgExGrand("sq", 0),
+    titre: "Winter Arc : le plan de 8 semaines pour arriver en janvier en forme (sans craquer)",
+    description: "Le Winter Arc, c'est profiter de l'hiver pour construire ta routine avant les résolutions de janvier. Un plan réaliste de 8 semaines, les 4 piliers hors salle et les règles pour ne pas lâcher.",
+    intro: "Sur TikTok et Instagram, le « Winter Arc » revient chaque automne : utiliser les mois froids pour s'entraîner en silence et arriver en janvier déjà lancé, pendant que les autres prennent leurs résolutions. L'idée est bonne. Le piège, c'est de la transformer en défi extrême qu'on abandonne au bout de dix jours. Il reste 8 semaines avant le 1er janvier : voici comment les utiliser pour de bon.",
+    blocs: [
+      { h: "Pourquoi ne pas attendre janvier", p: ["Les bonnes résolutions de janvier tiennent mal : dans l'étude de référence du psychologue John Norcross, à peine une personne sur deux tient encore la sienne au bout de six mois, et les premières semaines sont celles où l'on décroche le plus. Commencer en novembre, c'est arriver en janvier avec une habitude déjà installée, au lieu de partir de zéro au moment où tout le monde se bouscule à la salle.", "Une habitude ne se crée pas en 21 jours : dans une étude de l'University College London (Lally et al., 2010), il fallait en moyenne 66 jours pour qu'un comportement devienne automatique, avec de grands écarts d'une personne à l'autre. Huit semaines, c'est à peu près ça."] },
+      { h: "Le piège des défis extrêmes", p: ["Les versions virales du Winter Arc, ou des défis comme « 75 Hard » (deux séances par jour, aucun écart, on recommence à zéro au premier oubli), misent tout sur la discipline. Au premier rhume, au premier dîner de fin d'année, tout s'écroule. Ce qui marche sur la durée, c'est un objectif que tu peux tenir même une mauvaise semaine : 3 séances, pas 12.", "Pour repère, l'Organisation mondiale de la santé recommande au moins 150 minutes d'activité modérée par semaine et du renforcement musculaire au moins 2 jours par semaine. Trois séances de 45 minutes et un peu de marche, tu y es."] },
+      {
+        h: "Le plan de 8 semaines",
+        tableau: [
+          { titre: "Semaines 1 et 2 · Installer l'habitude", lignes: ["3 séances de 30 à 45 min, corps entier", "Des charges confortables : tu finis chaque série avec 2 ou 3 répétitions en réserve", "Objectif unique : ne rater aucune des 3 séances"] },
+          { titre: "Semaines 3 à 5 · Monter progressivement", lignes: ["Toujours 3 séances, en alternant haut et bas du corps si tu veux", "Quand toutes les séries d'un exercice passent, +2,5 kg ou +1 répétition la fois suivante", "Une séance cardio facile en plus si tu as le temps (marche rapide, vélo, footing lent)"] },
+          { titre: "Semaines 6 et 7 · Pousser", lignes: ["Une séance un peu plus longue ou une série de plus sur les gros mouvements", "Note tes charges : c'est là que la progression se voit"] },
+          { titre: "Semaine 8 · Souffler et faire le bilan", lignes: ["Même nombre de séances, mais une série de moins par exercice", "Compare tes charges avec la semaine 1 et fixe ton objectif pour janvier"] },
+        ],
+      },
+      {
+        h: "Les 4 piliers hors de la salle",
+        liste: [
+          "Le sommeil : 7 à 9 h par nuit. C'est pendant le repos que les muscles se reconstruisent, et un manque de sommeil fait baisser la motivation autant que les performances.",
+          "Des protéines à chaque repas, pour soutenir tes séances (voir notre article sur la quantité de protéines par jour).",
+          "Des pas : l'hiver, on bouge beaucoup moins sans s'en rendre compte. Une marche de 20 à 30 minutes par jour compte.",
+          "La lumière du jour : sortir le matin, même 15 minutes, aide à garder un bon rythme de sommeil quand les journées raccourcissent.",
+        ],
+      },
+      {
+        h: "Les règles pour ne pas lâcher",
+        liste: [
+          "Cale tes 3 séances dans ton agenda comme des rendez-vous, jour et heure.",
+          "Compte tes semaines réussies, pas les kilos sur la balance : une série de semaines à 3 séances, c'est ça la vraie victoire.",
+          "Une séance ratée n'efface rien. La règle : ne jamais en rater deux de suite.",
+          "Prépare un plan B de 20 minutes à la maison pour les jours où tu ne peux pas aller à la salle.",
+          "Pendant les fêtes, vise 2 séances par semaine au lieu de 3 plutôt que zéro.",
+        ],
+      },
+    ],
+    cta: "Ta séance du jour, ta série de semaines et des rappels si tu décroches : Oxa t'accompagne tout l'hiver",
+    lien: "/entrainement/rubrique/?v=libre&src=blog-winter-arc",
+  },
+  {
     slug: "preparer-premier-hyrox",
     type: "guide",
     categorie: "Course", date: "2026-11-01", couverture: "/img/grand/hyrox-traineau.avif",

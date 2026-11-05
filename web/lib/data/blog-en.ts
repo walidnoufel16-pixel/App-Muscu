@@ -15,6 +15,45 @@ const found = PROGRAMMES_STREET.find((p) => p.niv === "debutant")!;
 const pull = FAMILLES_STREET.find((f) => f.k === "tirage")!.ex;
 
 export const BLOG_EN: Record<string, Texte> = {
+  "winter-arc-programme-8-semaines": {
+    slug: "winter-arc-8-week-plan",
+    titre: "Winter Arc: an 8-week plan to start January already in shape (without burning out)",
+    description: "The Winter Arc means using the cold months to build your routine before New Year's resolutions. A realistic 8-week plan, the 4 pillars outside the gym, and the rules that keep you going.",
+    intro: "Every autumn the “Winter Arc” trend comes back on TikTok and Instagram: use the cold months to train quietly and hit January already rolling, while everyone else is still making resolutions. The idea is good. The trap is turning it into an extreme challenge you drop after ten days. There are 8 weeks left before January 1st: here's how to make them count.",
+    blocs: [
+      { h: "Why not wait for January", p: ["New Year's resolutions don't hold up well: in psychologist John Norcross's landmark study, barely one person in two was still keeping theirs after six months, and the first weeks are when most people drop off. Starting in November means arriving in January with a habit already in place, instead of starting from scratch when the gym is at its busiest.", "A habit doesn't form in 21 days: in a University College London study (Lally et al., 2010), it took 66 days on average for a behaviour to become automatic, with big differences between people. Eight weeks is about that."] },
+      { h: "The extreme-challenge trap", p: ["Viral versions of the Winter Arc, or challenges like “75 Hard” (two workouts a day, no slip-ups, back to day one if you miss anything), bet everything on willpower. The first cold or the first holiday dinner and it all falls apart. What works long term is a goal you can hit even in a bad week: 3 workouts, not 12.", "For reference, the World Health Organization recommends at least 150 minutes of moderate activity a week and muscle-strengthening work on at least 2 days a week. Three 45-minute workouts plus some walking and you're there."] },
+      {
+        h: "The 8-week plan",
+        tableau: [
+          { titre: "Weeks 1 and 2 · Build the habit", lignes: ["3 full-body workouts of 30 to 45 min", "Comfortable weights: finish each set with 2 or 3 reps in the tank", "One goal only: don't miss any of the 3 workouts"] },
+          { titre: "Weeks 3 to 5 · Build up gradually", lignes: ["Still 3 workouts, alternating upper and lower body if you like", "When every set of an exercise goes well, add 2.5 kg or 1 rep next time", "One easy cardio session on top if you have time (brisk walk, bike, slow run)"] },
+          { titre: "Weeks 6 and 7 · Push", lignes: ["A slightly longer workout or one extra set on the big lifts", "Log your weights: this is where progress shows"] },
+          { titre: "Week 8 · Ease off and take stock", lignes: ["Same number of workouts, but one set fewer per exercise", "Compare your weights with week 1 and set your goal for January"] },
+        ],
+      },
+      {
+        h: "The 4 pillars outside the gym",
+        liste: [
+          "Sleep: 7 to 9 hours a night. Muscles rebuild while you rest, and short sleep drags down motivation as much as performance.",
+          "Protein at every meal to support your training (see our article on how much protein you need a day).",
+          "Steps: in winter we move much less without noticing. A 20 to 30 minute walk a day counts.",
+          "Daylight: getting outside in the morning, even for 15 minutes, helps keep your sleep on track as the days get shorter.",
+        ],
+      },
+      {
+        h: "The rules that keep you going",
+        liste: [
+          "Put your 3 workouts in your calendar like appointments, day and time.",
+          "Count your successful weeks, not the number on the scale: a streak of 3-workout weeks is the real win.",
+          "A missed workout doesn't erase anything. The rule: never miss two in a row.",
+          "Have a 20-minute home plan B for days you can't get to the gym.",
+          "Over the holidays, aim for 2 workouts a week instead of 3 rather than none.",
+        ],
+      },
+    ],
+    cta: "Today's workout, your weekly streak and reminders if you slip: Oxa has your back all winter",
+  },
   "preparer-premier-hyrox": {
     slug: "hyrox-training-plan-beginners",
     titre: "Hyrox training plan for beginners: how to prepare for your first race",
