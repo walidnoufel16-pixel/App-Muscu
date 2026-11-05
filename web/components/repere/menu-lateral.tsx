@@ -7,17 +7,15 @@
 import { langue, tr } from "@/lib/i18n";
 import { usePathname, useRouter } from "next/navigation";
 import type { Route } from "next";
-import { BellIcon, CalendarDotsIcon, CompassIcon, CaretRightIcon, ChatCircleTextIcon, CircleHalfIcon, DeviceMobileIcon, DownloadSimpleIcon, ForkKnifeIcon, ListIcon, NewspaperIcon, ToolboxIcon, TrophyIcon, UserPlusIcon, WrenchIcon, type Icon } from "@phosphor-icons/react";
+import { BellIcon, CompassIcon, CaretRightIcon, ChatCircleTextIcon, CircleHalfIcon, DeviceMobileIcon, ForkKnifeIcon, ListIcon, NewspaperIcon, ToolboxIcon, UserPlusIcon, WrenchIcon, type Icon } from "@phosphor-icons/react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { useRepere } from "@/lib/store";
 import { useEstAdmin } from "@/lib/admin";
 import { useMenu } from "@/lib/nav";
-import { lienRubrique } from "./rubriques";
 import { tactile } from "@/lib/repos";
 import { appInstallee } from "./installer";
 import { inviterAmi } from "./inviter";
 import { revoirVisite } from "./visite";
-import { useProgrammeActif } from "@/lib/fonctionnalites";
 import { cn } from "@/lib/utils";
 
 /* Les écrans des quatre onglets, et « Compte et réglages » : le bouton ☰ y remplace le retour. */
@@ -54,7 +52,6 @@ export function MenuLateral() {
   const ouvert = useMenu((s) => s.ouvert);
   const { pseudo, user, sync } = useRepere();
   const admin = useEstAdmin() === true;
-  const programme = useProgrammeActif();
   const fermer = () => useMenu.setState({ ouvert: false });
   const va = (c: string, ancre?: string) => () => { tactile(5); fermer(); setTimeout(() => allerA(router, c, ancre), 180); };
   const initiale = (pseudo || "?").trim().charAt(0).toUpperCase();
@@ -62,14 +59,6 @@ export function MenuLateral() {
   type Ligne = { Icone: Icon; n: string; onClick: () => void; cache?: boolean };
   const ouvrir = (cle: "installer" | "avis") => () => { tactile(5); fermer(); setTimeout(() => useMenu.setState({ [cle]: true }), 250); };
   const blocs: { titre: string; l: Ligne[] }[] = [
-    {
-      titre: tr("Mon entraînement"),
-      l: [
-        { Icone: TrophyIcon, n: tr("Défis et badges"), onClick: va("/progres?o=defis", "defis") },
-        { Icone: CalendarDotsIcon, n: `Oxa Plan · ${tr("8 semaines")}`, onClick: va(lienRubrique("programme")), cache: !programme && !admin },
-        { Icone: DownloadSimpleIcon, n: tr("Importer une séance"), onClick: () => { va(lienRubrique("libre"))(); setTimeout(() => useMenu.setState({ importer: true }), 500); } },
-      ],
-    },
     {
       titre: tr("Mes réglages"),
       l: [

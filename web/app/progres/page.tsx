@@ -2,6 +2,7 @@
 
 /* Progrès : ce que l'entraînement a changé, en un coup d'œil.
    Tout vient de l'historique (HIST) et du cardio (CARDIO), rien n'est envoyé ailleurs. */
+import { AvatarProfil } from "@/components/repere/avatar-profil";
 import { loc, pct, pluriel, tr } from "@/lib/i18n";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { ArrowDownIcon, ArrowUpIcon, CaretDownIcon, CaretRightIcon, ChartLineUpIcon, GearSixIcon, ScalesIcon, SparkleIcon, TrashIcon, TrophyIcon } from "@phosphor-icons/react";
@@ -12,7 +13,6 @@ import { avecSorties } from "@/lib/logic/course";
 import { AVANT, remplacement } from "@/lib/nav";
 import type { Route } from "next";
 import { Onglets } from "@/components/repere/onglets";
-import { ChoixLangue } from "@/components/repere/choix-langue";
 import { EnTete } from "@/components/repere/en-tete";
 import { Barres, Calendrier, Courbe } from "@/components/repere/graphes";
 import { SchemaCorps } from "@/components/repere/schema-corps";
@@ -63,7 +63,7 @@ function Progres() {
 
   return (
     <>
-      <EnTete surtitre={tr("Ton évolution")} titre={tr("Progrès")} actions={<ChoixLangue />} />
+      <EnTete surtitre={tr("Ton évolution")} titre={tr("Progrès")} actions={<AvatarProfil />} />
       <div className={cn("flex flex-col gap-6 px-4", premiere && "entree")}>
         <Onglets label={tr("Progrès")} style="soulignes" valeur={onglet} onChange={changer}
           options={[{ v: "evolution", n: tr("Mon évolution") }, { v: "defis", n: tr("Défis & badges") }]} />

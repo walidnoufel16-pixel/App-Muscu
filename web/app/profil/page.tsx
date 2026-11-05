@@ -105,7 +105,7 @@ function Profil() {
 
   return (
     <>
-      <EnTete surtitre={tr("Profil")} titre={tr("Compte et réglages")} />
+      <EnTete surtitre={tr("Compte et réglages")} titre={tr("Profil")} />
       <div className="flex flex-col gap-8 px-4">
         {/* ---------- mon compte ---------- */}
         <Groupe titre={tr("Mon compte")}>
