@@ -1,16 +1,16 @@
 "use client";
 
-import { tr } from "@/lib/i18n";
+import { loc, tr } from "@/lib/i18n";
 import { ConseilZone } from "./forme";
 import { useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { CheckIcon, PlayIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
+import { CheckIcon, PlayIcon, PlusIcon, TrophyIcon, XIcon } from "@phosphor-icons/react";
 import { departCourse, Minuteur, preparer, type Course } from "./minuteur";
 import type { Phase } from "@/lib/logic/cardio";
 import { CHANGE, PREPA, tempsTenu } from "@/lib/logic/tenue";
 import { EX } from "@/lib/data/exercices";
 import { LESTABLE } from "@/lib/data/referentiels";
-import { fmtSerie, maxV, nb, okDe, secondesDe, seriesDe, type Ctx } from "@/lib/logic/core";
+import { fmtMax, fmtSerie, maxV, nb, okDe, secondesDe, seriesDe, type Ctx } from "@/lib/logic/core";
 import * as act from "@/lib/logic/actions";
 import type { Journal, Serie } from "@/lib/logic/types";
 import { useRepere } from "@/lib/store";
@@ -119,6 +119,14 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
     <div className="px-3 pb-3">
       <ConseilZone id={c.id} />
       {why && <p className="mx-1 mb-2 text-[13px] leading-snug text-muted-foreground">{why}</p>}
+      {/* ton max sur l'exercice, quand il dépasse ce que montre « Précédent » */}
+      {c.max && (
+        <p className="mx-1 mb-2 inline-flex items-center gap-1.5 rounded-full bg-plate-soft px-3 py-1 text-[13px] font-semibold text-plate-ink dark:text-plate">
+          <TrophyIcon className="size-4 shrink-0" weight="fill" />
+          {tr("Ton max : {a}", { a: fmtMax(c.id, c.max) })}
+          <span className="font-medium text-muted-foreground">· {tr("le {d}", { d: new Date(c.max.d + "T12:00").toLocaleDateString(loc(), { day: "numeric", month: "short" }).replace(".", "") })}</span>
+        </p>
+      )}
       <div className={cn("grid items-center gap-x-2 px-1 pb-1.5 text-[10.5px] font-medium tracking-[0.1em] text-muted-foreground uppercase", cols)}>
         <span>#</span>
         <span>{tr("Précédent")}</span>
