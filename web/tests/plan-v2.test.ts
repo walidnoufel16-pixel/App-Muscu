@@ -47,3 +47,22 @@ describe("progression des charges du programme", () => {
     expect(chargeDepart(E(), "dc", 8)).toBeNull();
   });
 });
+
+describe("fin de semaine et fin de cycle", async () => {
+  const { passerSemaine, bilanCycle } = await import("@/lib/logic/core");
+  const { nouveauCycle } = await import("@/lib/logic/actions");
+  const fait = (v: number, ts: number) => ({ ...J(v, [8, 8, 8]), ts });
+  it("semaine bouclée et nouvelle semaine du calendrier : on avance", () => {
+    const lundi = new Date("2026-11-02T12:00:00").getTime();
+    const LOG: Record<string, Journal> = {};
+    [[0, 0], [0, 1], [1, 0], [1, 1]].forEach(([s, i]) => (LOG[key(0, s, i)] = { ...fait(60, lundi), ex: plan.seances[s].exercices[i].id }));
+    expect(passerSemaine(E(LOG, 0), lundi + 2 * 864e5)).toBe(false);
+    expect(passerSemaine(E(LOG, 0), lundi + 8 * 864e5)).toBe(true);
+  });
+  it("bilan du cycle et nouveau cycle", () => {
+    const LOG: Record<string, Journal> = { [key(0, 0, 0)]: fait(60, 1), [key(6, 0, 0)]: fait(70, 2), "L|0|a0": fait(20, 3) };
+    expect(bilanCycle(E(LOG, 7))).toEqual([{ id: "dc", avant: 60, apres: 70 }]);
+    const e = E(LOG, 7); nouveauCycle(e);
+    expect(e.wk).toBe(0); expect(Object.keys(e.LOG)).toEqual(["L|0|a0"]);
+  });
+});

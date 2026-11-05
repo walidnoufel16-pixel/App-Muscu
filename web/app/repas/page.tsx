@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { EnTete } from "@/components/repere/en-tete";
 import { Segmente } from "@/components/repere/segmente";
 import { CarteProteines } from "@/components/repere/proteines";
-import { AccueilRepas, BoutonAutre, ChampBudget, ChoixAliments, CarteBesoins, CarteRecette, Coche, FicheRecette, FormPrefs, Prudence } from "@/components/repere/repas";
+import { AccueilRepas, BoutonAutre, ConseilsNutrition, ChampBudget, ChoixAliments, CarteBesoins, CarteRecette, Coche, FicheRecette, FormPrefs, Prudence } from "@/components/repere/repas";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import type { Recette } from "@/lib/data/recettes";
@@ -149,6 +149,7 @@ function Jour({ p, seance, setSeance, b, kcal, auj, ouvrir }: { p: PrefsRepas; s
           sous={<Mange r={s[c]!} c={c} b={b} auj={auj} />}
         />
       ))}
+      <ConseilsNutrition vegan={p.regime === 3} />
     </>
   );
 }

@@ -3,13 +3,14 @@
 /* Programme sur 8 semaines : la carte « séance du jour » (en tête d'Entraînement), la semaine
    en cours et le programme complet (onglets de la rubrique Programme). */
 import { pluriel, tr } from "@/lib/i18n";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { EX } from "@/lib/data/exercices";
 import { useRouter } from "next/navigation";
 import { ArrowRightIcon, CaretRightIcon, CheckIcon, PersonSimpleRunIcon, StarIcon, TrophyIcon } from "@phosphor-icons/react";
 import { LogoDisque } from "./logo";
 import { FriseSemaines } from "./seance-vues";
 import { Synthese } from "./synthese";
-import { baseRPE, phaseDe, curId, musclesDe, titreSeance, week, wkDone } from "@/lib/logic/core";
+import { baseRPE, bilanCycle, nb, passerSemaine, phaseDe, curId, musclesDe, titreSeance, week, wkDone } from "@/lib/logic/core";
 import type { SeanceSemaine } from "@/lib/logic/types";
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
@@ -24,6 +25,8 @@ export function useProgramme() {
   const muter = useRepere((s) => s.muter);
   const router = useRouter();
   const W = useMemo(() => week(etat), [etat]);
+  /* semaine bouclée et nouvelle semaine du calendrier : on avance tout seul */
+  useEffect(() => { if ((etat.FINI || etat.PLAN) && passerSemaine(etat)) muter((E) => { E.wk += 1; E.day = 0; }); }, [etat, muter]);
   const plan = etat.FINI || !!etat.PLAN;
   const { wk } = etat;
   const socle = W.map((p, j) => (!p.b && !p.sportOnly ? j : -1)).filter((j) => j >= 0);
@@ -68,6 +71,7 @@ export function CarteProgrammeDuJour() {
       />
     );
   }
+  const bilan = wk >= 7 ? bilanCycle(etat) : [];
   return wk < 7 ? (
     <Hero
       surtitre={tr("Semaine {a} terminée", { a: wk + 1 })}
@@ -81,10 +85,12 @@ export function CarteProgrammeDuJour() {
     <Hero
       surtitre={tr("Cycle terminé")}
       titre={tr("Huit semaines, bouclées")}
-      texte={tr("Tu peux revoir chaque semaine dans le programme, ou en construire un nouveau depuis ton profil.")}
-      bouton={tr("Voir le programme")}
+      texte={bilan.length
+        ? tr("Ton bilan : {l}. Le cycle 2 repart de ces charges, avec de nouvelles variantes.", { l: bilan.map((x) => `${EX[x.id]?.n ?? x.id} ${nb(x.avant)} → ${nb(x.apres)} kg`).join(", ") })
+        : tr("Le cycle 2 repart de tes charges actuelles, avec de nouvelles variantes. Tes réponses sont reprises : tu ajustes ce qui a changé.")}
+      bouton={tr("Construire le cycle 2")}
       icone={<TrophyIcon className="size-5" weight="fill" />}
-      onClick={() => router.push("/entrainement/programme", AVANT)}
+      onClick={() => router.push("/questionnaire", AVANT)}
     />
   );
 }

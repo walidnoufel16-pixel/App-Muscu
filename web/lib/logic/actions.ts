@@ -133,3 +133,11 @@ export function retirerCardio(E: Etat, ts: number) {
   E.CARDIO = (E.CARDIO || []).filter((c) => c.ts !== ts);
   E.RETIRES = [...(E.RETIRES || []), `c|${ts}`].slice(-300);
 }
+
+/* Nouveau cycle Oxa Plan (après la semaine 8) : on repart en semaine 1. Les séries du cycle fini
+   quittent le journal du programme ; elles restent dans l'historique (Progrès, records, charges). */
+export function nouveauCycle(E: Etat) {
+  for (const k of Object.keys(E.LOG)) if (/^\d+\|\d+\|/.test(k)) delete E.LOG[k];
+  E.SWAP = {};
+  E.wk = 0; E.day = 0;
+}
