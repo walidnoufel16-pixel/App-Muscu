@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import type { Route } from "next";
 import { BarbellIcon, ChartLineUpIcon, ForkKnifeIcon } from "@phosphor-icons/react";
-import { noterPosition, oublierPosition, positionDe } from "@/lib/nav";
+import { noterPosition, oublierPosition, parOnglet, positionDe } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
 /* Trois onglets, un rôle chacun : s'entraîner (séances et rubriques d'exercices), manger, mesurer. */
@@ -34,12 +34,13 @@ export function TabBar() {
   const toucher = (e: React.MouseEvent, href: string, actif: boolean) => {
     if (!actif) {
       if (ONGLETS.some((o) => o.href === chemin)) noterPosition(chemin, window.scrollY);
+      parOnglet();
       return;
     }
     /* onglet déjà ouvert : on remonte en haut, ou à la page d'accueil de l'onglet */
     e.preventDefault();
     if (chemin === href) window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-    else { oublierPosition(href); router.push(href as Route); }
+    else { oublierPosition(href); parOnglet(); router.push(href as Route); }
   };
 
   return (

@@ -17,18 +17,24 @@ export const useSens = create<{ sens: "nav-back" | null }>(() => ({ sens: null }
 
 /* Écrans visités, du plus ancien au plus récent : sert au libellé et au
    comportement du bouton retour. */
-type Pile = { pile: string[]; remplace: boolean; noter: (p: string) => void };
+type Pile = { pile: string[]; remplace: boolean; onglet: boolean; noter: (p: string) => void };
 export const usePile = create<Pile>((set, get) => ({
   pile: [],
   remplace: false,
+  onglet: false,
   noter(p) {
     const l = get().pile;
+    /* changement d'onglet par la barre du bas : comme sur iOS, l'onglet repart de sa page d'accueil, sans retour */
+    if (get().onglet) { set({ pile: [p], onglet: false, remplace: false }); return; }
     if (get().remplace) { set({ pile: [...l.slice(0, -1), p], remplace: false }); return; }
     if (l[l.length - 1] === p) return;
     if (l[l.length - 2] === p) set({ pile: l.slice(0, -1) }); // retour
     else set({ pile: [...l.slice(-19), p] });
   },
 }));
+
+/* À appeler juste avant un changement d'onglet par la barre du bas. */
+export const parOnglet = () => usePile.setState({ onglet: true });
 
 /* À appeler juste avant un router.replace : l'écran courant est remplacé dans la pile, pas empilé. */
 export const remplacement = () => usePile.setState({ remplace: true });
@@ -46,6 +52,8 @@ const TITRES: [RegExp, string][] = [
   [/^\/entrainement\/cardio/, tr("Cardio")],
   [/^\/entrainement\/course/, tr("Course")],
   [/^\/entrainement/, tr("Entraînement")],
+  [/^\/repas/, tr("Repas")],
+  [/^\/(en\/)?(blog|guides)/, tr("Blog")],
   [/^\/progres\/bilan/, tr("Bilan")],
   [/^\/progres/, tr("Progrès")],
   [/^\/profil/, tr("Profil")],

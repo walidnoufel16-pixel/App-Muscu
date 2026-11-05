@@ -32,6 +32,12 @@ export function construireSeance(muscles: string[], duree: number, obj: number, 
   parts.forEach((p) => (p.n = Math.max(1, Math.floor(p.q))));
   let reste = n - parts.reduce((a, p) => a + p.n, 0);
   parts.slice().sort((a, b) => b.q - Math.floor(b.q) - (a.q - Math.floor(a.q))).forEach((p) => { if (reste > 0) { p.n++; reste--; } });
+  /* Pas plus de 4 exercices pour un grand muscle, 3 pour un petit (au-delà, de la fatigue sans gain) :
+     le surplus va aux autres muscles choisis qui ont de la place, sinon la séance raccourcit. */
+  const plafond = (g: (typeof G)[number]) => (g.g >= 0.8 ? 4 : 3);
+  let surplus = parts.reduce((a, p) => a + Math.max(0, p.n - plafond(p.g)), 0);
+  parts.forEach((p) => { p.n = Math.min(p.n, plafond(p.g)); });
+  for (const p of parts.slice().sort((a, b) => b.g.g - a.g.g)) while (surplus > 0 && p.n < plafond(p.g)) { p.n++; surplus--; }
   const pris = new Set<string>(), res: { o: string; poly: boolean; big: boolean; abdo: boolean }[] = [];
   /* Sans exercice d'isolation possible avec ce matériel (biceps au poids du corps), on prend ceux qui
      travaillent aussi ce muscle (tractions supination : second schéma « fc »). */

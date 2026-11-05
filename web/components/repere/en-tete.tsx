@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { BoutonMenu, estRacine } from "./menu-lateral";
+import { Retour } from "./retour";
+import { usePile } from "@/lib/nav";
 
 /* Grand titre façon iOS : la barre prend un fond translucide dès que la page défile,
    et le titre s'y réduit quand le grand titre sort de l'écran. */
@@ -18,6 +20,11 @@ export function EnTete({
   className?: string;
 }) {
   const chemin = usePathname();
+  /* page d'accueil d'un onglet ouverte depuis un autre écran (et non par la barre du bas) : on peut y revenir */
+  const retourPossible = usePile((s) => {
+    const prec = s.pile.at(-2)?.split("?")[0].replace(/(.)\/$/, "$1");
+    return !!prec && !["/", "/bienvenue", "/questionnaire"].includes(prec);
+  });
   const ref = useRef<HTMLHeadingElement>(null);
   const [replie, setReplie] = useState(false);
   const [fond, setFond] = useState(false);
@@ -50,7 +57,7 @@ export function EnTete({
         />
         {/* retour à gauche, actions à droite, de même largeur : le titre réduit est centré sur l'écran (tronqué plutôt que chevauchant) */}
         <div className="relative grid h-11 grid-cols-[minmax(max-content,1fr)_minmax(0,auto)_minmax(max-content,1fr)] items-center gap-2 px-4">
-          <div className="flex min-w-0 items-center">{gauche ?? (estRacine(chemin) ? <BoutonMenu /> : null)}</div>
+          <div className="flex min-w-0 items-center">{gauche ?? (estRacine(chemin) ? <>{retourPossible && <Retour repli="/entrainement" />}<BoutonMenu /></> : null)}</div>
           <div
             className={cn(
               "pointer-events-none truncate text-center text-[15px] font-semibold transition-opacity duration-200",
