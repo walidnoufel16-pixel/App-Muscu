@@ -175,3 +175,20 @@ describe("photos des recettes", () => {
     }
   });
 });
+
+describe("besoins selon les séances et le poids", () => {
+  const jour = (n: number) => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10);
+  it("ajustement au poids : sèche qui stagne → −150 kcal, prise trop rapide → −100 kcal", async () => {
+    const { ajustementPoids } = await import("@/lib/logic/repas");
+    expect(ajustementPoids({ objectif: 2, poids: [[jour(14), 80], [jour(0), 79.9]] }).kcal).toBe(-150);
+    expect(ajustementPoids({ objectif: 0, poids: [[jour(14), 70], [jour(0), 71.2]] }).kcal).toBe(-100);
+    expect(ajustementPoids({ objectif: 0, poids: [[jour(3), 70], [jour(0), 70]] }).kcal).toBe(0);
+  });
+  it("une heure de cardio fait monter l'énergie et les glucides", async () => {
+    const { besoins } = await import("@/lib/logic/repas");
+    const sans = besoins(homme, true);
+    const avec = besoins({ ...homme, CARDIO: [{ nom: "Vélo", f: "endurance", m: "velo", min: 75, effort: 1, ts: Date.now() }] } as typeof homme, true);
+    expect(avec.kcal).toBeGreaterThan(sans.kcal);
+    expect(avec.g).toBeGreaterThan(sans.g);
+  });
+});

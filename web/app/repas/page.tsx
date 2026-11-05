@@ -12,7 +12,7 @@ import { tr } from "@/lib/i18n";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Route } from "next";
-import { ArrowsClockwiseIcon, BarbellIcon, CaretDownIcon, CaretRightIcon, CouchIcon, GearSixIcon, MinusIcon, PencilSimpleIcon, PlusIcon, ShareNetworkIcon, ShoppingCartIcon, SlidersHorizontalIcon, XIcon } from "@phosphor-icons/react";
+import { ArrowsClockwiseIcon, BarbellIcon, CheckIcon, CaretDownIcon, CaretRightIcon, CouchIcon, GearSixIcon, MinusIcon, PencilSimpleIcon, PlusIcon, ShareNetworkIcon, ShoppingCartIcon, SlidersHorizontalIcon, XIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { EnTete } from "@/components/repere/en-tete";
 import { Segmente } from "@/components/repere/segmente";
@@ -22,9 +22,10 @@ import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import type { Recette } from "@/lib/data/recettes";
 import { jourDe } from "@/lib/logic/historique";
+import { ajouterProt } from "@/lib/logic/nutrition";
 import { emojiDe } from "@/lib/data/aliments";
 import {
-  autreRecette, EMOJIS_RAYON, avecCeQueJai, besoins, CRENEAUX, listeCourses, nomAliment, nomRecette, NOM_CRENEAU, planSemaine, prefsDe, quantite, R, recettesPour, semaineParDefaut, suggestions, texteCourses,
+  autreRecette, EMOJIS_RAYON, avecCeQueJai, besoins, CRENEAUX, listeCourses, macros, portion, nomAliment, nomRecette, NOM_CRENEAU, planSemaine, prefsDe, quantite, R, recettesPour, semaineParDefaut, suggestions, texteCourses,
 } from "@/lib/logic/repas";
 import { ajuster, appliquer, coutsParJour, echanges, emballage, estimer, estimerSemaine, euros, petitBudget, prixKg, type Estimation } from "@/lib/logic/budget";
 import { PRIX } from "@/lib/data/prix";
@@ -142,13 +143,36 @@ function Jour({ p, seance, setSeance, b, kcal, auj, ouvrir }: { p: PrefsRepas; s
       <CarteBesoins b={b} kcal={kcal} />
       <CarteProteines />
       <h2 className="mt-2 px-1 text-[19px] font-bold">{tr("Idées pour aujourd'hui")}</h2>
-      {(["matin", "dejeuner", "collation"] as CreneauRepas[]).map((c) => s[c] && (
-        <CarteRecette key={c} r={s[c]!} c={c === "dejeuner" ? undefined : c} b={b} kcal={kcal} onOuvrir={() => ouvrir(s[c]!, c)}
+      {(["matin", "dejeuner", "diner", "collation"] as CreneauRepas[]).map((c) => s[c] && (
+        <CarteRecette key={c} r={s[c]!} c={c} b={b} kcal={kcal} onOuvrir={() => ouvrir(s[c]!, c)}
           droite={<BoutonAutre label={tr("Une autre idée : {c}", { c: NOM_CRENEAU[c] })} onClick={() => setDecal((d) => ({ ...d, [c]: (d[c] ?? 0) + 1 }))} />}
-          sous={c === "dejeuner" ? <span className="eyebrow mt-1 block">{tr("Déjeuner ou dîner")}</span> : undefined}
+          sous={<Mange r={s[c]!} c={c} b={b} auj={auj} />}
         />
       ))}
     </>
+  );
+}
+
+/* « J'ai mangé ça » : les protéines de la portion s'ajoutent au suivi du jour, en un toucher. */
+function Mange({ r, c, b, auj }: { r: Recette; c: CreneauRepas; b: Besoins; auj: string }) {
+  const muter = useRepere((s) => s.muter);
+  const fait = useRepere((s) => (((s.etat.A.mange || {}) as Record<string, string[]>)[auj] || []).includes(c));
+  const g = macros(r, portion(r, b, c)).p;
+  const basculer = (e: React.MouseEvent) => {
+    e.stopPropagation(); tactile(8);
+    muter((E) => {
+      const m = { ...((E.A.mange || {}) as Record<string, string[]>) }, l = m[auj] || [];
+      m[auj] = fait ? l.filter((x) => x !== c) : [...l, c];
+      E.A.mange = Object.fromEntries(Object.entries(m).sort(([a], [b2]) => (a < b2 ? -1 : 1)).slice(-7));
+      ajouterProt(E.A, auj, fait ? -g : g);
+    });
+    if (!fait) toast.success(tr("+{g} g de protéines notés", { g }));
+  };
+  return (
+    <span role="button" tabIndex={0} onClick={basculer} aria-pressed={fait}
+      className={cn("mt-1.5 inline-flex h-7 items-center gap-1 rounded-full px-2.5 text-[12.5px] font-semibold", fait ? "bg-plate text-plate-foreground" : "bg-plate-soft text-plate-ink")}>
+      {fait ? <CheckIcon className="size-3.5" weight="bold" /> : null}{fait ? tr("Mangé") : tr("J'ai mangé ça")}
+    </span>
   );
 }
 

@@ -72,7 +72,8 @@ describe("historique", () => {
     const [a, b] = semaines(H, C, 2, "2026-10-04");
     expect(a).toMatchObject({ lundi: "2026-09-21", seances: 0 });
     expect(b).toMatchObject({ lundi: "2026-09-28", seances: 3, vol: 1500, ser: 9, cardio: 20 });
-    expect(seriesParMuscle(H, "2026-09-28", "2026-10-04")).toEqual({ pec: 7 });
+    /* développé couché : pectoraux (1 par série), triceps en second (½) */
+    expect(seriesParMuscle(H, "2026-09-28", "2026-10-04")).toEqual({ pec: 7, tri: 3.5 });
     expect(jourDe(ts("2026-10-01"))).toBe("2026-10-01");
   });
 });

@@ -210,10 +210,14 @@ export function seriesParMuscle(H: LigneHist[], de: string, a: string): Record<s
   const r: Record<string, number> = {};
   for (const l of H) {
     if (l.d < de || l.d > a) continue;
+    /* même compte que la recommandation et l'avis d'Oxa : 1 série au muscle principal, ½ au secondaire */
     for (const id in l.ex) {
       const x = EX[id];
-      const m = x && (PAT2MUSC[x.pat] || (x.pat2 ? PAT2MUSC[x.pat2] : undefined));
-      if (m) r[m] = (r[m] || 0) + l.ex[id][4];
+      if (!x) continue;
+      const p = PAT2MUSC[x.pat], q = x.pat2 ? PAT2MUSC[x.pat2] : undefined, n = l.ex[id][4];
+      if (p) r[p] = (r[p] || 0) + n;
+      if (q && q !== p) r[q] = (r[q] || 0) + n / 2;
+      if (!p && q) r[q] = (r[q] || 0) + n / 2;
     }
   }
   return r;

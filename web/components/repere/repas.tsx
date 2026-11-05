@@ -224,6 +224,7 @@ export function CarteBesoins({ b, kcal }: { b: Besoins; kcal: boolean }) {
           </>
         )}
       </div>
+      {b.ajustement && <p className="mt-2.5 rounded-xl bg-muted/60 px-3 py-2 text-[12.5px] leading-snug text-muted-foreground">{b.ajustement}</p>}
       <h3 className="eyebrow mt-4 mb-1.5 flex items-center gap-1.5"><HandPalmIcon className="size-3.5" weight="fill" />{tr("Dans ton assiette, à la main")}</h3>
       <table className="w-full text-[13.5px]">
         <thead>

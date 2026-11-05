@@ -43,6 +43,14 @@ const RISQUES: RegExp[] = [
   /fente|squat|sauté|leg extension|pistol|bulgare|step|box jump|burpee|saut/i,
   /barre au front|skull|curl barre|dips|pompes|front squat|extension nuque|tirage poignet/i,
 ];
+/* Par zone, d'après le mouvement plutôt que le nom : épaules (poussées verticales, dips),
+   bas du dos (charnière de hanche et tirage horizontal à la barre), coudes ou poignets (extensions et flexions de coude à la barre). */
+const PAR_MOUVEMENT: ((x: { pat: string; pat2?: string; eq: number; ch: string }) => boolean)[] = [
+  (x) => x.pat === "pv" || (x.pat === "ph" && x.ch === "lest"),
+  (x) => (x.pat === "fh" && x.eq === 1) || (x.pat === "th" && x.eq === 1) || x.pat2 === "lo",
+  () => false, // genoux : par le nom seulement (squats, fentes, sauts), la presse reste possible
+  (x) => (x.pat === "ec" || x.pat === "fc") && x.eq === 1,
+];
 export const nomZone = (z: number) => (BLESN[z] ? tr(BLESN[z]) : "");
 
 /** Zones à ménager : déclarées (sauf « rien à signaler ») et douleur du jour. */
@@ -53,7 +61,7 @@ export function zonesActives(A: Reponses, t = Date.now()): number[] {
 }
 /** Zones sensibles qu'un exercice sollicite. */
 /* Les exercices de soin sont faits pour ces zones : jamais signalés « à ménager ». */
-export const zonesDe = (id: string, zones: number[]) => (EX_FR[id] && EX[id]?.pat !== "soin" ? zones.filter((z) => RISQUES[z].test(EX_FR[id].n)) : []);
+export const zonesDe = (id: string, zones: number[]) => (EX_FR[id] && EX[id]?.pat !== "soin" ? zones.filter((z) => RISQUES[z].test(EX_FR[id].n) || !!PAR_MOUVEMENT[z]?.(EX[id])) : []);
 
 /* ---------------- ajustement de la charge ---------------- */
 export type Base = { v: number; reps: number };
