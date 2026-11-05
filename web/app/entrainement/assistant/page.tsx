@@ -33,6 +33,17 @@ import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 import { Recommandation } from "@/components/repere/recommandation";
 
+/* Ce que les exercices d'un muscle font travailler au passage (muscles secondaires des mouvements de base). */
+const INDIRECTS: Record<string, string[]> = {
+  pec: ["tri", "epa"],
+  dos: ["bic", "avb", "tra", "lom"],
+  epa: ["tri", "tra"],
+  qua: ["add", "mol"],
+  isc: ["lom", "add"],
+  abd: ["lom"],
+  bic: ["avb"],
+};
+
 export default function PageAssistant() {
   return (
     <Suspense>
@@ -76,6 +87,8 @@ function Assistant() {
 
   const bascule = (k: string) => { tactile(6); setM((l) => (l.includes(k) ? l.filter((x) => x !== k) : [...l, k])); };
   const noms = m.map((k) => MUSC.find((g) => g.k === k)!.n);
+  /* muscles travaillés au passage par les exercices des muscles cochés (affichés en clair) */
+  const avec = MUSC.filter((g) => !m.includes(g.k) && m.some((k) => INDIRECTS[k]?.includes(g.k)));
   const budget = Math.round((DUREES.find((x) => x[0] === d) || DUREES[1])[1] / 3);
   const peut = m.length > 0 && obj != null && sel.some((t) => !t.startsWith("x:"));
 
@@ -135,7 +148,8 @@ function Assistant() {
         </>
       ) : (
       <>
-      <div className="flex flex-col gap-6 px-4 pb-24">
+      {/* de la place sous le dernier bloc : le bouton fixe « Créer ma séance » ne cache rien */}
+      <div className="flex flex-col gap-6 px-4 pb-36">
         {type === "muscu" && !street && !mUrl && <Recommandation onAppliquer={setM} />}
         <section>
           <div className="mb-2 flex items-baseline justify-between px-1">
@@ -156,19 +170,20 @@ function Assistant() {
             <SchemaCorps
               actif={(r) => !!(r.p && PAT2MUSC[r.p])}
               choisi={(r) => !!(r.p && m.includes(PAT2MUSC[r.p]))}
+              teinte={(r) => (r.p && avec.some((g) => g.k === PAT2MUSC[r.p!]) ? 0.3 : 0)}
               onToucher={(r) => r.p && bascule(PAT2MUSC[r.p])}
               legende={tr("Touche un muscle pour le cocher")}
             />
           ) : (
             <div className="flex flex-wrap gap-1.5">
               {MUSC.map((g) => {
-                const on = m.includes(g.k);
+                const on = m.includes(g.k), indirect = avec.includes(g);
                 return (
                   <button
                     key={g.k}
                     aria-pressed={on}
                     onClick={() => bascule(g.k)}
-                    className={cn("h-10 rounded-full border px-4 text-[14px] font-medium transition-colors", on ? "border-plate bg-plate text-plate-foreground" : "border-border bg-card")}
+                    className={cn("h-10 rounded-full border px-4 text-[14px] font-medium transition-colors", on ? "border-plate bg-plate text-plate-foreground" : indirect ? "border-plate/50 bg-plate-soft" : "border-border bg-card")}
                   >
                     {g.n}
                   </button>
@@ -179,6 +194,12 @@ function Assistant() {
           <p className={cn("mt-2 px-1 text-[14px] font-medium", !noms.length && "text-muted-foreground")}>
             {noms.length ? noms.join(" · ") : tr("Aucun muscle choisi pour l'instant.")}
           </p>
+          {avec.length > 0 && (
+            <p className="mt-1 flex items-start gap-2 px-1 text-[12.5px] leading-snug text-muted-foreground">
+              <i className="mt-[3px] size-3 shrink-0 rounded-[4px] bg-[color-mix(in_oklab,var(--feu)_47%,transparent)]" />
+              {tr("En clair, travaillés au passage : {a}. Touche-les pour leur donner leurs propres exercices.", { a: avec.map((g) => g.n.toLowerCase()).join(", ") })}
+            </p>
+          )}
           {m.length > budget && (
             <p className="mt-1 px-1 text-[12.5px] leading-snug text-muted-foreground">{tr("Beaucoup de muscles pour {d} minutes : un exercice par muscle, avec moins de séries sur les petits groupes. Tu pourras ajuster ensuite.", { d })}</p>
           )}
