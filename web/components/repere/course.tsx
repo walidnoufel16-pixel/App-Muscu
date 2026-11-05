@@ -18,7 +18,7 @@ import { EnTetePhoto } from "./en-tete-photo";
 import { confirmer } from "./confirmer";
 import {
   adapter, allureHyrox, allures, allureTxt, ATELIERS, avertissement, calendrier, chronoPrevu, chronoTxt, DISTANCES, enPause, estimation, genererPlan, joursAvantCourse, nomsRenfo,
-  decalerCle, modifierPlan, semaineDe, seancesRenfo, seancesRenfoHyrox, tempsAteliers, vdotDe, NOMS_PHASE, type ObjectifCourse, type PlanCourse, type SeanceCourse,
+  decalerCle, modifierPlan, objectifChrono, plageFacile, semaineDe, seancesRenfo, seancesRenfoHyrox, tempsAteliers, vdotActuel, vdotDe, NOMS_PHASE, type ObjectifCourse, type PlanCourse, type SeanceCourse,
 } from "@/lib/logic/course";
 import { dispoDeclare, nb } from "@/lib/logic/core";
 import { decaler, jourDe, lundiDe } from "@/lib/logic/historique";
@@ -181,15 +181,16 @@ export function QuestionnaireCourse() {
           </div>
           {cal.debut > auj && <p className="mt-1 text-[13px] text-muted-foreground">{tr("Il démarre le lundi {a}. D'ici là, 2 ou 3 footings faciles par semaine.", { a: new Date(cal.debut + "T12:00").toLocaleDateString(loc(), { day: "numeric", month: "long" }) })}</p>}
           <div className="mt-3 grid grid-cols-2 gap-2 text-[13px]">
-            <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Chrono estimé")}</div><div className="num text-[19px] font-bold">{chronoTxt(prevu)}</div></div>
+            <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Niveau actuel")}</div><div className="num text-[19px] font-bold">{chronoTxt(prevu)}</div></div>
+            <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Objectif fin de plan")}</div><div className="num text-[19px] font-bold">{chronoTxt(objectifChrono({ obj, ref }, cal.semaines))}</div></div>
             {hyrox ? (
               <>
                 <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Allure Hyrox")}</div><div className="num text-[19px] font-bold">{allureTxt(allureHyrox(A))}</div></div>
                 <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Ateliers")}</div><div className="num text-[19px] font-bold">≈ {Math.round(tempsAteliers(V) / 60)} min</div></div>
               </>
             ) : <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Seuil")}</div><div className="num text-[19px] font-bold">{allureTxt(A.seuil)}</div></div>}
-            <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Footing")}</div><div className="num text-[19px] font-bold">{allureTxt(A.facile)}</div></div>
             {!hyrox && <div className="rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Fractionné")}</div><div className="num text-[19px] font-bold">{allureTxt(A.vma)}</div></div>}
+            <div className="col-span-2 rounded-xl bg-card p-2.5"><div className="text-muted-foreground">{tr("Footing, plage d'endurance")}</div><div className="num text-[19px] font-bold">{plageFacile(A)} /km</div></div>
           </div>
           {alerte && <p className="mt-3 flex gap-2 rounded-xl bg-amber-500/12 p-2.5 text-[12.5px] leading-snug"><WarningIcon className="mt-0.5 size-4 shrink-0 text-amber-600" weight="fill" />{alerte}</p>}
         </section>
@@ -206,7 +207,7 @@ export function CarteCourse() {
   const router = useRouter();
   const etat = useRepere((s) => s.etat);
   const [auj] = useState(() => jourDe(Date.now()));
-  const P = useMemo(() => (etat.COURSE ? genererPlan(etat.COURSE) : null), [etat.COURSE]);
+  const P = useMemo(() => (etat.COURSE ? genererPlan(etat.COURSE, vdotActuel(etat.COURSE, etat.SORTIES, auj)) : null), [etat.COURSE, etat.SORTIES, auj]);
   if (!etat.COURSE || !P) return null;
   const c = etat.COURSE, J = joursAvantCourse(c, auj);
   if (J < -7) return null;
@@ -297,7 +298,7 @@ export function SaisieSortie({ ouvert, onClose, seance, cle, dureeMin }: {
 }) {
   const router = useRouter();
   const muter = useRepere((s) => s.muter);
-  const [km, setKm] = useState(""), [min, setMin] = useState(dureeMin ? String(dureeMin) : ""), [sec, setSec] = useState("");
+  const [km, setKm] = useState(seance?.test ? "5" : ""), [min, setMin] = useState(dureeMin ? String(dureeMin) : ""), [sec, setSec] = useState("");
   const [rpe, setRpe] = useState<number | null>(null);
   const [douleur, setDouleur] = useState(false);
   const d = parseFloat(km.replace(",", ".")) || 0, t = (+min || 0) * 60 + (+sec || 0);
@@ -307,9 +308,12 @@ export function SaisieSortie({ ouvert, onClose, seance, cle, dureeMin }: {
     tactile(12);
     let msg: string | null = null;
     const auj = jourDe(Date.now());
+    const avant = useRepere.getState().etat;
+    const seuilAvant = avant.COURSE ? allures(vdotActuel(avant.COURSE, avant.SORTIES, auj)).seuil : 0;
     muter((E) => {
       (E.SORTIES ??= []).push({ d: auj, km: Math.round(d * 100) / 100, sec: t, rpe: rpe!, ...(douleur ? { douleur: true } : {}), ...(cle ? { s: cle } : {}), ...(seance?.type === "course" ? { course: true } : {}) });
-      if (E.COURSE && cle) msg = adapter(E.COURSE, +cle.split("|")[0], { rpe: rpe!, douleur });
+      /* un test se court à fond : « très dur » n'allège pas la semaine suivante (la douleur, si) */
+      if (E.COURSE && cle) msg = adapter(E.COURSE, +cle.split("|")[0], { rpe: seance?.test ? Math.min(rpe!, 8) : rpe!, douleur });
     });
     if (seance?.type === "course") {
       /* jour J : le bilan de toute la préparation */
@@ -323,7 +327,12 @@ export function SaisieSortie({ ouvert, onClose, seance, cle, dureeMin }: {
           { n: tr("km de préparation"), v: Math.round(prepa.reduce((n, x) => n + x.km, 0)), accent: true },
         ],
       });
-    } else toast.success(tr("Sortie notée : {a} km à {a1}", { a: nb(Math.round(d * 10) / 10), a1: allureTxt(t / d) }), msg ? { description: msg, duration: 6000 } : undefined);
+    } else {
+      /* une sortie soutenue (ou le test 5 km) peut relever les allures du plan */
+      const apres = useRepere.getState().etat, seuilApres = apres.COURSE ? allures(vdotActuel(apres.COURSE, apres.SORTIES, auj)).seuil : 0;
+      if (seuilAvant && seuilApres < seuilAvant) msg = (msg ? msg + " " : "") + tr("Tes allures sont mises à jour : seuil {a} → {b}.", { a: allureTxt(seuilAvant), b: allureTxt(seuilApres) });
+      toast.success(tr("Sortie notée : {a} km à {a1}", { a: nb(Math.round(d * 10) / 10), a1: allureTxt(t / d) }), msg ? { description: msg, duration: 6000 } : undefined);
+    }
     onClose();
     if (seance?.type === "course") router.replace("/entrainement/course", ARRIERE);
   };
@@ -332,7 +341,7 @@ export function SaisieSortie({ ouvert, onClose, seance, cle, dureeMin }: {
       <DrawerContent>
         <div className="px-5 pt-2 pb-[max(env(safe-area-inset-bottom),20px)]">
           <DrawerTitle className="text-[20px] font-bold">{seance ? seance.titre : tr("Noter une sortie")}</DrawerTitle>
-          <DrawerDescription className="mt-0.5 text-[13px] text-muted-foreground">{tr("Distance et temps de ta montre ou de Strava.")}</DrawerDescription>
+          <DrawerDescription className="mt-0.5 text-[13px] text-muted-foreground">{seance?.test ? tr("Le temps du test seul, sans l'échauffement : Oxa recale tes allures dessus.") : tr("Distance et temps de ta montre ou de Strava.")}</DrawerDescription>
           <div className="mt-4 grid grid-cols-3 gap-2">
             <label className="text-center text-[12px] text-muted-foreground"><input inputMode="decimal" aria-label={tr("Distance en km")} placeholder="8,5" value={km} onChange={(e) => setKm(e.target.value.replace(/[^\d.,]/g, "").slice(0, 6))} className={champ} />{tr("km")}</label>
             <label className="text-center text-[12px] text-muted-foreground"><input inputMode="numeric" aria-label={tr("Durée, minutes")} placeholder="45" value={min} onChange={(e) => setMin(e.target.value.replace(/\D/g, "").slice(0, 3))} className={champ} />{tr("min")}</label>

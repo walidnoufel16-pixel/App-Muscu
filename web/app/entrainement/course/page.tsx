@@ -20,7 +20,7 @@ import { PHOTOS_RUN, SaisieSortie } from "@/components/repere/course";
 import { EnTetePhoto } from "@/components/repere/en-tete-photo";
 import { mmss } from "@/components/repere/reglages-cardio";
 import {
-  allureCourse, allures, allureDe, allureTxt, chronoTxt, DISTANCES, enPause, estimation, genererPlan, joursAvantCourse, NOMS_PHASE, nomsRenfo, reprendre, semaineDe, vdotDe,
+  allureCourse, allures, allureDe, allureTxt, chronoTxt, DISTANCES, enPause, estimation, genererPlan, joursAvantCourse, NOMS_PHASE, nomsRenfo, objectifChrono, plageFacile, reprendre, semaineDe, vdotActuel,
   type SeanceCourse, type SemaineCourse, type Sortie, type TypeSeance,
 } from "@/lib/logic/course";
 import { dureeTotale } from "@/lib/logic/cardio";
@@ -66,8 +66,10 @@ function Plan() {
   const [auj] = useState(() => jourDe(Date.now()));
   const [ouverte, setOuverte] = useState<number | null>(null);
   const [libre, setLibre] = useState(false);
-  const c = etat.COURSE;
-  const P = useMemo(() => (c ? genererPlan(c) : []), [c]);
+  const c = etat.COURSE, sorties = etat.SORTIES;
+  /* les allures suivent la forme du moment (sorties soutenues, test 5 km) */
+  const V = useMemo(() => (c ? vdotActuel(c, sorties, auj) : 0), [c, sorties, auj]);
+  const P = useMemo(() => (c ? genererPlan(c, V) : []), [c, V]);
   if (!c || !P.length)
     return (
       <>
@@ -79,7 +81,7 @@ function Plan() {
       </>
     );
   const S = etat.SORTIES || [];
-  const k = semaineDe(c, auj, P.length), J = joursAvantCourse(c, auj), V = vdotDe(c), A = allures(V), pause = enPause(c);
+  const k = semaineDe(c, auj, P.length), J = joursAvantCourse(c, auj), A = allures(V), pause = enPause(c);
   const faite = (kk: number, j: number) => S.find((x) => x.s === `${kk}|${j}`);
 
   const basculerPause = () => {
@@ -108,12 +110,20 @@ function Plan() {
       />
       <div className="flex flex-col gap-5 px-4 pb-10">
         <div className="grid grid-cols-2 gap-2">
-          {[[tr("Chrono estimé"), chronoTxt(estimation(c, S, auj).sec)], [c.obj === "hyrox" ? tr("Allure Hyrox") : tr("Allure course"), allureTxt(allureCourse(c.obj, A))], [tr("Footing"), allureTxt(A.facile)], [tr("Seuil"), allureTxt(A.seuil)]].map(([n, v]) => (
+          {[[tr("Niveau actuel"), chronoTxt(estimation(c, S, auj).sec)], [tr("Objectif fin de plan"), chronoTxt(objectifChrono(c, P.length, V))]].map(([n, v]) => (
             <div key={n} className="rounded-[18px] border border-border/80 bg-card p-3">
               <div className="text-[12px] text-muted-foreground">{n}</div>
               <div className="num text-[22px] leading-tight font-bold">{v}</div>
             </div>
           ))}
+          <div className="col-span-2 grid grid-cols-3 gap-2">
+            {[[c.obj === "hyrox" ? tr("Allure Hyrox") : tr("Allure course"), allureTxt(allureCourse(c.obj, A)).replace(" /km", "")], [tr("Footing"), plageFacile(A)], [tr("Seuil"), allureTxt(A.seuil).replace(" /km", "")]].map(([n, v]) => (
+              <div key={n} className="rounded-[18px] border border-border/80 bg-card p-3">
+                <div className="text-[12px] text-muted-foreground">{n}</div>
+                <div className="num text-[16px] leading-tight font-bold">{v}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {pause ? (
@@ -212,8 +222,9 @@ function Seance({ cle }: { cle: string }) {
   const renfo = useRenfo();
   const [course, setCourse] = useState<Course | null>(null);
   const [saisie, setSaisie] = useState<number | null>(null); // durée proposée (min), ou 0
-  const c = etat.COURSE;
-  const P = useMemo(() => (c ? genererPlan(c) : []), [c]);
+  const c = etat.COURSE, sorties = etat.SORTIES;
+  const [auj] = useState(() => jourDe(Date.now()));
+  const P = useMemo(() => (c ? genererPlan(c, vdotActuel(c, sorties, auj)) : []), [c, sorties, auj]);
   const [k, j] = cle.split("|").map(Number);
   const W = P[k], x = W?.seances[j];
   if (!c || !x)
@@ -274,7 +285,7 @@ function Seance({ cle }: { cle: string }) {
           </>
         )}
       </div>
-      <SaisieSortie key={saisie ?? "f"} ouvert={saisie !== null} onClose={() => setSaisie(null)} seance={x} cle={cle} dureeMin={saisie || undefined} />
+      <SaisieSortie key={saisie ?? "f"} ouvert={saisie !== null} onClose={() => setSaisie(null)} seance={x} cle={cle} dureeMin={x.test ? undefined : saisie || undefined} />
     </>
   );
 }

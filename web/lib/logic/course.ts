@@ -57,11 +57,13 @@ export function tempsPrevu(V: number, km: number) {
 /** Prédiction de Riegel : temps sur une autre distance. */
 export const riegel = (km1: number, sec1: number, km2: number) => Math.round(sec1 * Math.pow(km2 / km1, 1.06));
 
-export type Allures = { facile: number; marathon: number; semi: number; dix: number; seuil: number; vma: number };
+export type Allures = { facile: number; facileMin: number; facileMax: number; marathon: number; semi: number; dix: number; seuil: number; vma: number };
 /** Allures d'entraînement en secondes par kilomètre. */
 export function allures(V: number): Allures {
   return {
     facile: Math.round(allurePct(V, 0.68)),
+    facileMin: Math.round(allurePct(V, 0.72)), // plage d'endurance : du plus vif…
+    facileMax: Math.round(allurePct(V, 0.62)), // …au plus lent
     marathon: Math.round(tempsPrevu(V, 42.195) / 42.195),
     semi: Math.round(tempsPrevu(V, 21.0975) / 21.0975),
     dix: Math.round(tempsPrevu(V, 10) / 10),
@@ -72,6 +74,8 @@ export function allures(V: number): Allures {
 export const VDOT_DEBUTANT = 30; // environ 30 min au 5 km
 export const vdotDe = (p: Pick<PlanCourse, "ref">) => (p.ref ? Math.max(20, Math.min(80, vdot(p.ref.km, p.ref.sec))) : VDOT_DEBUTANT);
 export const allureTxt = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")} /km`;
+/** Plage d'endurance : « 5:35 – 6:10 » (sans l'unité). */
+export const plageFacile = (A: Pick<Allures, "facileMin" | "facileMax">) => `${allureTxt(A.facileMin).replace(" /km", "")} – ${allureTxt(A.facileMax).replace(" /km", "")}`;
 export const chronoTxt = (s: number) => {
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = Math.round(s % 60);
   return h ? `${h} h ${String(m).padStart(2, "0")}` : `${m} min ${String(x).padStart(2, "0")}`;
@@ -147,6 +151,7 @@ export type SeanceCourse = {
   phases?: Phase[]; // séance guidée au minuteur
   renfo?: 0 | 1; // laquelle des deux séances de renforcement
   tours?: { km: number; atelier: string }[]; // Hyrox : course puis atelier, tour par tour
+  test?: boolean; // test 5 km : on note le chrono du test seul, il recale les allures
 };
 export type PhaseCourse = "fondation" | "developpement" | "specifique" | "affutage" | "course";
 export type SemaineCourse = { k: number; lundi: string; phase: PhaseCourse; allegee: boolean; long: number; seances: SeanceCourse[] };
@@ -170,8 +175,8 @@ function fractionne(n: number, effort: number, recup: number, allure: number, no
 }
 
 /** Plan complet, semaine par semaine. */
-export function genererPlan(p: PlanCourse): SemaineCourse[] {
-  const P = PROFILS[p.obj], deb = estDebutant(p), V = vdotDe(p), A = allures(V);
+export function genererPlan(p: PlanCourse, V = vdotDe(p)): SemaineCourse[] {
+  const P = PROFILS[p.obj], deb = estDebutant(p), A = allures(V);
   const N = Math.max(1, Math.round((dateDe(lundiDe(p.date)).getTime() - dateDe(p.debut).getTime()) / (7 * 864e5)) + 1);
   const T = Math.min(N - 1, p.obj === "marathon" && N < 14 ? 2 : P.affutage); // semaines d'affûtage, semaine de course comprise
   const B = Math.max(1, N - T); // semaines de construction
@@ -192,6 +197,11 @@ export function genererPlan(p: PlanCourse): SemaineCourse[] {
     longs.push(prec);
   }
 
+  /* le test 5 km : la première semaine allégée (on est frais, le chrono est juste), après au moins
+     3 semaines d'entraînement, sur un plan d'au moins 8 semaines */
+  let finFondation = -1;
+  if (N >= 8) for (let k = 2; k < B - 1 && finFondation < 0; k++) if (k % cycle === cycle - 1) finFondation = k;
+
   const S: SemaineCourse[] = [];
   for (let k = 0; k < N; k++) {
     const lundi = decaler(p.debut, 7 * k), aff = k >= B, derniere = k === N - 1;
@@ -199,12 +209,15 @@ export function genererPlan(p: PlanCourse): SemaineCourse[] {
     const allegee = !aff && k > 0 && k % cycle === cycle - 1 && k < B - 1;
     const coef = Math.min(1, p.ajust[k] ?? 1);
     const pic2 = longs[B - 1] ?? pic;
-    let long = aff ? pic2 * (derniere ? 0 : [0.75, 0.6, 0.5][k - B] ?? 0.5) : longs[k];
+    /* affûtage : la sortie longue baisse franchement (10 km et semi : 60 % du pic dès la 1re semaine) */
+    const paliers = p.obj === "semi" || p.obj === "10k" ? [0.6, 0.5, 0.5] : [0.75, 0.6, 0.5];
+    let long = aff ? pic2 * (derniere ? 0 : paliers[k - B] ?? 0.5) : longs[k];
     long = Math.round(long * coef * 2) / 2;
-    const footMin = arr5(Math.min(deb ? 45 : 60, Math.max(25, (long * 0.45 * A.facile) / 60)) * (aff ? 0.8 : 1) * coef);
+    /* en affûtage, les footings suivent le pic (×0,8) et non la sortie longue raccourcie : le volume baisse sans s'effondrer */
+    const footMin = arr5(Math.min(deb ? 45 : 60, Math.max(25, ((aff ? pic2 * 0.8 : long) * 0.45 * A.facile) / 60)) * (aff ? 0.8 : 1) * coef);
     const footing = (n = 1): SeanceCourse => ({
       type: "footing", titre: n > 1 ? tr("Footing de récupération") : tr("Footing"), min: n > 1 ? arr5(footMin * 0.8) : footMin, allure: A.facile,
-      detail: tr("{a} min en endurance, à {a1} environ. Tu dois pouvoir parler en phrases.", { a: n > 1 ? arr5(footMin * 0.8) : footMin, a1: allureTxt(A.facile) }),
+      detail: tr("{a} min en endurance, entre {a1} /km. Tu dois pouvoir parler en phrases ; un jour de fatigue, plus lent, c'est très bien.", { a: n > 1 ? arr5(footMin * 0.8) : footMin, a1: plageFacile(A) }),
       phases: [ph("continu", (n > 1 ? arr5(footMin * 0.8) : footMin) * 60, allureTxt(A.facile), tr("Allure facile : tu peux parler en phrases."))],
     });
 
@@ -212,8 +225,12 @@ export function genererPlan(p: PlanCourse): SemaineCourse[] {
     /* Hyrox : course puis atelier, tour après tour ; le nombre de tours et la dose montent avec les phases */
     const ateliers = (): SeanceCourse => {
       const fort = coef < 1 || allegee;
-      const [n, km, part] = phase === "fondation" ? [4, 0.5, 0.5] : phase === "developpement" ? [fort ? 4 : 6, 1, 0.75] : phase === "specifique" ? [fort ? 6 : 8, 1, 1] : [4, 1, 0.5];
-      const choix = n === 8 ? ATELIERS : ATELIERS.filter((_, i) => (n === 6 ? i !== (k % 4) && i !== 4 + (k % 4) : i % 2 === k % 2));
+      /* développement : 4, puis 5, puis 6 tours de 1 km (des marches entre les 500 m de fondation et la simulation) */
+      const dev = (k - B * 0.4) / (B * 0.35), nDev = fort || dev < 0.34 ? 4 : dev < 0.67 ? 5 : 6;
+      const [n, km, part] = phase === "fondation" ? [4, 0.5, 0.5] : phase === "developpement" ? [nDev, 1, 0.75] : phase === "specifique" ? [fort ? 6 : 8, 1, 1] : [4, 1, 0.5];
+      const choix = n === 8 ? ATELIERS
+        : n === 5 ? ATELIERS.filter((_, i) => (((i - k) % 8) + 8) % 8 < 5)
+        : ATELIERS.filter((_, i) => (n === 6 ? i !== (k % 4) && i !== 4 + (k % 4) : i % 2 === k % 2));
       const tours = choix.map((a, t) => {
         const dose = phase === "specifique" && n === 8 && t < 4 ? 0.5 : part; // simulation : la 1re moitié allégée
         return { a, km, c: consigneAtelier(a, dose, p), dose };
@@ -241,6 +258,29 @@ export function genererPlan(p: PlanCourse): SemaineCourse[] {
       if (phase === "course") {
         const ph2 = fractionne(3, 60, 120, raceAllure, tr("Rappel d'allure"), 900, 300);
         return { type: "allure", titre: tr("Rappel d'allure"), min: 26, allure: raceAllure, phases: ph2, detail: tr("Footing de 15 min, puis 3 × 1 min à ton allure de course ({a}). Rien de plus : tu gardes tes forces.", { a: allureTxt(raceAllure) }) };
+      }
+      /* première semaine allégée : test 5 km, qui recale les allures (vdotActuel) */
+      if (!deuxieme && !hyrox && k === finFondation) {
+        const prevu = tempsPrevu(V, 5);
+        const P2: Phase[] = [
+          ph("echauf", 900, tr("Footing facile"), tr("Footing tranquille, puis 3 accélérations progressives.")),
+          { ...ph("effort", prevu, tr("À fond, régulier"), tr("5 km le plus vite possible, en partant prudemment : le 1er km ne doit pas être le plus rapide."), 1, 1, tr("Test 5 km")), libre: tr("Arrivée") },
+          ph("calme", 600, tr("Footing facile"), tr("Footing très lent pour finir.")),
+        ];
+        return { type: "allure", titre: tr("Test 5 km"), min: Math.round((1500 + prevu) / 60), allure: Math.round(prevu / 5), phases: P2, test: true,
+          detail: tr("15 min d'échauffement, puis 5 km à fond et réguliers (vise environ {a}). Note ensuite la distance et le temps du test seul : Oxa recale tes allures sur ta forme du moment.", { a: chronoTxt(prevu) }) };
+      }
+      if ((phase === "fondation" && !deuxieme && k % 2 === 1) && !hyrox) {
+        /* côtes courtes : la force du coureur, sans le stress des intervalles sur le plat */
+        const n = deb ? 8 : 10;
+        const avant = Math.max(15, footMin - 10);
+        const P2: Phase[] = [ph("continu", avant * 60, allureTxt(A.facile), tr("Footing facile jusqu'au pied d'une côte."))];
+        for (let t = 1; t <= n; t++) {
+          P2.push(ph("effort", 30, tr("Montée dynamique"), tr("Monte vite mais relâché : buste droit, petits pas, bras actifs."), t, n, tr("Côte")));
+          if (t < n) P2.push(ph("recup", 90, tr("Redescente"), tr("Redescends en trottinant ou en marchant."), t, n));
+        }
+        return { type: "lignes", titre: tr("Footing + côtes"), min: avant + Math.round((n * 120 - 90) / 60), allure: A.facile, phases: P2,
+          detail: tr("{footMin} min faciles, puis {n} montées de 30 s dans une côte (6 à 8 %), retour en trottinant. Elles construisent la force et la foulée.", { footMin: avant, n }) };
       }
       if (phase === "fondation" || (deuxieme && phase !== "specifique")) {
         const n = 6;
@@ -281,6 +321,16 @@ export function genererPlan(p: PlanCourse): SemaineCourse[] {
       const avecAllure = p.obj === "marathon" && phase === "specifique" && !allegee;
       const kmAllure = avecAllure ? Math.round(long * 0.3) : 0;
       const min = Math.round((long * A.facile) / 60);
+      /* 10 km et semi : finir à l'allure du semi apprend à tenir l'allure fatigué */
+      if ((p.obj === "semi" || p.obj === "10k") && phase === "specifique" && !allegee && coef >= 1) {
+        const kmF = Math.min(p.obj === "semi" ? 5 : 3, Math.max(2, Math.round(long * 0.25))), debutK = long - kmF;
+        const sec = debutK * A.facile + kmF * A.semi;
+        return {
+          type: "longue", titre: tr("Sortie longue, fin rapide"), km: long, min: Math.round(sec / 60), allure: A.facile,
+          detail: tr("{long} km : les {a} premiers très faciles ({b}), puis les {c} derniers à allure semi ({d}). Finis fort mais en contrôle.", { long, a: debutK, b: allureTxt(A.facile), c: kmF, d: allureTxt(A.semi) }),
+          phases: [ph("continu", Math.round(debutK * A.facile), allureTxt(A.facile), tr("Très facile. Bois régulièrement.")), ph("effort", Math.round(kmF * A.semi), allureTxt(A.semi), tr("Les {c} derniers km à allure semi : régulier, en contrôle.", { c: kmF }), 1, 1, tr("Fin rapide"))],
+        };
+      }
       return {
         type: "longue", titre: tr("Sortie longue"), km: long, min, allure: A.facile,
         detail: avecAllure
@@ -300,7 +350,8 @@ export function genererPlan(p: PlanCourse): SemaineCourse[] {
           ? tr("Pars à {a} sur les premiers kilomètres : les ateliers coûtent plus qu'on ne croit. Découpe les wall balls en séries courtes. Chrono visé : {a1}.", { a: allureTxt(raceAllure + 10), a1: chronoTxt(prevu) })
           : tr("Pars à {a} sur les premiers kilomètres, puis cale-toi sur {a1}. Chrono visé : {a2}.", { a: allureTxt(raceAllure + 5), a1: allureTxt(raceAllure), a2: chronoTxt(prevu) }) });
     } else {
-      const deuxQ = p.jours >= 5 && (phase === "developpement" || phase === "specifique") && !allegee && coef >= 1;
+      /* deux séances de qualité dans la semaine : à 5 sorties, et pas pour un débutant (la 5e reste facile) */
+      const deuxQ = p.jours >= 5 && !deb && (phase === "developpement" || phase === "specifique") && !allegee && coef >= 1;
       const corps: SeanceCourse[] = [q(false), footing()];
       if (deuxQ) corps.push(q(true));
       while (corps.length < p.jours - 1) corps.push(footing(2));
@@ -317,7 +368,57 @@ export function genererPlan(p: PlanCourse): SemaineCourse[] {
         : tr("Force des jambes : charges modérées, mouvements lents et contrôlés. Un jour facile, pas la veille de la sortie longue.") });
     S.push({ k, lundi, phase, allegee: allegee || coef < 1, long, seances });
   }
+  lisserVolume(S, A);
   return S;
+}
+
+/** Minutes de course d'une semaine (sans le renforcement). */
+export const minutesSemaine = (W: SemaineCourse) => W.seances.reduce((t, x) => t + (x.type === "renfo" ? 0 : x.min), 0);
+
+/* Pas plus de +10 % d'une vraie semaine à la suivante (une semaine allégée ne compte pas comme
+   référence) : on raccourcit les footings, jamais la qualité ni la sortie longue. */
+function lisserVolume(S: SemaineCourse[], A: Allures) {
+  let ref = 0;
+  for (const W of S) {
+    if (W.allegee || W.phase === "affutage" || W.phase === "course") continue;
+    const vol = minutesSemaine(W);
+    if (ref > 0 && vol > ref * 1.1) {
+      let trop = vol - ref * 1.1;
+      const foots = W.seances.filter((x) => x.type === "footing");
+      for (const x of foots.sort((a, b) => b.min - a.min)) {
+        if (trop <= 0) break;
+        const nouveau = Math.max(20, arr5(x.min - trop));
+        if (nouveau >= x.min) continue;
+        trop -= x.min - nouveau;
+        x.min = nouveau;
+        x.detail = tr("{a} min en endurance, entre {a1} /km. Tu dois pouvoir parler en phrases ; un jour de fatigue, plus lent, c'est très bien.", { a: nouveau, a1: plageFacile(A) });
+        x.phases = [ph("continu", nouveau * 60, allureTxt(A.facile), tr("Allure facile : tu peux parler en phrases."))];
+      }
+      /* puis la partie footing des séances « lignes droites » et « côtes » (15 min au moins) */
+      for (const x of W.seances.filter((y) => y.type === "lignes" && y.phases?.[0]?.type === "continu")) {
+        if (trop <= 0) break;
+        const avant = Math.round(x.phases![0].duree / 60), nouveau = Math.max(15, arr5(avant - trop));
+        if (nouveau >= avant) continue;
+        trop -= avant - nouveau;
+        x.min -= avant - nouveau;
+        x.phases![0] = { ...x.phases![0], duree: nouveau * 60 };
+        x.detail = x.detail.replace(String(avant), String(nouveau));
+      }
+      /* Hyrox : la simulation passe avant la sortie longue, qui cède le reste (jusqu'à -25 %) */
+      const longue = W.seances.find((y) => y.type === "longue");
+      if (trop > 0 && longue?.km && W.seances.some((y) => y.type === "hyrox")) {
+        const km = Math.max(longue.km * 0.75, Math.round(((longue.min - trop) * 60 / A.facile) * 2) / 2);
+        if (km < longue.km) {
+          const min = Math.round((km * A.facile) / 60);
+          trop -= longue.min - min;
+          Object.assign(longue, { km, min, detail: tr("{long} km très faciles ({a} ou plus lent). Le but est le temps passé debout, pas la vitesse.", { long: km, a: allureTxt(A.facile) }),
+            phases: [ph("continu", min * 60, allureTxt(A.facile), tr("Très facile. Bois régulièrement."))] });
+          W.long = km;
+        }
+      }
+    }
+    ref = minutesSemaine(W);
+  }
 }
 
 /** Semaine en cours (0 avant le début, N-1 après la course). */
@@ -431,6 +532,28 @@ export const avecSorties = (C: HistoCardio[] = [], S: Sortie[] = []): HistoCardi
   ...C,
   ...S.map((s) => ({ nom: tr("Course à pied"), f: "endurance" as const, m: "tapis" as const, min: Math.round(s.sec / 60), effort: s.sec, ts: new Date(s.d + "T12:00").getTime(), run: true })),
 ];
+
+/** Forme du moment : le VDOT de référence, relevé par les sorties soutenues des 8 dernières semaines
+    (au moins 5 km, ressenti « juste » ou plus, test 5 km compris). Jamais plus de +3, jamais de baisse :
+    une sortie ratée ne doit pas ralentir tout le plan. */
+export function vdotActuel(p: PlanCourse, S: Sortie[] = [], auj: string): number {
+  const V0 = vdotDe(p), depuis = decaler(auj, -56);
+  let V = V0;
+  for (const s of S) {
+    if (s.d < depuis || s.d > auj || s.km < 5 || s.rpe < 7 || s.sec <= 0) continue;
+    V = Math.max(V, Math.min(V0 + 3, vdot(s.km, s.sec)));
+  }
+  return Math.round(V * 10) / 10;
+}
+
+/** Gain de forme raisonnable sur une préparation : environ +1 VDOT par 6 semaines de construction,
+    plafonné à +2,5 (+4 en débutant, qui progresse plus vite). */
+export function gainVdot(p: Pick<PlanCourse, "obj" | "ref">, semaines: number) {
+  const P = PROFILS[p.obj], construction = Math.max(0, semaines - P.affutage);
+  return Math.min(estDebutant(p) ? 4 : 2.5, Math.round((construction / 6) * 10) / 10);
+}
+/** Chrono visé en fin de plan. */
+export const objectifChrono = (p: Pick<PlanCourse, "obj" | "ref">, semaines: number, V = vdotDe(p)) => chronoPrevu(p.obj, Math.max(V, vdotDe(p) + gainVdot(p, semaines)));
 
 /** Chrono estimé sur la distance visée : le plan (chrono de référence), amélioré par les sorties
     soutenues récentes (au moins 5 km, ressenti « juste » ou plus) via la formule de Riegel. */
