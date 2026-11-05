@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { Route } from "next";
 import { CaretLeftIcon } from "@phosphor-icons/react/dist/ssr";
+import { RetourApp } from "@/components/repere/retour-app";
 import { BILLETS, GUIDES, aLireAussi, adresse, dateTxt, nomCategorie, programme, tempsLecture, texte, type Article, type Langue } from "@/lib/data/blog";
 import { ProposerAnglais } from "./anglais";
 import { LogoTuile } from "@/components/repere/logo";
@@ -31,7 +32,7 @@ export function VueListe({ l }: { l: Langue }) {
   return (
     <div lang={l} className="px-5 pt-[max(env(safe-area-inset-top),20px)] pb-12">
       <div className="flex items-center justify-between">
-        <Link href={`/?src=blog${l === "en" ? "-en" : ""}` as Route} className="flex items-center gap-2 text-[15px] font-semibold"><LogoTuile className="size-7" />Oxa</Link>
+        <RetourApp l={l}><Link href={`/?src=blog${l === "en" ? "-en" : ""}` as Route} className="flex items-center gap-2 text-[15px] font-semibold"><LogoTuile className="size-7" />Oxa</Link></RetourApp>
         <Link href={T[l].autreLien as Route} hrefLang={l === "en" ? "fr" : "en"} className="rounded-full bg-muted px-3 py-1.5 text-[13px] font-semibold">{T[l].autre}</Link>
       </div>
       <h1 className="mt-7 text-[32px] leading-[1.06] font-extrabold tracking-[-0.025em]">{T[l].titre}</h1>

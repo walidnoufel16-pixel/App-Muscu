@@ -52,6 +52,8 @@ const TITRES: [RegExp, string][] = [
   [/^\/entrainement\/cardio/, tr("Cardio")],
   [/^\/entrainement\/course/, tr("Course")],
   [/^\/entrainement/, tr("Entraînement")],
+  [/^\/repas/, tr("Repas")],
+  [/^\/(en\/)?(blog|guides)/, tr("Blog")],
   [/^\/progres\/bilan/, tr("Bilan")],
   [/^\/progres/, tr("Progrès")],
   [/^\/profil/, tr("Profil")],
