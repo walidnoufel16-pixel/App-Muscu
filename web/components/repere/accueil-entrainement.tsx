@@ -74,27 +74,27 @@ export function SemaineAnneaux({ auj, setF }: { auj: string; setF: (f: Feuille) 
   const S = useMemo(() => serie(etat.HIST || [], avecSorties(etat.CARDIO, etat.SORTIES), objectifHebdo(etat.A), auj), [etat.HIST, etat.CARDIO, etat.SORTIES, etat.A, auj]);
   const ini = initiales();
   return (
-    <section aria-label={tr("Cette semaine")}>
+    <section aria-label={tr("Cette semaine")} className="rounded-[20px] bg-card px-2.5 pt-2.5 pb-2">
+      <div className="mb-1.5 flex items-center justify-between gap-2 px-1 text-[13px]">
+        <span className="flex items-center gap-1.5 font-semibold">
+          <FlameIcon className={cn("size-4", S.semaines ? "text-[#ff7a1a]" : "text-muted-foreground")} weight={S.semaines ? "fill" : "regular"} />
+          {S.semaines ? tr("{a} d'affilée", { a: tp(S.semaines, "{n} semaine", "{n} semaines") }) : tr("Lance ta série cette semaine")}
+        </span>
+        <span className="shrink-0 text-muted-foreground">{tr("{c} sur {o} cette semaine", { c: S.cetteSemaine, o: S.objectif })}</span>
+      </div>
       <div className="flex justify-between">
         {J.map((j, i) => {
           const f = feuilleDuJour(j, auj);
           return (
             <button key={j.d} disabled={!f} onClick={() => { if (f) { tactile(5); setF(f); } }}
               aria-label={`${ini[i]} ${+j.d.slice(8)}${j.fait.length ? " · " + tr("fait") : j.prevus.length ? " · " + tr("prévu") : ""}`}
-              className="flex w-11 flex-col items-center gap-1.5 active:scale-95">
-              <span className={cn("text-[11px] font-semibold uppercase", j.d === auj ? "text-foreground" : "text-muted-foreground")}>{ini[i]}</span>
+              className="flex w-11 flex-col items-center gap-1 active:scale-95">
+              <span className={cn("text-[10.5px] font-semibold uppercase", j.d === auj ? "text-foreground" : "text-muted-foreground")}>{ini[i]}</span>
               <Anneau j={j} />
-              <span className={cn("num grid h-5 min-w-[22px] place-items-center rounded-full px-1 text-[12px] font-bold", j.d === auj ? "bg-foreground text-background" : j.d < auj ? "text-muted-foreground" : "")}>{+j.d.slice(8)}</span>
+              <span className={cn("num grid h-[18px] min-w-[20px] place-items-center rounded-full px-1 text-[11.5px] font-bold", j.d === auj ? "bg-foreground text-background" : j.d < auj ? "text-muted-foreground" : "")}>{+j.d.slice(8)}</span>
             </button>
           );
         })}
-      </div>
-      <div className="mt-3 flex items-center justify-between gap-2 rounded-2xl bg-card px-3.5 py-2.5 text-[13.5px]">
-        <span className="flex items-center gap-1.5 font-semibold">
-          <FlameIcon className={cn("size-4", S.semaines ? "text-[#ff7a1a]" : "text-muted-foreground")} weight={S.semaines ? "fill" : "regular"} />
-          {S.semaines ? tr("{a} d'affilée", { a: tp(S.semaines, "{n} semaine", "{n} semaines") }) : tr("Lance ta série cette semaine")}
-        </span>
-        <span className="shrink-0 text-muted-foreground">{tr("{c} sur {o} cette semaine", { c: S.cetteSemaine, o: S.objectif })}</span>
       </div>
     </section>
   );
@@ -105,7 +105,7 @@ type Action = { label: string; icone?: React.ReactNode; onClick: () => void };
 
 function Hero({ ph, tag, titre, sous, principal, second }: { ph: Photo; tag: React.ReactNode; titre: string; sous?: string; principal: Action; second?: Action }) {
   return (
-    <section className="relative isolate h-[236px] overflow-hidden rounded-[24px] bg-[#111] text-white">
+    <section className="relative isolate h-[212px] overflow-hidden rounded-[24px] bg-[#111] text-white">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img key={ph.grand} src={ph.grand} alt="" className="absolute inset-0 -z-10 size-full object-cover"
         onError={(e) => { if (!e.currentTarget.src.endsWith(ph.petite)) e.currentTarget.src = ph.petite; else e.currentTarget.style.visibility = "hidden"; }} />
@@ -186,16 +186,16 @@ export function Raccourcis() {
   const router = useRouter();
   const setLibre = useBrouillon((s) => s.setLibre);
   const l = [
-    { icone: <SparkleIcon className="size-5" weight="fill" />, n: tr("Créer pour moi"), onClick: () => router.push("/entrainement/assistant", AVANT) },
-    { icone: <PlusIcon className="size-5" weight="bold" />, n: tr("Composer ma séance"), onClick: () => { setLibre({ nom: tr("Séance libre"), ex: [], idx: null }); router.push("/entrainement/composer", AVANT); } },
-    { icone: <DownloadSimpleIcon className="size-5" weight="bold" />, n: tr("Importer un code"), onClick: () => useMenu.setState({ importer: true }) },
+    { icone: <SparkleIcon className="size-4" weight="fill" />, n: tr("Pour moi"), onClick: () => router.push("/entrainement/assistant", AVANT) },
+    { icone: <PlusIcon className="size-4" weight="bold" />, n: tr("Composer"), onClick: () => { setLibre({ nom: tr("Séance libre"), ex: [], idx: null }); router.push("/entrainement/composer", AVANT); } },
+    { icone: <DownloadSimpleIcon className="size-4" weight="bold" />, n: tr("Importer"), onClick: () => useMenu.setState({ importer: true }) },
   ];
   return (
     <div className="grid grid-cols-3 gap-2">
       {l.map((x) => (
-        <button key={x.n} onClick={() => { tactile(6); x.onClick(); }} className="flex flex-col items-center gap-1.5 rounded-[18px] bg-card px-1.5 pt-3 pb-2.5 text-center text-[12.5px] leading-tight font-semibold active:scale-[.97]">
-          <span className="grid size-10 place-items-center rounded-xl bg-plate-soft text-plate-ink dark:text-plate">{x.icone}</span>
-          {x.n}
+        <button key={x.n} onClick={() => { tactile(6); x.onClick(); }} className="flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-full bg-card px-2 text-[13px] font-semibold active:scale-[.97]">
+          <span className="shrink-0 text-plate-ink dark:text-plate">{x.icone}</span>
+          <span className="truncate">{x.n}</span>
         </button>
       ))}
     </div>
@@ -218,29 +218,29 @@ export function AVenir({ auj, setF }: { auj: string; setF: (f: Feuille) => void 
 
   return (
     <section>
-      <div className="mb-2.5 flex items-baseline justify-between px-1">
-        <h2 className="text-[21px] font-extrabold tracking-[-0.015em]">{tr("À venir")}</h2>
+      <div className="mb-2 flex items-baseline justify-between px-1">
+        <h2 className="text-[20px] font-extrabold tracking-[-0.015em]">{tr("À venir")}</h2>
         <button onClick={() => router.push("/entrainement/agenda" as Route, AVANT)} className="text-[15px] font-semibold text-plate-ink dark:text-plate">{tr("Agenda")}</button>
       </div>
       {l.length ? (
         <div className="no-scrollbar -mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1">
           {l.map(({ p, d }) => (
-            <button key={p.id + d} onClick={() => { tactile(5); setF({ m: "jour", d }); }} className="w-[168px] shrink-0 rounded-[18px] bg-card p-3 text-left active:scale-[.98]">
+            <button key={p.id + d} onClick={() => { tactile(5); setF({ m: "jour", d }); }} className="w-[160px] shrink-0 rounded-[16px] bg-card px-3 py-2.5 text-left active:scale-[.98]">
               <span className={cn("block text-[11.5px] font-bold tracking-[0.04em] uppercase", familleDe(p.quoi) !== "course" && "text-plate-ink dark:text-plate")}
                 style={familleDe(p.quoi) === "course" ? { color: RUN } : undefined}>{jour(d)}</span>
-              <span className="mt-1 line-clamp-2 block text-[15.5px] leading-tight font-bold">{p.nom}</span>
-              <span className="mt-1.5 flex items-center gap-1 text-[12.5px] text-muted-foreground">
+              <span className="mt-0.5 block truncate text-[15px] font-bold">{p.nom}</span>
+              <span className="mt-0.5 flex items-center gap-1 text-[12.5px] text-muted-foreground">
                 {p.rappel && <BellIcon className="size-3.5 shrink-0" weight="fill" />}
                 <span className="truncate">{p.rappel ? (p.rappel.veille ? tr("la veille à {h} h", { h: p.rappel.h }) : tr("à {h} h", { h: p.rappel.h })) : (sousTitre(etat, p) ?? (p.hebdo ? tr("chaque semaine") : ""))}</span>
               </span>
             </button>
           ))}
-          <button onClick={() => { tactile(6); setF({ m: "programmer", d: decaler(auj, 1) }); }} className="flex w-[120px] shrink-0 flex-col items-center justify-center gap-1 rounded-[18px] border-[1.5px] border-dashed border-plate/50 text-[14px] font-semibold text-plate-ink dark:text-plate">
+          <button onClick={() => { tactile(6); setF({ m: "programmer", d: decaler(auj, 1) }); }} className="flex w-[110px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-[16px] border-[1.5px] border-dashed border-plate/50 text-[14px] font-semibold text-plate-ink dark:text-plate">
             <PlusIcon className="size-5" weight="bold" />{tr("Programmer")}
           </button>
         </div>
       ) : (
-        <button onClick={() => { tactile(6); setF({ m: "programmer", d: decaler(auj, 1) }); }} className="flex w-full items-center justify-center gap-1.5 rounded-[18px] border-[1.5px] border-dashed border-plate/50 py-4 text-[14.5px] font-semibold text-plate-ink dark:text-plate">
+        <button onClick={() => { tactile(6); setF({ m: "programmer", d: decaler(auj, 1) }); }} className="flex w-full items-center justify-center gap-1.5 rounded-[16px] border-[1.5px] border-dashed border-plate/50 py-3 text-[14.5px] font-semibold text-plate-ink dark:text-plate">
           <PlusIcon className="size-4" weight="bold" />{tr("Programmer une séance")}
         </button>
       )}
