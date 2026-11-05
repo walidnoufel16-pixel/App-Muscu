@@ -7,7 +7,6 @@ import { ChoixLangue } from "@/components/repere/choix-langue";
 import { EnTete } from "@/components/repere/en-tete";
 import { Reprise } from "@/components/repere/motivation";
 import { MonAgenda } from "@/components/repere/agenda";
-import { CarteCourse } from "@/components/repere/course";
 import { ProgrammeBientot } from "@/components/repere/bientot";
 import { Bannieres, type Rubrique } from "@/components/repere/rubriques";
 import { useProgramme } from "@/components/repere/programme-vues";
@@ -39,7 +38,6 @@ export default function PageEntrainement() {
         {/* deux semaines de séances (faites et prévues), et la séance du jour */}
         <MonAgenda />
         <Reprise />
-        {habitue && <CarteCourse />}
         <section className="mt-4">
           <h2 className="eyebrow mb-2 px-1">{habitue ? tr("Rubriques") : tr("Par où commencer")}</h2>
           <Bannieres rubriques={rubriques} texte={enProgramme ? {} : { programme: tr("Construis ton programme : une douzaine de questions, puis huit semaines de séances.") }} detail={detailProgramme ? { programme: detailProgramme } : {}} />
