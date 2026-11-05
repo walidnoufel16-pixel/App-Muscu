@@ -1,5 +1,6 @@
 "use client";
 
+import { CalculePour, MiseEnRoute, profilMinimal } from "@/components/repere/profil-sportif";
 import { tr } from "@/lib/i18n";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -84,8 +85,11 @@ function Assistant() {
   const mUrl = useSearchParams().get("m");
   const [m, setM] = useState<string[]>(() => (mUrl ? mUrl.split(",").filter((k) => MUSC.some((g) => g.k === k)) : []));
   const [vue, setVue] = useState<"corps" | "liste">("corps");
-  const [d, setD] = useState(45);
+  /* durée habituelle et objectif du profil sportif (Profil) */
+  const [d, setD] = useState(() => (typeof A.duree === "number" && [30, 45, 60].includes(A.duree) ? A.duree : 45));
   const [obj, setObj] = useState<number | null>(A.objectif ?? null);
+  /* première séance créée avec un profil vide : 3 questions, une seule fois */
+  const [miseEnRoute, setMiseEnRoute] = useState(() => !street && !courseSeule && !A.miseEnRoute && !profilMinimal(A));
 
   const bascule = (k: string) => { tactile(6); setM((l) => (l.includes(k) ? l.filter((x) => x !== k) : [...l, k])); };
   const noms = m.map((k) => MUSC.find((g) => g.k === k)!.n);
@@ -102,7 +106,7 @@ function Assistant() {
   const creer = (commencer = false) => {
     if (obj == null) return;
     const zones = zonesActives(A);
-    const ex = construireSeance(m, d, obj, sel, Math.random, (o) => zonesDe(o, zones).length > 0);
+    const ex = construireSeance(m, d, obj, sel, Math.random, (o) => zonesDe(o, zones).length > 0, A.regularite);
     if (!ex.length) { dire(tr("Pas d'exercice disponible"), tr("Aucun exercice ne correspond à ces muscles avec le matériel coché. Ajoute du matériel ou choisis d'autres muscles.")); return; }
     /* combinée : le bloc cardio arrive à la fin, sans échauffement ; il se déplace ensuite dans le composeur */
     const blocs = type === "mixte" ? [{ ...nouveauBloc(ex.length, choix.f, choix.m, choix.n), r: { ...choix.r, echauf: 0 } }] : undefined;
@@ -141,6 +145,7 @@ function Assistant() {
         {/* street : pas de séance combinée (muscu en salle + bloc cardio) */}
         {!courseSeule && <Segmente label={tr("Catégorie")} className="mt-4" valeur={type} onChange={setType} options={[{ v: "muscu", n: tr("Muscu") }, { v: "cardio", n: tr("Cardio") }, ...(street ? [] : [{ v: "mixte" as const, n: tr("Combinée") }]), { v: "exercices", n: tr("Exercices") }]} />}
       </EnTete>}
+      <MiseEnRoute ouvert={miseEnRoute && (type === "muscu" || type === "mixte")} onFin={() => { setMiseEnRoute(false); const o = useRepere.getState().etat.A.objectif; if (o != null) setObj(o); }} />
 
       {type === "course" ? (
         <QuestionnaireCourse />
@@ -166,6 +171,7 @@ function Assistant() {
       <>
       {/* de la place sous le dernier bloc : le bouton fixe « Créer ma séance » ne cache rien */}
       <div className="flex flex-col gap-6 px-4 pb-36">
+        {!street && <CalculePour duree={d} objectif={obj} />}
         {type === "muscu" && !street && !mUrl && <Recommandation onAppliquer={setM} />}
         <section>
           <div className="mb-2 flex items-baseline justify-between px-1">

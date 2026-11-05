@@ -1,5 +1,6 @@
 "use client";
 
+import { ProfilSportif } from "@/components/repere/profil-sportif";
 import { langue, LANGUES, pluriel, tr } from "@/lib/i18n";
 import { ReglageCycle, useCycleCharge } from "@/components/repere/cycle";
 import { ReglageZones } from "@/components/repere/forme";
@@ -33,7 +34,7 @@ export default function PageProfil() {
 function Profil() {
   const router = useRouter();
   const prog = useProgrammeActif();
-  const { user, pseudo, sync, etat, muter, setUser, pousser, toutEffacer, changerDeCompte } = useRepere();
+  const { user, pseudo, sync, etat, setUser, pousser, toutEffacer, changerDeCompte } = useRepere();
   const { theme, setTheme } = useTheme();
   const changerLangue = useChangerLangue();
   const cycleActif = !!useCycleCharge()?.actif;
@@ -159,17 +160,8 @@ function Profil() {
 
         {/* ---------- mon corps et mon entraînement ---------- */}
         <Groupe titre={tr("Mon corps et mon entraînement")}>
-          {/* silhouette du corps : homme ou femme */}
-          <section id="reglages" className="scroll-mt-20">
-            <h3 className="eyebrow mb-2 px-1">{tr("Silhouette")}</h3>
-            <Segmente
-              label={tr("Silhouette")}
-              valeur={etat.A.sexe === 0 || etat.A.sexe === 1 ? etat.A.sexe : -1}
-              onChange={(v) => muter((E) => { E.A.sexe = v; })}
-              options={[{ v: 0, n: tr("Homme") }, { v: 1, n: tr("Femme") }]}
-            />
-            <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{tr("Le schéma du corps prend ta silhouette. Ton choix sert aussi aux prochains programmes.")}</p>
-          </section>
+          {/* mon profil sportif : sexe, âge, corps, objectif, niveau, rythme, priorités, sports */}
+          <ProfilSportif />
           {/* cycle menstruel (facultatif, données locales) */}
           {(etat.A.sexe === 1 || cycleActif) && (
             <section id="cycle" className="scroll-mt-20">

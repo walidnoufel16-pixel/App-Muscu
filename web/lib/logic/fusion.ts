@@ -29,11 +29,14 @@ export function fusionner(a: Sauvegarde, b: Sauvegarde): Sauvegarde {
   if (tests.length) A.testsStreet = tests.sort((x, y) => x.d.localeCompare(y.d)).slice(-12);
   const produits = reunir(vieux.A?.produits, recent.A?.produits, (p) => p.code || `${p.n}|${p.marque ?? ""}`.toLowerCase());
   if (produits.length) A.produits = produits.slice(-30);
+  /* une séance retirée de l'historique sur un appareil ne revient pas par l'autre */
+  const retires = [...new Set([...(vieux.RETIRES || []), ...(recent.RETIRES || [])])].slice(-300), R = new Set(retires);
   return {
     ...vieux, ...recent, A, LOG,
+    RETIRES: retires,
     /* une séance du même jour : la ligne la plus fournie (plus de séries) */
-    HIST: reunir(vieux.HIST, recent.HIST, (l) => `${l.d}|${l.s}`, (x, y) => ((y.ser || 0) >= (x.ser || 0) ? y : x)).sort((x, y) => x.d.localeCompare(y.d)),
-    CARDIO: reunir(vieux.CARDIO, recent.CARDIO, (c) => String(c.ts)).sort((x, y) => x.ts - y.ts),
+    HIST: reunir(vieux.HIST, recent.HIST, (l) => `${l.d}|${l.s}`, (x, y) => ((y.ser || 0) >= (x.ser || 0) ? y : x)).filter((l) => !R.has(`${l.d}|${l.s}`)).sort((x, y) => x.d.localeCompare(y.d)),
+    CARDIO: reunir(vieux.CARDIO, recent.CARDIO, (c) => String(c.ts)).filter((c) => !R.has(`c|${c.ts}`)).sort((x, y) => x.ts - y.ts),
     SORTIES: reunir(vieux.SORTIES, recent.SORTIES, (s) => `${s.d}|${s.s ?? ""}|${s.km}|${s.sec}`).sort((x, y) => x.d.localeCompare(y.d)),
     ts: Math.max(a.ts || 0, b.ts || 0),
   };
