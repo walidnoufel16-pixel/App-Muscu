@@ -22,8 +22,10 @@ export function prescription(id: string, poly: boolean, obj: number): ExLibre {
 }
 
 /* `evite` : exercices à éviter (zones sensibles), gardés seulement s'il n'y a rien d'autre. */
-export function construireSeance(muscles: string[], duree: number, obj: number, sel: string[], rnd: Hasard = Math.random, evite: (o: string) => boolean = () => false): ExLibre[] {
-  const series = (DUREES.find((d) => d[0] === duree) || DUREES[1])[1];
+/* `niveau` (Profil, A.regularite) : volume ×0,8 pour qui débute ou reprend, ×1,15 pour un confirmé. */
+export function construireSeance(muscles: string[], duree: number, obj: number, sel: string[], rnd: Hasard = Math.random, evite: (o: string) => boolean = () => false, niveau?: number): ExLibre[] {
+  const facteur = niveau == null ? 1 : niveau <= 1 ? 0.8 : niveau >= 3 ? 1.15 : 1;
+  const series = Math.round((DUREES.find((d) => d[0] === duree) || DUREES[1])[1] * facteur);
   const parEx = obj === 1 ? 4 : 3, n = Math.max(muscles.length, Math.round(series / parEx));
   const G = muscles.map((k) => MUSC.find((g) => g.k === k)).filter(Boolean) as typeof MUSC;
   /* Répartition au plus fort reste, au moins un exercice par muscle. */

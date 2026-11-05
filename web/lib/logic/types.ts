@@ -157,6 +157,9 @@ export type Etat = {
   SORTIES?: Sortie[];
   /* « Mon agenda » : séances programmées, avec leur rappel (lib/logic/agenda.ts). */
   AGENDA?: Prevu[];
+  /* Séances retirées de l'historique (« jour|séance », ou « c|ts » pour un cardio) : gardées
+     pour qu'un autre appareil ne les fasse pas revenir à la synchronisation. */
+  RETIRES?: string[];
 };
 
 export type HistoCardio = { nom: string; f: FormatCardio; m: Machine; min: number; effort: number; ts: number; ref?: string; run?: boolean };

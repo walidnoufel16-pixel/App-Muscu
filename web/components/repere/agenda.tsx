@@ -9,6 +9,8 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { toast } from "sonner";
+import { confirmer } from "./confirmer";
+import { retirerDeHistorique } from "@/lib/logic/actions";
 import { ArrowRightIcon, BellIcon, CaretRightIcon, CheckIcon, DownloadSimpleIcon, HeartbeatIcon, PersonSimpleRunIcon, PlusIcon, SparkleIcon, BarbellIcon, CalendarDotsIcon } from "@phosphor-icons/react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { Segmente } from "./segmente";
@@ -212,6 +214,12 @@ function FeuilleJour({ d, auj, j, setF }: { d: string; auj: string; j: JourAgend
                 <button onClick={() => { tactile(8); r(); }} className="h-12 rounded-full bg-plate text-[15px] font-semibold text-plate-foreground active:scale-[.98]">{tr("Refaire un autre jour")}</button>
                 <button onClick={() => { tactile(6); rm!(); }} className="h-12 rounded-full border border-border text-[15px] font-semibold active:scale-[.98]">{tr("Modifier puis programmer")}</button>
               </div>
+            )}
+            {l && (
+              <button onClick={async () => {
+                if (!(await confirmer({ titre: tr("Retirer « {nom} » de ton historique ?", { nom: l.nom }), texte: tr("Ses séries de ce jour-là disparaissent de Progrès, des records et des charges proposées. La séance reste dans Mes séances."), ok: tr("Retirer"), danger: true }))) return;
+                muter((E) => retirerDeHistorique(E, l.d, l.s)); toast(tr("Séance retirée de ton historique")); setF(null);
+              }} className="mt-3 px-1 text-[14px] font-semibold text-destructive">{tr("Retirer de mon historique")}</button>
             )}
           </div>
         );
