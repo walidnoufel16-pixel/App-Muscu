@@ -148,7 +148,7 @@ export function CarteDuJour({ auj, setF }: { auj: string; setF: (f: Feuille) => 
   const [i, setI] = useState(0);
   const enCours = useEnCours();
   const j = useMemo(() => joursAgenda(etat, auj, auj, 1)[0], [etat, auj]);
-  const r = useMemo(() => recoDuJour(etat.HIST || [], auj, etat.A.recoSans || []), [etat.HIST, etat.A.recoSans, auj]);
+  const r = useMemo(() => recoDuJour(etat.HIST || [], auj, etat.A.recoSans || [], etat.A.regularite), [etat.HIST, etat.A.recoSans, etat.A.regularite, auj]);
   const assistant = (m: string[]) => router.push(`/entrainement/assistant?m=${m.join(",")}` as Route, AVANT);
   const demain = r.demain ? " " + tr("Demain : {s}.", { s: r.demain.nom.toLowerCase() }) : "";
 

@@ -22,8 +22,17 @@ export function prescription(id: string, poly: boolean, obj: number): ExLibre {
 }
 
 /* `evite` : exercices à éviter (zones sensibles), gardés seulement s'il n'y a rien d'autre. */
-/* `niveau` (Profil, A.regularite) : volume ×0,8 pour qui débute ou reprend, ×1,15 pour un confirmé. */
-export function construireSeance(muscles: string[], duree: number, obj: number, sel: string[], rnd: Hasard = Math.random, evite: (o: string) => boolean = () => false, niveau?: number): ExLibre[] {
+/* Groupes du Profil (muscles prioritaires) → muscles de l'assistant. */
+const GROUPE_MUSC: Record<string, string[]> = {
+  "Pectoraux": ["pec"], "Dos": ["dos"], "Épaules": ["epa"], "Bras": ["bic", "tri"], "Quadriceps": ["qua"],
+  "Fessiers et ischio-jambiers": ["isc"], "Abdominaux et lombaires": ["abd", "lom"],
+};
+export const musclesPrioritaires = (noms: string[]) => noms.flatMap((n) => GROUPE_MUSC[n] || []);
+
+/* `niveau` (Profil, A.regularite) : volume ×0,8 pour qui débute ou reprend, ×1,15 pour un confirmé.
+   `o.prio` : muscles prioritaires (un exercice de plus s'ils sont choisis) ; `o.habitudes` : exercices
+   déjà faits, préférés pour le premier exercice de chaque muscle (une base stable, des courbes lisibles). */
+export function construireSeance(muscles: string[], duree: number, obj: number, sel: string[], rnd: Hasard = Math.random, evite: (o: string) => boolean = () => false, niveau?: number, o: { prio?: string[]; habitudes?: Set<string> } = {}): ExLibre[] {
   const facteur = niveau == null ? 1 : niveau <= 1 ? 0.8 : niveau >= 3 ? 1.15 : 1;
   const series = Math.round((DUREES.find((d) => d[0] === duree) || DUREES[1])[1] * facteur);
   const parEx = obj === 1 ? 4 : 3, n = Math.max(muscles.length, Math.round(series / parEx));
@@ -40,6 +49,8 @@ export function construireSeance(muscles: string[], duree: number, obj: number, 
   let surplus = parts.reduce((a, p) => a + Math.max(0, p.n - plafond(p.g)), 0);
   parts.forEach((p) => { p.n = Math.min(p.n, plafond(p.g)); });
   for (const p of parts.slice().sort((a, b) => b.g.g - a.g.g)) while (surplus > 0 && p.n < plafond(p.g)) { p.n++; surplus--; }
+  /* muscles prioritaires : un exercice de plus (dans la limite du plafond) */
+  for (const p of parts) if (o.prio?.includes(p.g.k) && p.n < plafond(p.g)) p.n++;
   const pris = new Set<string>(), res: { o: string; poly: boolean; big: boolean; abdo: boolean }[] = [];
   /* Sans exercice d'isolation possible avec ce matériel (biceps au poids du corps), on prend ceux qui
      travaillent aussi ce muscle (tractions supination : second schéma « fc »). */
@@ -60,9 +71,10 @@ export function construireSeance(muscles: string[], duree: number, obj: number, 
       const pat = g.pats[j % g.pats.length], tous = libres(pat), surs = tous.filter((o) => !evite(o)), l = surs.length ? surs : tous;
       if (!l.length) continue;
       const poly = l.filter(estPoly), iso = l.filter((o) => !estPoly(o));
-      const o = j === 0 ? choisir(poly.length ? poly : l) : choisir(iso.length ? iso : l);
-      pris.add(o);
-      res.push({ o, poly: estPoly(o) && j === 0, big: g.g >= 0.8, abdo: g.k === "abd" || g.k === "lom" });
+      const base = j === 0 ? (poly.length ? poly : l) : iso.length ? iso : l, connus = base.filter((x) => o.habitudes?.has(x));
+      const ex = choisir(j === 0 && connus.length ? connus : base);
+      pris.add(ex);
+      res.push({ o: ex, poly: estPoly(ex) && j === 0, big: g.g >= 0.8, abdo: g.k === "abd" || g.k === "lom" });
     }
   });
   const rang = (e: (typeof res)[number]) => (e.abdo ? 3 : e.poly && e.big ? 0 : e.poly ? 1 : 2);

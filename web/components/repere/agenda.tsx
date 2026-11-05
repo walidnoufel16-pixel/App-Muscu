@@ -58,7 +58,7 @@ export function useLancer() {
     if (q.t === "course") { router.push(`/entrainement/course?s=${q.cle}` as Route, AVANT); return; }
     if (q.t === "plan") { muter((x) => { x.day = q.day; }); router.push("/entrainement/seance", AVANT); return; }
     /* recommandation d'Oxa : l'assistant s'ouvre avec les muscles conseillés ce jour-là */
-    const m = musclesRecommandes(recoDuJour(E.HIST || [], jourDe(Date.now()), E.A.recoSans || []));
+    const m = musclesRecommandes(recoDuJour(E.HIST || [], jourDe(Date.now()), E.A.recoSans || [], E.A.regularite));
     router.push((m ? `/entrainement/assistant?m=${m.join(",")}` : "/entrainement/assistant?type=cardio") as Route, AVANT);
   };
 }
@@ -313,7 +313,7 @@ function FeuilleProgrammer({ init, auj, fermer }: { init: { d: string; quoi?: Qu
   const [hebdo, setHebdo] = useState(false);
   const [rappel, setRappel] = useState<Rappel | null>(etat.A.rappelAgenda === undefined ? { veille: true, h: 20 } : etat.A.rappelAgenda);
   const [vueReco, setVueReco] = useState(false);
-  const reco = useMemo(() => recoDuJour(etat.HIST || [], d, etat.A.recoSans || []), [etat.HIST, etat.A.recoSans, d]);
+  const reco = useMemo(() => recoDuJour(etat.HIST || [], d, etat.A.recoSans || [], etat.A.regularite), [etat.HIST, etat.A.recoSans, etat.A.regularite, d]);
 
   /* ce qu'on peut programmer ce jour-là */
   const options = useMemo(() => {

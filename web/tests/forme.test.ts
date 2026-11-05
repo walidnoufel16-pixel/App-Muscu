@@ -58,3 +58,15 @@ describe("zones sensibles", () => {
     }
   });
 });
+
+describe("générateur personnalisé", () => {
+  it("muscle prioritaire : un exercice de plus ; exercices habituels préférés en premier", async () => {
+    const { construireSeance } = await import("@/lib/logic/assistant");
+    const sel = ["m0", "m1", "m2", "m3"];
+    const sans = construireSeance(["pec", "dos"], 45, 0, sel, () => 0.5);
+    const avec = construireSeance(["pec", "dos"], 45, 0, sel, () => 0.5, () => false, undefined, { prio: ["pec"] });
+    expect(avec.length).toBeGreaterThanOrEqual(sans.length);
+    const hab = construireSeance(["pec"], 45, 0, sel, () => 0.99, () => false, undefined, { habitudes: new Set(["dh"]) });
+    expect(hab[0].id).toBe("dh");
+  });
+});

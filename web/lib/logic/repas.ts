@@ -92,7 +92,7 @@ const PART: Record<CreneauRepas, [number, number]> = { matin: [0.25, 0.25], deje
 export const part = (c: CreneauRepas, seance: boolean) => PART[c][seance ? 1 : 0];
 export const creneauDe = (m: Moment): CreneauRepas => (m === "matin" ? "matin" : m === "collation" ? "collation" : "dejeuner");
 
-export type Besoins = { kcal: number; p: number; g: number; l: number; seance: boolean };
+export type Besoins = { kcal: number; p: number; g: number; l: number; seance: boolean; ajustement?: string };
 /** Jours d'activité des 7 derniers jours (musculation, cardio, course). */
 export function joursActifs(E: Etat, auj = Date.now()) {
   const jours = new Set<string>();
@@ -103,23 +103,60 @@ export function joursActifs(E: Etat, auj = Date.now()) {
   for (const s of (E.SORTIES || []) as { d?: string }[]) if (s.d && s.d >= depuis) jours.add(s.d);
   return jours.size;
 }
-/** Besoins du jour : énergie (Mifflin-St Jeor × activité), protéines (objectif de l'app),
-    lipides (≥ 0,8 g/kg), le reste en glucides. Ajusté à l'objectif, jamais sous 1,1 × le métabolisme de base. */
+/* ---------------- dépense d'une séance ----------------
+   MET nets (au-dessus du repos) × poids × durée : musculation 4, cardio 6, course (≈ 1 kcal/kg/km). */
+const iso = (t: number) => { const d = new Date(t), z = (n: number) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`; };
+export function depenseSeances(E: Etat, kg: number, jour = iso(Date.now())) {
+  let kcal = 0, endurance = 0;
+  for (const l of E.HIST || []) if (l.d === jour) kcal += 4 * kg * ((l.min || 45) / 60);
+  for (const c of E.CARDIO || []) if (iso(c.ts) === jour) { kcal += 6 * kg * (c.min / 60); endurance += c.min; }
+  for (const s of (E.SORTIES || []) as { d?: string; km?: number; sec?: number }[]) if (s.d === jour) { kcal += kg * (s.km || 0); endurance += (s.sec || 0) / 60; }
+  return { kcal, endurance };
+}
+
+/* ---------------- ajustement au poids ----------------
+   Tendance sur les 21 derniers jours (au moins 10 jours d'écart) : en sèche on vise −0,5 à −1 % du
+   poids par semaine, en prise de muscle +0,1 à +0,5 % ; en dehors, ±150 kcal. */
+export function ajustementPoids(A: Reponses, auj = Date.now()): { kcal: number; texte?: string } {
+  const P = ((A.poids as [string, number][]) || []).filter(([d]) => Date.parse(d) >= auj - 21 * 864e5);
+  if (P.length < 2) return { kcal: 0 };
+  const [d0, p0] = P[0], [d1, p1] = P[P.length - 1], jours = (Date.parse(d1) - Date.parse(d0)) / 864e5;
+  if (jours < 10 || !p0) return { kcal: 0 };
+  const parSemaine = ((p1 - p0) / p0) * 100 * (7 / jours);
+  const fmt = (x: number) => (x > 0 ? "+" : "") + x.toFixed(1).replace(".", ",");
+  if (A.objectif === 2) {
+    if (parSemaine > -0.25) return { kcal: -150, texte: tr("Ton poids bouge peu ({a} % par semaine) : −150 kcal pour avancer.", { a: fmt(parSemaine) }) };
+    if (parSemaine < -1) return { kcal: 150, texte: tr("Tu perds vite ({a} % par semaine) : +150 kcal pour garder ton muscle.", { a: fmt(parSemaine) }) };
+  }
+  if (A.objectif === 0) {
+    if (parSemaine < 0.1) return { kcal: 150, texte: tr("Ton poids ne monte pas ({a} % par semaine) : +150 kcal pour construire.", { a: fmt(parSemaine) }) };
+    if (parSemaine > 0.5) return { kcal: -100, texte: tr("Tu prends vite ({a} % par semaine) : −100 kcal pour limiter le gras.", { a: fmt(parSemaine) }) };
+  }
+  return { kcal: 0 };
+}
+
+/** Besoins du jour : métabolisme de base (Mifflin-St Jeor) × activité habituelle, plus la dépense des
+    séances du jour (faites, sinon une séance de ta durée habituelle) ; ajustés à l'objectif et à la
+    tendance de ton poids ; jamais sous la disponibilité énergétique minimale (30 kcal/kg de masse maigre).
+    Protéines : objectif de l'app. Glucides selon l'entraînement (2 g/kg au repos, 3 un jour de séance,
+    5 après une heure d'endurance), lipides ≥ 0,8 g/kg (jusqu'à 0,6 s'il faut de la place). */
 export function besoins(E: Etat, seance: boolean): Besoins {
   const A = E.A, kg = poidsDe(A) ?? 70, sexe = A.sexe ?? 2;
   const cm = A.profil?.["Taille"] ?? (sexe === 1 ? 165 : 177), age = A.profil?.["Âge"] ?? 30;
   const base = 10 * kg + 6.25 * cm - 5 * age + (sexe === 0 ? 5 : sexe === 1 ? -161 : -78);
-  const nap = Math.min(1.75, 1.4 + 0.05 * joursActifs(E)) * (seance ? 1.08 : 0.97);
-  const objectif = [1.1, 1.05, 0.85, 1][A.objectif ?? 3] ?? 1;
-  const kcal = Math.max(base * 1.1, base * nap * objectif);
-  /* lipides ≥ 0,8 g/kg (27 % de l'énergie), le reste en glucides, au moins 2 g/kg : si les glucides
-     manquent, les lipides descendent jusqu'à 0,6 g/kg ; sinon l'énergie est relevée d'autant,
-     pour que le total affiché soit bien la somme des macros. */
-  const p = objectifProteines(A);
+  /* activité hors séances : selon le rythme de la semaine (séances notées ou objectif déclaré) */
+  const rythme = Math.min(6, Math.max(joursActifs(E), (A.objHebdo as number) ?? 0));
+  const napRepos = Math.min(1.55, 1.3 + 0.03 * rythme);
+  const fait = depenseSeances(E, kg);
+  const seanceKcal = seance ? Math.max(fait.kcal, 4 * kg * (((A.duree as number) ?? 45) / 60)) : fait.kcal;
+  const objectif = [1.1, 1.05, 0.85, 1][A.objectif ?? 3] ?? 1, adj = ajustementPoids(A);
+  const masseMaigre = kg * (sexe === 1 ? 0.72 : 0.82);
+  const kcal = Math.max(base * 1.1, 30 * masseMaigre + seanceKcal, (base * napRepos + seanceKcal) * objectif + adj.kcal);
+  const p = objectifProteines(A), gMin = (fait.endurance >= 60 ? 5 : seance ? 3 : 2) * kg;
   let l = Math.max(0.8 * kg, (0.27 * kcal) / 9), g = (kcal - p * 4 - l * 9) / 4;
-  if (g < 2 * kg) { l = Math.max(0.6 * kg, (kcal - p * 4 - 8 * kg) / 9); g = Math.max(2 * kg, (kcal - p * 4 - l * 9) / 4); }
+  if (g < gMin) { l = Math.max(0.6 * kg, (kcal - p * 4 - gMin * 4) / 9); g = Math.max(gMin, (kcal - p * 4 - l * 9) / 4); }
   const r5 = (x: number) => Math.round(x / 5) * 5, total = Math.max(kcal, p * 4 + r5(l) * 9 + r5(g) * 4);
-  return { kcal: Math.round(total / 10) * 10, p, g: r5(g), l: r5(l), seance };
+  return { kcal: Math.round(total / 10) * 10, p, g: r5(g), l: r5(l), seance, ...(adj.texte ? { ajustement: adj.texte } : {}) };
 }
 
 /** Méthode de la main pour un repas : paumes de protéines (~25 g), poings de féculents
@@ -183,12 +220,15 @@ const pluriel = (n: string) => n.split(" ").map((w) => (w.length < 3 || /[sxz]$/
 const hache = (s: string) => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0; };
 const melanger = <T,>(l: T[], graine: string, cle: (x: T) => string) => l.slice().sort((a, b) => hache(graine + cle(a)) - hache(graine + cle(b)));
 
-/** Une recette par créneau (petit-déjeuner, déjeuner ou dîner, collation) ; `decal` fait tourner un créneau. */
+/** Une recette par créneau (petit-déjeuner, déjeuner, dîner, collation) ; `decal` fait tourner un créneau. */
 export function suggestions(p: PrefsRepas, jour: string, seance: boolean, decal: Partial<Record<CreneauRepas, number>> = {}) {
   const ok = recettesPour(p), r: Partial<Record<CreneauRepas, Recette>> = {};
   const pour = (c: CreneauRepas, l: Recette[]) => { if (l.length) r[c] = l[(decal[c] ?? 0) % l.length]; };
   pour("matin", melanger(ok.filter((x) => x.m === "matin"), jour + "m", (x) => x.id));
   pour("dejeuner", melanger(ok.filter((x) => x.m === "repas"), jour + "d", (x) => x.id));
+  /* dîner : un autre plat que le déjeuner */
+  const plats = melanger(ok.filter((x) => x.m === "repas"), jour + "s", (x) => x.id);
+  pour("diner", plats.filter((x) => x.id !== r.dejeuner?.id).length ? plats.filter((x) => x.id !== r.dejeuner?.id) : plats);
   /* collation : avant / après la séance un jour d'entraînement, sinon plutôt légère */
   const col = ok.filter((x) => x.m === "collation" && !x.t.includes("dessert"));
   const prio = seance ? col.filter((x) => x.t.includes("post") || x.t.includes("pre")) : col;
