@@ -44,6 +44,8 @@ export type SeanceLibre = {
   obj?: number;
   colObj?: number;
   gen?: { m: string[]; d: number; obj: number };
+  /* avis refusés au choix des muscles (« Non merci ») : le composeur ne les repropose pas */
+  avisIgnores?: string[];
   /* Blocs cardio d'une séance combinée, placés librement entre les exercices. */
   blocs?: BlocCardio[];
   /* Routine « Soin & mobilité » : zone concernée. */

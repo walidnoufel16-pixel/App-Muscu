@@ -20,7 +20,7 @@ import { etatGroupes, nomGroupe, phrase, type Groupe } from "./recommandation";
 import type { LigneHist } from "./historique";
 import { zonesDe } from "./forme";
 
-type Brouillon = { ex: ExLibre[]; blocs?: BlocCardio[]; obj?: number; gen?: { m: string[] } };
+type Brouillon = { ex: ExLibre[]; blocs?: BlocCardio[]; obj?: number; gen?: { m: string[] }; avisIgnores?: string[] };
 
 export type ActionAvis =
   | { t: "retirer"; id: string }
@@ -212,6 +212,35 @@ export function avisSeance(L: Brouillon, c: ContexteAvis): Avis[] {
     out.push({ id: "series", f: "reglages", titre: tr("{n} séries sur {x}.", { n: lourds[0].s, x: guill(lourds[0].id) }), texte: tr("Au-delà de 4 ou 5 séries, un même exercice n'apporte plus grand-chose : change plutôt d'angle."),
       bouton: tr("Garder 4 séries"), action: { t: "regler", r: lourds.map((e) => ({ id: e.id, s: 4 })) } });
 
+  /* refusés au choix des muscles (« Non merci ») : on n'y revient pas */
+  return out.filter((a) => !L.avisIgnores?.includes(a.id));
+}
+
+/** Suggestion au moment du choix des muscles (Créer une séance pour moi). Mêmes identifiants que
+    les avis du composeur : refusée ici, elle n'y revient pas. */
+export type Suggestion = { id: string; titre: string; texte: string; ajouter?: string[]; alerte?: boolean };
+export function avisMuscles(m: string[], c: { H?: LigneHist[]; auj: string }): Suggestion[] {
+  if (!m.length) return [];
+  const a = (k: string) => m.includes(k), out: Suggestion[] = [];
+  const E = c.H?.length ? etatGroupes(c.H, c.auj) : null;
+  if (E) {
+    const recup = (Object.keys(E) as Groupe[]).filter((g) => a(g) && E[g].dernier && !E[g].recupere);
+    if (recup.length) {
+      const j = Math.min(...recup.map((g) => E[g].jours));
+      const quand = j === 0 ? tr("de la séance d'aujourd'hui") : j === 1 ? tr("de la séance d'hier") : tr("de ta séance d'il y a {n} jours", { n: j });
+      out.push({ id: "recup", alerte: true, titre: tr("{a} récupèrent {q}.", { a: phrase(recup.map(nomGroupe)), q: quand }), texte: tr("Allège-les aujourd'hui, ou garde-les pour plus tard.") });
+    }
+  }
+  if (a("pec") && a("dos") && !a("lom") && !a("abd"))
+    out.push({ id: "gainage", titre: tr("+ Lombaires."), texte: tr("Les tirages les sollicitent un peu, mais un exercice direct pour le bas du dos protège mieux ta colonne sur les tirages et les développés."), ajouter: ["lom"] });
+  if (a("qua") && !a("isc"))
+    out.push({ id: "ischios", titre: tr("+ Fessiers et ischios."), texte: tr("L'arrière de la cuisse équilibre les quadriceps et protège tes genoux."), ajouter: ["isc"] });
+  else if (a("isc") && !a("qua"))
+    out.push({ id: "quadris", titre: tr("+ Quadriceps."), texte: tr("Équilibre l'avant et l'arrière de la cuisse."), ajouter: ["qua"] });
+  if ((a("pec") || a("epa")) && !a("dos") && (E?.dos.semaine ?? 0) < 4)
+    out.push({ id: "tirage", titre: tr("+ Dos."), texte: tr("Pas de dos cette semaine : un tirage équilibre la poussée, pour des épaules solides et une bonne posture."), ajouter: ["dos"] });
+  else if (a("dos") && !a("pec") && !a("epa") && (E ? E.pec.semaine + E.epa.semaine : 0) < 4)
+    out.push({ id: "poussee", titre: tr("+ Pectoraux."), texte: tr("Pas de poussée cette semaine : un développé garde l'équilibre du haut du corps."), ajouter: ["pec"] });
   return out;
 }
 
