@@ -1,43 +1,40 @@
 "use client";
 
-/* « Mon agenda » en tête d'Entraînement : deux semaines de séances (faites, prévues, manquées),
-   la ligne « Aujourd'hui », et les feuilles pour programmer, déplacer, modifier ou retirer une
-   séance, avec un rappel la veille ou le jour même à l'heure choisie. Logique : lib/logic/agenda.ts. */
+/* « Mon agenda » : les feuilles pour programmer, déplacer, modifier ou retirer une séance (avec un
+   rappel la veille ou le jour même à l'heure choisie), la feuille « Nouvelle séance » du bouton +,
+   et les cases de la grille. Servent à l'accueil d'Entraînement et à l'écran Agenda.
+   Logique : lib/logic/agenda.ts. */
 import { loc, tp, tr } from "@/lib/i18n";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { toast } from "sonner";
-import { ArrowRightIcon, BellIcon, CaretLeftIcon, CaretRightIcon, CheckIcon, FlameIcon, HeartbeatIcon, PersonSimpleRunIcon, PlusIcon, SparkleIcon, BarbellIcon, CalendarDotsIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, BellIcon, CaretRightIcon, CheckIcon, DownloadSimpleIcon, HeartbeatIcon, PersonSimpleRunIcon, PlusIcon, SparkleIcon, BarbellIcon, CalendarDotsIcon } from "@phosphor-icons/react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { Segmente } from "./segmente";
 import {
-  debutGrille, deplacer, HEURES_JOUR, HEURES_VEILLE, joursAgenda, nomCourt, prochainsJours, programmer, retirer,
+  deplacer, HEURES_JOUR, HEURES_VEILLE, joursAgenda, nomCourt, prochainsJours, programmer, retirer,
   type JourAgenda, type Prevu, type QuoiPrevu, type Rappel,
 } from "@/lib/logic/agenda";
 import { decaler, jourDe } from "@/lib/logic/historique";
 import { dureeTotale } from "@/lib/logic/combinee";
-import { musclesDe, titreSeance, wkDone } from "@/lib/logic/core";
-import { avecSorties, genererPlan, semaineDe, vdotActuel } from "@/lib/logic/course";
-import { objectifHebdo, serie } from "@/lib/logic/motivation";
-import { prochaineLibre } from "@/lib/logic/prochaine";
+import { musclesDe } from "@/lib/logic/core";
+import { genererPlan, semaineDe, vdotActuel } from "@/lib/logic/course";
 import { musclesRecommandes, nomGroupe, phrase, recoDuJour } from "@/lib/logic/recommandation";
-import { useProgramme } from "./programme-vues";
-import { useProgrammeActif } from "@/lib/fonctionnalites";
 import { activerRappels, etatRappels } from "@/lib/rappels";
 import { useRepere } from "@/lib/store";
 import { useBrouillon } from "@/lib/brouillon";
-import { AVANT } from "@/lib/nav";
+import { AVANT, useMenu } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 import type { Etat } from "@/lib/logic/types";
 import { EX } from "@/lib/data/exercices";
 
-const jourLong = (d: string) => new Date(d + "T12:00").toLocaleDateString(loc(), { weekday: "long", day: "numeric", month: "long" });
-const jourCourt = (d: string) => new Date(d + "T12:00").toLocaleDateString(loc(), { weekday: "short", day: "numeric" }).replace(".", "");
+export const jourLong = (d: string) => new Date(d + "T12:00").toLocaleDateString(loc(), { weekday: "long", day: "numeric", month: "long" });
+export const jourCourt = (d: string) => new Date(d + "T12:00").toLocaleDateString(loc(), { weekday: "short", day: "numeric" }).replace(".", "");
 const nomJourSemaine = (d: string) => new Date(d + "T12:00").toLocaleDateString(loc(), { weekday: "long" });
-const initiales = () => Array.from({ length: 7 }, (_, i) => new Date(2024, 0, 1 + i).toLocaleDateString(loc(), { weekday: "narrow" }));
-const maj = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+export const initiales = () => Array.from({ length: 7 }, (_, i) => new Date(2024, 0, 1 + i).toLocaleDateString(loc(), { weekday: "narrow" }));
+export const maj = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /* la séance libre visée : par son index, ou par son nom si les séances ont bougé */
 const indexLibre = (E: Etat, i: number, nom: string) => (E.SEANCES[i]?.nom === nom ? i : E.SEANCES.findIndex((s) => s.nom === nom));
@@ -49,7 +46,7 @@ function texteRappel(r?: Rappel | null) {
 }
 
 /** Lancer une séance prévue. */
-function useLancer() {
+export function useLancer() {
   const router = useRouter();
   const muter = useRepere((s) => s.muter);
   return (E: Etat, p: Prevu) => {
@@ -64,73 +61,69 @@ function useLancer() {
   };
 }
 
-type Feuille =
+export type Feuille =
   | { m: "jour"; d: string }
   | { m: "programmer"; d: string; quoi?: QuoiPrevu; nom?: string; modifier?: boolean }
-  | { m: "deplacer"; id: string; de: string };
+  | { m: "deplacer"; id: string; de: string }
+  | { m: "nouvelle"; d: string };
 
-export function MonAgenda() {
+/** Les feuilles de l'agenda (un jour, programmer, déplacer, nouvelle séance), dans un seul tiroir. */
+export function FeuillesAgenda({ f, setF, auj }: { f: Feuille | null; setF: (f: Feuille | null) => void; auj: string }) {
   const etat = useRepere((s) => s.etat);
-  const [auj] = useState(() => jourDe(Date.now()));
-  const [decal, setDecal] = useState(0);
-  const [f, setF] = useState<Feuille | null>(null);
-  const debut = debutGrille(auj, decal);
-  const J = useMemo(() => joursAgenda(etat, debut, auj), [etat, debut, auj]);
-  const S = useMemo(() => serie(etat.HIST || [], avecSorties(etat.CARDIO, etat.SORTIES), objectifHebdo(etat.A), auj), [etat.HIST, etat.CARDIO, etat.SORTIES, etat.A, auj]);
-  const toucher = (j: JourAgenda) => {
-    tactile(5);
-    if (!j.fait.length && !j.prevus.length && !j.manques.length) { if (j.d >= auj) setF({ m: "programmer", d: j.d }); return; }
-    setF({ m: "jour", d: j.d });
-  };
-
   return (
-    <section aria-label={tr("Mon agenda")}>
-      <div className="mb-2 flex items-center justify-between px-1">
-        <h2 className="eyebrow">{tr("Mon agenda")}</h2>
-        <button onClick={() => { tactile(6); setF({ m: "programmer", d: auj }); }} className="flex items-center gap-1 text-[13.5px] font-semibold text-plate-ink dark:text-plate">
-          <PlusIcon className="size-4" weight="bold" />{tr("Programmer")}
-        </button>
-      </div>
-      <div className="rounded-[22px] bg-card p-3">
-        <div className="mb-1.5 flex items-center justify-between">
-          <button aria-label={tr("Deux semaines plus tôt")} onClick={() => setDecal((x) => x - 1)} className="grid size-8 place-items-center rounded-full text-muted-foreground active:bg-muted"><CaretLeftIcon className="size-4" weight="bold" /></button>
-          <span className="text-[12.5px] font-semibold text-muted-foreground">
-            {decal === 0 ? tr("Cette semaine et la suivante") : `${jourCourt(debut)} – ${jourCourt(decaler(debut, 13))}`}
-          </span>
-          <button aria-label={tr("Deux semaines plus tard")} onClick={() => setDecal((x) => x + 1)} className="grid size-8 place-items-center rounded-full text-muted-foreground active:bg-muted"><CaretRightIcon className="size-4" weight="bold" /></button>
+    <Drawer open={!!f} onOpenChange={(o) => !o && setF(null)} repositionInputs={false}>
+      <DrawerContent className="max-h-[92dvh]">
+        <div className="overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),20px)]">
+          {f?.m === "jour" && <FeuilleJour d={f.d} auj={auj} j={joursAgenda(etat, f.d, auj, 1)[0]} setF={setF} />}
+          {f?.m === "programmer" && <FeuilleProgrammer key={f.d + (f.nom ?? "")} init={f} auj={auj} fermer={() => setF(null)} />}
+          {f?.m === "deplacer" && <FeuilleDeplacer id={f.id} de={f.de} auj={auj} fermer={() => setF(null)} />}
+          {f?.m === "nouvelle" && <FeuilleNouvelle d={f.d} setF={setF} />}
         </div>
-        <div className="grid grid-cols-7 gap-1.5">
-          {initiales().map((x, i) => <span key={i} className="text-center text-[10.5px] font-semibold text-muted-foreground uppercase">{x}</span>)}
-          {J.map((j) => <Case key={j.d} j={j} auj={auj} onClick={() => toucher(j)} />)}
-        </div>
-        <div className="mt-2.5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11.5px] text-muted-foreground">
-          <span className="flex items-center gap-1"><i className="size-2.5 rounded-[3px] bg-plate" />{tr("fait")}</span>
-          <span className="flex items-center gap-1"><i className="size-2.5 rounded-[3px] border-[1.5px] border-dashed border-plate" />{tr("prévu")}</span>
-          <span className="flex items-center gap-1"><i className="size-2.5 rounded-[3px] bg-[#9a4a1c]" />Oxa Run</span>
-        </div>
-        <p className="mt-2 flex items-center justify-center gap-1.5 text-[12.5px] text-muted-foreground">
-          <FlameIcon className={cn("size-4", S.semaines ? "text-[#ff7a1a]" : "")} weight={S.semaines ? "fill" : "regular"} />
-          {S.semaines ? tr("{a} d'affilée", { a: tp(S.semaines, "{n} semaine", "{n} semaines") }) : tr("Lance ta série cette semaine")}
-          {" · "}{tr("{c}/{o} cette semaine", { c: S.cetteSemaine, o: S.objectif })}
-        </p>
-      </div>
-      <Aujourdhui J={J} auj={auj} onProgrammer={() => setF({ m: "programmer", d: auj })} />
-
-      <Drawer open={!!f} onOpenChange={(o) => !o && setF(null)} repositionInputs={false}>
-        <DrawerContent className="max-h-[92dvh]">
-          <div className="overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),20px)]">
-            {f?.m === "jour" && <FeuilleJour d={f.d} auj={auj} j={joursAgenda(etat, f.d, auj, 1)[0]} setF={setF} />}
-            {f?.m === "programmer" && <FeuilleProgrammer key={f.d + (f.nom ?? "")} init={f} auj={auj} fermer={() => setF(null)} />}
-            {f?.m === "deplacer" && <FeuilleDeplacer id={f.id} de={f.de} auj={auj} fermer={() => setF(null)} />}
-          </div>
-        </DrawerContent>
-      </Drawer>
-    </section>
+      </DrawerContent>
+    </Drawer>
   );
 }
 
-/* ---------------- une case de la grille ---------------- */
-function Case({ j, auj, onClick }: { j: JourAgenda; auj: string; onClick: () => void }) {
+/** Toucher un jour : vide et à venir, on programme ; sinon sa feuille. */
+export const feuilleDuJour = (j: JourAgenda, auj: string): Feuille | null =>
+  !j.fait.length && !j.prevus.length && !j.manques.length ? (j.d >= auj ? { m: "programmer", d: j.d } : null) : { m: "jour", d: j.d };
+
+/* ---------------- nouvelle séance (le bouton +) ---------------- */
+function FeuilleNouvelle({ d, setF }: { d: string; setF: (f: Feuille | null) => void }) {
+  const router = useRouter();
+  const setLibre = useBrouillon((s) => s.setLibre);
+  const aller = (url: string) => { setF(null); router.push(url as Route, AVANT); };
+  const items: { icone: React.ReactNode; fond: string; titre: string; sous: string; onClick: () => void }[][] = [[
+    { icone: <SparkleIcon className="size-[18px]" weight="fill" />, fond: "bg-plate text-plate-foreground", titre: tr("Créer une séance pour moi"), sous: tr("Oxa la construit selon les muscles choisis"), onClick: () => aller("/entrainement/assistant") },
+    { icone: <PlusIcon className="size-[18px]" weight="bold" />, fond: "bg-foreground/80 text-background", titre: tr("Composer exercice par exercice"), sous: tr("Tu choisis tout"), onClick: () => { setLibre({ nom: tr("Séance libre"), ex: [], idx: null }); aller("/entrainement/composer"); } },
+    { icone: <DownloadSimpleIcon className="size-[18px]" weight="bold" />, fond: "bg-muted-foreground text-background", titre: tr("Importer une séance avec un code"), sous: tr("Une séance partagée par un ami"), onClick: () => { setF(null); setTimeout(() => useMenu.setState({ importer: true }), 350); } },
+  ], [
+    { icone: <CalendarDotsIcon className="size-[18px]" weight="bold" />, fond: "bg-[#ff9f0a] text-white", titre: tr("Programmer une séance"), sous: tr("Un jour, chaque semaine, avec un rappel"), onClick: () => setF({ m: "programmer", d }) },
+  ]];
+  return (
+    <>
+      <DrawerTitle className="mt-2 px-1 text-[22px] font-extrabold">{tr("Nouvelle séance")}</DrawerTitle>
+      <DrawerDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">{maj(jourLong(d))}</DrawerDescription>
+      {items.map((g, k) => (
+        <div key={k} className="mt-3.5 overflow-hidden rounded-2xl bg-muted/60">
+          {g.map((x) => (
+            <button key={x.titre} onClick={() => { tactile(6); x.onClick(); }} className="flex w-full items-center gap-3 border-b border-border/70 px-3.5 py-3 text-left last:border-b-0 active:bg-muted">
+              <span className={cn("grid size-9 shrink-0 place-items-center rounded-[10px]", x.fond)}>{x.icone}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[15.5px] font-semibold">{x.titre}</span>
+                <span className="block text-[12.5px] text-muted-foreground">{x.sous}</span>
+              </span>
+              <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" />
+            </button>
+          ))}
+        </div>
+      ))}
+    </>
+  );
+}
+
+/* ---------------- une case de la grille (écran Agenda, vue semaine) ---------------- */
+export function Case({ j, auj, onClick }: { j: JourAgenda; auj: string; onClick: () => void }) {
   const jour = +j.d.slice(8), passe = j.d < auj, vide = !j.fait.length && !j.prevus.length && !j.manques.length;
   const f = j.fait[0], p = j.prevus[0], m = j.manques[0];
   const run = (f?.famille ?? p?.quoi.t) === "course";
@@ -155,58 +148,7 @@ function Case({ j, auj, onClick }: { j: JourAgenda; auj: string; onClick: () => 
   );
 }
 
-/* ---------------- la ligne « Aujourd'hui » ---------------- */
-function Ligne({ sur, titre, sous, bouton, onClick }: { sur: string; titre: string; sous?: string; bouton?: string; onClick?: () => void }) {
-  return (
-    <div className="mt-2.5 flex items-center gap-3 rounded-[20px] bg-plate-soft p-3.5">
-      <div className="min-w-0 flex-1">
-        <div className="text-[11px] font-bold tracking-[0.12em] text-plate-ink uppercase dark:text-plate">{sur}</div>
-        <div className="truncate text-[16px] font-bold">{titre}</div>
-        {sous && <div className="truncate text-[12.5px] text-muted-foreground">{sous}</div>}
-      </div>
-      {bouton && onClick && (
-        <button onClick={onClick} className="flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-plate px-4 text-[14px] font-semibold text-plate-foreground active:scale-[.97]">
-          {bouton}<ArrowRightIcon className="size-4" weight="bold" />
-        </button>
-      )}
-    </div>
-  );
-}
-
-
-function Aujourdhui({ J, auj, onProgrammer }: { J: JourAgenda[]; auj: string; onProgrammer: () => void }) {
-  const router = useRouter();
-  const etat = useRepere((s) => s.etat);
-  const muter = useRepere((s) => s.muter);
-  const lancer = useLancer();
-  const prog = useProgrammeActif();
-  const { W, plan, wk, jour, ouvrir } = useProgramme();
-  const j = J.find((x) => x.d === auj);
-  if (!j) return null;
-  const p = j.prevus[0];
-  if (p) return <Ligne sur={tr("Aujourd'hui")} titre={p.nom} sous={sousTitre(etat, p)} bouton={tr("Commencer")} onClick={() => lancer(etat, p)} />;
-  if (j.fait.length) return <Ligne sur={tr("Aujourd'hui")} titre={tr("Séance faite : {a}", { a: j.fait[0].nom })} sous={tr("Bravo. Ton corps récupère : programme la suivante quand tu veux.")} />;
-  /* rien de prévu : la séance du programme, sinon ta prochaine séance libre */
-  if (prog && plan) {
-    if (jour != null) {
-      const S = W[jour];
-      return <Ligne sur={tr("Oxa Plan · semaine {a}", { a: wk + 1 })} titre={titreSeance(S.t)} sous={tr("{n} exercices", { n: (S.x || []).length })} bouton={tr("Commencer")} onClick={() => ouvrir(jour)} />;
-    }
-    if (wk < 7) return <Ligne sur={tr("Semaine {a} bouclée", { a: wk + 1 })} titre={tr("Bravo !")} sous={tr("L'effort monte la semaine prochaine.")} bouton={tr("Semaine {a}", { a: wk + 2 })} onClick={() => muter((E) => { E.wk = wk + 1; E.day = 0; })} />;
-  }
-  const i = prochaineLibre(etat.SEANCES, etat.HIST);
-  if (i != null) {
-    const s = etat.SEANCES[i];
-    return <Ligne sur={tr("Ta prochaine séance")} titre={s.nom} sous={`${tp(s.ex.length, "{n} exercice", "{n} exercices")} · ${tr("environ {a} min", { a: dureeTotale(s) })}`} bouton={tr("Commencer")} onClick={() => router.push(`/entrainement/seance?l=${i}` as Route, AVANT)} />;
-  }
-  return (
-    <button onClick={onProgrammer} className="mt-2.5 flex w-full items-center gap-3 rounded-[20px] border border-dashed border-plate/60 p-3.5 text-left text-[14px] font-semibold text-plate-ink active:scale-[.99] dark:text-plate">
-      <CalendarDotsIcon className="size-5" />{tr("Programme ta première séance")}
-    </button>
-  );
-}
-
-function sousTitre(E: Etat, p: Prevu) {
+export function sousTitre(E: Etat, p: Prevu) {
   if (p.quoi.t === "libre") {
     const i = indexLibre(E, p.quoi.i, p.nom), s = E.SEANCES[i];
     if (s) return `${tp(s.ex.length, "{n} exercice", "{n} exercices")} · ${tr("environ {a} min", { a: dureeTotale(s) })}`;
@@ -358,8 +300,6 @@ function FeuilleProgrammer({ init, auj, fermer }: { init: { d: string; quoi?: Qu
   const muter = useRepere((s) => s.muter);
   const router = useRouter();
   const setLibre = useBrouillon((s) => s.setLibre);
-  const prog = useProgrammeActif();
-  const { W, plan, wk, socle } = useProgramme();
   const [d, setD] = useState(init.d < auj ? auj : init.d);
   const [choix, setChoix] = useState<{ quoi: QuoiPrevu; nom: string } | null>(init.quoi && init.nom ? { quoi: init.quoi, nom: init.nom } : null);
   const [hebdo, setHebdo] = useState(false);
@@ -379,11 +319,10 @@ function FeuilleProgrammer({ init, auj, fermer }: { init: { d: string; quoi?: Qu
       const placees = new Set((etat.AGENDA || []).flatMap((p) => (p.quoi.t === "course" ? [p.quoi.cle] : [])));
       if (sem) o.push({ titre: tr("Oxa Run · semaine {a}", { a: k + 1 }), l: sem.seances.map((x, j) => ({ x, j })).filter(({ x }) => x.type !== "renfo").map(({ x, j }) => ({ quoi: { t: "course", cle: `${k}|${j}` }, nom: x.titre, sous: tr("{n} min", { n: x.min }), icone: <PersonSimpleRunIcon className="size-5" />, deja: placees.has(`${k}|${j}`) })) });
     }
-    if (prog && plan) o.push({ titre: tr("Oxa Plan · semaine {a}", { a: wk + 1 }), l: socle.filter((j) => !wkDone(etat, wk, j, W)).map((j) => ({ quoi: { t: "plan", wk, day: j }, nom: titreSeance(W[j].t), sous: tr("{n} exercices", { n: (W[j].x || []).length }), icone: <CalendarDotsIcon className="size-5" /> })) });
     const cardio = etat.SEANCES_CARDIO || [];
     if (cardio.length) o.push({ titre: tr("Cardio"), l: cardio.map((s, i) => ({ quoi: { t: "cardio", i }, nom: s.nom, icone: <HeartbeatIcon className="size-5" /> })) });
     return o.filter((x) => x.l.length);
-  }, [etat, d, auj, prog, plan, wk, socle, W, reco]);
+  }, [etat, d, auj, reco]);
 
   const valider = async () => {
     if (!choix) return;

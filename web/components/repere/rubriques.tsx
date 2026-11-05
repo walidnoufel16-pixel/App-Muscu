@@ -28,7 +28,7 @@ const BANNIERES: Record<Rubrique, { photo: string; fond: string; texte: () => st
   soin: { photo: "Hamstring_Stretch_0", fond: "#5d6b55", texte: () => tr("Routines courtes par zone, pour bouger sans douleur.") },
 };
 
-function Photo({ nom, className }: { nom: string; className?: string }) {
+export function Photo({ nom, className }: { nom: string; className?: string }) {
   const petite = `/img/${nom}.avif`;
   return (
     // eslint-disable-next-line @next/next/no-img-element
@@ -58,6 +58,40 @@ export function Bannieres({ rubriques, texte = {}, detail = {} }: {
               <span className="text-[22px] leading-[1.05] font-extrabold tracking-[-0.01em] uppercase">{nomRubrique(v)}</span>
               <span className="text-[13.5px] leading-snug text-white/90">{texte[v] ?? b.texte()}</span>
               {detail[v] && <span className="mt-1 text-[11.5px] font-semibold tracking-[0.08em] text-white/70 uppercase">{detail[v]}</span>}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* phrase courte pour la mosaïque */
+const COURT: Record<Rubrique, () => string> = {
+  libre: () => tr("Muscu, cardio, combinée"),
+  programme: () => tr("8 semaines guidées"),
+  street: () => tr("Poids du corps et barre"),
+  course: () => tr("10 km, semi, Hyrox"),
+  soin: () => tr("Routines par zone"),
+};
+
+/** Les rubriques en mosaïque de photos (accueil d'Entraînement) : la première en large, les autres
+    deux par deux ; une dernière seule prend toute la largeur. */
+export function Mosaique({ rubriques, detail = {} }: { rubriques: Rubrique[]; detail?: Partial<Record<Rubrique, string>> }) {
+  const router = useRouter();
+  const reste = rubriques.length - 1;
+  return (
+    <div className="grid grid-cols-2 gap-2.5">
+      {rubriques.map((v, i) => {
+        const b = BANNIERES[v], large = i === 0 || (reste % 2 === 1 && i === rubriques.length - 1);
+        return (
+          <button key={v} onClick={() => router.push(lienRubrique(v), AVANT)}
+            className={cn("relative isolate overflow-hidden rounded-[20px] text-left text-white active:scale-[.98]", large ? "col-span-2 h-[168px]" : "h-[150px]")} style={{ background: b.fond }}>
+            <Photo nom={b.photo} className="absolute inset-0 -z-10 size-full" />
+            <span className="absolute inset-0 -z-10" style={{ background: `linear-gradient(180deg, transparent 30%, color-mix(in oklab, ${b.fond} 92%, transparent) 90%)` }} />
+            <span className="absolute inset-x-3 bottom-2.5">
+              <span className="block text-[17px] leading-tight font-extrabold tracking-[-0.01em]">{nomRubrique(v)}</span>
+              <span className="block truncate text-[12px] text-white/85">{detail[v] ?? COURT[v]()}</span>
             </span>
           </button>
         );
