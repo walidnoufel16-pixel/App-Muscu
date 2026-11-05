@@ -111,7 +111,7 @@ export default function PageComposer() {
 
   const enregistrer = () => {
     const nom = L.nom.trim() || tr("Séance libre");
-    const s = { nom, ex: L.ex.map((e) => { const c = { ...e }; delete c.o; return c; }), ...(L.blocs?.length ? { blocs: L.blocs } : {}), ...(L.obj != null ? { obj: L.obj } : {}), ...(L.colObj != null ? { colObj: L.colObj } : {}), ...(L.gen ? { gen: L.gen } : {}), ...(L.code ? { code: L.code } : {}) };
+    const s = { nom, ex: L.ex.map((e) => { const c = { ...e }; delete c.o; return c; }), ...(L.blocs?.length ? { blocs: L.blocs } : {}), ...(L.obj != null ? { obj: L.obj } : {}), ...(L.colObj != null ? { colObj: L.colObj } : {}), ...(L.gen ? { gen: L.gen } : {}), ...(L.code ? { code: L.code } : {}), ...(L.avisIgnores?.length ? { avisIgnores: L.avisIgnores } : {}) };
     /* modification : les séries déjà notées suivent leur exercice */
     muter((E) => { if (L.idx != null) { act.reattacherJournaux(E, L.idx, L.ex.map((e) => e.o)); E.SEANCES[L.idx] = s; } else E.SEANCES.push(s); });
     part.current = true;

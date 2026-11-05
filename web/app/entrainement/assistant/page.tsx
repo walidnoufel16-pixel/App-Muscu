@@ -32,6 +32,8 @@ import { lienRubrique } from "@/components/repere/rubriques";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 import { Recommandation } from "@/components/repere/recommandation";
+import { avisMuscles } from "@/lib/logic/avis-seance";
+import { jourDe } from "@/lib/logic/historique";
 
 /* Ce que les exercices d'un muscle font travailler au passage (muscles secondaires des mouvements de base). */
 const INDIRECTS: Record<string, string[]> = {
@@ -89,6 +91,11 @@ function Assistant() {
   const noms = m.map((k) => MUSC.find((g) => g.k === k)!.n);
   /* muscles travaillés au passage par les exercices des muscles cochés (affichés en clair) */
   const avec = MUSC.filter((g) => !m.includes(g.k) && m.some((k) => INDIRECTS[k]?.includes(g.k)));
+  /* suggestion d'Oxa sur le choix des muscles ; « Non merci » suit la séance jusque dans le composeur */
+  const H = useRepere((s) => s.etat.HIST);
+  const [auj] = useState(() => jourDe(Date.now()));
+  const [refus, setRefus] = useState<string[]>([]);
+  const suggestion = street ? undefined : avisMuscles(m, { H, auj }).find((x) => !refus.includes(x.id));
   const budget = Math.round((DUREES.find((x) => x[0] === d) || DUREES[1])[1] / 3);
   const peut = m.length > 0 && obj != null && sel.some((t) => !t.startsWith("x:"));
 
@@ -99,7 +106,7 @@ function Assistant() {
     if (!ex.length) { dire(tr("Pas d'exercice disponible"), tr("Aucun exercice ne correspond à ces muscles avec le matériel coché. Ajoute du matériel ou choisis d'autres muscles.")); return; }
     /* combinée : le bloc cardio arrive à la fin, sans échauffement ; il se déplace ensuite dans le composeur */
     const blocs = type === "mixte" ? [{ ...nouveauBloc(ex.length, choix.f, choix.m, choix.n), r: { ...choix.r, echauf: 0 } }] : undefined;
-    setLibre({ nom: nomSeance(m) + (blocs ? tr(" + cardio") : ""), ex, idx: null, obj, gen: { m: [...m], d, obj }, ...(blocs ? { blocs } : {}) });
+    setLibre({ nom: nomSeance(m) + (blocs ? tr(" + cardio") : ""), ex, idx: null, obj, gen: { m: [...m], d, obj }, ...(blocs ? { blocs } : {}), ...(refus.length ? { avisIgnores: [...refus] } : {}) });
     router.push("/entrainement/composer", AVANT);
   };
 
@@ -199,6 +206,25 @@ function Assistant() {
               <i className="mt-[3px] size-3 shrink-0 rounded-[4px] bg-[color-mix(in_oklab,var(--feu)_47%,transparent)]" />
               {tr("En clair, travaillés au passage : {a}. Touche-les pour leur donner leurs propres exercices.", { a: avec.map((g) => g.n.toLowerCase()).join(", ") })}
             </p>
+          )}
+          {suggestion && (
+            <div className={cn("mt-3 rounded-[18px] p-3.5", suggestion.alerte ? "bg-amber-500/12" : "bg-plate-soft")}>
+              <div className={cn("text-[11px] font-bold tracking-[0.12em] uppercase", suggestion.alerte ? "text-amber-700 dark:text-amber-400" : "text-plate-ink dark:text-plate")}>
+                {suggestion.alerte ? tr("À savoir") : tr("Oxa te suggère")}
+              </div>
+              <p className="mt-1.5 text-[14px] leading-snug"><b className="font-bold">{suggestion.titre}</b> {suggestion.texte}</p>
+              <div className="mt-2.5 flex flex-wrap items-center gap-1">
+                {suggestion.ajouter && (
+                  <button onClick={() => { tactile(8); setM((l) => [...l, ...suggestion.ajouter!.filter((k) => !l.includes(k))]); }}
+                    className="flex min-h-9 items-center rounded-full bg-plate px-3.5 py-1.5 text-[13.5px] font-semibold text-plate-foreground active:scale-[.98]">
+                    {tr("+ Ajouter : {a}", { a: suggestion.ajouter.map((k) => MUSC.find((g) => g.k === k)!.n.toLowerCase()).join(", ") })}
+                  </button>
+                )}
+                <button onClick={() => { tactile(4); setRefus((l) => [...l, suggestion.id]); }} className={cn("px-2 py-1.5 text-[13px] font-semibold", suggestion.alerte ? "text-foreground" : "text-muted-foreground")}>
+                  {suggestion.alerte ? tr("J'ai compris") : tr("Non merci")}
+                </button>
+              </div>
+            </div>
           )}
           {m.length > budget && (
             <p className="mt-1 px-1 text-[12.5px] leading-snug text-muted-foreground">{tr("Beaucoup de muscles pour {d} minutes : un exercice par muscle, avec moins de séries sur les petits groupes. Tu pourras ajuster ensuite.", { d })}</p>

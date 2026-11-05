@@ -1,6 +1,6 @@
 /* « L'avis d'Oxa » (lib/logic/avis-seance.ts). */
 import { describe, expect, it } from "vitest";
-import { appliquerAvis, avisSeance, candidat, estPoly } from "@/lib/logic/avis-seance";
+import { appliquerAvis, avisMuscles, avisSeance, candidat, estPoly } from "@/lib/logic/avis-seance";
 import { construireSeance } from "@/lib/logic/assistant";
 import { EX } from "@/lib/data/exercices";
 import type { ExLibre, SeanceLibre } from "@/lib/logic/types";
@@ -143,3 +143,31 @@ describe("cohérence avec les séances proposées par Oxa", () => {
 function PAT(a: unknown) {
   return a && typeof a === "object" && "id" in a ? EX[(a as { id: string }).id].pat : undefined;
 }
+
+describe("suggestion au choix des muscles", () => {
+  it("pecs + dos sans lombaires ni abdos → + lombaires", () => {
+    const s = avisMuscles(["pec", "dos", "epa", "bic", "tri"], { auj: AUJ });
+    expect(s[0]).toMatchObject({ id: "gainage", ajouter: ["lom"] });
+    expect(avisMuscles(["pec", "dos", "abd"], { auj: AUJ }).some((x) => x.id === "gainage")).toBe(false);
+  });
+  it("quadriceps seuls → + fessiers et ischios ; ischios seuls → + quadriceps", () => {
+    expect(avisMuscles(["qua"], { auj: AUJ })[0]).toMatchObject({ id: "ischios", ajouter: ["isc"] });
+    expect(avisMuscles(["isc"], { auj: AUJ })[0]).toMatchObject({ id: "quadris", ajouter: ["qua"] });
+    expect(avisMuscles(["qua", "isc", "mol"], { auj: AUJ })).toEqual([]);
+  });
+  it("poussée sans dos : suggérée sans dos dans la semaine, pas avec", () => {
+    expect(avisMuscles(["pec", "tri"], { auj: AUJ }).some((x) => x.id === "tirage")).toBe(true);
+    expect(avisMuscles(["pec", "tri"], { H: semaine, auj: AUJ }).some((x) => x.id === "tirage")).toBe(false);
+  });
+  it("pecs travaillés hier : avertissement de récupération, sans bouton d'ajout", () => {
+    const H: LigneHist[] = [{ d: "2026-11-04", s: "L|0", nom: "t", vol: 1, ser: 8, ex: { dc: [50, 1, 60, 10, 4], dh: [50, 1, 60, 10, 4] } }];
+    const s = avisMuscles(["pec", "tri"], { H, auj: AUJ })[0];
+    expect(s).toMatchObject({ id: "recup", alerte: true });
+    expect(s.ajouter).toBeUndefined();
+  });
+  it("« Non merci » au choix des muscles : le composeur ne repropose pas le gainage", () => {
+    const L = seance(construireSeance(["pec", "dos", "epa", "bic", "tri"], 60, 0, SEL, () => 0.3), { obj: 0, gen: { m: ["pec", "dos", "epa", "bic", "tri"], d: 60, obj: 0 } });
+    expect(ids(avis(L, { H: semaine }))).toContain("gainage");
+    expect(ids(avis({ ...L, avisIgnores: ["gainage"] }, { H: semaine }))).not.toContain("gainage");
+  });
+});
