@@ -58,9 +58,9 @@ export default function PageEntrainement() {
         <CarteDuJour auj={auj} setF={setF} />
         <Reprise />
         <Raccourcis />
-        <div className="mt-4"><AVenir auj={auj} setF={setF} /></div>
-        <section className="mt-4">
-          <h2 className="mb-2.5 px-1 text-[21px] font-extrabold tracking-[-0.015em]">{debutant ? tr("Par où commencer") : tr("Explorer")}</h2>
+        <div className="mt-2"><AVenir auj={auj} setF={setF} /></div>
+        <section className="mt-2">
+          <h2 className="mb-2 px-1 text-[20px] font-extrabold tracking-[-0.015em]">{debutant ? tr("Par où commencer") : tr("Explorer")}</h2>
           <Mosaique rubriques={rubriques} detail={detail} />
         </section>
         {!prog && <ProgrammeBientot className="mt-1" />}
