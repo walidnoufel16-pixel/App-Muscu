@@ -8,10 +8,13 @@
 export type Seance = { nom?: string; soin?: string; ex?: unknown[] };
 export type Sauvegarde = {
   HIST?: { d: string; s: string; nom?: string }[];
-  CARDIO?: { ts: number }[];
+  CARDIO?: { ts: number; ref?: string; run?: boolean }[];
   SORTIES?: { d: string }[];
   SEANCES?: Seance[];
+  AGENDA?: Prevu[];
 };
+/* Séance programmée dans « Mon agenda » (même forme que web/lib/logic/agenda.ts). */
+export type Prevu = { id: string; d: string; nom: string; quoi: { t: string }; hebdo?: boolean; sauf?: string[]; rappel?: { veille: boolean; h: number } };
 export type Rappel = { niveau: 1 | 2 | 3; jours: number; titre: string; corps: string; url: string };
 
 const jour = (d: string) => Date.parse(d + "T12:00:00Z") / 864e5;
@@ -82,3 +85,44 @@ export function rappelDu(e: Sauvegarde, auj: string, dejaEnvoye: number, langue:
 
 /** Dernier jour d'activité : s'il a changé depuis le dernier rappel, le compteur repart à zéro. */
 export const derniereActivite = (e: Sauvegarde, jourDe: (ts: number) => string) => joursActifs(e, jourDe).at(-1) ?? null;
+
+/* ---------------- « Mon agenda » : rappels des séances programmées ----------------
+   Même règle que web/lib/logic/agenda.ts : la veille ou le jour même, à l'heure choisie (Paris).
+   Le jour même, rien si une séance de la même famille est déjà faite ce jour-là. */
+const famille = (t: string) => (t === "cardio" ? "cardio" : t === "course" ? "course" : "muscu");
+const lendemain = (d: string) => new Date(Date.parse(d + "T12:00:00Z") + 864e5).toISOString().slice(0, 10);
+
+export function tombeLe(p: Prevu, d: string) {
+  if (p.sauf?.includes(d)) return false;
+  if (!p.hebdo) return p.d === d;
+  if (d < p.d) return false;
+  return Math.round((Date.parse(d + "T12:00:00Z") - Date.parse(p.d + "T12:00:00Z")) / 864e5) % 7 === 0;
+}
+
+function faitLe(e: Sauvegarde, d: string, fam: string, jourDe: (ts: number) => string) {
+  if (fam === "muscu") return (e.HIST || []).some((h) => h.d === d);
+  if (fam === "cardio") return (e.CARDIO || []).some((c) => !c.ref && !c.run && jourDe(c.ts) === d);
+  return (e.SORTIES || []).some((o) => o.d === d);
+}
+
+const TEXTES_AGENDA = {
+  fr: { veille: "Demain : {s}", veilleC: "Prépare tes affaires de sport.", jour: "Aujourd'hui : {s}", jourC: "Ta séance t'attend." },
+  en: { veille: "Tomorrow: {s}", veilleC: "Get your gym bag ready.", jour: "Today: {s}", jourC: "Your workout is waiting." },
+};
+
+/** Les rappels d'agenda à envoyer à cette heure-là (heure de Paris). */
+export function rappelsAgenda(e: Sauvegarde, auj: string, heure: number, langue: string, jourDe: (ts: number) => string) {
+  const T = langue === "en" ? TEXTES_AGENDA.en : TEXTES_AGENDA.fr;
+  const out: { id: string; titre: string; corps: string; url: string }[] = [];
+  for (const p of e.AGENDA || []) {
+    if (!p.rappel || p.rappel.h !== heure) continue;
+    const d = p.rappel.veille ? lendemain(auj) : auj;
+    if (!tombeLe(p, d)) continue;
+    if (!p.rappel.veille && faitLe(e, d, famille(p.quoi?.t), jourDe)) continue;
+    out.push({ id: p.id, titre: (p.rappel.veille ? T.veille : T.jour).replace("{s}", p.nom), corps: p.rappel.veille ? T.veilleC : T.jourC, url: "/entrainement/" });
+  }
+  return out;
+}
+
+/** Une séance est-elle programmée aujourd'hui ou demain ? (le rappel « quelques jours sans séance » se tait alors) */
+export const seancePrevueBientot = (e: Sauvegarde, auj: string) => (e.AGENDA || []).some((p) => tombeLe(p, auj) || tombeLe(p, lendemain(auj)));

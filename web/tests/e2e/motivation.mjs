@@ -29,7 +29,7 @@ const cap = async (n) => { if (process.env.CAPTURES) await pg.screenshot({ path:
 await pg.goto(U + "/entrainement/");
 await pg.getByText(/semaines d'affilée/).waitFor();
 ok(await pg.getByText("4 semaines d'affilée").isVisible(), "série : 4 semaines d'affilée");
-ok((await pg.locator("button", { hasText: "4 semaines d'affilée" }).textContent()).includes("1/2"), "tuile de l'accueil : 1 séance sur 2 cette semaine");
+ok((await pg.locator("p", { hasText: "4 semaines d'affilée" }).first().textContent()).includes("1/2 cette semaine"), "agenda de l'accueil : 1 séance sur 2 cette semaine");
 await pg.waitForTimeout(600);
 ok(await pg.getByText("Nouveau badge").count() === 0, "premier lancement : pas de fête pour les badges déjà mérités");
 const e0 = await etatLu();
