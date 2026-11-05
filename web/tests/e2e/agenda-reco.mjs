@@ -19,8 +19,8 @@ async function page(etat, sombre) {
   const pg = await ctx.newPage();
   pg.errs = []; pg.on("pageerror", (e) => pg.errs.push(e.message));
   await pg.goto(U + "/entrainement/");
-  await pg.getByText("Mon agenda").waitFor();
-  await pg.getByRole("button", { name: "Programmer" }).first().click();
+  await pg.getByRole("button", { name: "Nouvelle séance" }).click();
+  await pg.getByRole("dialog").getByText("Programmer une séance", { exact: true }).click();
   await pg.getByText("Recommandation d'Oxa").waitFor();
   return pg;
 }

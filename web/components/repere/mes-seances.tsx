@@ -168,9 +168,23 @@ export function MesSeances() {
 /* Les trois façons de créer une séance, en tête des séances libres. */
 export function CreerSeance() {
   const router = useRouter();
-  const importer = useRepere((s) => s.importer);
   const setLibre = useBrouillon((s) => s.setLibre);
-  /* la feuille d'import s'ouvre aussi depuis le menu (☰ › Importer une séance) */
+  return (
+    <>
+      <div className="overflow-hidden rounded-[20px] bg-card">
+        <Action accent icone={<SparkleIcon className="size-5" weight="fill" />} label={tr("Créer une séance pour moi")} onClick={() => router.push("/entrainement/assistant", AVANT)} />
+        <Action icone={<PlusIcon className="size-5" />} label={tr("Composer exercice par exercice")} onClick={() => { setLibre({ nom: tr("Séance libre"), ex: [], idx: null }); router.push("/entrainement/composer", AVANT); }} />
+        <Action icone={<DownloadSimpleIcon className="size-5" />} label={tr("Importer une séance avec un code")} onClick={() => useMenu.setState({ importer: true })} />
+      </div>
+      <FeuilleImport />
+    </>
+  );
+}
+
+/** La feuille « Importer une séance » : s'ouvre depuis Mes séances, le bouton + d'Entraînement ou le menu
+    (☰ › Importer une séance), par useMenu.importer. */
+export function FeuilleImport() {
+  const importer = useRepere((s) => s.importer);
   const imp = useMenu((s) => s.importer), setImp = (v: boolean) => useMenu.setState({ importer: v });
   const [code, setCode] = useState("");
 
@@ -183,12 +197,6 @@ export function CreerSeance() {
 
   return (
     <>
-      <div className="overflow-hidden rounded-[20px] bg-card">
-        <Action accent icone={<SparkleIcon className="size-5" weight="fill" />} label={tr("Créer une séance pour moi")} onClick={() => router.push("/entrainement/assistant", AVANT)} />
-        <Action icone={<PlusIcon className="size-5" />} label={tr("Composer exercice par exercice")} onClick={() => { setLibre({ nom: tr("Séance libre"), ex: [], idx: null }); router.push("/entrainement/composer", AVANT); }} />
-        <Action icone={<DownloadSimpleIcon className="size-5" />} label={tr("Importer une séance avec un code")} onClick={() => setImp(true)} />
-      </div>
-
       {/* import : une feuille qui remonte du bas et reste au-dessus du clavier */}
       <Drawer open={imp} onOpenChange={setImp} repositionInputs>
         <DrawerContent>
