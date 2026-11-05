@@ -9,7 +9,7 @@ import { ArrowRightIcon, CaretRightIcon, CheckIcon, PersonSimpleRunIcon, StarIco
 import { LogoDisque } from "./logo";
 import { FriseSemaines } from "./seance-vues";
 import { Synthese } from "./synthese";
-import { baseRPE, curId, musclesDe, titreSeance, week, wkDone } from "@/lib/logic/core";
+import { baseRPE, phaseDe, curId, musclesDe, titreSeance, week, wkDone } from "@/lib/logic/core";
 import type { SeanceSemaine } from "@/lib/logic/types";
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
@@ -72,7 +72,7 @@ export function CarteProgrammeDuJour() {
     <Hero
       surtitre={tr("Semaine {a} terminée", { a: wk + 1 })}
       titre={tr("Bravo, semaine bouclée")}
-      texte={tr("L'effort visé passe à RPE {a} la semaine prochaine. Tes charges suivent automatiquement.", { a: baseRPE(wk + 1) })}
+      texte={tr("Semaine {a} : {p}, effort visé RPE {r}. Tes charges suivent automatiquement.", { a: wk + 2, p: phaseDe(wk + 1).nom.toLowerCase(), r: baseRPE(wk + 1) })}
       bouton={tr("Passer à la semaine {a}", { a: wk + 2 })}
       icone={<TrophyIcon className="size-5" weight="fill" />}
       onClick={() => muter((E) => { E.wk = wk + 1; E.day = 0; })}
@@ -101,7 +101,7 @@ export function MaSemaine() {
         </span>
         <span className="min-w-0 flex-1">
           <span className="block text-[15px] font-semibold">{tr("Semaine {a} sur 8", { a: wk + 1 })}</span>
-          <span className="block text-[12.5px] text-muted-foreground">{tr("{faites} séance{a} sur {length}", { faites, a: pluriel(faites) ? "s" : "", length: socle.length })}{" "}{tr("· effort visé")}{" "}<span className="num">{tr("RPE")}{" "}{baseRPE(wk)}</span></span>
+          <span className="block text-[12.5px] text-muted-foreground">{tr("{faites} séance{a} sur {length}", { faites, a: pluriel(faites) ? "s" : "", length: socle.length })}{" "}{tr("· {p}, effort visé", { p: phaseDe(wk).nom.toLowerCase() })}{" "}<span className="num">{tr("RPE")}{" "}{baseRPE(wk)}</span></span>
         </span>
       </div>
       {W.map((p, i) => {

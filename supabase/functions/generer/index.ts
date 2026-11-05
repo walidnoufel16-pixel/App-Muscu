@@ -303,20 +303,28 @@ const CIBLE: Record<number, [number, number][]> = {
   /* [reprise, régulier] selon le nombre de séances socle : 2, 3 ou 4 */
   2: [[5, 8], [8, 11]], 3: [[6, 10], [11, 14]], 4: [[7, 11], [12, 16]],
 };
-const SYSTEME = (mat: number, seances: number, reprise: boolean, acc: string[] = [], en = false) => { const vol = (CIBLE[seances] || CIBLE[3])[reprise ? 0 : 1]; return `Tu es un préparateur physique qui construit des programmes de musculation ${en ? "en anglais" : "en français"}.
+/* Programmes types (Oxa Plan v2) : la structure dépend du nombre de séances, plus seulement haut/bas. */
+const DECOUPAGE: Record<number, { regle: string; titres: string[]; titresEn: string[] }> = {
+  2: { regle: "Deux séances FULL BODY (A et B) : chacune travaille tout le corps, avec un mouvement de poussée, un de tirage, un dominante quadriceps et un dominante hanche en principaux ou en accessoires, plus le tronc.", titres: ["Full body A", "Full body B"], titresEn: ["Full body A", "Full body B"] },
+  3: { regle: "Trois séances FULL BODY (A, B et C) : chacune travaille tout le corps, avec des principaux différents d'une séance à l'autre (par exemple squat / développé couché en A, soulevé de terre roumain / tractions en B, fentes / développé militaire en C).", titres: ["Full body A", "Full body B", "Full body C"], titresEn: ["Full body A", "Full body B", "Full body C"] },
+  4: { regle: "Découpage HAUT / BAS en alternance, deux fois : séance 1 haut, séance 2 bas, séance 3 haut, séance 4 bas.", titres: ["Haut du corps A", "Bas du corps A", "Haut du corps B", "Bas du corps B"], titresEn: ["Upper body A", "Lower body A", "Upper body B", "Lower body B"] },
+};
+/* Répétitions selon l'objectif : [principaux, accessoires]. */
+const REPS_OBJ: [string, string][] = [["6 à 10", "10 à 15"], ["3 à 6 (4 ou 5 séries)", "6 à 10"], ["8 à 12", "12 à 15"], ["8 à 12", "10 à 15"]];
+const SYSTEME = (mat: number, seances: number, reprise: boolean, acc: string[] = [], en = false, objectif = 3) => { const vol = (CIBLE[seances] || CIBLE[3])[reprise ? 0 : 1], dec = DECOUPAGE[seances] || DECOUPAGE[3], reps = REPS_OBJ[objectif] || REPS_OBJ[3]; return `Tu es un préparateur physique qui construit des programmes de musculation ${en ? "en anglais" : "en français"}.
 ${en ? LANGUE_EN : ""}
 
 BIBLIOTHÈQUE AUTORISÉE (aucun autre exercice n'existe) :
 ${LIB.filter((x) => dispo(x, mat, acc)).map((x) => `- ${x.id} : ${x.nom} [${SCHEMAS[x.pat]}, ${x.ch}${x.acc ? ", " + ACC[x.acc] : ""}]`).join("\n")}
 
 RÈGLES DE CONSTRUCTION, non négociables :
-1. Découpage haut du corps / bas du corps en alternance : séance 1 haut, séance 2 bas, etc.
+1. ${dec.regle} Titres des séances, dans l'ordre : ${(en ? dec.titresEn : dec.titres).join(", ")}.
 2. Chaque séance contient 5 à 7 exercices, dont 2 ou 3 principaux (o:1) placés en premier, puis des accessoires (o:0). Vise 18 à 24 séries au total par séance, ce qui représente environ 60 à 70 minutes repos compris.
-3. Les exercices PRINCIPAUX sont identiques entre la séance A et la séance B d'un même segment. L'application les fait ensuite alterner automatiquement avec une variante proche une semaine sur deux, et change les accessoires chaque semaine : ne les présente donc jamais comme figés sur 8 semaines.
+3. En haut/bas, les exercices PRINCIPAUX sont identiques entre la séance A et la séance B d'un même segment ; en full body, ils changent d'une séance à l'autre. L'application les fait ensuite alterner automatiquement avec une variante proche une semaine sur deux, et change les accessoires chaque semaine : ne les présente donc jamais comme figés sur 8 semaines.
 4. Les accessoires des séances A et B d'un même segment travaillent des schémas moteurs DIFFÉRENTS, pour couvrir tous les axes sur la semaine.
 4 bis. Mollets, trapèzes, avant-bras et prise, adducteurs sont des compléments : jamais en exercice principal, au plus un seul par séance, et seulement quand les grands groupes ont déjà leur volume.
 5. Volume hebdomadaire par grand groupe travaillé : ${vol[0]} à ${vol[1]} séries. Cette fourchette tient compte du nombre de séances déclarées : ne cherche pas à la dépasser en allongeant les séances, ni à rester en dessous en les raccourcissant.
-6. Séries entre 2 et 5. Répétitions entre 4 et 15 pour kg/lest/aucune, 20 à 60 pour temps (secondes), 200 à 500 pour dist (mètres).
+6. Séries entre 2 et 5. Répétitions selon l'objectif : ${reps[0]} sur les principaux, ${reps[1]} sur les accessoires (kg/lest/aucune) ; 20 à 60 pour temps (secondes), 200 à 500 pour dist (mètres). L'application fait ensuite varier séries et répétitions au fil des 8 semaines (montée du volume, intensification, semaine d'allègement) : donne ici la semaine 1.
 7. Repos : "3 min" ou "2 min 30" sur les principaux lourds, "90 s" ou "60 s" sur les accessoires, "45 s" sur l'isolation.
 8. La séance bonus dure 30 minutes, 2 à 3 exercices, et suit l'axe demandé.
 9. Aucune charge en kilos : le cycle fonctionne au RPE, géré ailleurs.
@@ -339,7 +347,7 @@ Ta réponse commence par une accolade ouvrante et se termine par une accolade fe
 Clés : t=titre, i=intro, c=choix, x=texte, f=focus, ex=exercices, id, s=séries, r=répétitions, p=repos, o=rôle.
 
 {"plan":{"t":"...","i":"...","c":[{"t":"...","x":"..."},{"t":"...","x":"..."},{"t":"...","x":"..."}]},
-"seances":[{"t":"${en ? "Upper body A" : "Haut du corps A"}","f":"...","ex":[{"id":"dc","s":4,"r":6,"p":"2 min 30","o":1}]}],
+"seances":[{"t":"${(en ? dec.titresEn : dec.titres)[0]}","f":"...","ex":[{"id":"dc","s":4,"r":6,"p":"2 min 30","o":1}]}],
 "bonus":{"t":"...","f":"...","ex":[{"id":"cu","s":3,"r":12,"p":"60 s","o":0}]}}`; };
 
 /* Programme demandé en anglais : la consigne reste en français (règles éprouvées),
@@ -392,7 +400,7 @@ async function empreinte(texte: string) {
   return [...new Uint8Array(h)].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 40);
 }
 
-const VERSION_BIBLIOTHEQUE = 5;   // 2 : bibliothèque complète (100 exercices) · 3 : 133 exercices · 4 : 231 exercices · 5 : préférences de matériel imposées
+const VERSION_BIBLIOTHEQUE = 6;   // 2 : bibliothèque complète (100 exercices) · 3 : 133 exercices · 4 : 231 exercices · 5 : préférences de matériel imposées · 6 : Oxa Plan v2 (programmes types, volume corrigé)
 
 /* Seules les réponses qui changent réellement le programme entrent dans la signature. */
 async function signature(A: any) {
@@ -544,12 +552,12 @@ function valider(plan: any, A: any): any {
 
   const DEF = en ? [
     { titre: "Two variations per movement, alternating", texte: "Each main exercise alternates with a close variation from one week to the next: you never repeat the same workout two weeks in a row, and each variation progresses on its own." },
-    { titre: "It's the effort that goes up", texte: "RPE 7 in weeks 1 and 2, RPE 8 up to week five, RPE 9 after that. The number of sets stays the same." },
-    { titre: "You choose your weights", texte: "No weight is imposed on you: you aim for an effort level and adjust the load that gets you there yourself." },
+    { titre: "Eight weeks that build up, then a lighter week", texte: "Week 1 to settle in, weeks 2 to 4 add a set on your main lifts, weeks 5 to 7 lower the reps for heavier loads, and week 8 cuts the volume so you recover and come back stronger." },
+    { titre: "Your weights move on their own", texte: "When you beat your target reps on every set, the next week's weight goes up; when you fall short, it stays. Rating a set easy or hard fine-tunes it." },
   ] : [
     { titre: "Deux variantes par mouvement, en alternance", texte: "Chaque exercice principal alterne avec une variante proche d'une semaine sur l'autre : tu ne refais jamais la même séance deux semaines de suite, et chaque variante progresse de son côté." },
-    { titre: "C'est l'effort qui monte", texte: "RPE 7 sur les semaines 1 et 2, RPE 8 jusqu'à la cinquième, RPE 9 ensuite. Le nombre de séries, lui, ne bouge pas." },
-    { titre: "Tu choisis tes charges", texte: "Aucun kilo ne t'est imposé : tu vises un niveau d'effort et tu ajustes toi-même la charge qui t'y amène." },
+    { titre: "Huit semaines qui montent, puis une semaine légère", texte: "Semaine 1 pour prendre tes marques, semaines 2 à 4 avec une série de plus sur les principaux, semaines 5 à 7 avec moins de répétitions et plus de charge, et la semaine 8 allégée pour récupérer et repartir plus fort." },
+    { titre: "Tes charges avancent toutes seules", texte: "Quand tu dépasses tes répétitions sur toutes les séries, la charge monte la semaine suivante ; quand tu restes en dessous, elle ne bouge pas. Noter une série facile ou dure affine le réglage." },
   ];
   const c = (plan?.plan?.c || plan?.plan?.choix || []).slice(0, 3).map((x: any) => ({
     titre: coupe(x?.t || x?.titre, 90),
@@ -568,6 +576,35 @@ function valider(plan: any, A: any): any {
     const g = G[PARID[e.id].pat]; if (g) vol[g] = (vol[g] || 0) + e.series;
   }));
   const cible = (CIBLE[nb] || CIBLE[3])[(A.regularite ?? 3) <= 1 ? 0 : 1];
+  /* Correction (Oxa Plan v2) : un grand groupe sous la cible reçoit des séries sur ses exercices
+     (accessoires d'abord, 5 séries au plus) ; une séance au-delà de 24 séries perd des séries
+     d'accessoires (2 au moins). Le programme respecte ainsi la cible quelle que soit la réponse de l'IA. */
+  const corriges: string[] = [];
+  const GRANDS = ["Pectoraux", "Dos", "Épaules", "Quadriceps", "Fessiers et ischio-jambiers"];
+  const total = (s: any) => s.exercices.reduce((n: number, e: any) => n + e.series, 0);
+  for (const g of GRANDS) {
+    if (vol[g] == null || vol[g] >= cible[0]) continue;
+    const l = seances.flatMap((s: any) => s.exercices.filter((e: any) => G[PARID[e.id].pat] === g).map((e: any) => ({ s, e })))
+      .sort((a: any, b: any) => a.e.role - b.e.role);
+    let tour = 0;
+    while (vol[g] < cible[0] && tour < 10) {
+      let ajoute = false;
+      for (const { s, e } of l) {
+        if (vol[g] >= cible[0]) break;
+        if (e.series >= 5 || total(s) >= 24) continue;
+        e.series++; vol[g]++; ajoute = true;
+      }
+      if (!ajoute) break;
+      tour++;
+    }
+    corriges.push(`${g} → ${vol[g]}`);
+  }
+  for (const s of seances as any[]) {
+    let t = total(s);
+    for (const e of [...s.exercices].reverse()) {
+      while (t > 24 && !e.role && e.series > 2) { e.series--; t--; const g = G[PARID[e.id].pat]; if (g) vol[g]--; }
+    }
+  }
   const faibles = Object.keys(vol).filter((g) => vol[g] < cible[0]);
 
   return { ok: true,
@@ -579,7 +616,7 @@ function valider(plan: any, A: any): any {
     seances, bonus: bonus ?? undefined,
     notes: { demandees: nb, retenues: seances.length, bonus: !!bonus, refus: refus.slice(0, 12), remplaces: remplaces.slice(0, 12),
              exercices: seances.reduce((n: number, s: any) => n + s.exercices.length, 0),
-             volume: vol, cible, faibles },
+             volume: vol, cible, faibles, corriges },
   };
 }
 
@@ -638,7 +675,7 @@ Deno.serve(async (req) => {
       const corps: any = {
         model: MODELE,
         max_tokens: plafond,
-        system: SYSTEME(A.materiel ?? 0, 2 + (A.socle ?? 2), (A.regularite ?? 3) <= 1, accDe(A), A.langue === "en"),
+        system: SYSTEME(A.materiel ?? 0, 2 + (A.socle ?? 2), (A.regularite ?? 3) <= 1, accDe(A), A.langue === "en", A.objectif ?? 3),
         messages,
       };
       if (!reflexion) corps.thinking = { type: "disabled" };
