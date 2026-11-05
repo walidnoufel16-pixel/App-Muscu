@@ -105,22 +105,22 @@ type Action = { label: string; icone?: React.ReactNode; onClick: () => void };
 
 function Hero({ ph, tag, titre, sous, principal, second }: { ph: Photo; tag: React.ReactNode; titre: string; sous?: string; principal: Action; second?: Action }) {
   return (
-    <section className="relative isolate h-[min(390px,52dvh)] min-h-[320px] overflow-hidden rounded-[26px] bg-[#111] text-white">
+    <section className="relative isolate h-[236px] overflow-hidden rounded-[24px] bg-[#111] text-white">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img key={ph.grand} src={ph.grand} alt="" className="absolute inset-0 -z-10 size-full object-cover"
         onError={(e) => { if (!e.currentTarget.src.endsWith(ph.petite)) e.currentTarget.src = ph.petite; else e.currentTarget.style.visibility = "hidden"; }} />
-      <span aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(0,0,0,.05)_25%,rgba(0,0,0,.82)_80%)]" />
-      <div className="absolute inset-x-4 bottom-4">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-bold tracking-[0.08em] uppercase backdrop-blur-md">{tag}</span>
-        <h2 className="mt-2 text-[28px] leading-[1.05] font-extrabold tracking-[-0.02em] text-balance">{titre}</h2>
-        {sous && <p className="mt-1 line-clamp-2 text-[14px] leading-snug text-white/85">{sous}</p>}
-        <div className="mt-3.5 flex gap-2">
-          <button onClick={() => { tactile(10); principal.onClick(); }} className="flex h-[50px] flex-1 items-center justify-center gap-2 rounded-full bg-white text-[16px] font-bold text-[#0a0a0c] active:scale-[.98]">
+      <span aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(0,0,0,.1)_0%,rgba(0,0,0,.35)_35%,rgba(0,0,0,.85)_85%)]" />
+      <div className="absolute inset-x-3.5 bottom-3.5">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[10.5px] font-bold tracking-[0.08em] uppercase backdrop-blur-md">{tag}</span>
+        <h2 className="mt-1.5 truncate text-[24px] leading-[1.1] font-extrabold tracking-[-0.02em] text-balance">{titre}</h2>
+        {sous && <p className="mt-0.5 truncate text-[13.5px] text-white/85">{sous}</p>}
+        <div className="mt-3 flex gap-2">
+          <button onClick={() => { tactile(10); principal.onClick(); }} className="flex h-[46px] flex-1 items-center justify-center gap-2 rounded-full bg-white text-[15.5px] font-bold text-[#0a0a0c] active:scale-[.98]">
             {principal.icone}{principal.label}
           </button>
           {second && (
             <button onClick={() => { tactile(6); second.onClick(); }} aria-label={second.label} title={second.label}
-              className="grid size-[50px] shrink-0 place-items-center rounded-full bg-white/20 backdrop-blur-md active:scale-95">
+              className="grid size-[46px] shrink-0 place-items-center rounded-full bg-white/20 backdrop-blur-md active:scale-95">
               {second.icone}
             </button>
           )}
