@@ -23,7 +23,7 @@ import { VignetteRecette } from "./repas";
 
 /* ---------------- frise des 8 semaines : des disques qui se remplissent ---------------- */
 export function FriseSemaines({ wk, avancement, onChoisir }: { wk: number; avancement: { faites: number; total: number }[]; onChoisir: (w: number) => void }) {
-  const PALIER: Record<number, string> = { 7: "bg-rpe7", 8: "bg-rpe8", 9: "bg-rpe9" };
+  const PALIER: Record<number, string> = { 6: "bg-muted-foreground/40", 7: "bg-rpe7", 8: "bg-rpe8", 9: "bg-rpe9" };
   return (
     <div className="no-scrollbar -mx-5 mt-4 flex gap-2 overflow-x-auto px-5 pb-1" role="tablist" aria-label={tr("Semaines du cycle")}>
       {avancement.map(({ faites, total }, i) => {

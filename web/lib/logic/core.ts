@@ -76,7 +76,34 @@ const conv = (s: SeanceIA, b: boolean): SeanceSemaine => ({
   x: s.exercices.map((e) => [e.id, e.series, e.reps, e.repos, e.role]),
 });
 
-export function week(E: Etat): SeanceSemaine[] {
+/* ---------------- périodisation sur 8 semaines (Oxa Plan v2) ----------------
+   S1 prise en main · S2 à S4 accumulation (une série de plus sur les principaux à partir de S3) ·
+   S5 et S6 intensification (2 répétitions de moins sur les principaux, la charge monte) ·
+   S7 pic (3 de moins) · S8 allègement (40 % de séries en moins, effort léger) pour récupérer.
+   La semaine 1 reste la semaine du programme telle quelle. */
+export type Phase = { k: "prise" | "accumulation" | "intensification" | "pic" | "allegement"; nom: string; series: number; reps: number; rpe: number };
+export function phaseDe(w: number): Phase {
+  if (w <= 0) return { k: "prise", nom: tr("Prise en main"), series: 0, reps: 0, rpe: 7 };
+  if (w === 1) return { k: "accumulation", nom: tr("Accumulation"), series: 0, reps: 0, rpe: 7 };
+  if (w <= 3) return { k: "accumulation", nom: tr("Accumulation"), series: 1, reps: 0, rpe: 8 };
+  if (w <= 5) return { k: "intensification", nom: tr("Intensification"), series: 1, reps: -2, rpe: w === 4 ? 8 : 9 };
+  if (w === 6) return { k: "pic", nom: tr("Pic"), series: 0, reps: -3, rpe: 9 };
+  return { k: "allegement", nom: tr("Allègement"), series: 0, reps: 0, rpe: 6 };
+}
+/** Séries et répétitions d'un exercice du programme pour la semaine w. */
+export function periode(e: [string, number, number, string, number], w: number): [string, number, number, string, number] {
+  const ph = phaseDe(w), x = EX[e[0]];
+  if (ph.k === "allegement") return [e[0], Math.max(1, Math.round(e[1] * 0.6)), e[2], e[3], e[4]];
+  if (!e[4] || !x) return e;
+  const charge = x.ch === "kg" || x.ch === "lest";
+  return [e[0], Math.min(6, e[1] + ph.series), charge ? Math.max(3, e[2] + ph.reps) : e[2], e[3], e[4]];
+}
+
+export function week(E: Etat, w = E.wk): SeanceSemaine[] {
+  const W = semaineDeBase(E);
+  return w ? W.map((s) => (s.x ? { ...s, x: s.x.map((e) => periode(e as [string, number, number, string, number], w)) } : s)) : W;
+}
+function semaineDeBase(E: Etat): SeanceSemaine[] {
   const { A, PLAN } = E;
   let w: SeanceSemaine[];
   if (PLAN && PLAN.seances && PLAN.seances.length) {
@@ -107,10 +134,10 @@ export function typeSeance(s: SeanceSemaine): "haut" | "bas" | "bonus" {
 }
 
 /* ---------------- effort ---------------- */
-export const baseRPE = (w: number) => (w < 2 ? 7 : w < 5 ? 8 : 9);
+export const baseRPE = (w: number) => phaseDe(w).rpe;
 export function rpeOf(A: Reponses, w: number, id: string, role: number) {
   const e = EX[id];
-  let r = baseRPE(w) + (role ? 0 : 1);
+  let r = baseRPE(w) + (role || w >= 7 ? 0 : 1);
   if (r > 9) r = 9;
   if (e.cap && r > e.cap) r = e.cap;
   if (e.capDeb && (A.regularite === 0 || A.regularite === 1) && r > e.capDeb) r = e.capDeb;
@@ -348,19 +375,40 @@ export function suggere(E: Etat, w: number, s: number, i: number, id: string, W 
   const x = EX[id];
   if (!x) return null;
   if (!W[s] || !W[s].x || !W[s].x![i]) return null;
+  const base = semaineDeBase(E)[s]?.x?.[i] as [string, number, number, string, number] | undefined;
   for (let p = w - 1; p >= 0; p--) {
     if (curId(E, p, s, i, W[s].x![i][0], W) !== id) continue;
     const L = E.LOG[key(p, s, i)];
     if (!L || !L.done) continue;
-    const pas = pasDe(x), monte = baseRPE(w) > baseRPE(p), u = UNITE[x.ch];
-    const v = maxV(L), reps = L.reps ?? 0;
-    if (L.feel === 0 && !monte) return { v: v + pas, reps, t: tr("+{a} {u} par rapport à la semaine {a1}, où tu avais trouvé ça facile.", { a: nb(pas), u, a1: p + 1 }) };
-    if (L.feel === 0 && monte) return { v, reps, t: tr("Même charge qu'en semaine {a} : l'effort visé passe à RPE {a1}, ce sera plus dur sans rien ajouter.", { a: p + 1, a1: baseRPE(w) }) };
-    if (L.feel === 2) return { v: Math.max(0, v - pas), reps, t: tr("−{a} {u} : la semaine {a1} était au-dessus de la cible.", { a: nb(pas), u, a1: p + 1 }) };
-    if (monte) return { v, reps, t: tr("Même charge qu'en semaine {a} : l'effort visé monte à RPE {a1}.", { a: p + 1, a1: baseRPE(w) }) };
-    return { v, reps, t: tr("Reprise de ta semaine {a}. Si la série sort facile, monte de {a1} {u} la prochaine fois.", { a: p + 1, a1: nb(pas), u }) };
+    const pas = pasExercice(x), u = UNITE[x.ch], v = maxV(L);
+    const rP = base ? periode(base, p)[2] : L.reps ?? 0, rW = base ? periode(base, w)[2] : rP, nP = base ? periode(base, p)[1] : L.nb ?? 1;
+    const dbl = x.ch === "kg" || x.ch === "lest";
+    if (!dbl) return { v, reps: rW, t: tr("Reprise de ta semaine {a}.", { a: p + 1 }) };
+    /* semaine d'allègement : −10 %, moins de séries, pour récupérer */
+    if (phaseDe(w).k === "allegement") return { v: auPalier(v * 0.9, pas), reps: rW, t: tr("Semaine d'allègement : −10 % et moins de séries, pour récupérer et repartir plus fort.") };
+    const ok = (L.series || []).filter((z) => okDe(L, z)), m = ok.length ? Math.min(...ok.map((z) => z.reps)) : 0;
+    /* moins de répétitions demandées (intensification) : la charge monte d'environ 2,5 % par répétition */
+    const plus = rW < rP ? v * 0.025 * (rP - rW) : 0;
+    if (L.feel === 2) return { v: Math.max(0, auPalier(v - pas + plus, pas)), reps: rW, t: tr("−{a} {u} : la semaine {a1} était au-dessus de la cible.", { a: nb(pas), u, a1: p + 1 }) };
+    const reussi = ok.length >= nP && m >= rP, depasse = (reussi && m >= rP + 1) || (reussi && L.feel === 0);
+    if (depasse) return { v: auPalier(v + pas + plus, pas) || v + pas, reps: rW, t: tr("Toutes tes séries au-dessus de {r} répétitions en semaine {a} : la charge monte.", { r: rP, a: p + 1 }) };
+    if (reussi && plus) return { v: auPalier(v + plus, pas) || v, reps: rW, t: tr("Moins de répétitions cette semaine ({r}) : un peu plus lourd qu'en semaine {a}.", { r: rW, a: p + 1 }) };
+    if (reussi) return { v, reps: rW, t: tr("Même charge qu'en semaine {a} : dépasse {r} répétitions sur toutes tes séries et elle montera.", { a: p + 1, r: rW }) };
+    return { v, reps: rW, t: tr("Même charge qu'en semaine {a} : vise les {r} répétitions avant d'ajouter du poids.", { a: p + 1, r: rW }) };
   }
   return null;
+}
+
+/** Charge de départ d'un exercice du programme sans semaine précédente : d'après ta meilleure
+    série dans l'historique (1RM estimé, Epley), pour les répétitions visées avec 2 en réserve. */
+export function chargeDepart(E: Etat, id: string, reps: number): Suggestion | null {
+  const x = EX[id];
+  if (!x || x.ch !== "kg") return null;
+  let rm = 0;
+  for (const l of E.HIST || []) { const q = l.ex?.[id]; if (q && q[2] > 0 && q[3] > 0) rm = Math.max(rm, q[2] * (1 + Math.min(q[3], 12) / 30)); }
+  if (!rm) return null;
+  const pas = pasExercice(x), v = auPalier(rm / (1 + (reps + 2) / 30), pas);
+  return v > 0 ? { v, reps, t: tr("Calculée d'après ta meilleure série sur cet exercice ({a} kg estimés au maximum).", { a: Math.round(rm) }) } : null;
 }
 
 /* ---------------- contexte d'un exercice affiché ----------------
@@ -421,11 +469,12 @@ export function ctxPlan(E: Etat, i: number, W = week(E)): Ctx | null {
   let prev: Journal | null = null;
   for (let p = E.wk - 1; p >= 0 && !prev; p--)
     if (curId(E, p, E.day, i, e[0], W) === id && E.LOG[key(p, E.day, i)]?.done) prev = E.LOG[key(p, E.day, i)];
-  const aj = selonForme(E.A, x, id, g ? { v: g.v, reps: g.reps } : { v: x.d, reps: e[2] });
+  const dep = g ? null : chargeDepart(E, id, e[2]);
+  const aj = selonForme(E.A, x, id, g ? { v: g.v, reps: g.reps } : dep ? { v: dep.v, reps: e[2] } : { v: x.d, reps: e[2] }, pasExercice(x));
   const c: Ctx = {
     k, id, n: e[1],
     base: aj.base,
-    why: joindre(g ? g.t : undefined, aj.texte), repos: e[3],
+    why: joindre(g ? g.t : dep?.t, aj.texte), repos: e[3],
     prev: precedentHist(E, id, k) || prev || precedentDe(E.LOG, id, k),
   };
   const max = maxAuDessus(id, maxHist(E, id, k), c.prev);
