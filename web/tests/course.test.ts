@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   adapter, allureHyrox, allures, ATELIERS, avertissement, calendrier, chronoPrevu, consigneAtelier, decalerCle, estimation, genererPlan, modifierPlan, reprendre, riegel, seancesRenfoHyrox,
-  semaineDe, tempsAteliers, tempsPrevu, vdot, type PlanCourse,
+  semaineDe, tempsAteliers, tempsPrevu, vdot, vdotActuel, vdotDe, objectifChrono, minutesSemaine, plageFacile, type PlanCourse,
 } from "@/lib/logic/course";
 import { EX } from "@/lib/data/exercices";
 import { scoreDe } from "@/lib/logic/defis";
@@ -211,5 +211,62 @@ describe("modifier un plan en cours", () => {
     const b = modifierPlan(h, { obj: "10k", date: h.date, debut: h.debut, jours: 4, renfo: 1, ref: h.ref, cat: "h", salle: true }).plan;
     expect(b.cat).toBeUndefined();
     expect(b.salle).toBeUndefined();
+  });
+});
+
+describe("plan optimisé (préparateur)", () => {
+  const cas = (["10k", "semi", "marathon", "hyrox"] as const).flatMap((obj) => [3, 5].flatMap((jours) => [null, { km: 21.0975, sec: 103 * 60 }].map((ref) => ({ obj, jours, ref }))));
+  it("volume : d'une vraie semaine à la suivante, +10 % au plus (arrondis compris), ou +25 min sur un petit volume (séances déjà à leur durée minimale)", () => {
+    for (const x of cas) {
+      const P = genererPlan(plan({ ...x, date: "2027-05-02" }));
+      let ref = 0;
+      for (const W of P) {
+        if (W.allegee || W.phase === "affutage" || W.phase === "course") continue;
+        const v = minutesSemaine(W);
+        if (ref) expect(v <= ref * 1.12 || v - ref <= 25, `${x.obj} ${x.jours} sorties, semaine ${W.k + 1} : ${ref} → ${v} min`).toBe(true);
+        ref = v;
+      }
+    }
+  });
+  it("forme du moment : une sortie soutenue plus rapide relève les allures (+3 au plus), une sortie lente ne les baisse pas", () => {
+    const p = plan({ ref: { km: 21.0975, sec: 103 * 60 } }), V0 = vdotActuel(p, [], "2027-01-20");
+    expect(vdotActuel(p, [{ d: "2027-01-18", km: 5, sec: 21 * 60, rpe: 9, s: "3|0" }], "2027-01-20")).toBeGreaterThan(V0);
+    expect(vdotActuel(p, [{ d: "2027-01-18", km: 5, sec: 15 * 60, rpe: 9 }], "2027-01-20")).toBeCloseTo(V0 + 3, 0);
+    expect(vdotActuel(p, [{ d: "2027-01-18", km: 10, sec: 70 * 60, rpe: 8 }], "2027-01-20")).toBe(V0);
+    expect(vdotActuel(p, [{ d: "2027-01-18", km: 8, sec: 35 * 60, rpe: 4 }], "2027-01-20")).toBe(V0); // footing : ne compte pas
+    expect(allures(vdotActuel(p, [{ d: "2027-01-18", km: 5, sec: 21 * 60, rpe: 9 }], "2027-01-20")).seuil).toBeLessThan(allures(V0).seuil);
+  });
+  it("objectif de fin de plan : plus rapide que le niveau actuel, sans promesse folle", () => {
+    const p = plan({ ref: { km: 21.0975, sec: 103 * 60 }, date: "2027-05-02" }), N = genererPlan(p).length;
+    const actuel = chronoPrevu("semi", vdotDe(p)), vise = objectifChrono(p, N);
+    expect(vise).toBeLessThan(actuel);
+    expect(vise).toBeGreaterThan(actuel * 0.94);
+  });
+  it("semi : sortie longue à fin rapide en phase spécifique, pas en semaine allégée ; affûtage à 60 % du pic", () => {
+    const P = genererPlan(plan({ date: "2027-05-02", jours: 3 }));
+    const spe = P.filter((W) => W.phase === "specifique");
+    for (const W of spe) {
+      const l = W.seances.find((x) => x.type === "longue")!;
+      expect(l.phases!.length, `semaine ${W.k + 1}`).toBe(W.allegee ? 1 : 2);
+    }
+    const pic = Math.max(...P.map((W) => W.long)), aff = P.find((W) => W.phase === "affutage")!;
+    expect(aff.long).toBeLessThanOrEqual(pic * 0.6 + 0.5);
+  });
+  it("fondation : des côtes une semaine sur deux, et un test 5 km une fois, en semaine allégée", () => {
+    const P = genererPlan(plan({ date: "2027-05-02" }));
+    const titres = P.flatMap((W) => W.seances.map((x) => ({ W, x })));
+    expect(titres.some(({ W, x }) => W.phase === "fondation" && x.titre === "Footing + côtes")).toBe(true);
+    const tests = titres.filter(({ x }) => x.test);
+    expect(tests).toHaveLength(1);
+    expect(tests[0].W.allegee).toBe(true);
+    /* Hyrox : pas de test 5 km ni de côtes à la place des ateliers */
+    const H = genererPlan(plan({ obj: "hyrox", date: "2027-05-02" })).flatMap((W) => W.seances);
+    expect(H.some((x) => x.test || x.titre === "Footing + côtes")).toBe(false);
+  });
+  it("footing : une plage d'endurance autour de l'allure du plan", () => {
+    const A = allures(43.6);
+    expect(A.facileMin).toBeLessThan(A.facile);
+    expect(A.facileMax).toBeGreaterThan(A.facile);
+    expect(plageFacile(A)).toMatch(/^\d:\d\d – \d:\d\d$/);
   });
 });
