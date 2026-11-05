@@ -346,7 +346,48 @@ export type Ctx = {
   base: { v: number; reps: number };
   why?: string; repos: string;
   prev: Journal | null;
+  /** meilleure performance passée sur l'exercice, si elle dépasse le précédent */
+  max?: MaxEx | null;
 };
+
+/* ---------------- ton max sur un exercice ----------------
+   Meilleure série dans l'historique de Progrès (colonnes « meilleure charge » et « répétitions à
+   cette charge »), séance en cours exclue. Même classement que les records (records.ts) :
+   la charge (ou le lest) d'abord, les répétitions départagent ; temps et distance : la valeur. */
+export type MaxEx = { v: number; reps: number; d: string };
+const scoreMax = (ch: string | undefined, v: number, reps: number) => (ch === "temps" || ch === "dist" ? v : v * 1000 + reps);
+export function maxHist(E: Etat, id: string, k: string): MaxEx | null {
+  const s = k.split("|").slice(0, 2).join("|"), cur = E.LOG[k];
+  const auj = cur?.ts && (cur.series || []).some((x) => okDe(cur, x)) ? jourLocal(cur.ts) : null;
+  const ch = EX[id]?.ch;
+  let best: MaxEx | null = null;
+  for (const l of E.HIST || []) {
+    const p = l.ex?.[id];
+    if (!p || (l.s === s && l.d === auj)) continue;
+    const m = { v: p[2], reps: p[3], d: l.d };
+    if (!best || scoreMax(ch, m.v, m.reps) > scoreMax(ch, best.v, best.reps)) best = m;
+  }
+  return best;
+}
+/** Le max, seulement s'il dépasse ce que montre « Précédent » (sinon il ferait doublon). */
+export function maxAuDessus(id: string, max: MaxEx | null, prev: Journal | null): MaxEx | null {
+  if (!max) return null;
+  const ch = EX[id]?.ch;
+  const p = (prev?.series || []).filter((x) => okDe(prev!, x)).reduce((m, x) => {
+    const v = ch === "aucune" ? +(x.lest ?? 0) || 0 : x.v, r = ch === "aucune" ? x.v : x.reps;
+    return Math.max(m, scoreMax(ch, v, r));
+  }, 0);
+  return scoreMax(ch, max.v, max.reps) > p ? max : null;
+}
+/** « 10 kg × 8 », « +5 kg × 6 », « 15 réps », « 75 s », « 500 m ». */
+export function fmtMax(id: string, m: Pick<MaxEx, "v" | "reps">) {
+  const ch = EX[id]?.ch;
+  if (ch === "kg") return `${nb(m.v)} kg × ${m.reps}`;
+  if (ch === "temps") return `${nb(m.v)} s`;
+  if (ch === "dist") return `${nb(m.v)} m`;
+  return m.v > 0 ? `+${nb(m.v)} kg × ${m.reps}` : tr("{n} réps", { n: m.reps });
+}
+
 export function ctxPlan(E: Etat, i: number, W = week(E)): Ctx | null {
   const S = W[E.day];
   const e = S?.x?.[i];
@@ -356,12 +397,14 @@ export function ctxPlan(E: Etat, i: number, W = week(E)): Ctx | null {
   for (let p = E.wk - 1; p >= 0 && !prev; p--)
     if (curId(E, p, E.day, i, e[0], W) === id && E.LOG[key(p, E.day, i)]?.done) prev = E.LOG[key(p, E.day, i)];
   const aj = selonForme(E.A, x, id, g ? { v: g.v, reps: g.reps } : { v: x.d, reps: e[2] });
-  return {
+  const c: Ctx = {
     k, id, n: e[1],
     base: aj.base,
     why: joindre(g ? g.t : undefined, aj.texte), repos: e[3],
     prev: precedentHist(E, id, k) || prev || precedentDe(E.LOG, id, k),
   };
+  const max = maxAuDessus(id, maxHist(E, id, k), c.prev);
+  return max ? { ...c, max } : c;
 }
 export const kLibre = (idx: number, j: number) => `L|${idx}|${j}`;
 /* Forme du jour et douleur signalée : charge de départ ajustée, et dite (lib/logic/forme.ts). */
@@ -399,6 +442,7 @@ export function ctxLibre(E: Etat, idx: number, j: number): Ctx | null {
     base: aj.base,
     why: joindre(pr ? pr.t : d ? tr("Reprise de ta dernière séance sur cet exercice.") : undefined, aj.texte),
     repos: e.p, prev: d,
+    ...(() => { const max = maxAuDessus(e.id, maxHist(E, e.id, k), d); return max ? { max } : {}; })(),
   };
 }
 
