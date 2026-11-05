@@ -29,6 +29,7 @@ import { useRepere } from "@/lib/store";
 import { ARRIERE, revenirA } from "@/lib/nav";
 import { Retour, useRetour } from "@/components/repere/retour";
 import { useBrouillon } from "@/lib/brouillon";
+import { AvisSeance } from "@/components/repere/avis-seance";
 import { lienRubrique } from "@/components/repere/rubriques";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
@@ -195,6 +196,8 @@ export default function PageComposer() {
               </button>
             )}
           </div>
+          {/* l'avis d'Oxa : ce qu'un coach changerait (volume, équilibre, ordre, réglages) */}
+          <div className="mt-3 empty:hidden"><AvisSeance L={L} sel={sel} /></div>
           <div className="mt-2 grid grid-cols-2 gap-2">
             <button onClick={() => { tactile(6); setAjout(true); }} className="flex items-center justify-center gap-2 rounded-[18px] bg-plate py-3 text-[14.5px] font-semibold text-plate-foreground active:scale-[.98]">
               <PlusIcon className="size-4" weight="bold" />{tr("Exercice")}
