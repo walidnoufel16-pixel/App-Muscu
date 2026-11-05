@@ -1,5 +1,6 @@
 "use client";
 
+import { BandeauSeance } from "./seance-en-cours";
 import { tr } from "@/lib/i18n";
 import { useEffect, ViewTransition } from "react";
 import { resynchroniserRappels } from "@/lib/rappels";
@@ -78,6 +79,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </ViewTransition>
       </main>
       <RestTimer avecOnglets={onglets} />
+      {onglets && <BandeauSeance />}
       {onglets && <TabBar />}
       {onglets && <Installer />}
       {onglets && <MenuLateral />}

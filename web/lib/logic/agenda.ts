@@ -3,7 +3,8 @@
    vient d'AGENDA, des séances programmées par la personne, à une date ou chaque semaine, avec un
    rappel la veille ou le jour même à l'heure choisie (envoyé par la fonction Edge « rappels »,
    dont la règle est la même : supabase/functions/rappels/logique.ts). */
-import { decaler, jourDe, lundiDe } from "./historique";
+import { decaler, ECART_SEANCE, jourDe, lundiDe } from "./historique";
+import { okDe } from "./core";
 import type { Etat } from "./types";
 
 export type QuoiPrevu =
@@ -39,11 +40,31 @@ export function tombeLe(p: Prevu, d: string) {
   return Math.round((Date.parse(d + "T12:00:00Z") - Date.parse(p.d + "T12:00:00Z")) / 864e5) % 7 === 0;
 }
 
-/** Ce qui a été fait, jour par jour. */
-export function faitsParJour(E: Pick<Etat, "HIST" | "CARDIO" | "SORTIES">) {
+export type EnCours = { i: number; s: string; d: string; nom: string; ts: number; series: number };
+/** Séances libres commencées et pas encore rangées (« Ajouter à mon suivi ») : des séries validées
+    il y a moins de 6 heures dans leur journal. Elles ne comptent pas encore comme faites. */
+export function seancesEnCours(E: Partial<Pick<Etat, "LOG" | "SEANCES">>, maintenant = Date.now()): EnCours[] {
+  const m = new Map<number, EnCours>();
+  for (const [k, L] of Object.entries(E.LOG || {})) {
+    const r = /^L\|(\d+)\|\d+$/.exec(k);
+    if (!r || !L?.ts || maintenant - L.ts > ECART_SEANCE) continue;
+    const n = (L.series || []).filter((x) => okDe(L, x)).length;
+    if (!n) continue;
+    const i = +r[1], S = E.SEANCES?.[i];
+    if (!S) continue;
+    const c = m.get(i) ?? { i, s: `L|${i}`, d: jourDe(L.ts), nom: S.nom, ts: 0, series: 0 };
+    c.series += n; c.ts = Math.max(c.ts, L.ts);
+    m.set(i, c);
+  }
+  return [...m.values()].sort((a, b) => b.ts - a.ts);
+}
+
+/** Ce qui a été fait, jour par jour (une séance en cours n'y est pas encore). */
+export function faitsParJour(E: Pick<Etat, "HIST" | "CARDIO" | "SORTIES"> & Partial<Pick<Etat, "LOG" | "SEANCES">>) {
   const m = new Map<string, Fait[]>();
   const ajouter = (d: string, f: Fait) => m.set(d, [...(m.get(d) || []), f]);
-  for (const l of E.HIST || []) ajouter(l.d, { nom: l.nom, famille: "muscu", s: l.s });
+  const enCours = new Set(seancesEnCours(E).map((c) => `${c.d}|${c.s}`));
+  for (const l of E.HIST || []) if (!enCours.has(`${l.d}|${l.s}`)) ajouter(l.d, { nom: l.nom, famille: "muscu", s: l.s });
   /* un bloc cardio d'une séance combinée (ref) est déjà dans sa séance */
   for (const c of E.CARDIO || []) if (!c.ref && !c.run) ajouter(jourDe(c.ts), { nom: c.nom, famille: "cardio", ts: c.ts });
   for (const s of E.SORTIES || []) ajouter(s.d, { nom: s.course ? "Course" : "Course à pied", famille: "course" });
@@ -52,7 +73,7 @@ export function faitsParJour(E: Pick<Etat, "HIST" | "CARDIO" | "SORTIES">) {
 
 /** Les jours de l'agenda : n jours à partir du lundi `debut`. Un prévu est « fait » quand une
     séance de la même famille a été faite ce jour-là ; passé et pas fait, il est « manqué ». */
-export function joursAgenda(E: Pick<Etat, "HIST" | "CARDIO" | "SORTIES"> & { AGENDA?: Prevu[] }, debut: string, auj: string, n = 14): JourAgenda[] {
+export function joursAgenda(E: Pick<Etat, "HIST" | "CARDIO" | "SORTIES"> & Partial<Pick<Etat, "LOG" | "SEANCES">> & { AGENDA?: Prevu[] }, debut: string, auj: string, n = 14): JourAgenda[] {
   const faits = faitsParJour(E), A = E.AGENDA || [];
   return Array.from({ length: n }, (_, k) => {
     const d = decaler(debut, k), fait = faits.get(d) || [];
