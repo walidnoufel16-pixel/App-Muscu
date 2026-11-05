@@ -78,6 +78,8 @@ export type Reponses = {
   prio?: number[];
   prefs?: Record<string, number[]>;
   exclus?: string[];
+  /** Dernier rappel choisi en programmant une séance (proposé par défaut la fois suivante). */
+  rappelAgenda?: { veille: boolean; h: number } | null;
   /** Zones que « Ma recommandation du jour » ne propose plus (lib/logic/recommandation.ts). */
   recoSans?: ("pec" | "dos" | "epa" | "bras" | "abd" | "jambes")[];
   actuel?: number;
@@ -153,6 +155,8 @@ export type Etat = {
   /* Préparation course à pied (lib/logic/course.ts) : le plan en cours et les sorties notées. */
   COURSE?: PlanCourse | null;
   SORTIES?: Sortie[];
+  /* « Mon agenda » : séances programmées, avec leur rappel (lib/logic/agenda.ts). */
+  AGENDA?: Prevu[];
 };
 
 export type HistoCardio = { nom: string; f: FormatCardio; m: Machine; min: number; effort: number; ts: number; ref?: string; run?: boolean };
@@ -160,6 +164,7 @@ export type HistoCardio = { nom: string; f: FormatCardio; m: Machine; min: numbe
 import type { FormatCardio, Machine, Niveau, Reglages, SeanceCardio } from "./cardio";
 import type { LigneHist } from "./historique";
 import type { PlanCourse, Sortie } from "./course";
+import type { Prevu } from "./agenda";
 
 /* Séance de la semaine telle qu'affichée (plan IA converti, ou socle par défaut). */
 export type SeanceSemaine = {
