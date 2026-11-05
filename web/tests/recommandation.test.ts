@@ -1,6 +1,6 @@
 /* « Ma recommandation du jour » (lib/logic/recommandation.ts). */
 import { describe, expect, it } from "vitest";
-import { recommander, etatGroupes } from "@/lib/logic/recommandation";
+import { recommander, etatGroupes, recoDuJour, musclesRecommandes } from "@/lib/logic/recommandation";
 import { MUSC } from "@/lib/data/referentiels";
 import type { LigneHist } from "@/lib/logic/historique";
 
@@ -71,5 +71,23 @@ describe("recommander", () => {
   it("les muscles proposés existent dans l'assistant (?m=)", () => {
     const r = recommander([push(LUN), pull(MAR)], MER)!;
     for (const p of r.propositions) for (const g of p.muscles) expect(MUSC.some((x) => x.k === g)).toBe(true);
+  });
+});
+
+describe("recoDuJour (agenda)", () => {
+  it("sans séance récente : un full body pour démarrer", () => {
+    const r = recoDuJour([], MER);
+    expect(r.debut).toBe(true);
+    expect(r.propositions[0].id).toBe("full");
+    expect(musclesRecommandes(r)).toContain("pec");
+  });
+  it("jambes écartées : le full body s'en passe", () => {
+    const r = recoDuJour([], MER, ["jambes"]);
+    expect(r.propositions[0].muscles).not.toContain("qua");
+  });
+  it("avec un historique : la même chose que recommander", () => {
+    const H = [push(LUN), pull(MAR)];
+    expect(recoDuJour(H, MER)).toEqual(recommander(H, MER));
+    expect(musclesRecommandes(recoDuJour(H, MER))).not.toContain("pec");
   });
 });

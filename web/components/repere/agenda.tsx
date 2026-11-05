@@ -21,6 +21,7 @@ import { musclesDe, titreSeance, wkDone } from "@/lib/logic/core";
 import { avecSorties, genererPlan, semaineDe, vdotActuel } from "@/lib/logic/course";
 import { objectifHebdo, serie } from "@/lib/logic/motivation";
 import { prochaineLibre } from "@/lib/logic/prochaine";
+import { musclesRecommandes, nomGroupe, phrase, recoDuJour } from "@/lib/logic/recommandation";
 import { useProgramme } from "./programme-vues";
 import { useProgrammeActif } from "@/lib/fonctionnalites";
 import { activerRappels, etatRappels } from "@/lib/rappels";
@@ -57,7 +58,9 @@ function useLancer() {
     if (q.t === "cardio") { const i = indexCardio(E, q.i, p.nom); if (i >= 0) router.push(`/entrainement/cardio?s=${i}` as Route, AVANT); return; }
     if (q.t === "course") { router.push(`/entrainement/course?s=${q.cle}` as Route, AVANT); return; }
     if (q.t === "plan") { muter((x) => { x.day = q.day; }); router.push("/entrainement/seance", AVANT); return; }
-    router.push("/entrainement/rubrique?v=libre" as Route, AVANT);
+    /* recommandation d'Oxa : l'assistant s'ouvre avec les muscles conseillés ce jour-là */
+    const m = musclesRecommandes(recoDuJour(E.HIST || [], jourDe(Date.now()), E.A.recoSans || []));
+    router.push((m ? `/entrainement/assistant?m=${m.join(",")}` : "/entrainement/assistant?type=cardio") as Route, AVANT);
   };
 }
 
@@ -210,7 +213,7 @@ function sousTitre(E: Etat, p: Prevu) {
   }
   if (p.quoi.t === "course") return "Oxa Run";
   if (p.quoi.t === "plan") return "Oxa Plan";
-  if (p.quoi.t === "reco") return tr("Choisie le jour même selon tes dernières séances");
+  if (p.quoi.t === "reco") return tr("Choisie le jour même par Oxa");
   return undefined;
 }
 
@@ -361,13 +364,15 @@ function FeuilleProgrammer({ init, auj, fermer }: { init: { d: string; quoi?: Qu
   const [choix, setChoix] = useState<{ quoi: QuoiPrevu; nom: string } | null>(init.quoi && init.nom ? { quoi: init.quoi, nom: init.nom } : null);
   const [hebdo, setHebdo] = useState(false);
   const [rappel, setRappel] = useState<Rappel | null>(etat.A.rappelAgenda === undefined ? { veille: true, h: 20 } : etat.A.rappelAgenda);
+  const [vueReco, setVueReco] = useState(false);
+  const reco = useMemo(() => recoDuJour(etat.HIST || [], d, etat.A.recoSans || []), [etat.HIST, etat.A.recoSans, d]);
 
   /* ce qu'on peut programmer ce jour-là */
   const options = useMemo(() => {
     const o: { titre: string; l: Choix[] }[] = [];
     const libres = etat.SEANCES.map((s, i) => ({ s, i })).filter(({ s }) => s.ex.length);
     if (libres.length) o.push({ titre: tr("Mes séances"), l: libres.map(({ s, i }) => ({ quoi: { t: "libre", i }, nom: s.nom, sous: musclesDe(s.ex.map((e) => e.id)).slice(0, 3).join(", "), icone: <BarbellIcon className="size-5" /> })) });
-    o.push({ titre: tr("Laisser Oxa choisir"), l: [{ quoi: { t: "reco" }, nom: tr("Recommandation d'Oxa"), sous: tr("Choisie le jour même selon tes dernières séances"), icone: <SparkleIcon className="size-5" weight="fill" /> }] });
+    o.push({ titre: tr("Laisser Oxa choisir"), l: [{ quoi: { t: "reco" }, nom: tr("Recommandation d'Oxa"), sous: sousReco(reco, d === auj), icone: <SparkleIcon className="size-5" weight="fill" /> }] });
     const c = etat.COURSE;
     if (c && d >= c.debut && d <= c.date) {
       const P = genererPlan(c, vdotActuel(c, etat.SORTIES, auj)), k = semaineDe(c, d, P.length), sem = P[k];
@@ -378,7 +383,7 @@ function FeuilleProgrammer({ init, auj, fermer }: { init: { d: string; quoi?: Qu
     const cardio = etat.SEANCES_CARDIO || [];
     if (cardio.length) o.push({ titre: tr("Cardio"), l: cardio.map((s, i) => ({ quoi: { t: "cardio", i }, nom: s.nom, icone: <HeartbeatIcon className="size-5" /> })) });
     return o.filter((x) => x.l.length);
-  }, [etat, d, auj, prog, plan, wk, socle, W]);
+  }, [etat, d, auj, prog, plan, wk, socle, W, reco]);
 
   const valider = async () => {
     if (!choix) return;
@@ -407,6 +412,13 @@ function FeuilleProgrammer({ init, auj, fermer }: { init: { d: string; quoi?: Qu
     }
   };
 
+  if (!choix && vueReco)
+    return (
+      <VueReco r={reco} d={d} auj={auj} retour={() => setVueReco(false)}
+        ouvrir={(url) => { fermer(); router.push(url as Route, AVANT); }}
+        plusTard={() => { setVueReco(false); setChoix({ quoi: { t: "reco" }, nom: tr("Recommandation d'Oxa") }); }} />
+    );
+
   if (!choix)
     return (
       <>
@@ -417,12 +429,12 @@ function FeuilleProgrammer({ init, auj, fermer }: { init: { d: string; quoi?: Qu
             <h3 className="eyebrow mb-1.5 px-1">{g.titre}</h3>
             <div className="flex flex-col gap-1.5">
               {g.l.map((c) => (
-                <button key={c.nom + JSON.stringify(c.quoi)} onClick={() => { tactile(6); setChoix({ quoi: c.quoi, nom: c.nom }); }}
+                <button key={c.nom + JSON.stringify(c.quoi)} onClick={() => { tactile(6); if (c.quoi.t === "reco") setVueReco(true); else setChoix({ quoi: c.quoi, nom: c.nom }); }}
                   className="flex items-center gap-3 rounded-2xl bg-muted/60 p-3 text-left active:scale-[.99]">
                   <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-plate-soft text-plate-ink dark:text-plate">{c.icone}</span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[15px] font-semibold">{c.nom}</span>
-                    {(c.sous || c.deja) && <span className="block truncate text-[12.5px] text-muted-foreground">{[c.sous, c.deja ? tr("déjà dans l'agenda") : ""].filter(Boolean).join(" · ")}</span>}
+                    {(c.sous || c.deja) && <span className="line-clamp-2 block text-[12.5px] leading-snug text-muted-foreground">{[c.sous, c.deja ? tr("déjà dans l'agenda") : ""].filter(Boolean).join(" · ")}</span>}
                   </span>
                   <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" />
                 </button>
@@ -462,6 +474,72 @@ function FeuilleProgrammer({ init, auj, fermer }: { init: { d: string; quoi?: Qu
       <button onClick={valider} className="mt-4 h-12 w-full rounded-full bg-plate text-[15.5px] font-semibold text-plate-foreground active:scale-[.98]">
         {init.modifier ? tr("Programmer puis modifier") : tr("Programmer")}
       </button>
+    </>
+  );
+}
+
+/* ---------------- recommandation d'Oxa ---------------- */
+function sousReco(r: ReturnType<typeof recoDuJour>, auj: boolean) {
+  if (r.debut) return tr("Full body pour démarrer");
+  if (r.type === "fait") return tr("Séance déjà faite ce jour-là");
+  if (r.type === "repos") return tr("Repos conseillé ce jour-là");
+  return `${r.propositions[0].nom} · ${auj ? tr("selon tes dernières séances") : tr("selon ta récupération ce jour-là")}`;
+}
+
+/* ce qu'Oxa conseille pour ce jour : on crée la séance tout de suite, ou on la programme (choisie le jour J) */
+function VueReco({ r, d, auj, retour, ouvrir, plusTard }: { r: ReturnType<typeof recoDuJour>; d: string; auj: string; retour: () => void; ouvrir: (url: string) => void; plusTard: () => void }) {
+  const [i, setI] = useState(0);
+  const p = r.type === "seance" ? r.propositions[i % r.propositions.length] : undefined;
+  const creer = (m: string[]) => { tactile(8); ouvrir(`/entrainement/assistant?m=${m.join(",")}`); };
+  return (
+    <>
+      <div className="mt-2 px-1 text-[11px] font-bold tracking-[0.12em] text-muted-foreground uppercase">{maj(jourLong(d))}</div>
+      <button onClick={retour} className="px-1 text-[13px] font-semibold text-plate-ink dark:text-plate">{tr("Changer de séance")}</button>
+      <section className={cn("mt-3 rounded-[22px] p-4", p ? "bg-[linear-gradient(160deg,var(--plate),color-mix(in_oklab,var(--plate)_78%,black))] text-plate-foreground" : "bg-muted/60")}>
+        <div className={cn("flex items-center gap-1.5 text-[11px] font-bold tracking-[0.12em] uppercase", p ? "opacity-75" : "text-plate-ink dark:text-plate")}>
+          <SparkleIcon className="size-3.5" weight="fill" />{tr("Recommandation d'Oxa")}
+        </div>
+        {p ? (
+          <>
+            <DrawerTitle className="mt-2 text-[22px] leading-tight font-extrabold tracking-[-0.01em]">{tr("Je te recommande : {s}", { s: p.nom.toLowerCase() })}</DrawerTitle>
+            <DrawerDescription className="mt-1 text-[13.5px] leading-snug text-current opacity-85">{phrase(p.muscles.map(nomGroupe))} · {p.raison}</DrawerDescription>
+            <div className="mt-3.5 flex gap-2">
+              <button onClick={() => creer(p.muscles)} className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full bg-white text-[14.5px] font-semibold text-[#0a0a0c] active:scale-[.98]">
+                {tr("Créer cette séance")}<ArrowRightIcon className="size-4" weight="bold" />
+              </button>
+              {r.propositions.length > 1 && (
+                <button onClick={() => { tactile(6); setI((x) => x + 1); }} className="h-11 rounded-full border-[1.5px] border-black/30 px-4 text-[14px] font-semibold active:scale-[.98]">
+                  {tr("Autre idée")}
+                </button>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <DrawerTitle className="mt-2 text-[21px] leading-tight font-extrabold tracking-[-0.01em]">
+              {r.type === "fait" && d === auj ? tr("Séance faite aujourd'hui") : tr("Repos ou cardio léger")}
+            </DrawerTitle>
+            <DrawerDescription className="mt-1 text-[13.5px] leading-snug text-muted-foreground">
+              {r.type === "fait" ? tr("Ton corps récupère : c'est pendant le repos que les muscles se construisent.") : tr("Tes muscles récupèrent encore de tes dernières séances : c'est pendant le repos qu'ils se construisent.")}
+              {r.demain && <> {tr("Demain : {s}.", { s: r.demain.nom.toLowerCase() })}</>}
+            </DrawerDescription>
+            <div className="mt-3.5 flex gap-2">
+              <button onClick={() => { tactile(8); ouvrir("/entrainement/assistant?type=cardio"); }} className="flex h-11 flex-1 items-center justify-center rounded-full bg-plate text-[14.5px] font-semibold text-plate-foreground active:scale-[.98]">
+                {tr("Cardio doux")}
+              </button>
+              {r.demain && (
+                <button onClick={() => creer(r.demain!.muscles)} className="h-11 rounded-full border-[1.5px] border-border px-4 text-[14px] font-semibold active:scale-[.98]">
+                  {tr("Séance quand même")}
+                </button>
+              )}
+            </div>
+          </>
+        )}
+      </section>
+      <button onClick={() => { tactile(6); plusTard(); }} className="mt-3 flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-border text-[14px] font-semibold active:scale-[.98]">
+        <CalendarDotsIcon className="size-4" />{tr("Programmer pour plus tard")}
+      </button>
+      <p className="mt-1.5 px-1 text-center text-[12px] text-muted-foreground">{tr("Oxa choisira la séance le jour même, selon tes dernières séances.")}</p>
     </>
   );
 }
