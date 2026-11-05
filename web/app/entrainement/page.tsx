@@ -1,24 +1,16 @@
 "use client";
 
-/* Entraînement : en tête, ce qu'il y a à faire (la séance du jour du programme, sinon ta
-   prochaine séance libre), ta régularité et tes protéines ; puis une bannière par rubrique.
-   Juste après l'inscription, il n'y a que les bannières, Séance libre en premier. */
+/* Entraînement : en tête, « Mon agenda » (deux semaines de séances faites et prévues, et la
+   séance du jour), puis une bannière par rubrique. */
 import { tr } from "@/lib/i18n";
-import { useRouter } from "next/navigation";
-import { ChartLineUpIcon } from "@phosphor-icons/react";
 import { ChoixLangue } from "@/components/repere/choix-langue";
 import { EnTete } from "@/components/repere/en-tete";
-import { CarteRegularite, Reprise } from "@/components/repere/motivation";
-import { CarteProteines } from "@/components/repere/proteines";
-import { CarteCourse } from "@/components/repere/course";
+import { Reprise } from "@/components/repere/motivation";
+import { MonAgenda } from "@/components/repere/agenda";
 import { ProgrammeBientot } from "@/components/repere/bientot";
 import { Bannieres, type Rubrique } from "@/components/repere/rubriques";
-import { CarteProgrammeDuJour, Hero, useProgramme } from "@/components/repere/programme-vues";
-import { musclesDe } from "@/lib/logic/core";
-import { dureeTotale as dureeSeance } from "@/lib/logic/combinee";
-import { prochaineLibre } from "@/lib/logic/prochaine";
+import { useProgramme } from "@/components/repere/programme-vues";
 import { useRepere } from "@/lib/store";
-import { AVANT } from "@/lib/nav";
 import { usePremiereVisite } from "@/lib/entree";
 import { cn } from "@/lib/utils";
 import { useProgrammeActif } from "@/lib/fonctionnalites";
@@ -43,17 +35,9 @@ export default function PageEntrainement() {
         actions={<ChoixLangue />}
       />
       <div className={cn("flex flex-col gap-3 px-4", premiere && "entree")}>
-        {enProgramme ? <CarteProgrammeDuJour /> : <ProchaineLibre />}
+        {/* deux semaines de séances (faites et prévues), et la séance du jour */}
+        <MonAgenda />
         <Reprise />
-        {habitue && (
-          <>
-            <div className="grid grid-cols-2 gap-3">
-              <CarteRegularite tuile />
-              {etat.A.protOff ? <TuileVide /> : <CarteProteines tuile />}
-            </div>
-            <CarteCourse />
-          </>
-        )}
         <section className="mt-4">
           <h2 className="eyebrow mb-2 px-1">{habitue ? tr("Rubriques") : tr("Par où commencer")}</h2>
           <Bannieres rubriques={rubriques} texte={enProgramme ? {} : { programme: tr("Construis ton programme : une douzaine de questions, puis huit semaines de séances.") }} detail={detailProgramme ? { programme: detailProgramme } : {}} />
@@ -61,34 +45,5 @@ export default function PageEntrainement() {
         {!prog && <ProgrammeBientot className="mt-1" />}
       </div>
     </>
-  );
-}
-
-/* Sans programme : la séance libre à faire (une jamais faite, sinon la plus ancienne). */
-function ProchaineLibre() {
-  const router = useRouter();
-  const etat = useRepere((s) => s.etat);
-  const i = prochaineLibre(etat.SEANCES, etat.HIST);
-  if (i == null) return null;
-  const s = etat.SEANCES[i], ids = s.ex.map((e) => e.id);
-  return (
-    <Hero
-      surtitre={tr("Ta prochaine séance")}
-      titre={s.nom}
-      texte={tr("{length} exercices · environ {a} min · {b}", { length: s.ex.length, a: dureeSeance(s), b: musclesDe(ids).slice(0, 3).join(", ") })}
-      bouton={tr("Commencer")}
-      onClick={() => router.push(`/entrainement/seance?l=${i}`, AVANT)}
-    />
-  );
-}
-
-/* Sans protéines affichées : la tuile de régularité garde sa moitié, l'autre mène aux Progrès. */
-function TuileVide() {
-  const router = useRouter();
-  return (
-    <button onClick={() => router.push("/progres", AVANT)} className="flex min-h-[124px] flex-col justify-between rounded-[22px] bg-card p-3.5 text-left active:scale-[.98]">
-      <ChartLineUpIcon className="size-7 text-plate" />
-      <span className="text-[13px] leading-snug font-medium">{tr("Tes records et ton volume")}</span>
-    </button>
   );
 }

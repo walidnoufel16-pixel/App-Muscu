@@ -8,7 +8,7 @@
 //  (service_role seulement).
 // ============================================================
 import webpush from "npm:web-push@3.6.7";
-import { derniereActivite, rappelDu, type Sauvegarde } from "./logique.ts";
+import { derniereActivite, rappelDu, rappelsAgenda, seancePrevueBientot, type Sauvegarde } from "./logique.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -67,10 +67,16 @@ Deno.serve(async (req) => {
   const cle = req.headers.get("x-cle");
   if (cle) {
     if (cle !== cles.rappels_cle) return rep({ erreur: "Clé invalide." }, 401);
-    if (!corps.force && heureParis() !== 18) return rep({ ok: true, ignore: "hors 18 h" });
-    const auj = paris(Date.now()), lignes = await rpc("rappels_a_traiter") as Ligne[];
-    let envoyes = 0;
+    const auj = paris(Date.now()), heure = heureParis(), lignes = await rpc("rappels_a_traiter") as Ligne[];
+    let envoyes = 0, agenda = 0;
+    /* toutes les heures : les rappels des séances programmées dans « Mon agenda » */
+    for (const l of lignes)
+      for (const r of rappelsAgenda(l.etat, auj, heure, l.langue, paris))
+        if (await envoyer(l, { titre: r.titre, corps: r.corps, url: r.url, tag: "agenda-" + r.id })) agenda++;
+    /* à 18 h seulement : le rappel après quelques jours sans séance */
+    if (!corps.force && heure !== 18) return rep({ ok: true, agenda, ignore: "hors 18 h" });
     for (const l of lignes) {
+      if (seancePrevueBientot(l.etat, auj)) continue;
       const der = derniereActivite(l.etat, paris);
       /* une séance depuis le dernier rappel : on repart de zéro */
       const deja = der && l.ref === der ? l.niveau : 0;
@@ -84,7 +90,7 @@ Deno.serve(async (req) => {
         await table(`endpoint=eq.${encodeURIComponent(l.endpoint)}`, { method: "PATCH", body: JSON.stringify({ niveau: r.niveau, ref: der, envoye: new Date().toISOString() }) });
       }
     }
-    return rep({ ok: true, abonnes: lignes.length, envoyes });
+    return rep({ ok: true, abonnes: lignes.length, envoyes, agenda });
   }
 
   /* --- essai depuis l'app : l'identité vient du jeton --- */

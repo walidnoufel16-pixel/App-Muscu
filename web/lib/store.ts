@@ -16,7 +16,8 @@ import { sb, SB_KEY, SB_URL } from "@/lib/supabase";
 import type { Etat, Reponses, SeanceLibre } from "@/lib/logic/types";
 import { decoderCardio, encoderCardio } from "@/lib/logic/cardio";
 import { decoderBlocs, encoderBlocs } from "@/lib/logic/combinee";
-import { MAX_HIST, reconstruire, redater } from "@/lib/logic/historique";
+import { jourDe, MAX_HIST, reconstruire, redater } from "@/lib/logic/historique";
+import type { Prevu } from "@/lib/logic/agenda";
 import { ROUTINES_SOIN } from "@/lib/data/soin";
 import { rattacherJournaux } from "@/lib/logic/actions";
 import { fusionner } from "@/lib/logic/fusion";
@@ -101,6 +102,8 @@ export function versEtat(s: Stocke | null): Etat {
   e.HIST = Array.isArray(s.HIST) ? nettoieArbre(s.HIST).slice(-MAX_HIST) : reconstruire(e);
   e.COURSE = s.COURSE && typeof s.COURSE === "object" ? nettoieArbre(s.COURSE) : null;
   e.SORTIES = Array.isArray(s.SORTIES) ? nettoieArbre(s.SORTIES).slice(-500) : [];
+  /* « Mon agenda » : séances programmées ; les jours passés depuis plus de 60 jours sont oubliés */
+  e.AGENDA = Array.isArray(s.AGENDA) ? (nettoieArbre(s.AGENDA) as Prevu[]).filter((p) => p && typeof p.d === "string" && p.quoi && (p.hebdo || p.d >= jourDe(Date.now() - 60 * 864e5))).slice(-200) : [];
   /* séries restées à la position d'un autre exercice (séance modifiée avant la correction) */
   rattacherJournaux(e);
   /* séance complétée après minuit, notée comme une séance du lendemain : remise sur son jour */

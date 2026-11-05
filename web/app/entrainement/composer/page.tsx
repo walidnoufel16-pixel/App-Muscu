@@ -29,6 +29,7 @@ import { useRepere } from "@/lib/store";
 import { ARRIERE, revenirA } from "@/lib/nav";
 import { Retour, useRetour } from "@/components/repere/retour";
 import { useBrouillon } from "@/lib/brouillon";
+import { remplacerLe } from "@/lib/logic/agenda";
 import { AvisSeance } from "@/components/repere/avis-seance";
 import { lienRubrique } from "@/components/repere/rubriques";
 import { tactile } from "@/lib/repos";
@@ -109,11 +110,31 @@ export default function PageComposer() {
   const majBloc = (id: string, c: Partial<BlocCardio>) => majLibre((l) => { const b = l.blocs?.find((x) => x.id === id); if (b) Object.assign(b, c); });
   const retirerBloc = (id: string) => { majLibre((l) => { l.blocs = (l.blocs || []).filter((x) => x.id !== id); }); setBlocOuvert(null); };
 
-  const enregistrer = () => {
-    const nom = L.nom.trim() || tr("Séance libre");
+  const enregistrer = async () => {
+    let nom = L.nom.trim() || tr("Séance libre");
     const s = { nom, ex: L.ex.map((e) => { const c = { ...e }; delete c.o; return c; }), ...(L.blocs?.length ? { blocs: L.blocs } : {}), ...(L.obj != null ? { obj: L.obj } : {}), ...(L.colObj != null ? { colObj: L.colObj } : {}), ...(L.gen ? { gen: L.gen } : {}), ...(L.code ? { code: L.code } : {}), ...(L.avisIgnores?.length ? { avisIgnores: L.avisIgnores } : {}) };
-    /* modification : les séries déjà notées suivent leur exercice */
-    muter((E) => { if (L.idx != null) { act.reattacherJournaux(E, L.idx, L.ex.map((e) => e.o)); E.SEANCES[L.idx] = s; } else E.SEANCES.push(s); });
+    /* modifiée depuis « Mon agenda » : la séance elle-même, ou une variante pour ce jour-là seulement */
+    const ag = L.agenda;
+    const variante = !!ag && L.idx != null && (await confirmer({
+      titre: tr("Pour ce jour, ou pour de bon ?"),
+      texte: tr("Une variante garde « {nom} » telle qu'elle est et programme la version modifiée ce jour-là.", { nom: etat.SEANCES[L.idx]?.nom ?? nom }),
+      ok: tr("Une variante pour ce jour"), non: tr("Modifier ma séance"),
+    }));
+    if (variante) {
+      if (nom === etat.SEANCES[L.idx!]?.nom) nom = tr("{nom} (variante)", { nom });
+      s.nom = nom;
+      muter((E) => {
+        E.SEANCES.push(s);
+        if (ag?.id) remplacerLe(E.AGENDA ?? [], ag.id, ag.d, { t: "libre", i: E.SEANCES.length - 1 }, nom);
+      });
+    } else
+      /* modification : les séries déjà notées suivent leur exercice */
+      muter((E) => {
+        if (L.idx != null) { act.reattacherJournaux(E, L.idx, L.ex.map((e) => e.o)); E.SEANCES[L.idx] = s; } else E.SEANCES.push(s);
+        /* renommée : la séance programmée porte le nouveau nom */
+        const p = ag?.id ? E.AGENDA?.find((x) => x.id === ag.id) : undefined;
+        if (p && p.quoi.t === "libre") p.nom = nom;
+      });
     part.current = true;
     setLibre(null);
     /* modification : retour à la séance ; création : retour à Entraînement, où elle apparaît */
