@@ -630,3 +630,29 @@ export function histo(E: Etat, id: string, idx: number): LigneHisto[] {
 /* Alternatives d'un exercice : même schéma moteur, matériel déclaré. */
 export const alternativesDe = (A: Reponses, id: string) =>
   Object.keys(EX).filter((o) => EX[o].pat === EX[id].pat && dispoDeclare(A, o));
+
+/* ---------------- fin de semaine et fin de cycle (Oxa Plan v2) ---------------- */
+const lundiDeTs = (t: number) => { const d = new Date(t); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.toDateString(); };
+/** La semaine du programme est bouclée et une nouvelle semaine du calendrier a commencé depuis
+    la dernière séance : on passe tout seul à la semaine suivante. */
+export function passerSemaine(E: Etat, maintenant = Date.now(), W = week(E)): boolean {
+  if (E.wk >= 7 || !wkFull(E, E.wk, W)) return false;
+  const ts = Object.entries(E.LOG).filter(([k]) => k.startsWith(E.wk + "|")).map(([, L]) => L.ts || 0);
+  const der = Math.max(0, ...ts);
+  return !!der && lundiDeTs(maintenant) !== lundiDeTs(der);
+}
+/** Bilan du cycle : pour chaque exercice principal fait en semaine 1 et en fin de cycle (le même
+    exercice, au même emplacement), la meilleure charge d'avant et d'après. */
+export function bilanCycle(E: Etat, W = week(E, 0)): { id: string; avant: number; apres: number }[] {
+  const out: { id: string; avant: number; apres: number }[] = [];
+  W.forEach((S, si) => (S.x || []).forEach((e, i) => {
+    if (!e[4]) return;
+    const L0 = E.LOG[key(0, si, i)];
+    if (!L0?.done || !EX[L0.ex]) return;
+    for (let w = 7; w >= 1; w--) {
+      const L = E.LOG[key(w, si, i)];
+      if (L?.done && L.ex === L0.ex) { out.push({ id: L0.ex, avant: maxV(L0), apres: maxV(L) }); return; }
+    }
+  }));
+  return out.filter((x, k) => out.findIndex((y) => y.id === x.id) === k).slice(0, 4);
+}

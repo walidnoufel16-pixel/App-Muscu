@@ -5,7 +5,7 @@
 import { langue, tr } from "@/lib/i18n";
 import { useState } from "react";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
-import { ArrowsClockwiseIcon, BowlFoodIcon, CaretDownIcon, CaretRightIcon, CheckIcon, ClockIcon, CookieIcon, HandPalmIcon, MinusIcon, PlusIcon, SunHorizonIcon } from "@phosphor-icons/react";
+import { ArrowsClockwiseIcon, BowlFoodIcon, CaretDownIcon, CaretRightIcon, CheckIcon, ClockIcon, CookieIcon, DropIcon, HandPalmIcon, MinusIcon, PlusIcon, SunHorizonIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import type { Moment, Recette } from "@/lib/data/recettes";
@@ -203,6 +203,32 @@ export function Prudence() {
   return <p className="px-2 text-center text-[11.5px] leading-relaxed text-muted-foreground">{tr("Des repères généraux, pas un avis médical. En cas de pathologie, de grossesse ou de trouble alimentaire, parles-en à un médecin ou à un diététicien.")}</p>;
 }
 
+/* ---------------- conseils du nutritionniste ----------------
+   Repères simples et sûrs pour le sportif ; ce ne sont pas des prescriptions (voir Prudence). */
+export function ConseilsNutrition({ vegan }: { vegan: boolean }) {
+  const [ouvert, setOuvert] = useState<number | null>(null);
+  const l: [string, string, string][] = [
+    ["💪", tr("Créatine"), tr("Le complément le mieux étudié pour la force : 3 à 5 g par jour, tous les jours, à n'importe quelle heure. Pas besoin de « charge ». Garde une bonne hydratation.")],
+    ["☀️", tr("Vitamine D"), tr("D'octobre à mars, le soleil ne suffit plus en France. Un dosage sanguin chez ton médecin dit s'il faut compléter.")],
+    ["🐟", tr("Oméga-3"), tr("Deux portions de poisson gras par semaine (saumon, sardines, maquereau) ; sinon noix, colza et lin, ou un complément d'huile de poisson ou d'algue.")],
+    ...(vegan ? [["🌱", tr("B12 et fer (végan)"), tr("La vitamine B12 se complète toujours en alimentation végane. Pour le fer, associe légumineuses et vitamine C (agrumes, poivron), et évite le thé ou le café pendant le repas.")] as [string, string, string]] : []),
+    ["🧂", tr("Sel et chaleur"), tr("Après une séance longue ou très transpirée, un peu de sel dans le repas suivant aide à récupérer l'eau perdue.")],
+  ];
+  return (
+    <section className="rounded-[22px] bg-card p-4" aria-label={tr("Conseils du nutritionniste")}>
+      <h2 className="text-[17px] font-bold">{tr("Conseils du nutritionniste")}</h2>
+      <div className="mt-2 flex flex-col">
+        {l.map(([e, t, x], i) => (
+          <button key={t} onClick={() => setOuvert(ouvert === i ? null : i)} aria-expanded={ouvert === i} className="border-b border-border/70 py-2.5 text-left last:border-b-0">
+            <span className="flex items-center gap-2.5 text-[15px] font-semibold"><span aria-hidden>{e}</span>{t}<CaretDownIcon className={cn("ml-auto size-4 text-muted-foreground transition-transform", ouvert === i && "rotate-180")} /></span>
+            {ouvert === i && <span className="mt-1.5 block pl-8 text-[13.5px] leading-relaxed text-muted-foreground">{x}</span>}
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 /* ---------------- besoins du jour ---------------- */
 const CRENEAUX_JOUR: CreneauRepas[] = ["matin", "dejeuner", "diner", "collation"];
 export function CarteBesoins({ b, kcal }: { b: Besoins; kcal: boolean }) {
@@ -224,6 +250,7 @@ export function CarteBesoins({ b, kcal }: { b: Besoins; kcal: boolean }) {
           </>
         )}
       </div>
+      {b.eau ? <p className="mt-2.5 flex items-center gap-1.5 text-[13px] text-muted-foreground"><DropIcon className="size-4 shrink-0 text-[#2f8fd8]" weight="fill" />{tr("Eau : environ {l} l dans la journée", { l: fmt(Math.round(b.eau / 100) / 10) })}{b.seance ? tr(", dont un demi-litre par heure de sport") : ""}.</p> : null}
       {b.ajustement && <p className="mt-2.5 rounded-xl bg-muted/60 px-3 py-2 text-[12.5px] leading-snug text-muted-foreground">{b.ajustement}</p>}
       <h3 className="eyebrow mt-4 mb-1.5 flex items-center gap-1.5"><HandPalmIcon className="size-3.5" weight="fill" />{tr("Dans ton assiette, à la main")}</h3>
       <table className="w-full text-[13.5px]">

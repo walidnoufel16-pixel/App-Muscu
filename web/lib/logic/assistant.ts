@@ -32,9 +32,10 @@ export const musclesPrioritaires = (noms: string[]) => noms.flatMap((n) => GROUP
 /* `niveau` (Profil, A.regularite) : volume ×0,8 pour qui débute ou reprend, ×1,15 pour un confirmé.
    `o.prio` : muscles prioritaires (un exercice de plus s'ils sont choisis) ; `o.habitudes` : exercices
    déjà faits, préférés pour le premier exercice de chaque muscle (une base stable, des courbes lisibles). */
-export function construireSeance(muscles: string[], duree: number, obj: number, sel: string[], rnd: Hasard = Math.random, evite: (o: string) => boolean = () => false, niveau?: number, o: { prio?: string[]; habitudes?: Set<string> } = {}): ExLibre[] {
+export function construireSeance(muscles: string[], duree: number, obj: number, sel: string[], rnd: Hasard = Math.random, evite: (o: string) => boolean = () => false, niveau?: number, o: { prio?: string[]; habitudes?: Set<string>; dense?: boolean } = {}): ExLibre[] {
   const facteur = niveau == null ? 1 : niveau <= 1 ? 0.8 : niveau >= 3 ? 1.15 : 1;
-  const series = Math.round((DUREES.find((d) => d[0] === duree) || DUREES[1])[1] * facteur);
+  /* `o.dense` (séance de 30 min) : repos courts sur l'isolation, ce qui laisse la place à 2 séries de plus */
+  const series = Math.round((DUREES.find((d) => d[0] === duree) || DUREES[1])[1] * facteur) + (o.dense ? 2 : 0);
   const parEx = obj === 1 ? 4 : 3, n = Math.max(muscles.length, Math.round(series / parEx));
   const G = muscles.map((k) => MUSC.find((g) => g.k === k)).filter(Boolean) as typeof MUSC;
   /* Répartition au plus fort reste, au moins un exercice par muscle. */
@@ -84,7 +85,7 @@ export function construireSeance(muscles: string[], duree: number, obj: number, 
   const total = () => l.reduce((a, e) => a + e.s, 0);
   for (const cond of [(e: (typeof l)[number]) => !e.big, () => true])
     l.forEach((e) => { if (total() > series && cond(e) && e.s > 2) e.s = 2; });
-  return l.map((e) => ({ id: e.id, s: e.s, r: e.r, p: e.p }));
+  return l.map((e) => ({ id: e.id, s: e.s, r: e.r, p: o.dense && !e.big && secondesDe(e.p) > 45 ? "45 s" : e.p }));
 }
 
 /* Nom de la séance générée. */

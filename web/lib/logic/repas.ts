@@ -92,7 +92,7 @@ const PART: Record<CreneauRepas, [number, number]> = { matin: [0.25, 0.25], deje
 export const part = (c: CreneauRepas, seance: boolean) => PART[c][seance ? 1 : 0];
 export const creneauDe = (m: Moment): CreneauRepas => (m === "matin" ? "matin" : m === "collation" ? "collation" : "dejeuner");
 
-export type Besoins = { kcal: number; p: number; g: number; l: number; seance: boolean; ajustement?: string };
+export type Besoins = { kcal: number; p: number; g: number; l: number; seance: boolean; ajustement?: string; eau?: number };
 /** Jours d'activité des 7 derniers jours (musculation, cardio, course). */
 export function joursActifs(E: Etat, auj = Date.now()) {
   const jours = new Set<string>();
@@ -156,7 +156,10 @@ export function besoins(E: Etat, seance: boolean): Besoins {
   let l = Math.max(0.8 * kg, (0.27 * kcal) / 9), g = (kcal - p * 4 - l * 9) / 4;
   if (g < gMin) { l = Math.max(0.6 * kg, (kcal - p * 4 - gMin * 4) / 9); g = Math.max(gMin, (kcal - p * 4 - l * 9) / 4); }
   const r5 = (x: number) => Math.round(x / 5) * 5, total = Math.max(kcal, p * 4 + r5(l) * 9 + r5(g) * 4);
-  return { kcal: Math.round(total / 10) * 10, p, g: r5(g), l: r5(l), seance, ...(adj.texte ? { ajustement: adj.texte } : {}) };
+  /* eau : 35 ml/kg, plus 0,5 l par heure de sport */
+  const minutes = (seance ? Math.max(((A.duree as number) ?? 45), 0) : 0) + fait.endurance;
+  const eau = Math.round((35 * kg + (minutes / 60) * 500) / 100) * 100;
+  return { kcal: Math.round(total / 10) * 10, p, g: r5(g), l: r5(l), seance, eau, ...(adj.texte ? { ajustement: adj.texte } : {}) };
 }
 
 /** Méthode de la main pour un repas : paumes de protéines (~25 g), poings de féculents
