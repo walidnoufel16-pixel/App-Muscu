@@ -82,6 +82,9 @@ export type Reponses = {
   rappelAgenda?: { veille: boolean; h: number } | null;
   /** Zones que « Ma recommandation du jour » ne propose plus (lib/logic/recommandation.ts). */
   recoSans?: ("pec" | "dos" | "epa" | "bras" | "abd" | "jambes")[];
+  /** « Oxa te propose » masqué sur l'accueil : pour un jour (sa date) ou tout le temps (Profil le réactive). */
+  recoMasquee?: string;
+  recoOff?: boolean;
   actuel?: number;
   /** Langue choisie dans Profil (suit le compte sur un autre appareil). */
   langue?: "fr" | "en";
