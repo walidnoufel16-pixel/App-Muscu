@@ -56,3 +56,27 @@ describe("bilan de la semaine", () => {
     expect([jourDuBilan("2026-11-02"), jourDuBilan("2026-11-03"), jourDuBilan("2026-11-04")]).toEqual([true, true, false]);
   });
 });
+
+import { journal, journalActif, journalPerime } from "@/lib/logic/core";
+import { serVal } from "@/lib/logic/actions";
+import type { Ctx } from "@/lib/logic/core";
+import type { Etat } from "@/lib/logic/types";
+
+describe("journal oublié", () => {
+  const vieux = Date.now() - 11 * 864e5;
+  const oublie = { ex: "fp", done: false, ts: vieux, v: 10, reps: 10, nb: 3, feel: null, series: [{ v: 10, reps: 10 }, { v: 10, reps: 10 }, { v: 10, reps: 10 }] } as unknown as Journal;
+  const c = { k: "L|0|0", id: "fp", n: 3, base: { v: 7.5, reps: 10 }, why: "Reprise", repos: "90 s" } as unknown as Ctx;
+  it("plus de 6 h sans série validée : oublié ; récent ou commencé : actif", () => {
+    expect(journalPerime(oublie)).toBe(true);
+    expect(journalActif(oublie)).toBeUndefined();
+    expect(journalPerime({ ...oublie, ts: Date.now() - 3600e3 } as Journal)).toBe(false);
+    expect(journalPerime({ ...oublie, series: [{ v: 10, reps: 10, ok: true }] } as unknown as Journal)).toBe(false);
+  });
+  it("la première saisie repart de la charge proposée", () => {
+    const E = { LOG: { "L|0|0": structuredClone(oublie) } } as unknown as Etat;
+    serVal(E, c, 0, "reps", "12");
+    expect(E.LOG["L|0|0"].series.map((x: { v: number }) => x.v)).toEqual([7.5, 7.5, 7.5]);
+    expect(E.LOG["L|0|0"].series[0].reps).toBe(12);
+    expect(journal({}, c).why).toBe("Reprise");
+  });
+});
