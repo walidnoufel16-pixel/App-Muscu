@@ -2,9 +2,11 @@ import { chromium } from "@playwright/test";
 import { readFileSync, mkdirSync } from "node:fs";
 // dossier de travail : brut/ (captures de l'app), scenes/ (plans générés)
 const S = process.env.PACK || "/tmp/pack";
-const O = "/home/user/App-Muscu/docs/reseaux/semaine-1";
-const LOGO = readFileSync("/home/user/App-Muscu/docs/reseaux/photo-profil-oxa.png").toString("base64");
+// lancé depuis web/ ; SORTIE = dossier de la semaine, par ex. ../docs/reseaux/semaine-2
+const O = process.env.SORTIE || `${process.cwd()}/../docs/reseaux/semaine-1`;
+const LOGO = readFileSync(`${process.cwd()}/../docs/reseaux/photo-profil-oxa.png`).toString("base64");
 const ecran = (f, h, bas) => { const e = 860 / 390; return `<div class="ecran" style="height:${(bas - h) * e}px"><img src="data:image/png;base64,${readFileSync(`${S}/brut/${f}.png`).toString("base64")}" style="margin-top:${-h * e}px"></div>`; };
+// Exemple : les carrousels de la semaine 1. Réécris le contenu pour chaque nouveau carrousel.
 const C = {
   "carrousel-1-series": [
     { couv: 1, t: "Combien de séries par muscle <em>chaque semaine</em> ?", s: "La réponse dépend de ton niveau. Glisse →" },
@@ -12,7 +14,7 @@ const C = {
     { n: "02", t: "Les repères <em>par niveau</em>", tab: [["Débutant", "8 séries"], ["Régulier", "12 séries"], ["Avancé", "16 séries"]], s2: "par muscle et par semaine, pour progresser sans t'épuiser" },
     { n: "03", t: "Coupe-les en <em>2 séances</em>", l: ["12 séries de pecs ? Mieux vaut 2 × 6 qu'une seule séance à 12.", "Chaque muscle travaillé 2 fois par semaine progresse plus vite.", "Laisse 48 h entre deux séances du même muscle."] },
     { n: "04", t: "Plus n'est pas <em>toujours</em> mieux", l: ["Tes charges baissent d'une semaine à l'autre ?", "Tu es courbaturé avant chaque séance ?", "Retire 2 à 4 séries par muscle pendant une semaine."] },
-    { fin: 1, t: "Oxa compte <em>pour toi</em>", s: "Tes séries par muscle, face à ta cible, chaque lundi.", img: ["e1-bilan-feuille", 330, 610] },
+    { fin: 1, t: "Oxa compte <em>pour toi</em>", s: "Tes séries par muscle, face à ta cible, chaque lundi.", img: ["bilan", 330, 610] },
   ],
   "carrousel-2-surcharge": [
     { couv: 1, t: "Prendre du poids à la salle <em>sans se blesser</em>", s: "La méthode de la double progression. Glisse →" },
@@ -20,7 +22,7 @@ const C = {
     { n: "02", t: "Ajoute des <em>répétitions</em>, pas des kilos", l: ["Même charge, une répétition de plus quand tu peux.", "Séance après séance : 8, 9, 10, 11, 12.", "La technique reste propre jusqu'au bout."] },
     { n: "03", t: "À 12 partout : <em>+2,5 kg</em>", l: ["Toutes tes séries à 12 ? Ajoute le plus petit palier.", "2,5 kg à la barre, 1 à 2 kg aux haltères.", "Et tu repars à 8 répétitions."] },
     { n: "04", t: "Après une pause : <em>redescends</em>", tab: [["10 jours sans l'exercice", "−10 %"], ["21 jours et plus", "−20 %"]], s2: "Tu retrouves ton niveau en 2 à 3 séances, sans te blesser." },
-    { fin: 1, t: "Oxa fait le calcul. <em>Et t'explique pourquoi.</em>", s: "Chaque charge proposée vient avec sa raison.", img: ["d1-rowing-ouvert", 96, 330] },
+    { fin: 1, t: "Oxa fait le calcul. <em>Et t'explique pourquoi.</em>", s: "Chaque charge proposée vient avec sa raison.", img: ["s1-rw-ouvert", 96, 330] },
   ],
 };
 const css = `*{margin:0;box-sizing:border-box}body{width:1080px;height:1350px;font-family:'Inter Display',Inter,sans-serif;overflow:hidden;position:relative}

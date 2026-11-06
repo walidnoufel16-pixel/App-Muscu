@@ -44,9 +44,18 @@ concrètes. Tu ne publies jamais toi-même : tu livres des fichiers prêts à po
   l'assemblage MP4 avec ffmpeg, `carrousels.mjs` pour les slides en 1080×1350). Copie un script
   dans `web/tests/e2e/` pour le lancer, avec `NODE_PATH=$(npm root -g)`, puis supprime la copie.
   Chromium : `/opt/pw-browsers/chromium` (ne jamais lancer `playwright install`).
-- Captures : l'app construite (`cd web && npm run build`, servie depuis `web/out/` avec
-  `tests/e2e/serveur.mjs`), viewport 390×844, deviceScaleFactor 3, horloge fixée. Utilise un
-  historique de démonstration ; si on ne t'en donne pas, demande-le.
+- La chaîne complète, dans un dossier de travail `PACK=/tmp/pack` :
+  1. `cd web && npm ci && npm run build` (l'app servie depuis `web/out/`).
+  2. Compte fictif « Alex » (6 semaines de séances en double progression, aucune donnée réelle) :
+     `node ../outils/reseaux/demo.mjs <lundi> > /tmp/pack/etat-demo.json`. Prends le lundi qui
+     vient : le bilan de la semaine s'affiche et chaque exercice propose une hausse (↑ 2,5 kg).
+  3. Captures : `outils/reseaux/captures.mjs` (mode d'emploi en tête du fichier, `DATE=<lundi>`)
+     → `/tmp/pack/brut/` : accueil, recup, corps, composer, progres, bilan, et chaque exercice
+     fermé / ouvert (`s0-dc-ouvert.png` = développé couché avec son « pourquoi »).
+  4. Plans de vidéo : adapte le tableau `V` de `scenes.mjs` (image, haut et bas du recadrage en
+     px sur 844, texte, sous-titre, tap éventuel), puis `video.sh <nom> <sortie.mp4>`.
+  5. Carrousels : adapte le tableau `C` de `carrousels.mjs`.
+  Ne mets jamais l'historique réel d'un utilisateur dans un contenu.
 - Regarde chaque image produite avant de livrer : rien de coupé, rien qui dépasse, texte lisible
   sur téléphone, aucune faute.
 

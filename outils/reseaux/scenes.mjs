@@ -2,29 +2,31 @@ import { chromium } from "@playwright/test";
 import { readFileSync } from "node:fs";
 // dossier de travail : brut/ (captures de l'app), scenes/ (plans générés)
 const S = process.env.PACK || "/tmp/pack";
-const LOGO = readFileSync("/home/user/App-Muscu/docs/reseaux/photo-profil-oxa.png").toString("base64");
+const LOGO = readFileSync(`${process.cwd()}/../docs/reseaux/photo-profil-oxa.png`).toString("base64");
 const b64 = (f) => readFileSync(`${S}/brut/${f}.png`).toString("base64");
 // [image, haut, bas (px CSS sur 844), texte, petit, tap {x,y} en px CSS]
+// Exemple : les vidéos de la semaine 1. Réécris textes et recadrages pour chaque nouvelle vidéo,
+// en regardant les captures de /tmp/pack/brut (les recadrages sont en px sur 844 de haut).
 const V = {
   seance: [
-    ["a1-accueil", 0, 560, "Tu sais jamais <em>quoi faire</em> à la salle ?", ""],
-    ["b1-recup", 250, 844, "Oxa sait quels muscles ont <em>récupéré</em>", "D'après tes séances des 14 derniers jours"],
-    ["a6-corps", 100, 700, "Touche ce que tu veux <em>travailler</em>", "", { x: 165, y: 282 }],
-    ["b3-composer-bas", 120, 700, "Ta séance est prête.<br><em>Charges comprises.</em>", "Avec ton matériel, dans ton temps"],
+    ["accueil", 0, 560, "Tu sais jamais <em>quoi faire</em> à la salle ?", ""],
+    ["recup", 250, 844, "Oxa sait quels muscles ont <em>récupéré</em>", "D'après tes séances des 14 derniers jours"],
+    ["corps", 100, 700, "Touche ce que tu veux <em>travailler</em>", "", { x: 165, y: 282 }],
+    ["composer-bas", 120, 700, "Ta séance est prête.<br><em>Charges comprises.</em>", "Avec ton matériel, dans ton temps"],
     ["fin"],
   ],
   pourquoi: [
-    ["d1-rowing-ferme", 90, 400, "Ton app te dit quel poids prendre.<br><em>Mais pourquoi ?</em>", ""],
-    ["d1-rowing-ouvert", 90, 520, "Oxa te l'explique.<br><em>À chaque charge.</em>", "Réussi ? On ajoute. Sinon, on consolide."],
-    ["d2-facepull-ouvert", 104, 520, "Retour de pause ?<br><em>−10 %</em> pour repartir en douceur", ""],
-    ["d3-rotation-ouvert", 90, 540, "Jamais fait ?<br>Estimé d'après un <em>exercice proche</em>", ""],
+    ["s1-rw-ferme", 90, 400, "Ton app te dit quel poids prendre.<br><em>Mais pourquoi ?</em>", ""],
+    ["s1-rw-ouvert", 90, 520, "Oxa te l'explique.<br><em>À chaque charge.</em>", "Réussi ? On ajoute. Sinon, on consolide."],
+    ["s1-fp-ouvert", 104, 520, "Retour de pause ?<br><em>−10 %</em> pour repartir en douceur", ""],
+    ["s0-dm-ouvert", 90, 540, "Jamais fait ?<br>Estimé d'après un <em>exercice proche</em>", ""],
     ["fin"],
   ],
   semaine: [
-    ["c1-progres", 60, 440, "Chaque lundi,<br><em>ton bilan</em> de la semaine", ""],
-    ["e1-bilan-feuille", 330, 844, "Tes séries par muscle,<br>face à <em>ta cible</em>", ""],
-    ["c2-progres-bas", 210, 760, "Ce que tu as <em>vraiment</em> travaillé", "Les 7 derniers jours"],
-    ["b1-recup", 250, 844, "Et ce qui doit encore <em>récupérer</em>", ""],
+    ["progres", 60, 440, "Chaque lundi,<br><em>ton bilan</em> de la semaine", ""],
+    ["bilan", 330, 844, "Tes séries par muscle,<br>face à <em>ta cible</em>", ""],
+    ["progres-bas", 210, 760, "Ce que tu as <em>vraiment</em> travaillé", "Les 7 derniers jours"],
+    ["recup", 250, 844, "Et ce qui doit encore <em>récupérer</em>", ""],
     ["fin"],
   ],
 };
