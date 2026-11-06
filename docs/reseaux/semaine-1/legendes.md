@@ -5,15 +5,17 @@ Lien en bio : `https://oxafit.app/?src=tiktok` (TikTok), `https://oxafit.app/?sr
 
 Toutes les captures viennent du compte de démonstration « Alex » (6 semaines de séances fictives, aucune donnée réelle). Les vidéos font 12 s, en 1080×1920, avec le texte hors des zones couvertes par les boutons de TikTok, Reels et Shorts.
 
-## Calendrier (semaine du lundi 9 novembre)
+## Calendrier (lancement le vendredi 6 novembre)
 
 | Jour | Quoi | Où | Heure conseillée |
 |---|---|---|---|
-| Lundi 9 | Vidéo 1 · Ta séance est prête | TikTok, Reels, Shorts | 18 h 30 |
-| Mardi 10 | Carrousel 1 · Combien de séries | Instagram, et TikTok en mode photo | 12 h 30 |
-| Mercredi 11 | Vidéo 2 · Pourquoi 62,5 kg | TikTok, Reels, Shorts | 18 h 30 |
-| Jeudi 12 | Carrousel 2 · Quand ajouter du poids | Instagram, et TikTok en mode photo | 12 h 30 |
-| Vendredi 13 | Vidéo 3 · Assez de séries ? | TikTok, Reels, Shorts | 18 h 30 |
+| Vendredi 6 | Vidéo 1 · Ta séance est prête | TikTok, Reels, Shorts | 18 h 30 |
+| Samedi 7 | Carrousel 1 · Combien de séries | Instagram, et TikTok en mode photo | 11 h |
+| Dimanche 8 | Vidéo 2 · Pourquoi 62,5 kg | TikTok, Reels, Shorts | 18 h 30 |
+| Lundi 9 | Carrousel 2 · Quand ajouter du poids | Instagram, et TikTok en mode photo | 12 h 30 |
+| Mardi 10 | Vidéo 3 · Assez de séries ? | TikTok, Reels, Shorts | 18 h 30 |
+
+Le pack suivant commence le mercredi 11.
 
 Une publication par jour, la même vidéo sur les trois réseaux. Compte environ 10 minutes par jour : 5 minutes pour publier, 5 minutes pour répondre aux commentaires.
 
