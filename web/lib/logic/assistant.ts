@@ -32,6 +32,14 @@ export const musclesPrioritaires = (noms: string[]) => noms.flatMap((n) => GROUP
 /* `niveau` (Profil, A.regularite) : volume ×0,8 pour qui débute ou reprend, ×1,15 pour un confirmé.
    `o.prio` : muscles prioritaires (un exercice de plus s'ils sont choisis) ; `o.habitudes` : exercices
    déjà faits, préférés pour le premier exercice de chaque muscle (une base stable, des courbes lisibles). */
+/** Un hasard reproductible : la même clé (jour, muscles, réglages) donne la même séance. Rouvrir l'assistant
+    le même jour avec les mêmes choix propose donc la même séance ; « Autre » dans le composeur en tire une autre. */
+export function hasardDe(cle: string): Hasard {
+  let h = 2166136261;
+  for (let i = 0; i < cle.length; i++) h = Math.imul(h ^ cle.charCodeAt(i), 16777619);
+  return () => { h = (h + 0x6d2b79f5) | 0; let t = Math.imul(h ^ (h >>> 15), 1 | h); t ^= t + Math.imul(t ^ (t >>> 7), 61 | t); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+
 export function construireSeance(muscles: string[], duree: number, obj: number, sel: string[], rnd: Hasard = Math.random, evite: (o: string) => boolean = () => false, niveau?: number, o: { prio?: string[]; habitudes?: Set<string>; dense?: boolean } = {}): ExLibre[] {
   const facteur = niveau == null ? 1 : niveau <= 1 ? 0.8 : niveau >= 3 ? 1.15 : 1;
   /* `o.dense` (séance de 30 min) : repos courts sur l'isolation, ce qui laisse la place à 2 séries de plus */

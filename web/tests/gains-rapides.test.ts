@@ -155,3 +155,24 @@ describe("composeur : même proposition que la séance", () => {
     }
   });
 });
+
+import { construireSeance, hasardDe } from "@/lib/logic/assistant";
+import { recoDuJour } from "@/lib/logic/recommandation";
+
+describe("assistant : même jour, mêmes choix, même séance", () => {
+  it("le hasard est reproductible pour une même clé, différent pour une autre", () => {
+    const a = construireSeance(["pec", "tri"], 45, 0, ["haltere", "barre", "machine", "pdc"], hasardDe("2026-11-09|pec,tri"));
+    const b = construireSeance(["pec", "tri"], 45, 0, ["haltere", "barre", "machine", "pdc"], hasardDe("2026-11-09|pec,tri"));
+    expect(b.map((x) => x.id)).toEqual(a.map((x) => x.id));
+    const r1 = hasardDe("x"), r2 = hasardDe("y");
+    expect(r1()).not.toBe(r2());
+  });
+});
+
+describe("raison de la proposition : même vocabulaire que la récupération", () => {
+  it("muscles travaillés à des dates différentes : une fourchette, 7 jours et plus au-delà", () => {
+    const H = [ligne("2026-11-02", { dc: 3 }), ligne("2026-11-04", { dm: 3 })];
+    const p = recoDuJour(H, "2026-11-09").propositions.find((x) => x.muscles.includes("pec") && x.muscles.includes("epa"));
+    expect(p?.raison).toMatch(/Au repos depuis 5 jours et plus/);
+  });
+});

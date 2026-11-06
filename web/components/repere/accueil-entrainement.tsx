@@ -7,7 +7,9 @@ import { loc, tp, tr } from "@/lib/i18n";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { ArrowsClockwiseIcon, BarbellIcon, BellIcon, CheckIcon, DownloadSimpleIcon, FlameIcon, ListBulletsIcon, PencilSimpleIcon, PersonSimpleRunIcon, PlayIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
+import { ArrowsClockwiseIcon, BarbellIcon, BellIcon, CheckIcon, DownloadSimpleIcon, FlameIcon, ListBulletsIcon, PencilSimpleIcon, PersonSimpleRunIcon, PlayIcon, PlusIcon, SparkleIcon, XIcon } from "@phosphor-icons/react";
+import { toast } from "sonner";
+import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { useEnCours } from "./seance-en-cours";
 import { feuilleDuJour, initiales, sousTitre, useLancer, type Feuille } from "./agenda";
 import { decaler, lundiDe } from "@/lib/logic/historique";
@@ -114,9 +116,15 @@ export function SemaineAnneaux({ auj, setF }: { auj: string; setF: (f: Feuille) 
 /* ---------------- la séance du jour ---------------- */
 type Action = { label: string; icone?: React.ReactNode; onClick: () => void };
 
-function Hero({ ph, tag, titre, sous, principal, second }: { ph: Photo; tag: React.ReactNode; titre: string; sous?: string; principal: Action; second?: Action }) {
+function Hero({ ph, tag, titre, sous, principal, second, fermer }: { ph: Photo; tag: React.ReactNode; titre: string; sous?: string; principal: Action; second?: Action; fermer?: () => void }) {
   return (
     <section className="relative isolate h-[212px] overflow-hidden rounded-[24px] bg-[#111] text-white">
+      {fermer && (
+        <button onClick={() => { tactile(6); fermer(); }} aria-label={tr("Masquer la proposition")}
+          className="absolute top-3 right-3 grid size-8 place-items-center rounded-full bg-black/35 text-white/90 backdrop-blur-md active:scale-95">
+          <XIcon className="size-4" weight="bold" />
+        </button>
+      )}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img key={ph.grand} src={ph.grand} alt="" className="absolute inset-0 -z-10 size-full object-cover"
         onError={(e) => { if (!e.currentTarget.src.endsWith(ph.petite)) e.currentTarget.src = ph.petite; else e.currentTarget.style.visibility = "hidden"; }} />
@@ -151,6 +159,37 @@ export function CarteDuJour({ auj, setF }: { auj: string; setF: (f: Feuille) => 
   const r = useMemo(() => recoDuJour(etat.HIST || [], auj, etat.A.recoSans || [], etat.A.regularite), [etat.HIST, etat.A.recoSans, etat.A.regularite, auj]);
   const assistant = (m: string[]) => router.push(`/entrainement/assistant?m=${m.join(",")}` as Route, AVANT);
   const demain = r.demain ? " " + tr("Demain : {s}.", { s: r.demain.nom.toLowerCase() }) : "";
+  const [masquer, setMasquer] = useState(false);
+  const muter = useRepere((s) => s.muter);
+  const masquee = !!etat.A.recoOff || etat.A.recoMasquee === auj;
+  const choisir = (pourToujours: boolean) => {
+    tactile(8); setMasquer(false);
+    muter((E) => { if (pourToujours) E.A.recoOff = true; else E.A.recoMasquee = auj; });
+    toast(pourToujours ? tr("Proposition masquée. Tu la réactives dans Profil.") : tr("Proposition masquée pour aujourd'hui"), {
+      action: { label: tr("Annuler"), onClick: () => muter((E) => { delete E.A.recoOff; delete E.A.recoMasquee; }) },
+    });
+  };
+  const feuille = (
+    <Drawer open={masquer} onOpenChange={setMasquer}>
+      <DrawerContent>
+        <div className="px-5 pb-[max(env(safe-area-inset-bottom),20px)]">
+          <DrawerTitle className="mt-2 text-[21px] font-bold">{tr("Masquer la proposition ?")}</DrawerTitle>
+          <DrawerDescription className="mt-1 text-[14px] text-muted-foreground">{tr("Tu crées toujours ta séance avec « Pour moi », « Composer » ou l'agenda.")}</DrawerDescription>
+          <div className="mt-4 overflow-hidden rounded-[18px] bg-card">
+            <button onClick={() => choisir(false)} className="block w-full px-4 py-3.5 text-left active:bg-muted">
+              <span className="block text-[16px] font-semibold">{tr("Pour aujourd'hui")}</span>
+              <span className="block text-[13px] text-muted-foreground">{tr("Elle revient demain.")}</span>
+            </button>
+            <button onClick={() => choisir(true)} className="block w-full border-t border-border/60 px-4 py-3.5 text-left active:bg-muted">
+              <span className="block text-[16px] font-semibold">{tr("Ne plus me proposer de séance")}</span>
+              <span className="block text-[13px] text-muted-foreground">{tr("Tu la réactives dans Profil › Réglages de l'app.")}</span>
+            </button>
+          </div>
+          <button onClick={() => setMasquer(false)} className="mt-3 h-12 w-full rounded-full text-[16px] font-semibold text-plate-ink dark:text-plate">{tr("Annuler")}</button>
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
 
   /* une séance commencée et pas encore terminée */
   const c = enCours.find((x) => x.d === auj);
@@ -185,22 +224,25 @@ export function CarteDuJour({ auj, setF }: { auj: string; setF: (f: Feuille) => 
     );
   }
 
-  /* rien de prévu : la proposition d'Oxa */
+  /* rien de prévu : la proposition d'Oxa, sauf si elle est masquée (aujourd'hui ou tout le temps) */
+  if (masquee) return null;
   if (r.type === "seance") {
     const x = r.propositions[i % r.propositions.length];
     return (
-      <Hero ph={photo(PHOTO_MODELE[x.id] ?? "Barbell_Deadlift_0")}
+      <><Hero ph={photo(PHOTO_MODELE[x.id] ?? "Barbell_Deadlift_0")}
         tag={<><SparkleIcon className="size-3.5" weight="fill" />{r.debut ? tr("Pour commencer") : tr("Oxa te propose")}</>}
         titre={x.nom} sous={`${phrase(x.muscles.map(nomGroupe))} · ${x.raison}`}
         principal={{ label: tr("Créer cette séance"), onClick: () => assistant(x.muscles) }}
-        second={r.propositions.length > 1 ? { label: tr("Autre idée"), icone: <ArrowsClockwiseIcon className="size-5" weight="bold" />, onClick: () => setI((n) => n + 1) } : undefined} />
+        second={r.propositions.length > 1 ? { label: tr("Autre idée"), icone: <ArrowsClockwiseIcon className="size-5" weight="bold" />, onClick: () => setI((n) => n + 1) } : undefined}
+        fermer={() => setMasquer(true)} />{feuille}</>
     );
   }
   return (
-    <Hero ph={PHOTO_REPOS} tag={tr("Aujourd'hui · récupération")} titre={tr("Repos ou cardio léger")}
+    <><Hero ph={PHOTO_REPOS} tag={tr("Aujourd'hui · récupération")} titre={tr("Repos ou cardio léger")}
       sous={tr("Tes muscles récupèrent encore de tes dernières séances.") + demain}
       principal={{ label: tr("Cardio doux"), onClick: () => router.push("/entrainement/assistant?type=cardio" as Route, AVANT) }}
-      second={r.demain ? { label: tr("Séance quand même"), icone: <BarbellIcon className="size-5" />, onClick: () => assistant(r.demain!.muscles) } : undefined} />
+      second={r.demain ? { label: tr("Séance quand même"), icone: <BarbellIcon className="size-5" />, onClick: () => assistant(r.demain!.muscles) } : undefined}
+      fermer={() => setMasquer(true)} />{feuille}</>
   );
 }
 
