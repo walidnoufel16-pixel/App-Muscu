@@ -1,6 +1,7 @@
 #!/bin/bash
+# Usage : PACK=/tmp/pack ./video.sh <nom> <sortie.mp4> (lit $PACK/scenes/<nom>-1..N.png)
 # video.sh <nom> <sortie> : assemble scenes/<nom>-1..5.png en MP4 1080x1920, fondu entre scènes, léger zoom
-P=$(dirname "$0"); N=$1; OUT=$2
+P=${PACK:-/tmp/pack}; N=$1; OUT=$2
 D=3.4; DF=2.6; X=0.35; FPS=30
 args=(); filt=""; n=$(ls $P/scenes/$N-*.png | wc -l)
 for i in $(seq 1 $n); do

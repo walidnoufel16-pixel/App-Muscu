@@ -1,6 +1,7 @@
 import { chromium } from "@playwright/test";
 import { readFileSync } from "node:fs";
-const S = "/tmp/claude-0/-home-user-App-Muscu/ed83b37f-7825-50b5-8dda-5e94ab5aca5b/scratchpad/pack";
+// dossier de travail : brut/ (captures de l'app), scenes/ (plans générés)
+const S = process.env.PACK || "/tmp/pack";
 const LOGO = readFileSync("/home/user/App-Muscu/docs/reseaux/photo-profil-oxa.png").toString("base64");
 const b64 = (f) => readFileSync(`${S}/brut/${f}.png`).toString("base64");
 // [image, haut, bas (px CSS sur 844), texte, petit, tap {x,y} en px CSS]
