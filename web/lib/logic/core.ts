@@ -11,7 +11,7 @@ import {
 import type { Exercice } from "@/lib/data/types";
 import { POSTE_DE } from "@/lib/data/salle";
 import { ajuster, formeDuJour, zonesDe } from "./forme";
-import type { Etat, Journal, Reponses, SeanceIA, SeanceSemaine, Serie } from "./types";
+import type { Etat, ExLibre, Journal, Reponses, SeanceIA, SeanceSemaine, Serie } from "./types";
 import type { LigneHist } from "./historique";
 
 /* ---------------- petits utilitaires ---------------- */
@@ -605,22 +605,35 @@ export function departDepuisVariante(E: Pick<Etat, "HIST">, id: string, maintena
   return v > 0 ? { v, depuis: va.id, vv: va.v } : null;
 }
 
-export function ctxLibre(E: Etat, idx: number, j: number): Ctx | null {
-  const S = E.SEANCES[idx], e = S?.ex[j];
-  if (!e || !EX[e.id]) return null;
-  const x = EX[e.id], k = kLibre(idx, j), h = historiqueEx(E, e.id, k, 3), d = h[0] ?? precedentDe(E.LOG, e.id, k);
-  const pr = d ? progressionLibre(x, e, d, { obj: S.obj ?? S.gen?.obj, avant: h.slice(1), voisin: varianteRecente(E, e.id)?.ts }) : null;
-  /* jamais fait : on part de la variante la plus proche (même mouvement, même matériel), à 90 % */
+/** Charge proposée pour un exercice de séance libre, et pourquoi : la séance (ctxLibre) et le
+    composeur (avant même d'enregistrer) l'affichent à l'identique. `k` : clé du journal de
+    l'exercice ; pour une séance pas encore enregistrée, une clé qui n'existe pas. */
+export function propositionLibre(E: Etat, e: ExLibre, o: { obj?: number; k: string }) {
+  const x = EX[e.id];
+  if (!x) return null;
+  const k = o.k, h = historiqueEx(E, e.id, k, 3), d = h[0] ?? precedentDe(E.LOG, e.id, k);
+  const pr = d ? progressionLibre(x, e, d, { obj: o.obj, avant: h.slice(1), voisin: varianteRecente(E, e.id)?.ts }) : null;
   /* jamais fait : on part de la variante la plus proche, mise à l'échelle (voir departDepuisVariante) */
   const dv = d ? null : departDepuisVariante(E, e.id);
   const aj = selonForme(E.A, x, e.id, pr ? { v: pr.v, reps: pr.reps } : d ? { v: maxV(d), reps: d.reps ?? e.r } : { v: dv?.v || x.d, reps: e.r }, pasExercice(x));
   return {
-    k, id: e.id, n: e.s,
     base: aj.base,
     why: joindre(pr ? pr.t : d ? tr("Reprise de ta dernière séance sur cet exercice.")
       : dv ? tr("Première fois : estimée d'après ton {n} ({v} kg), une variante du même mouvement, avec une marge de prudence.", { n: EX[dv.depuis].n.toLowerCase(), v: nb(dv.vv) }) : undefined, aj.texte),
-    repos: e.p, prev: d,
-    ...(() => { const max = maxAuDessus(e.id, maxHist(E, e.id, k), d); return max ? { max } : {}; })(),
+    prev: d,
+  };
+}
+
+export function ctxLibre(E: Etat, idx: number, j: number): Ctx | null {
+  const S = E.SEANCES[idx], e = S?.ex[j];
+  if (!e || !EX[e.id]) return null;
+  const k = kLibre(idx, j), p = propositionLibre(E, e, { obj: S.obj ?? S.gen?.obj, k })!;
+  return {
+    k, id: e.id, n: e.s,
+    base: p.base,
+    why: p.why,
+    repos: e.p, prev: p.prev,
+    ...(() => { const max = maxAuDessus(e.id, maxHist(E, e.id, k), p.prev); return max ? { max } : {}; })(),
   };
 }
 
