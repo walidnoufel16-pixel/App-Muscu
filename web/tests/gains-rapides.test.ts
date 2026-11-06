@@ -138,3 +138,20 @@ describe("variantes : mise à l'échelle", () => {
     expect(chargeDepart({ ...E, HIST: H2 } as Etat, "dmh", 10)!.t).toMatch(/cet exercice/);
   });
 });
+
+import { propositionLibre, kLibre } from "@/lib/logic/core";
+
+describe("composeur : même proposition que la séance", () => {
+  it("propositionLibre = ctxLibre pour une séance enregistrée", () => {
+    const d = new Date(Date.now() - 4 * 864e5);
+    const j = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const H = [ligne(j, { dc: 3 })];
+    H[0].det = [{ id: "dc", s: [[60, 12], [60, 12], [60, 12]] }];
+    const E = { A: {}, LOG: {}, HIST: H, SEANCES: [{ nom: "Pecs", ex: [{ id: "dc", s: 3, r: 10, p: "2 min" }, { id: "dh", s: 3, r: 10, p: "90 s" }] }] } as unknown as Etat;
+    for (const m of [0, 1]) {
+      const c = ctxLibre(E, 0, m)!, p = propositionLibre(E, E.SEANCES[0].ex[m], { k: kLibre(0, m) })!;
+      expect(p.base).toEqual(c.base);
+      expect(p.why).toBe(c.why);
+    }
+  });
+});
