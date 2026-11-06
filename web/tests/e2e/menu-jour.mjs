@@ -73,4 +73,16 @@ await pg.waitForURL(/\/entrainement\/?$/);
 e = await etat(pg);
 ok(e.SEANCES.length === 2 && e.AGENDA.some((p) => p.d === dans3 && p.quoi.t === "libre" && p.quoi.i === 1), "Créer pour … → séance créée et programmée ce jour-là");
 ok(!errs.length, "aucune erreur JS " + errs.join(" | "));
+
+// un compte qui n'a jamais fait de séance : la carte « Ta première séance », vers l'assistant pré-coché
+const ctx2 = await b.newContext({ locale: "fr-FR", viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
+await ctx2.addInitScript((s) => { if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); localStorage.setItem("repere.visite", "1"); sessionStorage.vu = 1; } }, { ...base, HIST: [], SEANCES: [] });
+await ctx2.route(/supabase\.co/, (r) => r.abort());
+const pg2 = await ctx2.newPage();
+await pg2.goto(U + "/entrainement/");
+await pg2.getByText("Ta première séance").waitFor();
+await cap(pg2, "premiere");
+await pg2.getByRole("button", { name: "Créer ma première séance" }).click();
+await pg2.waitForURL(/assistant\/?\?m=/);
+ok(/m=.*pec/.test(pg2.url()), "aucune séance faite : « Ta première séance » → assistant avec les muscles " + pg2.url().split("?")[1]);
 await b.close(); srv.close();

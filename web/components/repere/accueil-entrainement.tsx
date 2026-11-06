@@ -16,6 +16,7 @@ import { avecSorties } from "@/lib/logic/course";
 import { objectifHebdo, serie } from "@/lib/logic/motivation";
 import { imgEx, imgExGrand } from "@/lib/medias";
 import { EX } from "@/lib/data/exercices";
+import { recoDuJour } from "@/lib/logic/recommandation";
 import { useRepere } from "@/lib/store";
 import { useBrouillon } from "@/lib/brouillon";
 import { AVANT, useMenu } from "@/lib/nav";
@@ -174,6 +175,17 @@ export function CarteDuJour({ auj, setF }: { auj: string; setF: (f: Feuille) => 
         sous={tr("Bravo. Ton corps récupère : c'est pendant le repos que les muscles se construisent.")}
         principal={{ label: tr("Programmer la suivante"), onClick: () => setF({ m: "nouvelle", d: decaler(auj, 1) }) }}
         second={{ label: tr("Voir la séance"), icone: <ListBulletsIcon className="size-5" />, onClick: () => setF({ m: "jour", d: auj }) }} />
+    );
+  }
+
+  /* aucune séance jamais faite : un seul chemin guidé vers la première (full body conseillé, déjà
+     coché dans l'assistant). La carte disparaît dès la première séance validée. */
+  if (!(etat.HIST || []).length) {
+    const m = recoDuJour([], auj, etat.A.recoSans || [], etat.A.regularite).propositions[0]?.muscles ?? [];
+    return (
+      <Hero ph={photo("Barbell_Deadlift_0")} tag={<><SparkleIcon className="size-3.5" weight="fill" />{tr("Pour commencer")}</>} titre={tr("Ta première séance")}
+        sous={tr("Un full body conseillé par Oxa, avec ton matériel. Tu ajustes tout ensuite.")}
+        principal={{ label: tr("Créer ma première séance"), onClick: () => router.push(`/entrainement/assistant${m.length ? `?m=${m.join(",")}` : ""}` as Route, AVANT) }} />
     );
   }
   return null;
