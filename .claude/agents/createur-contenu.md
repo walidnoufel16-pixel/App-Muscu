@@ -52,8 +52,10 @@ concrètes. Tu ne publies jamais toi-même : tu livres des fichiers prêts à po
   3. Captures : `outils/reseaux/captures.mjs` (mode d'emploi en tête du fichier, `DATE=<lundi>`)
      → `/tmp/pack/brut/` : accueil, recup, corps, composer, progres, bilan, et chaque exercice
      fermé / ouvert (`s0-dc-ouvert.png` = développé couché avec son « pourquoi »).
-  4. Plans de vidéo : adapte le tableau `V` de `scenes.mjs` (image, haut et bas du recadrage en
-     px sur 844, texte, sous-titre, tap éventuel), puis `video.sh <nom> <sortie.mp4>`.
+  4. Plans de vidéo : adapte le tableau `V` de `scenes.mjs` (format complet en tête du fichier :
+     plans coupés net, `d`, `tap`, `apres`, `surligne`, `suite`, plan de fin), lance-le, regarde
+     les aperçus `$PACK/scenes/<nom>-<i>.png` (avec `GUIDES=1` pour les zones masquées), puis
+     `video.sh <nom> <sortie.mp4>`. Zones sûres : 230 px en haut, 290 px en bas, 170 px à droite.
   5. Carrousels : adapte le tableau `C` de `carrousels.mjs`.
   Ne mets jamais l'historique réel d'un utilisateur dans un contenu.
 - Regarde chaque image produite avant de livrer : rien de coupé, rien qui dépasse, texte lisible

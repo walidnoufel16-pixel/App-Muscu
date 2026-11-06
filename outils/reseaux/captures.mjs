@@ -5,7 +5,8 @@
      cp ../outils/reseaux/captures.mjs tests/e2e/_captures.mjs
      DATE=2026-11-09 NODE_PATH=$(npm root -g) node tests/e2e/_captures.mjs ; rm tests/e2e/_captures.mjs
    Sortie : $PACK/brut/*.png en 1170×2532 (390×844 × 3). Noms :
-     accueil, accueil-bas, recup (feuille récupération), corps (assistant, pecs-triceps-épaules cochés),
+     accueil, accueil-bas, recup (feuille récupération), corps-vide (assistant, rien de coché, même cadrage que
+     corps : à enchaîner avec un tap animé), corps (assistant, pecs-triceps-épaules cochés),
      composer, composer-bas, progres, progres-bas, bilan (feuille de la semaine),
      s<séance>-<exercice>-ferme / -ouvert (chaque exercice de chaque séance, carte fermée puis ouverte avec son « pourquoi »). */
 import { chromium } from "@playwright/test";
@@ -34,6 +35,11 @@ await essai("accueil", async () => {
 await essai("recup", async () => {
   await pg.goto(U + "/entrainement/"); await W(1500);
   await pg.getByRole("button", { name: /Récupération/ }).first().click(); await W(1200); await shot("recup");
+});
+await essai("corps-vide", async () => {
+  await pg.goto(U + "/entrainement/assistant/"); await W(2000);
+  const t = pg.getByText("De face", { exact: true }).first(), bb = await t.boundingBox();
+  await pg.evaluate((y) => scrollTo(0, scrollY + y - 120), bb.y); await W(600); await shot("corps-vide");
 });
 await essai("assistant", async () => {
   await pg.goto(U + "/entrainement/assistant/?m=pec,tri,epa"); await W(2000);
