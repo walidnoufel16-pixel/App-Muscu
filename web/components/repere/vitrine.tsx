@@ -8,6 +8,7 @@ import { ArrowRightIcon, CheckIcon, NewspaperIcon } from "@phosphor-icons/react"
 import { ARTICLES, texte } from "@/lib/data/blog";
 import { Button } from "@/components/ui/button";
 import { LogoTuile } from "./logo";
+import { Reseaux } from "./reseaux";
 
 const ARGUMENTS = [
   { img: "recuperation", h: 711, t: "Ta séance du jour, d'après tes muscles", d: "Oxa sait ce qui a récupéré et ce qui a besoin de repos. Il te propose la bonne séance, avec ton matériel." },
@@ -103,7 +104,8 @@ export function Vitrine({ onCommencer, onCompte }: { onCommencer: () => void; on
         <p className="mt-2 text-[15px] opacity-75">{tr("Réponds à 3 questions, Oxa s'occupe du reste.")}</p>
         <Button variant="plate" size="xl" onClick={onCommencer} className="mt-5 w-full">{tr("Commencer")}<ArrowRightIcon /></Button>
       </section>
-      <p className="pt-5 pb-2 text-center text-[12.5px] text-muted-foreground">
+      <Reseaux titre={tr("Suis Oxa")} className="mt-8" />
+      <p className="pt-4 pb-2 text-center text-[12.5px] text-muted-foreground">
         {tr("Oxa · ton coach de poche")} · <a href={blog} className="font-semibold text-plate-ink underline-offset-2 hover:underline">{tr("Le blog Oxa")}</a>
       </p>
     </div>

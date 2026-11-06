@@ -30,6 +30,8 @@ export type MesureAdmin = {
   cohortes: { semaine: string; nouveaux: number; actives: number; j7: number | null; j30: number | null }[];
   seances: { semaine: string; seances: number; appareils: number; arretees: number }[];
   rubriques: { rubrique: string; ouvertures: number; appareils: number }[];
+  /* migration 20261106150000 : absent tant qu'elle n'est pas appliquée */
+  sources?: { source: string; appareils: number; actives: number }[];
   actions: Record<string, number>;
   erreurs: { message: string; page: string; version: string; navigateur: string; pile: string; n: number; jours: number; dernier: string }[];
 };
