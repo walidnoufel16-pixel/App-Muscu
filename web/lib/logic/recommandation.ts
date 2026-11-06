@@ -114,10 +114,12 @@ function candidats(E: Record<Groupe, EtatGroupe>, ecartes: Set<Groupe>): Proposi
     if (g.some((x) => !E[x].recupere)) continue;
     const score = g.reduce((n, x) => n + Math.max(0, CIBLE - E[x].semaine) / CIBLE + Math.min(E[x].jours, 7) / 7, 0) / g.length - (m.large ? 0.15 : 0);
     const jamais = g.filter((x) => E[x].semaine === 0);
-    const depuis = Math.min(...g.map((x) => E[x].jours));
-    const raison = jamais.length === g.length ? tr("Pas encore travaillés cette semaine.")
-      : depuis >= 99 ? tr("Pas encore travaillés cette semaine.")
-      : tr("Pas travaillés depuis {n} jours.", { n: depuis });
+    /* comme la feuille Récupération : le muscle le plus récent et le plus ancien, au-delà de 7 jours « 7 j et plus » */
+    const js = g.map((x) => E[x].jours), depuis = Math.min(...js), jusqua = Math.max(...js);
+    const raison = jamais.length === g.length || depuis >= 99 ? tr("Pas encore travaillés cette semaine.")
+      : depuis >= 7 ? tr("Au repos depuis 7 jours et plus.")
+      : jusqua === depuis ? tr("Au repos depuis {n} jours.", { n: depuis })
+      : tr("Au repos depuis {n} jours et plus.", { n: depuis });
     res.push({ p: { id: m.id, nom: m.nom(), muscles: g, raison }, score });
   }
   return res.sort((a, b) => b.score - a.score).map((x) => x.p);

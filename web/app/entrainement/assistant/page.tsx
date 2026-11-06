@@ -24,7 +24,7 @@ import { BibliothequeMuscles } from "@/components/repere/bibliotheque-muscles";
 import { dire } from "@/components/repere/confirmer";
 import { DUREES, FULLBODY, MUSC, OBJS, PAT2MUSC } from "@/lib/data/referentiels";
 import { avecSalle, selDeclare } from "@/lib/logic/core";
-import { construireSeance, musclesPrioritaires, nomSeance } from "@/lib/logic/assistant";
+import { construireSeance, hasardDe, musclesPrioritaires, nomSeance } from "@/lib/logic/assistant";
 import { zonesActives, zonesDe } from "@/lib/logic/forme";
 import { useRepere } from "@/lib/store";
 import { ARRIERE, AVANT, remplacement, revenirA } from "@/lib/nav";
@@ -108,7 +108,7 @@ function Assistant() {
     if (obj == null) return;
     const zones = zonesActives(A);
     const H = useRepere.getState().etat.HIST || [], habitudes = new Set(H.slice(-12).flatMap((l) => Object.keys(l.ex)));
-    const ex = construireSeance(m, d, obj, sel, Math.random, (o) => zonesDe(o, zones).length > 0, A.regularite, { prio: musclesPrioritaires(prioNoms(A)), habitudes, dense: d === 30 });
+    const ex = construireSeance(m, d, obj, sel, hasardDe(`${auj}|${m.join(",")}|${d}|${obj}|${sel.join(",")}`), (o) => zonesDe(o, zones).length > 0, A.regularite, { prio: musclesPrioritaires(prioNoms(A)), habitudes, dense: d === 30 });
     if (!ex.length) { dire(tr("Pas d'exercice disponible"), tr("Aucun exercice ne correspond à ces muscles avec le matériel coché. Ajoute du matériel ou choisis d'autres muscles.")); return; }
     /* combinée : le bloc cardio arrive à la fin, sans échauffement ; il se déplace ensuite dans le composeur */
     const blocs = type === "mixte" ? [{ ...nouveauBloc(ex.length, choix.f, choix.m, choix.n), r: { ...choix.r, echauf: 0 } }] : undefined;
@@ -286,12 +286,14 @@ function Assistant() {
         )}
       </div>
 
+      {/* un voile sous les boutons fixes : le contenu qui défile ne se lit pas à travers (boutons grisés compris) */}
+      <div aria-hidden className="pointer-events-none fixed inset-x-0 bottom-0 z-20 h-[calc(max(env(safe-area-inset-bottom),14px)+80px)] bg-gradient-to-t from-background from-60% to-transparent" />
       <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
         <div className="flex gap-2">
-          <Button variant="outline" size="xl" className="flex-1 bg-background" disabled={!peut} onClick={() => creer()}>
+          <Button variant="outline" size="xl" className="flex-1 bg-background disabled:opacity-100 disabled:text-muted-foreground" disabled={!peut} onClick={() => creer()}>
             {tr("Ajuster")}
           </Button>
-          <Button variant="plate" size="xl" className="flex-[1.6]" disabled={!peut} onClick={() => creer(true)}>
+          <Button variant="plate" size="xl" className="flex-[1.6] disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 disabled:shadow-none" disabled={!peut} onClick={() => creer(true)}>
             {tr("Créer et commencer")}
           </Button>
         </div>
