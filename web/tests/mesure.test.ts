@@ -48,3 +48,16 @@ describe("mesure anonyme", () => {
     expect(file()).toHaveLength(1);
   });
 });
+
+describe("source des visiteurs", () => {
+  it("l'ouverture du jour porte la source du premier lien, une seule fois par jour", () => {
+    stock.set("repere.source", "tiktok");
+    M.noterOuverture(); M.noterOuverture();
+    expect(file()).toHaveLength(1);
+    expect(file()[0]).toMatchObject({ nom: "ouverture", props: { src: "tiktok" } });
+  });
+  it("sans source : ouverture sans propriété", () => {
+    M.noterOuverture();
+    expect(file()[0].props).toBeUndefined();
+  });
+});

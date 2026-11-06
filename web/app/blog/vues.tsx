@@ -8,11 +8,12 @@ import { BILLETS, GUIDES, aLireAussi, adresse, dateTxt, nomCategorie, programme,
 import { ProposerAnglais } from "./anglais";
 import { LogoTuile } from "@/components/repere/logo";
 import { ListeBlog } from "./liste";
+import { Reseaux } from "@/components/repere/reseaux";
 
 const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "https://repere-soz5.onrender.com").trim();
 const T = {
-  fr: { titre: "Guides et blog Oxa", sous: "Les guides pour bien démarrer, puis des articles qui s'ajoutent chaque semaine.", guides: "Les guides", guidesSous: "Les essentiels, à lire dans l'ordre que tu veux.", blog: "Le blog", blogSous: "De nouveaux articles chaque semaine.", guide: "Guide", retour: "Guides et blog", autre: "English", autreLien: "/en/blog/", lireAussi: "À lire aussi", ouvrir: "Ouvrir Oxa", fin: "Tes séances, tes charges et ta progression, au même endroit.", photo: "Photo :", sur: "sur Unsplash", min: "min" },
-  en: { titre: "Oxa guides and blog", sous: "Guides to get started, then new articles every week.", guides: "Guides", guidesSous: "The essentials, read them in any order.", blog: "Blog", blogSous: "New articles every week.", guide: "Guide", retour: "Guides and blog", autre: "Français", autreLien: "/blog/", lireAussi: "Keep reading", ouvrir: "Open Oxa", fin: "Your sessions, your weights and your progress, in one place.", photo: "Photo:", sur: "on Unsplash", min: "min" },
+  fr: { titre: "Guides et blog Oxa", sous: "Les guides pour bien démarrer, puis des articles qui s'ajoutent chaque semaine.", guides: "Les guides", guidesSous: "Les essentiels, à lire dans l'ordre que tu veux.", blog: "Le blog", blogSous: "De nouveaux articles chaque semaine.", guide: "Guide", retour: "Guides et blog", autre: "English", autreLien: "/en/blog/", lireAussi: "À lire aussi", suivre: "Suis Oxa", ouvrir: "Ouvrir Oxa", fin: "Tes séances, tes charges et ta progression, au même endroit.", photo: "Photo :", sur: "sur Unsplash", min: "min" },
+  en: { titre: "Oxa guides and blog", sous: "Guides to get started, then new articles every week.", guides: "Guides", guidesSous: "The essentials, read them in any order.", blog: "Blog", blogSous: "New articles every week.", guide: "Guide", retour: "Guides and blog", autre: "Français", autreLien: "/blog/", lireAussi: "Keep reading", suivre: "Follow Oxa", ouvrir: "Open Oxa", fin: "Your sessions, your weights and your progress, in one place.", photo: "Photo:", sur: "on Unsplash", min: "min" },
 };
 
 export const metaListe = (l: Langue): Metadata => ({
@@ -61,6 +62,7 @@ export function VueListe({ l }: { l: Langue }) {
       <p className="mt-0.5 text-[14px] text-muted-foreground">{D.blogSous}</p>
       <ListeBlog articles={BILLETS.map((a) => carte(a, l))} l={l} />
       {l === "fr" && <ProposerAnglais href="/en/blog/" />}
+      <Reseaux titre={D.suivre} className="mt-10" />
     </div>
   );
 }
@@ -130,6 +132,7 @@ export function VueArticle({ a, l }: { a: Article; l: Langue }) {
         </div>
       </div>
       {l === "fr" && <ProposerAnglais href={adresse(a, "en")} />}
+      <Reseaux titre={D.suivre} className="mt-10" />
     </article>
   );
 }

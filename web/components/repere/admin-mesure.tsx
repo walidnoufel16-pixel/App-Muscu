@@ -73,6 +73,16 @@ export function AdminMesure() {
       </section>
 
       <section className="rounded-[22px] bg-card p-4">
+        <h2 className="eyebrow mb-2">{tr("Nouveaux appareils par source · 30 jours")}</h2>
+        {M.sources?.length ? M.sources.map((x) => (
+          <div key={x.source} className="flex items-baseline justify-between border-t border-border/60 py-1.5 text-[14px] first:border-t-0">
+            <span>{x.source || tr("lien direct ou inconnu")}</span>
+            <span className="num text-muted-foreground"><b className="text-foreground">{x.appareils}</b> {tr("appareils")} · {x.actives} {tr("avec une série")}</span>
+          </div>
+        )) : <p className="text-[13.5px] text-muted-foreground">{tr("Pas encore de données.")}</p>}
+      </section>
+
+      <section className="rounded-[22px] bg-card p-4">
         <h2 className="eyebrow mb-2">{tr("Rubriques ouvertes · 30 jours")}</h2>
         {M.rubriques.length ? M.rubriques.map((r) => (
           <div key={r.rubrique} className="flex items-baseline justify-between border-t border-border/60 py-1.5 text-[14px] first:border-t-0">
