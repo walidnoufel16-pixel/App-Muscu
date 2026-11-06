@@ -4,7 +4,7 @@ import { ProfilSportif } from "@/components/repere/profil-sportif";
 import { langue, LANGUES, pluriel, tr } from "@/lib/i18n";
 import { ReglageCycle, useCycleCharge } from "@/components/repere/cycle";
 import { ReglageZones } from "@/components/repere/forme";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTheme } from "next-themes";
 import { ArrowsLeftRightIcon, CaretRightIcon, ChartBarIcon, CheckCircleIcon, CloudSlashIcon, EnvelopeIcon, FileTextIcon, LockSimpleIcon, ShieldWarningIcon } from "@phosphor-icons/react";
@@ -43,9 +43,12 @@ function Profil() {
   const [msg, setMsg] = useState<{ t: string; ok?: boolean } | null>(null);
   const [occupe, setOccupe] = useState(false);
   /* Confidentialité et Crédits s'ouvrent en feuille ; ?voir=… les ouvre depuis le menu */
-  const [feuille, setFeuille] = useState<"confidentialite" | "credits" | null>(null);
   const voir = useSearchParams().get("voir");
-  useEffect(() => { if (voir === "confidentialite" || voir === "credits") setFeuille(voir); }, [voir]);
+  const lien = voir === "confidentialite" || voir === "credits" ? voir : null;
+  const [feuille, setFeuille] = useState<"confidentialite" | "credits" | null>(lien);
+  /* un nouveau ?voir=… (depuis le menu, page déjà ouverte) rouvre la feuille demandée */
+  const [lienVu, setLienVu] = useState(lien);
+  if (lien !== lienVu) { setLienVu(lien); if (lien) setFeuille(lien); }
   const adresse = user?.email, attente = user?.new_email;
 
   const lier = async () => {

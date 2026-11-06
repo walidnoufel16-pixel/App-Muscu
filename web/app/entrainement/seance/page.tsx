@@ -60,7 +60,7 @@ function PartieEnFeuille({ ouvert, onClose, titre, children }: { ouvert: boolean
 
 /* Habillage commun : retour, titre, avancement, accès à l'échauffement et à la collation. */
 function Cadre({
-  surtitre, titre, actions, faits, total, sect, setSect, children, entete,
+  surtitre, titre, actions, faits, total, setSect, children, entete,
 }: {
   surtitre: React.ReactNode; titre: string; actions?: React.ReactNode; faits: number; total: number;
   sect: Partie; setSect: (p: Partie) => void; children: React.ReactNode; entete?: React.ReactNode;
