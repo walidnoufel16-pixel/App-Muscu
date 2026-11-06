@@ -55,7 +55,7 @@ export default function PageAgenda() {
         surtitre={tr("Mon agenda")}
         titre={vue === "mois" ? nomMois : tr("Deux semaines")}
         actions={
-          <button aria-label={tr("Programmer une séance")} onClick={() => { tactile(8); setF({ m: "programmer", d: sel >= auj ? sel : auj }); }}
+          <button aria-label={tr("Programmer une séance")} onClick={() => { tactile(8); setF({ m: "nouvelle", d: sel >= auj ? sel : auj }); }}
             className="grid size-9 place-items-center rounded-full bg-plate text-plate-foreground active:scale-95">
             <PlusIcon className="size-5" weight="bold" />
           </button>
@@ -200,8 +200,8 @@ function ListeJour({ j, auj, setF }: { j: JourAgenda; auj: string; setF: (f: Feu
       ))}
       {vide && j.d < auj && <p className="py-3 text-[13.5px] text-muted-foreground">{tr("Rien ce jour-là.")}</p>}
       {j.d >= auj && (
-        <button onClick={() => { tactile(6); setF({ m: "programmer", d: j.d }); }} className={cn("flex w-full items-center gap-2 py-3 text-[14.5px] font-semibold text-plate-ink dark:text-plate", !vide && "border-t border-border/70")}>
-          <PlusIcon className="size-4" weight="bold" />{vide ? tr("Programmer une séance ce jour-là") : tr("Programmer autre chose ce jour-là")}
+        <button onClick={() => { tactile(6); setF({ m: "nouvelle", d: j.d }); }} className={cn("flex w-full items-center gap-2 py-3 text-[14.5px] font-semibold text-plate-ink dark:text-plate", !vide && "border-t border-border/70")}>
+          <PlusIcon className="size-4" weight="bold" />{vide ? tr("Ajouter une séance ce jour-là") : tr("Ajouter une autre séance ce jour-là")}
         </button>
       )}
     </div>
