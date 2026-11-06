@@ -24,6 +24,16 @@ export const estAdmin = () => appel<boolean>("est_admin").catch(() => false);
 export const utilisateurs = () => appel<CompteAdmin[]>("admin_utilisateurs")
   .then((l) => nettoieArbre(l || []).map((c) => ({ ...c, etat: versEtat(c.etat) })));
 export const statsAdmin = () => appel<StatsAdmin>("admin_stats").then(nettoieArbre);
+/* Mesure anonyme (migration 20261106090000_mesure.sql) : agrégats seulement. */
+export type MesureAdmin = {
+  actifs: { j1: number; j7: number; j30: number };
+  cohortes: { semaine: string; nouveaux: number; actives: number; j7: number | null; j30: number | null }[];
+  seances: { semaine: string; seances: number; appareils: number; arretees: number }[];
+  rubriques: { rubrique: string; ouvertures: number; appareils: number }[];
+  actions: Record<string, number>;
+  erreurs: { message: string; page: string; version: string; navigateur: string; pile: string; n: number; jours: number; dernier: string }[];
+};
+export const mesureAdmin = () => appel<MesureAdmin>("admin_mesure").then(nettoieArbre);
 export const fiche = (id: string) => appel<FicheAdmin | null>("admin_etat", { p_user: id }).then(nettoieArbre);
 
 /** Ouvre ou ferme le programme sur 8 semaines pour un compte (noté au journal admin). */

@@ -9,6 +9,7 @@
    ni sur l'ancienne adresse. Revoir : menu ☰ › Aide.
    Mini-visite : quand Oxa Plan s'ouvre plus tard pour un compte, une bulle unique sur sa tuile,
    une seule fois (repere.visite.plan). */
+import { noter as mesurer } from "@/lib/mesure";
 import { tr } from "@/lib/i18n";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -77,7 +78,7 @@ export function Visite() {
     return () => clearTimeout(t);
   }, [pret, pseudo, prog, planConstruit, bilan, etape, mini, chemin, neuf, ancienne]);
 
-  const finir = () => { noter(CLE); if (prog) noter(CLE_PLAN); useVisite.setState({ etape: null }); };
+  const finir = () => { mesurer("visite_finie", { etape: etape ?? 0, plan: prog }); noter(CLE); if (prog) noter(CLE_PLAN); useVisite.setState({ etape: null }); };
   const suivant = () => {
     tactile(5);
     /* les bulles se posent sur les onglets : depuis un autre écran, on part d'Entraînement */

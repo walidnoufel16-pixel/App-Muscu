@@ -3,6 +3,7 @@
 /* Bandeau « Séance en cours · Reprendre », au-dessus de la barre d'onglets, tant qu'une séance libre
    commencée n'est pas rangée dans Progrès : on peut consulter Repas ou Progrès pendant le repos, et y
    revenir d'un geste (lib/logic/agenda.ts › seancesEnCours). */
+import { noter } from "@/lib/mesure";
 import { tp, tr } from "@/lib/i18n";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -38,6 +39,7 @@ export async function arreter(s: string, nom: string) {
   if (!ok) return false;
   tactile(12);
   useRepere.getState().muter((E) => arreterSeance(E, d, s));
+  noter("seance_arretee", { r: s.startsWith("L|") ? "libre" : "plan" });
   useCelebrer.getState().oublier(s);
   return true;
 }

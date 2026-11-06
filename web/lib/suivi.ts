@@ -4,6 +4,7 @@
    est validée ou retirée, la ligne du jour de cette séance est recalculée.
    Le journal est produit par immer : une ligne inchangée garde la même
    référence, la comparaison est donc instantanée. */
+import { noter } from "@/lib/mesure";
 import { useRepere } from "@/lib/store";
 import { useCelebrer, seanceDe } from "@/lib/celebrer";
 import { okDe } from "@/lib/logic/core";
@@ -45,6 +46,7 @@ export function suivreHistorique() {
             ...(min ? { min } : {}),
           }));
         }
+        if (!(E.HIST || []).length && H.length) noter("premiere_serie");
         E.HIST = H;
       });
     });
@@ -54,5 +56,6 @@ export function suivreHistorique() {
 /* « Ajouter à mon suivi » : la séance libre i est rangée dans Progrès et repart vierge. */
 export function ajouterAuSuivi(i: number) {
   useRepere.getState().muter((E) => cloturerSeance(E, i));
+  noter("seance_terminee", { r: "libre" });
   useCelebrer.getState().oublier("L|" + i);
 }
