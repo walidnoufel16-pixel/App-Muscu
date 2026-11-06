@@ -5,6 +5,7 @@
    envoyée une fois par session et par message. Rien ne doit jamais faire échouer l'app : tout est
    protégé, et sans Supabase la file reste simplement en attente. */
 import { sb } from "@/lib/supabase";
+import { sourceNotee } from "@/lib/source";
 
 export const NOMS = ["ouverture", "premiere_serie", "seance_terminee", "seance_arretee", "rubrique_ouverte", "plan_genere", "repas_note", "visite_finie"] as const;
 export type NomEvenement = (typeof NOMS)[number];
@@ -110,10 +111,15 @@ export function demarrerMesure() {
   addEventListener("error", (ev) => void signalerErreur(ev.error ?? ev.message));
   addEventListener("unhandledrejection", (ev) => void signalerErreur(ev.reason));
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") void envoyer(); });
-  /* une « ouverture » par jour suffit pour les actifs et la rétention */
+  noterOuverture();
+  if (lireFile().length) planifier();
+}
+
+/** Une « ouverture » par jour suffit pour les actifs et la rétention ; elle porte la source du
+   premier lien (?src=, lib/source.ts) pour compter d'où viennent les visiteurs, même sans compte. */
+export function noterOuverture() {
   try {
     const auj = jourLocal(), cle = "repere.mesure.jour";
-    if (localStorage.getItem(cle) !== auj) { localStorage.setItem(cle, auj); noter("ouverture"); }
+    if (localStorage.getItem(cle) !== auj) { localStorage.setItem(cle, auj); const src = sourceNotee(); noter("ouverture", src ? { src } : undefined); }
   } catch {}
-  if (lireFile().length) planifier();
 }
