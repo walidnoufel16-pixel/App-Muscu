@@ -9,6 +9,7 @@ import { CaretRightIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { EnTete } from "@/components/repere/en-tete";
 import { Retour } from "@/components/repere/retour";
 import { Segmente } from "@/components/repere/segmente";
+import { AdminMesure } from "@/components/repere/admin-mesure";
 import { Barres } from "@/components/repere/graphes";
 import { Input } from "@/components/ui/input";
 import { EX } from "@/lib/data/exercices";
@@ -26,7 +27,7 @@ export default function PageAdmin() {
 function Admin() {
   const router = useRouter();
   const admin = useEstAdmin();
-  const vue = useSearchParams().get("v") === "u" ? "u" : "t";
+  const v = useSearchParams().get("v"), vue = v === "u" || v === "m" ? v : "t";
   const [L, setL] = useState<CompteAdmin[] | null>(null);
   const [S, setS] = useState<StatsAdmin | null>(null);
   const [err, setErr] = useState("");
@@ -41,11 +42,12 @@ function Admin() {
     <>
       <EnTete surtitre={tr("Réservé à l'admin")} titre={tr("Admin")} gauche={<Retour repli="/profil" />} />
       <div className="flex flex-col gap-5 px-4 pb-10">
-        <Segmente label={tr("Vue")} valeur={vue} onChange={(v) => router.replace(v === "u" ? "/admin?v=u" : "/admin")}
-          options={[{ v: "t", n: tr("Tableau de bord") }, { v: "u", n: tr("Utilisateurs") }]} />
-        {err && <p className="rounded-2xl bg-card p-4 text-[14px] text-destructive">{err}</p>}
-        {!err && (!L || !S) && <p className="py-10 text-center text-[14px] text-muted-foreground">{tr("Chargement…")}</p>}
-        {L && S && (vue === "t" ? <Tableau L={L} S={S} /> : <Utilisateurs L={L} />)}
+        <Segmente label={tr("Vue")} valeur={vue} onChange={(x) => router.replace(x === "u" ? "/admin?v=u" : x === "m" ? "/admin?v=m" : "/admin")}
+          options={[{ v: "t", n: tr("Tableau") }, { v: "u", n: tr("Utilisateurs") }, { v: "m", n: tr("Mesure") }]} />
+        {vue === "m" && admin && <AdminMesure />}
+        {vue !== "m" && err && <p className="rounded-2xl bg-card p-4 text-[14px] text-destructive">{err}</p>}
+        {vue !== "m" && !err && (!L || !S) && <p className="py-10 text-center text-[14px] text-muted-foreground">{tr("Chargement…")}</p>}
+        {vue !== "m" && L && S && (vue === "t" ? <Tableau L={L} S={S} /> : <Utilisateurs L={L} />)}
       </div>
     </>
   );

@@ -7,6 +7,7 @@
      dans une feuille (« Paramétrer »).
    - Recettes : un seul rang de filtres, dont « Mon frigo » (ce que j'ai déjà).
    Les préférences s'ouvrent depuis la roue de l'en-tête. Module en orange : une nuance par onglet. Première ouverture : le questionnaire. */
+import { noter } from "@/lib/mesure";
 import { AvatarProfil } from "@/components/repere/avatar-profil";
 import { tr } from "@/lib/i18n";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -167,7 +168,7 @@ function Mange({ r, c, b, auj }: { r: Recette; c: CreneauRepas; b: Besoins; auj:
       E.A.mange = Object.fromEntries(Object.entries(m).sort(([a], [b2]) => (a < b2 ? -1 : 1)).slice(-7));
       ajouterProt(E.A, auj, fait ? -g : g);
     });
-    if (!fait) toast.success(tr("+{g} g de protéines notés", { g }));
+    if (!fait) { toast.success(tr("+{g} g de protéines notés", { g })); noter("repas_note", { c }); }
   };
   return (
     <span role="button" tabIndex={0} onClick={basculer} aria-pressed={fait}

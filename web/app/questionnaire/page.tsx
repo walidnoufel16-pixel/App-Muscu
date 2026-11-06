@@ -1,5 +1,6 @@
 "use client";
 
+import { noter } from "@/lib/mesure";
 import { nouveauCycle } from "@/lib/logic/actions";
 import { pluriel, tr } from "@/lib/i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -55,6 +56,7 @@ export default function PageQuestionnaire() {
     setGen({ pct: 100, texte: "" });
     /* cycle de 8 semaines terminé : le nouveau programme repart en semaine 1 */
     muter((E) => { if (E.FINI && E.wk >= 7) nouveauCycle(E); E.PLAN = r.plan; E.FINI = true; });
+    noter("plan_genere");
     await new Promise((z) => setTimeout(z, 380));
     if (r.erreur) await dire(tr("Génération par IA indisponible"), r.erreur + tr("\n\nLe programme affiché vient des règles intégrées."));
     router.replace("/entrainement/programme", AVANT);
