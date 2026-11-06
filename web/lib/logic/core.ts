@@ -504,13 +504,15 @@ const minReps = (d: Journal, dbl: boolean) => {
 };
 export function progressionLibre(
   x: Exercice, cible: { s: number; r: number }, d: Journal,
-  o: { obj?: number; avant?: Journal[]; maintenant?: number } = {},
+  o: { obj?: number; avant?: Journal[]; maintenant?: number; voisin?: number } = {},
 ): { v: number; reps: number; t: string } | null {
   const ok = (d.series || []).filter((s) => okDe(d, s)), dbl = x.ch === "kg" || x.ch === "lest";
   const v = maxV(d), reps = d.reps ?? cible.r;
   const chargee = x.ch === "kg" || (x.ch === "lest" && v > 0);
   /* une pause : on reprend plus léger, quoi qu'il se soit passé la dernière fois */
-  const jours = d.ts ? Math.floor(((o.maintenant ?? Date.now()) - d.ts) / 864e5) : 0;
+  /* le muscle n'est pas « au repos » si une variante du même mouvement a été faite entre-temps */
+  const dernier = Math.max(d.ts || 0, o.voisin || 0);
+  const jours = dernier ? Math.floor(((o.maintenant ?? Date.now()) - dernier) / 864e5) : 0;
   if (chargee && jours >= 10) {
     const pas = pasExercice(x), pc = jours >= 21 ? 20 : 10, nv = auPalier(v * (1 - pc / 100), pas);
     if (nv < v) return { v: nv, reps: cible.r, t: tr("Reprise après {n} jours sans cet exercice : −{p} % pour réhabituer tes muscles.", { n: jours, p: pc }) };
@@ -550,16 +552,38 @@ export function progressionLibre(
   return { v: bas + 1, reps, t: tr("Toutes tes séries réussies la dernière fois : une répétition de plus.") };
 }
 
+/** La dernière variante d'un exercice dans l'historique : même schéma moteur (développé haltères,
+    Arnold, militaire…), avec sa meilleure charge. `memeMateriel` la veut aussi au même matériel. */
+export function varianteRecente(E: Pick<Etat, "HIST">, id: string, memeMateriel = false): { id: string; d: string; ts: number; v: number } | null {
+  const x = EX[id];
+  if (!x) return null;
+  const H = E.HIST || [];
+  for (let i = H.length - 1; i >= 0; i--) {
+    const l = H[i];
+    for (const [o, p] of Object.entries(l.ex)) {
+      const y = EX[o];
+      if (o === id || !y || y.pat !== x.pat || (memeMateriel && (y.eq !== x.eq || y.ch !== x.ch))) continue;
+      const [a, m, jj] = l.d.split("-").map(Number);
+      return { id: o, d: l.d, ts: new Date(a, m - 1, jj, 12).getTime(), v: p[2] };
+    }
+  }
+  return null;
+}
+
 export function ctxLibre(E: Etat, idx: number, j: number): Ctx | null {
   const S = E.SEANCES[idx], e = S?.ex[j];
   if (!e || !EX[e.id]) return null;
   const x = EX[e.id], k = kLibre(idx, j), h = historiqueEx(E, e.id, k, 3), d = h[0] ?? precedentDe(E.LOG, e.id, k);
-  const pr = d ? progressionLibre(x, e, d, { obj: S.obj ?? S.gen?.obj, avant: h.slice(1) }) : null;
-  const aj = selonForme(E.A, x, e.id, pr ? { v: pr.v, reps: pr.reps } : d ? { v: maxV(d), reps: d.reps ?? e.r } : { v: x.d, reps: e.r }, pasExercice(x));
+  const pr = d ? progressionLibre(x, e, d, { obj: S.obj ?? S.gen?.obj, avant: h.slice(1), voisin: varianteRecente(E, e.id)?.ts }) : null;
+  /* jamais fait : on part de la variante la plus proche (même mouvement, même matériel), à 90 % */
+  const va = !d && x.ch === "kg" ? varianteRecente(E, e.id, true) : null;
+  const depart = va && va.v > 0 && Date.now() - va.ts < 60 * 864e5 ? auPalier(va.v * 0.9, pasExercice(x)) : 0;
+  const aj = selonForme(E.A, x, e.id, pr ? { v: pr.v, reps: pr.reps } : d ? { v: maxV(d), reps: d.reps ?? e.r } : { v: depart || x.d, reps: e.r }, pasExercice(x));
   return {
     k, id: e.id, n: e.s,
     base: aj.base,
-    why: joindre(pr ? pr.t : d ? tr("Reprise de ta dernière séance sur cet exercice.") : undefined, aj.texte),
+    why: joindre(pr ? pr.t : d ? tr("Reprise de ta dernière séance sur cet exercice.")
+      : depart ? tr("Première fois : départ à 90 % de ton {n} ({v} kg), une variante du même mouvement.", { n: EX[va!.id].n.toLowerCase(), v: nb(va!.v) }) : undefined, aj.texte),
     repos: e.p, prev: d,
     ...(() => { const max = maxAuDessus(e.id, maxHist(E, e.id, k), d); return max ? { max } : {}; })(),
   };

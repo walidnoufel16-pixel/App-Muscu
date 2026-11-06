@@ -80,3 +80,31 @@ describe("journal oublié", () => {
     expect(journal({}, c).why).toBe("Reprise");
   });
 });
+
+import { ctxLibre, progressionLibre, varianteRecente } from "@/lib/logic/core";
+import { EX } from "@/lib/data/exercices";
+
+describe("variantes du même mouvement", () => {
+  const jour = (n: number) => { const d = new Date(Date.now() - n * 864e5); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+  const L = (n: number, v: number) => ({ ex: "dmh", done: true, ts: Date.now() - n * 864e5, v, reps: 10, nb: 3, feel: null, series: [{ v, reps: 10, ok: true }, { v, reps: 10, ok: true }, { v, reps: 10, ok: true }] }) as unknown as Journal;
+  it("Arnold et développé haltères : même mouvement", () => {
+    expect(EX.arn.pat).toBe(EX.dmh.pat);
+    const H = [ligne(jour(3), { arn: 3 })];
+    expect(varianteRecente({ HIST: H }, "dmh")?.id).toBe("arn");
+  });
+  it("16 jours sans l'exercice mais une variante il y a 3 jours : pas de reprise allégée", () => {
+    const seul = progressionLibre(EX.dmh, { s: 3, r: 10 }, L(16, 20));
+    expect(seul?.t).toMatch(/Reprise après 16 jours/);
+    const avecVariante = progressionLibre(EX.dmh, { s: 3, r: 10 }, L(16, 20), { voisin: Date.now() - 3 * 864e5 });
+    expect(avecVariante?.t ?? "").not.toMatch(/Reprise/);
+    expect(avecVariante?.v ?? 20).toBeGreaterThanOrEqual(20);
+  });
+  it("jamais fait : départ à 90 % de la variante au même matériel", () => {
+    const H = [ligne(jour(5), { arn: 3 })];
+    H[0].ex.arn[2] = 20;
+    const E = { A: {}, LOG: {}, HIST: H, SEANCES: [{ nom: "Épaules", ex: [{ id: "dmh", s: 3, r: 10, p: "90 s" }] }] } as unknown as Etat;
+    const c = ctxLibre(E, 0, 0)!;
+    expect(c.base.v).toBe(18);
+    expect(c.why).toMatch(/90 %.*développé arnold/i);
+  });
+});
