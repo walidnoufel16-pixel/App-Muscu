@@ -1,6 +1,7 @@
 import { chromium } from "@playwright/test";
 import { readFileSync, mkdirSync } from "node:fs";
-const S = "/tmp/claude-0/-home-user-App-Muscu/ed83b37f-7825-50b5-8dda-5e94ab5aca5b/scratchpad/pack";
+// dossier de travail : brut/ (captures de l'app), scenes/ (plans générés)
+const S = process.env.PACK || "/tmp/pack";
 const O = "/home/user/App-Muscu/docs/reseaux/semaine-1";
 const LOGO = readFileSync("/home/user/App-Muscu/docs/reseaux/photo-profil-oxa.png").toString("base64");
 const ecran = (f, h, bas) => { const e = 860 / 390; return `<div class="ecran" style="height:${(bas - h) * e}px"><img src="data:image/png;base64,${readFileSync(`${S}/brut/${f}.png`).toString("base64")}" style="margin-top:${-h * e}px"></div>`; };
