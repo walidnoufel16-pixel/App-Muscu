@@ -52,6 +52,11 @@ concrètes. Tu ne publies jamais toi-même : tu livres des fichiers prêts à po
   3. Captures : `outils/reseaux/captures.mjs` (mode d'emploi en tête du fichier, `DATE=<lundi>`)
      → `/tmp/pack/brut/` : accueil, recup, corps, composer, progres, bilan, et chaque exercice
      fermé / ouvert (`s0-dc-ouvert.png` = développé couché avec son « pourquoi »).
+     Repas : repas-semaine (budget tenu, jour par jour), repas-recette-haut et repas-recette (fiche
+     recette, puis « Le conseil nutrition »), courses (liste avec prix), proteines (anneau du jour),
+     proteines-ajout, proteines-scanner. Street : street (test d'entrée et progrès),
+     street-programme (programme conseillé). Course : course (plan 10 km, allures), course-bas
+     (tout le plan). Soin : soin (routine Épaules). Jamais d'Oxa Plan ni de son bandeau « Bientôt ».
   4. Plans de vidéo : adapte le tableau `V` de `scenes.mjs` (format complet en tête du fichier :
      plans coupés net, `d`, `tap`, `apres`, `surligne`, `suite`, plan de fin), lance-le, regarde
      les aperçus `$PACK/scenes/<nom>-<i>.png` (avec `GUIDES=1` pour les zones masquées), puis
