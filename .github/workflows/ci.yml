@@ -1,0 +1,46 @@
+# Intégration continue : à chaque PR et à chaque push sur main ou la branche de travail,
+# l'app est vérifiée de bout en bout (types, lint, tests unitaires, build, scénarios e2e).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, claude/app-muscu-deployment-plan-7398r6]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - name: Types
+        run: |
+          npx next typegen
+          npx tsc --noEmit -p .
+      - name: Lint
+        run: npx eslint .
+      - name: Tests unitaires
+        run: npx vitest run
+      - name: Build
+        run: npm run build
+      - name: Playwright et Chromium
+        run: |
+          npm i -g @playwright/test@1.63.0
+          npx -y playwright@1.63.0 install --with-deps chromium
+          sudo mkdir -p /opt/pw-browsers
+          sudo ln -sf "$(find ~/.cache/ms-playwright -type f -name chrome -path '*chrome-linux*' | head -1)" /opt/pw-browsers/chromium
+      - name: Scénarios e2e
+        run: NODE_PATH="$(npm root -g)" node tests/e2e/tous.mjs

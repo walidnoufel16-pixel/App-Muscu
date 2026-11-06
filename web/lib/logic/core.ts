@@ -288,6 +288,9 @@ export function seriesDe(L: Journal, n?: number) {
 export const maxV = (L?: Journal | null) =>
   L && L.series && L.series.length ? Math.max(...L.series.map((s) => s.v)) : (L && L.v) || 0;
 export const okDe = (L: Journal, s: Serie) => s.ok ?? !!L.done;
+/** Variation de la charge proposée par rapport à la dernière fois (exercices en kg) ; 0 sans précédent. */
+export const variationDe = (c: { id: string; base: { v: number }; prev?: Journal | null }) =>
+  EX[c.id]?.ch === "kg" && c.prev ? Math.round((c.base.v - maxV(c.prev)) * 100) / 100 : 0;
 export const lestMax = (L?: Journal | null) => (L && L.series ? Math.max(0, ...L.series.map((s) => +(s.lest ?? 0) || 0)) : 0);
 
 export function resumeDe(L: Journal, x: Exercice, unit: string) {
@@ -406,9 +409,18 @@ export function chargeDepart(E: Etat, id: string, reps: number): Suggestion | nu
   if (!x || x.ch !== "kg") return null;
   let rm = 0;
   for (const l of E.HIST || []) { const q = l.ex?.[id]; if (q && q[2] > 0 && q[3] > 0) rm = Math.max(rm, q[2] * (1 + Math.min(q[3], 12) / 30)); }
-  if (!rm) return null;
-  const pas = pasExercice(x), v = auPalier(rm / (1 + (reps + 2) / 30), pas);
-  return v > 0 ? { v, reps, t: tr("Calculée d'après ta meilleure série sur cet exercice ({a} kg estimés au maximum).", { a: Math.round(rm) }) } : null;
+  let depuis = "";
+  if (!rm) {
+    /* jamais fait : le 1RM de la variante la plus proche (le plan alterne deux variantes), mis à l'échelle, à 90 % */
+    const va = varianteRecente(E, id, true), k = va ? rapportCharge(id, va.id) : 0;
+    if (!va || !(va.rm > 0) || !k) return null;
+    rm = va.rm * k * 0.9; depuis = va.id;
+  }
+  const pas = pasExercice(x), v = Math.min(auPalier(rm / (1 + (reps + 2) / 30), pas), depuis ? x.d * 2 : Infinity);
+  if (!(v > 0)) return null;
+  return depuis
+    ? { v, reps, t: tr("Première fois : estimée d'après ton {n}, une variante du même mouvement, avec une marge de prudence.", { n: EX[depuis].n.toLowerCase() }) }
+    : { v, reps, t: tr("Calculée d'après ta meilleure série sur cet exercice ({a} kg estimés au maximum).", { a: Math.round(rm) }) };
 }
 
 /* ---------------- contexte d'un exercice affiché ----------------
@@ -501,13 +513,15 @@ const minReps = (d: Journal, dbl: boolean) => {
 };
 export function progressionLibre(
   x: Exercice, cible: { s: number; r: number }, d: Journal,
-  o: { obj?: number; avant?: Journal[]; maintenant?: number } = {},
+  o: { obj?: number; avant?: Journal[]; maintenant?: number; voisin?: number } = {},
 ): { v: number; reps: number; t: string } | null {
   const ok = (d.series || []).filter((s) => okDe(d, s)), dbl = x.ch === "kg" || x.ch === "lest";
   const v = maxV(d), reps = d.reps ?? cible.r;
   const chargee = x.ch === "kg" || (x.ch === "lest" && v > 0);
   /* une pause : on reprend plus léger, quoi qu'il se soit passé la dernière fois */
-  const jours = d.ts ? Math.floor(((o.maintenant ?? Date.now()) - d.ts) / 864e5) : 0;
+  /* le muscle n'est pas « au repos » si une variante du même mouvement a été faite entre-temps */
+  const dernier = Math.max(d.ts || 0, o.voisin || 0);
+  const jours = dernier ? Math.floor(((o.maintenant ?? Date.now()) - dernier) / 864e5) : 0;
   if (chargee && jours >= 10) {
     const pas = pasExercice(x), pc = jours >= 21 ? 20 : 10, nv = auPalier(v * (1 - pc / 100), pas);
     if (nv < v) return { v: nv, reps: cible.r, t: tr("Reprise après {n} jours sans cet exercice : −{p} % pour réhabituer tes muscles.", { n: jours, p: pc }) };
@@ -547,16 +561,64 @@ export function progressionLibre(
   return { v: bas + 1, reps, t: tr("Toutes tes séries réussies la dernière fois : une répétition de plus.") };
 }
 
+/** La variante d'un exercice dans l'historique : même schéma moteur (développé haltères, Arnold,
+    militaire…). Sans `charge`, la plus récente (règle de pause : le muscle a travaillé).
+    Avec `charge`, la plus proche pour estimer une charge : même matériel et même type de charge,
+    de préférence même muscle secondaire (pat2) ; avec sa meilleure charge et son 1RM estimé. */
+export function varianteRecente(E: Pick<Etat, "HIST">, id: string, charge = false): { id: string; d: string; ts: number; v: number; rm: number } | null {
+  const x = EX[id];
+  if (!x) return null;
+  const H = E.HIST || [];
+  const rang = (y: Exercice) => (!charge ? 0 : y.eq !== x.eq || y.ch !== x.ch ? -1 : (y.pat2 ?? "") === (x.pat2 ?? "") ? 2 : 1);
+  let mieux: { id: string; d: string; ts: number; v: number; rm: number; r: number } | null = null;
+  for (let i = H.length - 1; i >= 0; i--) {
+    const l = H[i];
+    for (const [o, p] of Object.entries(l.ex)) {
+      const y = EX[o];
+      if (o === id || !y || y.pat !== x.pat) continue;
+      const r = rang(y);
+      if (r < 0 || (mieux && r <= mieux.r)) continue;
+      const [a, m, jj] = l.d.split("-").map(Number);
+      mieux = { id: o, d: l.d, ts: new Date(a, m - 1, jj, 12).getTime(), v: p[2], rm: p[0], r };
+      if (!charge || r === 2) break;
+    }
+    if (mieux && (!charge || mieux.r === 2)) break;
+  }
+  return mieux && { id: mieux.id, d: mieux.d, ts: mieux.ts, v: mieux.v, rm: mieux.rm };
+}
+
+/** Rapport de charge entre deux exercices, d'après leurs charges de départ (leg curl 30, kickback 5…),
+    borné : une variante ne sert jamais à proposer plus du double ni moins du dixième. */
+export const rapportCharge = (id: string, de: string) => {
+  const a = EX[id]?.d || 0, b = EX[de]?.d || 0;
+  return a > 0 && b > 0 ? Math.min(2, Math.max(0.1, a / b)) : 0;
+};
+
+/** Première fois sur un exercice : charge de départ tirée de la variante la plus proche faite dans les
+    60 jours, mise à l'échelle et à 90 % par prudence. */
+export function departDepuisVariante(E: Pick<Etat, "HIST">, id: string, maintenant = Date.now()): { v: number; depuis: string; vv: number } | null {
+  const x = EX[id];
+  if (!x || x.ch !== "kg") return null;
+  const va = varianteRecente(E, id, true), k = va ? rapportCharge(id, va.id) : 0;
+  if (!va || !(va.v > 0) || !k || maintenant - va.ts > 60 * 864e5) return null;
+  const v = Math.min(auPalier(va.v * k * 0.9, pasExercice(x)), x.d * 2);
+  return v > 0 ? { v, depuis: va.id, vv: va.v } : null;
+}
+
 export function ctxLibre(E: Etat, idx: number, j: number): Ctx | null {
   const S = E.SEANCES[idx], e = S?.ex[j];
   if (!e || !EX[e.id]) return null;
   const x = EX[e.id], k = kLibre(idx, j), h = historiqueEx(E, e.id, k, 3), d = h[0] ?? precedentDe(E.LOG, e.id, k);
-  const pr = d ? progressionLibre(x, e, d, { obj: S.obj ?? S.gen?.obj, avant: h.slice(1) }) : null;
-  const aj = selonForme(E.A, x, e.id, pr ? { v: pr.v, reps: pr.reps } : d ? { v: maxV(d), reps: d.reps ?? e.r } : { v: x.d, reps: e.r }, pasExercice(x));
+  const pr = d ? progressionLibre(x, e, d, { obj: S.obj ?? S.gen?.obj, avant: h.slice(1), voisin: varianteRecente(E, e.id)?.ts }) : null;
+  /* jamais fait : on part de la variante la plus proche (même mouvement, même matériel), à 90 % */
+  /* jamais fait : on part de la variante la plus proche, mise à l'échelle (voir departDepuisVariante) */
+  const dv = d ? null : departDepuisVariante(E, e.id);
+  const aj = selonForme(E.A, x, e.id, pr ? { v: pr.v, reps: pr.reps } : d ? { v: maxV(d), reps: d.reps ?? e.r } : { v: dv?.v || x.d, reps: e.r }, pasExercice(x));
   return {
     k, id: e.id, n: e.s,
     base: aj.base,
-    why: joindre(pr ? pr.t : d ? tr("Reprise de ta dernière séance sur cet exercice.") : undefined, aj.texte),
+    why: joindre(pr ? pr.t : d ? tr("Reprise de ta dernière séance sur cet exercice.")
+      : dv ? tr("Première fois : estimée d'après ton {n} ({v} kg), une variante du même mouvement, avec une marge de prudence.", { n: EX[dv.depuis].n.toLowerCase(), v: nb(dv.vv) }) : undefined, aj.texte),
     repos: e.p, prev: d,
     ...(() => { const max = maxAuDessus(e.id, maxHist(E, e.id, k), d); return max ? { max } : {}; })(),
   };
@@ -576,9 +638,17 @@ export function archiver(LOG: Record<string, Journal>, k: string) {
 
 /* Journal de l'exercice, créé au premier geste. Mute LOG (appelé dans le store). */
 import { LESTABLE } from "@/lib/data/referentiels";
+/** Journal oublié : ouvert il y a plus de 6 h sans aucune série validée. Il ne compte plus : la
+    séance repart de la charge proposée par le coach, pas des valeurs restées là. */
+export const journalPerime = (L: Journal | undefined, maintenant = Date.now()) =>
+  !!L && !L.done && !!L.ts && maintenant - L.ts > 6 * 3600e3 && !(L.series || []).some((s) => okDe(L, s));
+/** Le journal en cours d'un exercice, sans le journal oublié. */
+export const journalActif = (L: Journal | undefined) => (journalPerime(L) ? undefined : L);
+
 export function journal(LOG: Record<string, Journal>, c: Ctx): Journal {
   /* un journal laissé là par un autre exercice (séance modifiée) n'est pas le sien */
   if (LOG[c.k] && LOG[c.k].ex !== c.id) archiver(LOG, c.k);
+  if (journalPerime(LOG[c.k])) delete LOG[c.k];
   let L = LOG[c.k];
   if (!L) {
     L = LOG[c.k] = {

@@ -10,9 +10,15 @@ await pg.waitForFunction(() => navigator.serviceWorker.controller || navigator.s
 await pg.waitForTimeout(4000);
 const nb = await pg.evaluate(async () => (await (await caches.open((await caches.keys())[0])).keys()).length);
 await ctx.setOffline(true);
-await pg.goto("http://localhost:8801/exercices/");
+/* une page de l'app ouverte sans réseau (directement, pas par une ancienne adresse qui redirige) */
+await pg.goto("http://localhost:8801/progres/");
+await pg.waitForLoadState("load");
 await pg.waitForTimeout(1200);
 const titre = await pg.textContent("h1").catch(() => null);
 const img = await pg.evaluate(async () => !!(await caches.match("/img/Barbell_Squat_0.avif")));
 console.log(JSON.stringify({ fichiersEnCache: nb, horsLigneTitre: titre, photoEnCache: img }));
+const ok = (c, m) => { console.log(c ? "OK  " : "ÉCHEC", m); if (!c) process.exitCode = 1; };
+ok(nb > 100, `fichiers mis en cache par le service worker (${nb})`);
+ok(titre === "Progrès", "hors ligne : la page s'ouvre (titre Progrès)");
+ok(img, "hors ligne : les photos d'exercices sont en cache");
 await b.close(); srv.close();

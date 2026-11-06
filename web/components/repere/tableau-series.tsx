@@ -10,7 +10,7 @@ import type { Phase } from "@/lib/logic/cardio";
 import { CHANGE, PREPA, tempsTenu } from "@/lib/logic/tenue";
 import { EX } from "@/lib/data/exercices";
 import { LESTABLE } from "@/lib/data/referentiels";
-import { fmtMax, fmtSerie, maxV, nb, okDe, secondesDe, seriesDe, type Ctx } from "@/lib/logic/core";
+import { fmtMax, fmtSerie, journalActif, maxV, nb, okDe, secondesDe, seriesDe, type Ctx } from "@/lib/logic/core";
 import * as act from "@/lib/logic/actions";
 import type { Journal, Serie } from "@/lib/logic/types";
 import { useRepere } from "@/lib/store";
@@ -66,7 +66,7 @@ const phasesChrono = (nom: string, cible: number, cote?: boolean): Phase[] => co
 
 /* Tableau des séries façon Hevy / Strong : # · précédent · valeurs · (chrono) · ✓. */
 export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: number; onReplier: () => void; onFini?: () => void }) {
-  const L: Journal | undefined = useRepere((s) => s.etat.LOG[c.k]);
+  const L: Journal | undefined = journalActif(useRepere((s) => s.etat.LOG[c.k]));
   const muter = useRepere((s) => s.muter);
   const lancer = useRepos((s) => s.lancer);
   const [depuis] = useState(() => performance.now());
@@ -118,7 +118,12 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
   return (
     <div className="px-3 pb-3">
       <ConseilZone id={c.id} />
-      {why && <p className="mx-1 mb-2 text-[13px] leading-snug text-muted-foreground">{why}</p>}
+      {why && (
+        <p className="mx-1 mb-2 text-[13px] leading-snug text-muted-foreground">
+          {x.ch === "kg" && !L && <span className="font-semibold text-plate-ink dark:text-plate">{tr("Pourquoi {v} kg", { v: nb(c.base.v) })} · </span>}
+          {why}
+        </p>
+      )}
       {/* ton max sur l'exercice, quand il dépasse ce que montre « Précédent » */}
       {c.max && (
         <p className="mx-1 mb-2 inline-flex items-center gap-1.5 rounded-full bg-plate-soft px-3 py-1 text-[13px] font-semibold text-plate-ink dark:text-plate">

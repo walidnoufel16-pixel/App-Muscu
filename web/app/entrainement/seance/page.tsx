@@ -20,7 +20,7 @@ import { CarteSport } from "@/components/repere/carte-sport";
 import { EX } from "@/lib/data/exercices";
 import { AXES } from "@/lib/data/referentiels";
 import {
-  alternativesDe, baseRPE, ctxLibre, ctxPlan, kLibre, curId, espacementDe, key, musclesDe, nomPat, noRPE, okDe, rirTxt, rpeOf, sportsChoisis, titreSeance, week,
+  alternativesDe, baseRPE, ctxLibre, ctxPlan, journalActif, variationDe, kLibre, curId, espacementDe, key, musclesDe, nomPat, noRPE, okDe, rirTxt, rpeOf, sportsChoisis, titreSeance, week,
 } from "@/lib/logic/core";
 import { exParDefaut, objCollation } from "@/lib/logic/assistant";
 import * as act from "@/lib/logic/actions";
@@ -60,7 +60,7 @@ function PartieEnFeuille({ ouvert, onClose, titre, children }: { ouvert: boolean
 
 /* Habillage commun : retour, titre, avancement, accès à l'échauffement et à la collation. */
 function Cadre({
-  surtitre, titre, actions, faits, total, sect, setSect, children, entete,
+  surtitre, titre, actions, faits, total, setSect, children, entete,
 }: {
   surtitre: React.ReactNode; titre: string; actions?: React.ReactNode; faits: number; total: number;
   sect: Partie; setSect: (p: Partie) => void; children: React.ReactNode; entete?: React.ReactNode;
@@ -159,7 +159,7 @@ function SeancePlan() {
             <div className={cn("flex flex-col gap-2.5 px-4", premiere && "entree")}>
               <FormeDuJour cles={cles} />
               {(S.x || []).map((e, i) => {
-                const c = ctxPlan(etat, i, W)!, x = EX[c.id], k = c.k, L: Journal | undefined = etat.LOG[k];
+                const c = ctxPlan(etat, i, W)!, x = EX[c.id], k = c.k, L: Journal | undefined = journalActif(etat.LOG[k]);
                 const r = noRPE(c.id) ? 0 : rpeOf(etat.A, wk, c.id, e[4]);
                 const prescr = x.ch === "temps" ? `${e[1]} × ${e[2]}s${x.cote ? tr(" / côté") : ""}` : x.ch === "dist" ? `${e[1]} × ${e[2]}m` : `${e[1]} × ${e[2]}`;
                 const badge = etat.SWAP[k] ? "aujourd'hui" : etat.SWAPP[day + "|" + i] ? tr("remplacé") : undefined;
@@ -167,7 +167,7 @@ function SeancePlan() {
                 return (
                   <ExerciceCarte
                     key={k} ancre={k}
-                    num={i + 1} id={c.id} prescr={prescr} repos={e[3]} rpe={r} role={e[4]} badge={badge}
+                    num={i + 1} id={c.id} prescr={prescr} repos={e[3]} rpe={r} role={e[4]} badge={badge} variation={L ? 0 : variationDe(c)}
                     L={L} n={e[1]} ouvert={ouvert === k}
                     onToggle={() => { tactile(5); setOuvert(ouvert === k ? null : k); }}
                     onFiche={() => ouvrirFiche(i)}
@@ -283,13 +283,13 @@ function SeanceLibre({ i }: { i: number }) {
     const c = ctxLibre(etat, i, j);
     if (!c) return null;
     /* un journal laissé là par un autre exercice n'est pas le sien */
-    const x = EX[e.id], L = etat.LOG[c.k]?.ex === e.id ? etat.LOG[c.k] : undefined, r = noRPE(e.id) ? 0 : 8;
+    const x = EX[e.id], L = etat.LOG[c.k]?.ex === e.id ? journalActif(etat.LOG[c.k]) : undefined, r = noRPE(e.id) ? 0 : 8;
     const fini = () => enchainer({ k: c.k, cles, titre: S.nom, setOuvert });
     const prescr = x.ch === "temps" ? `${e.s} × ${e.r}s${x.cote ? tr(" / côté") : ""}` : x.ch === "dist" ? `${e.s} × ${e.r}m` : `${e.s} × ${e.r}`;
     return (
       <ExerciceCarte
         key={c.k} ancre={c.k}
-        num={j + 1} id={e.id} prescr={prescr} repos={e.p} rpe={r} L={L} n={e.s} ouvert={ouvert === c.k}
+        num={j + 1} id={e.id} prescr={prescr} repos={e.p} rpe={r} variation={L ? 0 : variationDe(c)} L={L} n={e.s} ouvert={ouvert === c.k}
         onToggle={() => { tactile(5); setOuvert(ouvert === c.k ? null : c.k); }}
         onFiche={() => setFiche({ id: e.id, idx: -1, pres: [e.s, e.r, e.p], libelle: tr("séance libre"), rpe: r || undefined })}
         onTout={() => { tactile(12); muter((E) => act.toutCocher(E, c)); if (!L?.done && useRepere.getState().etat.LOG[c.k]?.done) fini(); }}

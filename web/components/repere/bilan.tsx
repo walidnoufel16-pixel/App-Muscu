@@ -1,5 +1,6 @@
 "use client";
 
+import { noter } from "@/lib/mesure";
 import { parOnglet } from "@/lib/nav";
 import { loc, pluriel, tr } from "@/lib/i18n";
 import { useCallback, useEffect, useState } from "react";
@@ -43,6 +44,9 @@ export function Bilan() {
   const bilan = useCelebrer((s) => s.bilan);
   const fermerBilan = useCelebrer((s) => s.fermerBilan);
   const libre = bilan?.s?.startsWith("L|") ? +bilan.s.slice(2) : null;
+  /* séance du programme (ou autre) terminée : comptée ici ; la séance libre l'est en entrant dans le suivi */
+  const sBilan = bilan?.s;
+  useEffect(() => { if (sBilan && !sBilan.startsWith("L|")) noter("seance_terminee", { r: /^\d/.test(sBilan) ? "plan" : "autre" }); }, [sBilan]);
   const router = useRouter();
   /* séance libre : rangée dans Progrès (elle repart vierge), et on y va pour la voir */
   const fermer = () => { fermerBilan(); if (libre != null) { ajouterAuSuivi(libre); parOnglet(); router.replace("/progres"); } };
@@ -108,8 +112,8 @@ function Suite() {
 /* Une seule proposition en plus par bilan : les rappels tant qu'ils n'ont pas été proposés,
    sinon (à partir de la 5e séance, une fois) la demande d'avis. */
 function UnePropositionDePlus() {
-  const [rappels, setRappels] = useState<boolean | null>(null);
-  useEffect(() => { if (dejaPropose()) setRappels(false); else etatRappels().then((e) => setRappels(e === "inactif")).catch(() => setRappels(false)); }, []);
+  const [rappels, setRappels] = useState<boolean | null>(() => (dejaPropose() ? false : null));
+  useEffect(() => { if (!dejaPropose()) etatRappels().then((e) => setRappels(e === "inactif")).catch(() => setRappels(false)); }, []);
   if (rappels === null) return null;
   return rappels ? <ProposerRappels /> : <DemanderAvis />;
 }

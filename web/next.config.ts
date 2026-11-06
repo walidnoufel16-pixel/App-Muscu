@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 /* Export statique : Render sert le dossier out/ (copié dans dist/). */
 const nextConfig: NextConfig = {
   output: "export",
+  /* version de l'app, jointe aux erreurs signalées (lib/mesure.ts) */
+  env: { NEXT_PUBLIC_VERSION: (process.env.RENDER_GIT_COMMIT || "dev").slice(0, 8) },
   trailingSlash: true,
   images: { unoptimized: true },
   /* React Compiler : mémoïsation automatique des composants (tableau des

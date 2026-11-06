@@ -28,13 +28,15 @@ const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(800); await 
   const [ctx, pg] = await contexte();
   await pg.goto(U + "/entrainement/");
   await pg.locator("nav a").first().waitFor({ timeout: 8000 });
-  ok((await pg.locator("nav a").allTextContents()).join(",") === "Entraînement,Exercices,Repas,Progrès", "quatre onglets, plus de Profil");
+  ok((await pg.locator("nav a").allTextContents()).join(",") === "Entraînement,Repas,Progrès", "trois onglets");
+  ok(await pg.getByRole("button", { name: "Profil" }).count() === 1, "le Profil en un toucher (avatar en haut)");
   const menu = () => pg.getByRole("dialog");
   /* une feuille encore en train de se fermer rend la page inerte un instant : on attend qu'elle parte */
-  const ouvrir = async () => { await pg.getByRole("dialog").waitFor({ state: "detached", timeout: 4000 }).catch(() => {}); await pg.getByRole("button", { name: "Menu" }).click(); await menu().getByRole("region", { name: "Aller plus loin" }).waitFor(); await pg.waitForTimeout(400); };
+  const ouvrir = async () => { await pg.getByRole("dialog").waitFor({ state: "detached", timeout: 4000 }).catch(() => {}); await pg.getByRole("button", { name: "Menu" }).click(); await menu().getByRole("region", { name: "Mes réglages" }).waitFor(); await pg.waitForTimeout(400); };
   await ouvrir();
-  ok(await menu().getByText("Walid").count() === 1 && await menu().getByText("Sur ce téléphone").count() === 1, "en-tête du menu : surnom et état du compte");
-  for (const t of ["Aller plus loin", "Mes réglages", "L'app"]) ok(await menu().getByRole("region", { name: t }).count() === 1, `bloc « ${t} »`);
+  ok(await menu().getByText("Walid").count() === 1 && await menu().getByText(/Sur ce téléphone/).count() === 1, "en-tête du menu : surnom et état du compte");
+  for (const t of ["Mes réglages", "Aide"]) ok(await menu().getByRole("region", { name: t }).count() === 1, `bloc « ${t} »`);
+  ok(await menu().getByRole("button", { name: /Inviter un ami/ }).count() === 1, "« Inviter un ami » en tête");
   ok(await menu().getByText("Administration").count() === 0, "pas d'Administration pour un compte normal");
   await cap(pg, "menu");
   /* fermer au toucher à côté */
@@ -50,23 +52,27 @@ const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(800); await 
     if (cible) await cible().waitFor({ timeout: 8000 });
     ok(true, `« ${n} » → ${pg.url().replace(U, "")}`);
   };
-  await entree("Défis entre amis", /\/progres\/?$/, () => pg.locator("#defis"));
-  await pg.waitForTimeout(1200);
-  ok(await pg.locator("#defis").evaluate((el) => { const r = el.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; }), "Défis : la section est à l'écran");
-  await entree("Badges et bilans", /\/progres\/?$/, () => pg.locator("#badges"));
   await entree("Mon matériel", /\/profil\/?$/, () => pg.locator("#materiel"));
+  await pg.waitForTimeout(1200);
+  ok(await pg.locator("#materiel").evaluate((el) => { const r = el.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; }), "Mon matériel : la section est à l'écran");
+  await entree("Rappels", /\/profil\/?$/, () => pg.locator("#rappels"));
+  await entree("Apparence et langue", /\/profil\/?$/, () => pg.locator("#apparence"));
   await entree("Préférences repas", /\/repas\/?\?prefs=1/, () => pg.getByRole("dialog").getByText("Préférences repas").first());
   await pg.getByRole("dialog").getByRole("button", { name: "Enregistrer" }).click();
   await pg.waitForTimeout(500);
-  await entree("Programme 8 semaines", /\/entrainement\/?$/, () => pg.getByRole("tab", { name: "Programme", selected: true }));
-  await entree("Importer une séance", /\/entrainement\/?$/, () => pg.getByRole("dialog").getByText("Importer une séance").first());
-  await pg.goto(U + "/entrainement/"); // la feuille d'import garde le clavier : on recharge l'écran
+  await entree("Le blog Oxa", /\/blog\/?$/);
+  await pg.goto(U + "/entrainement/");
   await pg.locator("nav a").first().waitFor();
   await ouvrir();
   await menu().getByRole("button", { name: /Walid/ }).click();
   await pg.waitForURL(/\/profil\/?$/);
-  ok(await pg.getByText("Compte et réglages").count() > 0 && await pg.locator("#compte").count() === 1, "le compte ouvre « Compte et réglages »");
+  ok(await pg.locator("#compte").count() === 1, "le compte ouvre le Profil");
   await cap(pg, "menu-profil");
+  /* l'avatar mène aussi au Profil */
+  await pg.goto(U + "/repas/");
+  await pg.getByRole("button", { name: "Profil" }).click();
+  await pg.waitForURL(/\/profil\/?$/);
+  ok(true, "l'avatar ouvre le Profil");
   await ctx.close();
 }
 
@@ -75,9 +81,9 @@ const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(800); await 
   const [ctx, pg] = await contexte("en");
   await pg.goto(U + "/progres/");
   await pg.getByRole("button", { name: "Menu" }).click();
-  await pg.getByRole("dialog").getByRole("region", { name: "Go further" }).waitFor({ timeout: 8000 });
+  await pg.getByRole("dialog").getByRole("region", { name: "My settings" }).waitFor({ timeout: 8000 });
   const t = await pg.getByRole("dialog").innerText();
-  ok(!/[éèàçêûô]|Réglages|Défis|Aller/.test(t), "EN : menu sans français");
+  ok(!/[éèàçêûô]|Réglages|Défis|Aide\b/.test(t), "EN : menu sans français");
   await ctx.close();
 }
 

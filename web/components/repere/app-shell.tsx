@@ -1,5 +1,6 @@
 "use client";
 
+import { demarrerMesure } from "@/lib/mesure";
 import { BandeauSeance } from "./seance-en-cours";
 import { tr } from "@/lib/i18n";
 import { useEffect, ViewTransition } from "react";
@@ -38,7 +39,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const sens = useSens((s) => s.sens);
 
   useEffect(() => {
-    noterSource(); suivreHistorique(); suivreDefis(); demarrer();
+    noterSource(); suivreHistorique(); suivreDefis(); demarrer(); demarrerMesure();
     /* appareil inscrit aux rappels : remis au nom du compte et de la langue actuels */
     const t = setTimeout(resynchroniserRappels, 8000);
     return () => clearTimeout(t);

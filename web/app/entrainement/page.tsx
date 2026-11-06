@@ -21,6 +21,7 @@ import { usePremiereVisite } from "@/lib/entree";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 import { useProgrammeActif } from "@/lib/fonctionnalites";
+import { LigneRecuperation } from "@/components/repere/recuperation";
 
 export default function PageEntrainement() {
   const etat = useRepere((s) => s.etat);
@@ -55,6 +56,7 @@ export default function PageEntrainement() {
       />
       <div className={cn("flex flex-col gap-3 px-4", premiere && "entree")}>
         {!debutant && <SemaineAnneaux auj={auj} setF={setF} />}
+        {!debutant && <LigneRecuperation auj={auj} />}
         <CarteDuJour auj={auj} setF={setF} />
         <Reprise />
         <Raccourcis />

@@ -1,5 +1,6 @@
 "use client";
 
+import { noter } from "@/lib/mesure";
 import { tr } from "@/lib/i18n";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -40,6 +41,7 @@ export function Synthese() {
     setEnCours(false);
     if (r.erreur) { dire(tr("Génération impossible"), r.erreur); return; }
     muter((E) => { E.PLAN = r.plan; E.FINI = true; });
+    noter("plan_genere");
     if (r.avertissement) dire(tr("Cycle incomplet"), r.avertissement);
   };
 

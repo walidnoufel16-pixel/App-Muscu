@@ -4,7 +4,7 @@ import { ProfilSportif } from "@/components/repere/profil-sportif";
 import { langue, LANGUES, pluriel, tr } from "@/lib/i18n";
 import { ReglageCycle, useCycleCharge } from "@/components/repere/cycle";
 import { ReglageZones } from "@/components/repere/forme";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTheme } from "next-themes";
 import { ArrowsLeftRightIcon, CaretRightIcon, ChartBarIcon, CheckCircleIcon, CloudSlashIcon, EnvelopeIcon, FileTextIcon, LockSimpleIcon, ShieldWarningIcon } from "@phosphor-icons/react";
@@ -43,9 +43,12 @@ function Profil() {
   const [msg, setMsg] = useState<{ t: string; ok?: boolean } | null>(null);
   const [occupe, setOccupe] = useState(false);
   /* Confidentialité et Crédits s'ouvrent en feuille ; ?voir=… les ouvre depuis le menu */
-  const [feuille, setFeuille] = useState<"confidentialite" | "credits" | null>(null);
   const voir = useSearchParams().get("voir");
-  useEffect(() => { if (voir === "confidentialite" || voir === "credits") setFeuille(voir); }, [voir]);
+  const lien = voir === "confidentialite" || voir === "credits" ? voir : null;
+  const [feuille, setFeuille] = useState<"confidentialite" | "credits" | null>(lien);
+  /* un nouveau ?voir=… (depuis le menu, page déjà ouverte) rouvre la feuille demandée */
+  const [lienVu, setLienVu] = useState(lien);
+  if (lien !== lienVu) { setLienVu(lien); if (lien) setFeuille(lien); }
   const adresse = user?.email, attente = user?.new_email;
 
   const lier = async () => {
@@ -248,6 +251,7 @@ function Profil() {
               <div>
                 <p>{tr("Sur le serveur sont gardés ton surnom, ton adresse si tu l'as rattachée, tes réponses au questionnaire, ton programme, tes séances et charges, tes sorties de course, et, si tu les notes, ta forme du jour, ton poids et tes protéines.")}</p>
                 <p className="mt-2">{tr("L'éditeur d'Oxa peut les consulter pour suivre l'usage de l'app et l'améliorer. Elles ne sont ni vendues ni partagées. Le suivi du cycle menstruel ne quitte jamais ce téléphone. « Tout effacer », plus bas, supprime tout, ici comme sur le serveur.")}</p>
+                <p className="mt-2">{tr("Pour savoir quelles rubriques servent et corriger les bugs, l'app note aussi, de façon anonyme, quelques gestes (ouverture, séance terminée, rubrique ouverte…) et les erreurs qui surviennent. Ces notes portent un identifiant tiré au hasard sur ce téléphone, jamais ton compte ni ton adresse, et sont effacées au bout de 13 mois au plus.")}</p>
               </div>
             </DrawerDescription>
           </div>
