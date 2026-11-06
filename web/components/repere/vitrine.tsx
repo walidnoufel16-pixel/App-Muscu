@@ -1,8 +1,8 @@
 "use client";
 
 /* Page d'accueil des visiteurs sans compte (écran « accueil » de /bienvenue) : la promesse,
-   trois arguments illustrés par de vraies captures de l'app (public/img/vitrine, recadrées depuis
-   l'app de test), le reste en une liste, et deux appels à commencer. */
+   trois arguments illustrés par de vraies captures de l'app (public/img/vitrine : cartes capturées
+   au ras, sur le fond de l'app), le reste en une liste, et deux appels à commencer. */
 import { tr, langue } from "@/lib/i18n";
 import { ArrowRightIcon, CheckIcon, NewspaperIcon } from "@phosphor-icons/react";
 import { ARTICLES, texte } from "@/lib/data/blog";
@@ -10,9 +10,9 @@ import { Button } from "@/components/ui/button";
 import { LogoTuile } from "./logo";
 
 const ARGUMENTS = [
-  { img: "recuperation", t: "Ta séance du jour, d'après tes muscles", d: "Oxa sait ce qui a récupéré et ce qui a besoin de repos. Il te propose la bonne séance, avec ton matériel." },
-  { img: "pourquoi", t: "Un coach qui t'explique chaque charge", d: "+2,5 kg quand tu as réussi, −10 % après une pause : chaque poids proposé vient avec son pourquoi." },
-  { img: "bilan", t: "Ta semaine en un coup d'œil", d: "Chaque lundi, ton bilan : séances, records, muscles travaillés, et le conseil pour la semaine qui vient." },
+  { img: "recuperation", h: 711, t: "Ta séance du jour, d'après tes muscles", d: "Oxa sait ce qui a récupéré et ce qui a besoin de repos. Il te propose la bonne séance, avec ton matériel." },
+  { img: "pourquoi", h: 1386, t: "Un coach qui t'explique chaque charge", d: "+2,5 kg quand tu as réussi, −10 % après une pause : chaque poids proposé vient avec son pourquoi." },
+  { img: "bilan", h: 768, t: "Ta semaine en un coup d'œil", d: "Chaque lundi, ton bilan : séances, records, muscles travaillés, et le conseil pour la semaine qui vient." },
 ];
 const AUSSI = [
   "Oxa Plan : un programme de 8 semaines qui progresse avec toi",
@@ -56,7 +56,7 @@ export function Vitrine({ onCommencer, onCompte }: { onCommencer: () => void; on
         {ARGUMENTS.map((a, i) => (
           <article key={a.img} className="mt-4 overflow-hidden rounded-[24px] bg-card">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`/img/vitrine/${a.img}.avif`} alt="" loading="lazy" className="aspect-[1170/710] w-full bg-muted object-cover" />
+            <img src={`/img/vitrine/${a.img}.avif`} alt="" loading="lazy" width={1170} height={a.h} className="h-auto w-full bg-[#f2f2f4]" />
             <div className="px-4.5 pt-4 pb-4.5">
               <span className="num text-[15px] font-bold tracking-wider text-plate-ink">0{i + 1}</span>
               <h3 className="text-[18px] font-bold">{tr(a.t)}</h3>
