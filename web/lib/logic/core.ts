@@ -288,6 +288,9 @@ export function seriesDe(L: Journal, n?: number) {
 export const maxV = (L?: Journal | null) =>
   L && L.series && L.series.length ? Math.max(...L.series.map((s) => s.v)) : (L && L.v) || 0;
 export const okDe = (L: Journal, s: Serie) => s.ok ?? !!L.done;
+/** Variation de la charge proposée par rapport à la dernière fois (exercices en kg) ; 0 sans précédent. */
+export const variationDe = (c: { id: string; base: { v: number }; prev?: Journal | null }) =>
+  EX[c.id]?.ch === "kg" && c.prev ? Math.round((c.base.v - maxV(c.prev)) * 100) / 100 : 0;
 export const lestMax = (L?: Journal | null) => (L && L.series ? Math.max(0, ...L.series.map((s) => +(s.lest ?? 0) || 0)) : 0);
 
 export function resumeDe(L: Journal, x: Exercice, unit: string) {

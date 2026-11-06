@@ -1,9 +1,9 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
-import { ArrowsLeftRightIcon, BarbellIcon, CaretDownIcon, CheckIcon, CrosshairIcon, InfoIcon } from "@phosphor-icons/react";
+import { ArrowsLeftRightIcon, BarbellIcon, CaretDownIcon, CheckIcon, CrosshairIcon, InfoIcon, ArrowUpIcon, ArrowDownIcon } from "@phosphor-icons/react";
 import { EX } from "@/lib/data/exercices";
-import { musclesDe, okDe, resumeDe } from "@/lib/logic/core";
+import { musclesDe, nb, okDe, resumeDe } from "@/lib/logic/core";
 import { EtiquetteZone } from "./forme";
 import type { Journal } from "@/lib/logic/types";
 import { useCelebrer } from "@/lib/celebrer";
@@ -68,9 +68,11 @@ export function EtatCarte({ L, id, n }: { L?: Journal; id: string; n: number }) 
 
 /* Carte d'exercice repliable, commune au plan et aux séances libres. */
 export function ExerciceCarte({
-  ancre, num, id, prescr, repos, rpe, role, badge, L, n, ouvert, onToggle, onFiche, onRemplacer, onTout, children,
+  ancre, num, id, prescr, repos, rpe, role, badge, variation = 0, L, n, ouvert, onToggle, onFiche, onRemplacer, onTout, children,
 }: {
   ancre: string; num: number; id: string; prescr: string; repos: string; rpe?: number; role?: number; badge?: string;
+  /** charge proposée moins celle de la dernière fois (kg) : « ↑ 2,5 kg » ou « ↓ allégé » ; rien si elle ne bouge pas */
+  variation?: number;
   L?: Journal; n: number; ouvert: boolean;
   onToggle: () => void; onFiche: () => void; onRemplacer?: () => void; onTout: () => void;
   children?: React.ReactNode;
@@ -111,6 +113,8 @@ export function ExerciceCarte({
           ) : (
             <span className="num text-[15px] font-semibold tracking-wide text-foreground/80">
               {prescr} <span className="font-sans text-[12.5px] font-normal text-muted-foreground">{tr("· repos {repos}", { repos })}</span>
+              {variation > 0 && <span className="ml-1.5 inline-flex items-center gap-0.5 font-sans text-[12.5px] font-semibold text-plate-ink dark:text-plate"><ArrowUpIcon className="size-3" weight="bold" />{tr("{v} kg", { v: nb(variation) })}</span>}
+              {variation < 0 && <span className="ml-1.5 inline-flex items-center gap-0.5 font-sans text-[12.5px] font-semibold text-muted-foreground"><ArrowDownIcon className="size-3" weight="bold" />{tr("allégé")}</span>}
             </span>
           )}
         </span>

@@ -2,6 +2,7 @@
 
 /* Progrès : ce que l'entraînement a changé, en un coup d'œil.
    Tout vient de l'historique (HIST) et du cardio (CARDIO), rien n'est envoyé ailleurs. */
+import { CarteBilanSemaine } from "@/components/repere/bilan-semaine";
 import { AvatarProfil } from "@/components/repere/avatar-profil";
 import { loc, pct, pluriel, tr } from "@/lib/i18n";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -65,6 +66,7 @@ function Progres() {
     <>
       <EnTete surtitre={tr("Ton évolution")} titre={tr("Progrès")} actions={<AvatarProfil />} />
       <div className={cn("flex flex-col gap-6 px-4", premiere && "entree")}>
+        <CarteBilanSemaine auj={auj} />
         <Onglets label={tr("Progrès")} style="soulignes" valeur={onglet} onChange={changer}
           options={[{ v: "evolution", n: tr("Mon évolution") }, { v: "defis", n: tr("Défis & badges") }]} />
         {onglet === "defis" ? (

@@ -118,7 +118,12 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
   return (
     <div className="px-3 pb-3">
       <ConseilZone id={c.id} />
-      {why && <p className="mx-1 mb-2 text-[13px] leading-snug text-muted-foreground">{why}</p>}
+      {why && (
+        <p className="mx-1 mb-2 text-[13px] leading-snug text-muted-foreground">
+          {x.ch === "kg" && !L && <span className="font-semibold text-plate-ink dark:text-plate">{tr("Pourquoi {v} kg", { v: nb(c.base.v) })} · </span>}
+          {why}
+        </p>
+      )}
       {/* ton max sur l'exercice, quand il dépasse ce que montre « Précédent » */}
       {c.max && (
         <p className="mx-1 mb-2 inline-flex items-center gap-1.5 rounded-full bg-plate-soft px-3 py-1 text-[13px] font-semibold text-plate-ink dark:text-plate">

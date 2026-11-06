@@ -41,7 +41,9 @@ let CIBLE = 10;
 export const cibleNiveau = (niveau?: number) => (niveau == null ? 10 : niveau <= 1 ? 8 : niveau >= 3 ? 16 : 12);
 const ecart = (a: string, b: string) => Math.round((dateDe(b).getTime() - dateDe(a).getTime()) / 864e5);
 
-export type EtatGroupe = { dernier: string | null; jours: number; semaine: number; dernierVolume: number; recupere: boolean };
+export type EtatGroupe = { dernier: string | null; jours: number; semaine: number; dernierVolume: number; recupere: boolean;
+  /** jours restants avant d'être récupéré (0 : prêt) */
+  reste: number };
 
 /** Séries par groupe et par jour (principal 1, secondaire ½). */
 function seriesParJour(H: LigneHist[], de: string, a: string) {
@@ -75,7 +77,7 @@ export function etatGroupes(H: LigneHist[], auj: string): Record<Groupe, EtatGro
       : g === "abd" || g === "mol" ? 1
       : g === "qua" || g === "isc" || g === "dos" ? (dernierVolume >= 8 ? 3 : 2)
       : dernierVolume >= 4 ? 2 : 1;
-    out[g] = { dernier, jours: j, semaine, dernierVolume, recupere: j >= recup };
+    out[g] = { dernier, jours: j, semaine, dernierVolume, recupere: j >= recup, reste: Math.max(0, recup - j) };
   }
   return out;
 }
