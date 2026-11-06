@@ -579,9 +579,17 @@ export function archiver(LOG: Record<string, Journal>, k: string) {
 
 /* Journal de l'exercice, créé au premier geste. Mute LOG (appelé dans le store). */
 import { LESTABLE } from "@/lib/data/referentiels";
+/** Journal oublié : ouvert il y a plus de 6 h sans aucune série validée. Il ne compte plus : la
+    séance repart de la charge proposée par le coach, pas des valeurs restées là. */
+export const journalPerime = (L: Journal | undefined, maintenant = Date.now()) =>
+  !!L && !L.done && !!L.ts && maintenant - L.ts > 6 * 3600e3 && !(L.series || []).some((s) => okDe(L, s));
+/** Le journal en cours d'un exercice, sans le journal oublié. */
+export const journalActif = (L: Journal | undefined) => (journalPerime(L) ? undefined : L);
+
 export function journal(LOG: Record<string, Journal>, c: Ctx): Journal {
   /* un journal laissé là par un autre exercice (séance modifiée) n'est pas le sien */
   if (LOG[c.k] && LOG[c.k].ex !== c.id) archiver(LOG, c.k);
+  if (journalPerime(LOG[c.k])) delete LOG[c.k];
   let L = LOG[c.k];
   if (!L) {
     L = LOG[c.k] = {

@@ -20,7 +20,7 @@ import { CarteSport } from "@/components/repere/carte-sport";
 import { EX } from "@/lib/data/exercices";
 import { AXES } from "@/lib/data/referentiels";
 import {
-  alternativesDe, baseRPE, ctxLibre, ctxPlan, variationDe, kLibre, curId, espacementDe, key, musclesDe, nomPat, noRPE, okDe, rirTxt, rpeOf, sportsChoisis, titreSeance, week,
+  alternativesDe, baseRPE, ctxLibre, ctxPlan, journalActif, variationDe, kLibre, curId, espacementDe, key, musclesDe, nomPat, noRPE, okDe, rirTxt, rpeOf, sportsChoisis, titreSeance, week,
 } from "@/lib/logic/core";
 import { exParDefaut, objCollation } from "@/lib/logic/assistant";
 import * as act from "@/lib/logic/actions";
@@ -159,7 +159,7 @@ function SeancePlan() {
             <div className={cn("flex flex-col gap-2.5 px-4", premiere && "entree")}>
               <FormeDuJour cles={cles} />
               {(S.x || []).map((e, i) => {
-                const c = ctxPlan(etat, i, W)!, x = EX[c.id], k = c.k, L: Journal | undefined = etat.LOG[k];
+                const c = ctxPlan(etat, i, W)!, x = EX[c.id], k = c.k, L: Journal | undefined = journalActif(etat.LOG[k]);
                 const r = noRPE(c.id) ? 0 : rpeOf(etat.A, wk, c.id, e[4]);
                 const prescr = x.ch === "temps" ? `${e[1]} × ${e[2]}s${x.cote ? tr(" / côté") : ""}` : x.ch === "dist" ? `${e[1]} × ${e[2]}m` : `${e[1]} × ${e[2]}`;
                 const badge = etat.SWAP[k] ? "aujourd'hui" : etat.SWAPP[day + "|" + i] ? tr("remplacé") : undefined;
@@ -283,7 +283,7 @@ function SeanceLibre({ i }: { i: number }) {
     const c = ctxLibre(etat, i, j);
     if (!c) return null;
     /* un journal laissé là par un autre exercice n'est pas le sien */
-    const x = EX[e.id], L = etat.LOG[c.k]?.ex === e.id ? etat.LOG[c.k] : undefined, r = noRPE(e.id) ? 0 : 8;
+    const x = EX[e.id], L = etat.LOG[c.k]?.ex === e.id ? journalActif(etat.LOG[c.k]) : undefined, r = noRPE(e.id) ? 0 : 8;
     const fini = () => enchainer({ k: c.k, cles, titre: S.nom, setOuvert });
     const prescr = x.ch === "temps" ? `${e.s} × ${e.r}s${x.cote ? tr(" / côté") : ""}` : x.ch === "dist" ? `${e.s} × ${e.r}m` : `${e.s} × ${e.r}`;
     return (
