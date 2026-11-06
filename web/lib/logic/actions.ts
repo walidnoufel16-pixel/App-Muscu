@@ -126,8 +126,10 @@ export function retirerDeHistorique(E: Etat, d: string, s: string) {
   const i = s.startsWith("L|") ? +s.slice(2) : -1, blocs = new Set((E.SEANCES[i]?.blocs || []).map((b) => b.id));
   const cardio = (E.CARDIO || []).filter((c) => c.ref && blocs.has(c.ref) && jourDe(c.ts) === d);
   E.CARDIO = (E.CARDIO || []).filter((c) => !cardio.includes(c));
-  E.RETIRES = [...(E.RETIRES || []), `${d}|${s}`, ...cardio.map((c) => `c|${c.ts}`)].slice(-300);
+  E.RETIRES = [...(E.RETIRES || []), `${d}|${s}@${Date.now()}`, ...cardio.map((c) => `c|${c.ts}`)].slice(-300);
 }
+/** Arrêter une séance commencée par erreur : ses séries validées s'effacent, rien n'entre dans Progrès. */
+export const arreterSeance = (E: Etat, d: string, s: string) => retirerDeHistorique(E, d, s);
 /** Retirer un cardio seul de l'historique. */
 export function retirerCardio(E: Etat, ts: number) {
   E.CARDIO = (E.CARDIO || []).filter((c) => c.ts !== ts);
