@@ -1,22 +1,34 @@
 /* Nutrition simple : un objectif de protéines par jour et un suivi en un geste.
-   Pas de calories, volontairement. Stocké dans A.prot (30 derniers jours). Logique pure. */
+   Les calories restent discrètes (Repas › réglages). Stocké dans A.prot (30 derniers jours). Logique pure. */
 import { tr } from "@/lib/i18n";
 import type { Reponses } from "./types";
 
-/* g de protéines par kg de poids du corps, selon l'objectif du questionnaire
-   (0 muscle · 1 force · 2 s'affiner · 3 forme). */
-const FACTEUR = [1.8, 1.7, 2, 1.4];
+/* g de protéines par kg, selon l'objectif (0 muscle · 1 force · 2 s'affiner · 3 forme), dans la
+   fourchette des recommandations pour le sportif (ISSN : 1,6 à 2,2 g/kg) : plus haut en sèche, pour
+   garder le muscle. +0,2 g/kg après 50 ans (le muscle répond moins bien aux protéines). */
+const FACTEUR = [2, 1.8, 2.2, 1.6];
 
 export const poidsDe = (A: Reponses): number | null => {
   const p = Array.isArray(A.poids) ? (A.poids as [string, number][]).at(-1)?.[1] : undefined;
   return p ?? A.profil?.["Poids"] ?? null;
 };
 
+/** Poids de référence pour les protéines : au-delà d'un IMC de 30, le poids « ajusté »
+    (poids à IMC 25 + 40 % de l'excédent), pour ne pas gonfler l'objectif avec la masse grasse. */
+export function poidsReference(A: Reponses, p: number) {
+  const cm = A.profil?.["Taille"];
+  if (!cm) return p;
+  const m2 = (cm / 100) ** 2, ideal = 25 * m2;
+  return p / m2 > 30 ? ideal + 0.4 * (p - ideal) : p;
+}
+
 /** Objectif du jour en grammes (réglé à la main, sinon calculé ; 120 g sans poids connu). */
 export function objectifProteines(A: Reponses): number {
   if (typeof A.protObj === "number") return A.protObj;
   const p = poidsDe(A);
-  return p ? Math.round((p * FACTEUR[A.objectif ?? 3] || p * 1.6) / 5) * 5 : 120;
+  if (!p) return 120;
+  const f = (FACTEUR[A.objectif ?? 3] ?? 1.6) + ((A.profil?.["Âge"] ?? 0) >= 50 ? 0.2 : 0);
+  return Math.round((poidsReference(A, p) * f) / 5) * 5;
 }
 
 export const ALIMENTS: { n: string; q: string; g: number }[] = [

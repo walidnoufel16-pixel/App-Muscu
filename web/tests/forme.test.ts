@@ -31,11 +31,11 @@ describe("forme du jour", () => {
     const E = {
       A: { forme: F(0, 0, 0) }, SWAP: {}, SWAPP: {}, PLAN: null, wk: 0, day: 0, FINI: false,
       SEANCES: [{ nom: "Push", ex: [{ id: "dc", s: 3, r: 8, p: "2 min" }] }],
-      LOG: { "L|9|0": { done: true, feel: 1, ex: "dc", ts: 1, v: 60, reps: 8, series: [{ v: 60, reps: 8, ok: true }] } },
+      LOG: { "L|9|0": { done: true, feel: 1, ex: "dc", ts: Date.now() - 2 * 864e5, v: 60, reps: 8, series: [{ v: 60, reps: 8, ok: true }] } },
     } as unknown as Etat;
     const c = ctxLibre(E, 0, 0)!;
     expect(c.base.v).toBe(55);
-    expect(c.why).toContain("Reprise de ta dernière séance");
+    expect(c.why).toContain("Même charge");
     expect(c.why).toContain("Forme du jour basse");
   });
 });
@@ -56,5 +56,17 @@ describe("zones sensibles", () => {
       const surs = ex.filter((e) => zonesDe(e.id, [2]).length === 0);
       expect(surs.length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("générateur personnalisé", () => {
+  it("muscle prioritaire : un exercice de plus ; exercices habituels préférés en premier", async () => {
+    const { construireSeance } = await import("@/lib/logic/assistant");
+    const sel = ["m0", "m1", "m2", "m3"];
+    const sans = construireSeance(["pec", "dos"], 45, 0, sel, () => 0.5);
+    const avec = construireSeance(["pec", "dos"], 45, 0, sel, () => 0.5, () => false, undefined, { prio: ["pec"] });
+    expect(avec.length).toBeGreaterThanOrEqual(sans.length);
+    const hab = construireSeance(["pec"], 45, 0, sel, () => 0.99, () => false, undefined, { habitudes: new Set(["dh"]) });
+    expect(hab[0].id).toBe("dh");
   });
 });

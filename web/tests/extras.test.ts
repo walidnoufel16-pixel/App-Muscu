@@ -6,8 +6,12 @@ import type { Etat, Reponses } from "@/lib/logic/types";
 
 describe("protéines", () => {
   it("objectif selon poids et objectif, ou réglé à la main", () => {
-    expect(objectifProteines({ objectif: 0, profil: { Poids: 80 } })).toBe(145);
-    expect(objectifProteines({ objectif: 2, poids: [["2026-10-01", 60]] })).toBe(120);
+    /* 2 g/kg en prise de muscle, 2,2 en sèche, 1,6 en forme (+0,2 après 50 ans) */
+    expect(objectifProteines({ objectif: 0, profil: { Poids: 80 } })).toBe(160);
+    expect(objectifProteines({ objectif: 2, poids: [["2026-10-01", 60]] })).toBe(130);
+    expect(objectifProteines({ objectif: 3, profil: { Poids: 70, "Âge": 55 } })).toBe(125);
+    /* IMC > 30 : poids ajusté (175 cm, 110 kg → 25×1,75² + 40 % de l'excédent ≈ 90 kg) */
+    expect(objectifProteines({ objectif: 3, profil: { Poids: 110, Taille: 175 } })).toBe(145);
     expect(objectifProteines({})).toBe(120);
     expect(objectifProteines({ protObj: 90, profil: { Poids: 80 } })).toBe(90);
   });

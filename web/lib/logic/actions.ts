@@ -2,6 +2,7 @@
    Port fidèle de serVal, serOk, toutCocher, setFeel, ajouterLest, swap… */
 import { archiver, journal, key, majJournal, type Ctx } from "./core";
 import type { Etat } from "./types";
+import { jourDe, journauxDuJour } from "./historique";
 
 export type Champ = "v" | "reps" | "lest";
 
@@ -114,4 +115,31 @@ export function supprimerSeance(E: Etat, i: number) {
       delete E.LOG[k];
     });
   E.SEANCES.splice(i, 1);
+}
+
+/* Retirer une séance de l'historique (validée par erreur) : sa ligne, ses séries de ce jour-là
+   (pour qu'elles ne servent plus de « précédent » ni ne recréent la ligne) et le cardio de ses blocs
+   ce jour-là. Mémorisée dans RETIRES pour la synchronisation entre appareils. */
+export function retirerDeHistorique(E: Etat, d: string, s: string) {
+  for (const k of journauxDuJour(E, s, d)) delete E.LOG[k];
+  E.HIST = (E.HIST || []).filter((l) => !(l.d === d && l.s === s));
+  const i = s.startsWith("L|") ? +s.slice(2) : -1, blocs = new Set((E.SEANCES[i]?.blocs || []).map((b) => b.id));
+  const cardio = (E.CARDIO || []).filter((c) => c.ref && blocs.has(c.ref) && jourDe(c.ts) === d);
+  E.CARDIO = (E.CARDIO || []).filter((c) => !cardio.includes(c));
+  E.RETIRES = [...(E.RETIRES || []), `${d}|${s}@${Date.now()}`, ...cardio.map((c) => `c|${c.ts}`)].slice(-300);
+}
+/** Arrêter une séance commencée par erreur : ses séries validées s'effacent, rien n'entre dans Progrès. */
+export const arreterSeance = (E: Etat, d: string, s: string) => retirerDeHistorique(E, d, s);
+/** Retirer un cardio seul de l'historique. */
+export function retirerCardio(E: Etat, ts: number) {
+  E.CARDIO = (E.CARDIO || []).filter((c) => c.ts !== ts);
+  E.RETIRES = [...(E.RETIRES || []), `c|${ts}`].slice(-300);
+}
+
+/* Nouveau cycle Oxa Plan (après la semaine 8) : on repart en semaine 1. Les séries du cycle fini
+   quittent le journal du programme ; elles restent dans l'historique (Progrès, records, charges). */
+export function nouveauCycle(E: Etat) {
+  for (const k of Object.keys(E.LOG)) if (/^\d+\|\d+\|/.test(k)) delete E.LOG[k];
+  E.SWAP = {};
+  E.wk = 0; E.day = 0;
 }

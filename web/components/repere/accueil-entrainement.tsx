@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { ArrowsClockwiseIcon, BarbellIcon, BellIcon, CheckIcon, DownloadSimpleIcon, FlameIcon, ListBulletsIcon, PencilSimpleIcon, PersonSimpleRunIcon, PlayIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
+import { useEnCours } from "./seance-en-cours";
 import { feuilleDuJour, initiales, sousTitre, useLancer, type Feuille } from "./agenda";
 import { decaler, lundiDe } from "@/lib/logic/historique";
 import { familleDe, joursAgenda, tombeLe, type JourAgenda, type Prevu } from "@/lib/logic/agenda";
@@ -51,8 +52,16 @@ function photoPrevu(E: Etat, p: Prevu): Photo {
 }
 
 /* ---------------- la semaine en anneaux ---------------- */
-function Anneau({ j }: { j: JourAgenda }) {
+function Anneau({ j, enCours }: { j: JourAgenda; enCours?: boolean }) {
   const f = j.fait[0], p = j.prevus[0], run = (f?.famille ?? (p && familleDe(p.quoi))) === "course";
+  /* séance commencée : l'anneau se remplit à moitié */
+  if (enCours && !f)
+    return (
+      <svg viewBox="0 0 32 32" className="size-8 -rotate-90" aria-hidden>
+        <circle cx="16" cy="16" r="13" fill="none" strokeWidth="2.6" stroke="currentColor" className="text-foreground/[.12]" />
+        <circle cx="16" cy="16" r="13" fill="none" strokeWidth="2.6" stroke="var(--plate)" strokeDasharray="41 82" strokeLinecap="round" />
+      </svg>
+    );
   if (f)
     return (
       <span className="grid size-8 place-items-center rounded-full text-white" style={{ background: run ? RUN : "var(--plate)" }}>
@@ -71,7 +80,9 @@ function Anneau({ j }: { j: JourAgenda }) {
 export function SemaineAnneaux({ auj, setF }: { auj: string; setF: (f: Feuille) => void }) {
   const etat = useRepere((s) => s.etat);
   const J = useMemo(() => joursAgenda(etat, lundiDe(auj), auj, 7), [etat, auj]);
-  const S = useMemo(() => serie(etat.HIST || [], avecSorties(etat.CARDIO, etat.SORTIES), objectifHebdo(etat.A), auj), [etat.HIST, etat.CARDIO, etat.SORTIES, etat.A, auj]);
+  const ec = useEnCours(), enCours = new Set(ec.map((c) => c.d)), cles = ec.map((c) => `${c.d}|${c.s}`).join(",");
+  /* la série ne compte pas une séance en cours */
+  const S = useMemo(() => serie((etat.HIST || []).filter((l) => !cles.split(",").includes(`${l.d}|${l.s}`)), avecSorties(etat.CARDIO, etat.SORTIES), objectifHebdo(etat.A), auj), [etat.HIST, etat.CARDIO, etat.SORTIES, etat.A, auj, cles]);
   const ini = initiales();
   return (
     <section aria-label={tr("Cette semaine")} className="rounded-[20px] bg-card px-2.5 pt-2.5 pb-2">
@@ -90,7 +101,7 @@ export function SemaineAnneaux({ auj, setF }: { auj: string; setF: (f: Feuille) 
               aria-label={`${ini[i]} ${+j.d.slice(8)}${j.fait.length ? " · " + tr("fait") : j.prevus.length ? " · " + tr("prévu") : ""}`}
               className="flex w-11 flex-col items-center gap-1 active:scale-95">
               <span className={cn("text-[10.5px] font-semibold uppercase", j.d === auj ? "text-foreground" : "text-muted-foreground")}>{ini[i]}</span>
-              <Anneau j={j} />
+              <Anneau j={j} enCours={enCours.has(j.d)} />
               <span className={cn("num grid h-[18px] min-w-[20px] place-items-center rounded-full px-1 text-[11.5px] font-bold", j.d === auj ? "bg-foreground text-background" : j.d < auj ? "text-muted-foreground" : "")}>{+j.d.slice(8)}</span>
             </button>
           );
@@ -135,10 +146,22 @@ export function CarteDuJour({ auj, setF }: { auj: string; setF: (f: Feuille) => 
   const router = useRouter();
   const lancer = useLancer();
   const [i, setI] = useState(0);
+  const enCours = useEnCours();
   const j = useMemo(() => joursAgenda(etat, auj, auj, 1)[0], [etat, auj]);
-  const r = useMemo(() => recoDuJour(etat.HIST || [], auj, etat.A.recoSans || []), [etat.HIST, etat.A.recoSans, auj]);
+  const r = useMemo(() => recoDuJour(etat.HIST || [], auj, etat.A.recoSans || [], etat.A.regularite), [etat.HIST, etat.A.recoSans, etat.A.regularite, auj]);
   const assistant = (m: string[]) => router.push(`/entrainement/assistant?m=${m.join(",")}` as Route, AVANT);
   const demain = r.demain ? " " + tr("Demain : {s}.", { s: r.demain.nom.toLowerCase() }) : "";
+
+  /* une séance commencée et pas encore terminée */
+  const c = enCours.find((x) => x.d === auj);
+  if (c) {
+    const S = etat.SEANCES[c.i];
+    return (
+      <Hero ph={(S && photoEx(S.ex.map((e) => e.id))) || PHOTO_SEANCE} tag={<><span className="size-2 animate-pulse rounded-full bg-white" />{tr("Séance en cours")}</>} titre={c.nom}
+        sous={tp(c.series, "{n} série validée", "{n} séries validées") + " · " + tr("tes séries sont gardées, reprends où tu en étais.")}
+        principal={{ label: tr("Reprendre"), icone: <PlayIcon className="size-4" weight="fill" />, onClick: () => router.push(`/entrainement/seance?l=${c.i}` as Route, AVANT) }} />
+    );
+  }
 
   /* une séance prévue aujourd'hui */
   const p = j.prevus[0];

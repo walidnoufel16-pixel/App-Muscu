@@ -1,6 +1,6 @@
 /* « Mon agenda » (lib/logic/agenda.ts) et ses rappels côté serveur (supabase/functions/rappels/logique.ts). */
 import { describe, expect, it } from "vitest";
-import { debutGrille, deplacer, joursAgenda, nomCourt, programmer, rappelsDus, remplacerLe, retirer, tombeLe, type Prevu } from "@/lib/logic/agenda";
+import { debutGrille, deplacer, faitsParJour, joursAgenda, seancesEnCours, nomCourt, programmer, rappelsDus, remplacerLe, retirer, tombeLe, type Prevu } from "@/lib/logic/agenda";
 import { rappelsAgenda, seancePrevueBientot, rappelDu } from "../../supabase/functions/rappels/logique";
 import type { LigneHist } from "@/lib/logic/historique";
 
@@ -90,5 +90,26 @@ describe("rappels d'agenda", () => {
     expect(seancePrevueBientot(E, AUJ)).toBe(true);
     expect(seancePrevueBientot({ AGENDA: [pecs("2026-11-20")] }, AUJ)).toBe(false);
     expect(typeof rappelDu).toBe("function");
+  });
+});
+
+describe("séance en cours", () => {
+  const maintenant = Date.now(), auj = jourDe(maintenant), avant = jourDe(maintenant - 2 * 864e5);
+  const E = {
+    HIST: [{ d: auj, s: "L|0", nom: "Push", vol: 600, ser: 2, ex: {} }, { d: avant, s: "L|0", nom: "Push", vol: 600, ser: 3, ex: {} }],
+    LOG: {
+      "L|0|0": { done: false, ex: "dc", ts: maintenant - 20 * 60e3, series: [{ v: 60, reps: 10, ok: true }, { v: 60, reps: 10, ok: true }, { v: 60, reps: 10, ok: false }] },
+      "L|0|a0": { done: true, ex: "dc", ts: maintenant - 2 * 864e5, series: [{ v: 60, reps: 10, ok: true }] },
+    },
+    SEANCES: [{ nom: "Push", ex: [] }], CARDIO: [], SORTIES: [],
+  } as unknown as Parameters<typeof seancesEnCours>[0] & Parameters<typeof faitsParJour>[0];
+  it("des séries validées il y a moins de 6 heures, pas encore rangées : en cours", () => {
+    expect(seancesEnCours(E, maintenant)).toMatchObject([{ i: 0, nom: "Push", series: 2 }]);
+    expect(seancesEnCours(E, maintenant + 7 * 3600e3)).toEqual([]);
+  });
+  it("ne compte pas encore comme faite dans l'agenda ; les séances rangées, si", () => {
+    const f = faitsParJour(E);
+    expect(f.get(auj)).toBeUndefined();
+    expect(f.get(avant)?.length).toBe(1);
   });
 });

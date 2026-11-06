@@ -54,7 +54,7 @@ describe("generer : langue", () => {
     const v = F.valider(structuredClone(P), { materiel: 0, socle: 0, langue: "en" });
     expect(v.plan.titre).toBe("Your plan");
     expect(v.seances[0].titre).toBe("Workout");
-    expect(v.plan.choix.map((c: { titre: string }) => c.titre)).toContain("It's the effort that goes up");
+    expect(v.plan.choix.map((c: { titre: string }) => c.titre)).toContain("Eight weeks that build up, then a lighter week");
     expect(F.SYSTEME(0, 3, false, [], true)).toContain("LANGUE DE SORTIE : ANGLAIS");
     expect(F.SYSTEME(0, 3, false, [], false)).not.toContain("ANGLAIS");
   });
@@ -71,3 +71,26 @@ describe("generer : langue", () => {
   });
 });
 
+
+describe("generer : Oxa Plan v2", () => {
+  it("programme type selon le nombre de séances, répétitions selon l'objectif", () => {
+    const s2 = F.SYSTEME(0, 2, false, [], false, 0), s4 = F.SYSTEME(0, 4, false, [], false, 1);
+    expect(s2).toContain("FULL BODY (A et B)");
+    expect(s2).toContain("6 à 10 sur les principaux");
+    expect(s4).toContain("HAUT / BAS");
+    expect(s4).toContain("3 à 6");
+  });
+  it("un grand groupe sous la cible reçoit des séries ; une séance trop longue est rognée", () => {
+    const A = { materiel: 0, socle: 0, regularite: 3, objectif: 0 };
+    const plan = { seances: [
+      { t: "Full body A", ex: [ex("dc", 1), ex("sq", 1), { id: "cu", s: 3, r: 12, p: "60 s", o: 0 }] },
+      { t: "Full body B", ex: [ex("tr", 1), ex("rm", 1), { id: "cu", s: 3, r: 12, p: "60 s", o: 0 }] },
+    ] };
+    const v = F.valider(plan, A);
+    expect(v.ok).toBe(true);
+    /* un seul exercice de pectoraux : monté de 3 à 5 séries (plafond par exercice) */
+    expect(v.notes.volume["Pectoraux"]).toBe(5);
+    expect(v.notes.corriges.join(" ")).toContain("Pectoraux");
+    for (const s of v.seances) expect(s.exercices.reduce((n: number, e: { series: number }) => n + e.series, 0)).toBeLessThanOrEqual(24);
+  });
+});

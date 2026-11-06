@@ -9,6 +9,8 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { toast } from "sonner";
+import { confirmer } from "./confirmer";
+import { retirerDeHistorique } from "@/lib/logic/actions";
 import { ArrowRightIcon, BellIcon, CaretRightIcon, CheckIcon, DownloadSimpleIcon, HeartbeatIcon, PersonSimpleRunIcon, PlusIcon, SparkleIcon, BarbellIcon, CalendarDotsIcon } from "@phosphor-icons/react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { Segmente } from "./segmente";
@@ -56,7 +58,7 @@ export function useLancer() {
     if (q.t === "course") { router.push(`/entrainement/course?s=${q.cle}` as Route, AVANT); return; }
     if (q.t === "plan") { muter((x) => { x.day = q.day; }); router.push("/entrainement/seance", AVANT); return; }
     /* recommandation d'Oxa : l'assistant s'ouvre avec les muscles conseillés ce jour-là */
-    const m = musclesRecommandes(recoDuJour(E.HIST || [], jourDe(Date.now()), E.A.recoSans || []));
+    const m = musclesRecommandes(recoDuJour(E.HIST || [], jourDe(Date.now()), E.A.recoSans || [], E.A.regularite));
     router.push((m ? `/entrainement/assistant?m=${m.join(",")}` : "/entrainement/assistant?type=cardio") as Route, AVANT);
   };
 }
@@ -213,6 +215,12 @@ function FeuilleJour({ d, auj, j, setF }: { d: string; auj: string; j: JourAgend
                 <button onClick={() => { tactile(6); rm!(); }} className="h-12 rounded-full border border-border text-[15px] font-semibold active:scale-[.98]">{tr("Modifier puis programmer")}</button>
               </div>
             )}
+            {l && (
+              <button onClick={async () => {
+                if (!(await confirmer({ titre: tr("Retirer « {nom} » de ton historique ?", { nom: l.nom }), texte: tr("Ses séries de ce jour-là disparaissent de Progrès, des records et des charges proposées. La séance reste dans Mes séances."), ok: tr("Retirer"), danger: true }))) return;
+                muter((E) => retirerDeHistorique(E, l.d, l.s)); toast(tr("Séance retirée de ton historique")); setF(null);
+              }} className="mt-3 px-1 text-[14px] font-semibold text-destructive">{tr("Retirer de mon historique")}</button>
+            )}
           </div>
         );
       })}
@@ -305,7 +313,7 @@ function FeuilleProgrammer({ init, auj, fermer }: { init: { d: string; quoi?: Qu
   const [hebdo, setHebdo] = useState(false);
   const [rappel, setRappel] = useState<Rappel | null>(etat.A.rappelAgenda === undefined ? { veille: true, h: 20 } : etat.A.rappelAgenda);
   const [vueReco, setVueReco] = useState(false);
-  const reco = useMemo(() => recoDuJour(etat.HIST || [], d, etat.A.recoSans || []), [etat.HIST, etat.A.recoSans, d]);
+  const reco = useMemo(() => recoDuJour(etat.HIST || [], d, etat.A.recoSans || [], etat.A.regularite), [etat.HIST, etat.A.recoSans, etat.A.regularite, d]);
 
   /* ce qu'on peut programmer ce jour-là */
   const options = useMemo(() => {

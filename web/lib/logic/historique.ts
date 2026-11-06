@@ -19,6 +19,7 @@ export type LigneHist = {
   rec?: number; // records battus pendant la séance
   min?: number; // durée
   fo?: number; // forme du jour (−2 à +1)
+  ts?: number; // dernière série validée (pour les séances retirées puis refaites le même jour)
   ex: Record<string, PerfEx>;
   /* le détail, dans l'ordre de la séance : séries validées [valeur, répétitions, lest] et ressenti */
   det?: { id: string; s: [number, number, number?][]; f?: number | null }[];
@@ -74,6 +75,17 @@ export function journauxDuJour(E: Etat, s: string, d: string) {
   const rang = (k: string) => { const c = k.slice(s.length + 1); return /^\d+$/.test(c) ? +c : 1e6 + (parseInt(c.replace(/\D/g, "")) || 0); };
   const jours = joursSeance(E, s);
   return Object.keys(jours).filter((k) => jours[k] === d).sort((a, b) => rang(a) - rang(b));
+}
+
+/** Jour de la séance `s` en cours (une série validée il y a moins de 6 h), sinon null. */
+export function jourEnCours(E: Etat, s: string, maintenant = Date.now()): string | null {
+  let k0: string | null = null, t0 = 0;
+  for (const [k, L] of Object.entries(E.LOG)) {
+    if (!k.startsWith(s + "|") || !L?.ts || maintenant - L.ts > ECART_SEANCE || L.ts <= t0) continue;
+    if (!(L.series || []).some((x) => okDe(L, x))) continue;
+    k0 = k; t0 = L.ts;
+  }
+  return k0 ? joursSeance(E, s)[k0] ?? jourDe(t0) : null;
 }
 
 /** Écart au-delà duquel deux séries d'une même séance appartiennent à deux séances distinctes. */
@@ -133,10 +145,11 @@ export function detailDe(E: Etat, l: LigneHist): { id: string; L: Journal }[] {
 export function ligneDe(E: Etat, s: string, d: string, extra: Partial<LigneHist> = {}): LigneHist | null {
   const ex: Record<string, PerfEx> = {};
   const det: NonNullable<LigneHist["det"]> = [];
-  let vol = 0, ser = 0;
+  let vol = 0, ser = 0, ts = 0;
   for (const k of journauxDuJour(E, s, d)) {
     const L = E.LOG[k], p = perfDe(L);
     if (!p) continue;
+    ts = Math.max(ts, L.ts || 0);
     det.push({ id: L.ex, s: (L.series || []).filter((x) => okDe(L, x)).map((x) => (+(x.lest ?? 0) > 0 ? [x.v, x.reps, +x.lest!] : [x.v, x.reps])), ...(L.feel != null ? { f: L.feel } : {}) });
     const a = ex[L.ex];
     /* le même exercice deux fois dans la séance : on additionne volume et séries, on garde le meilleur */
@@ -144,7 +157,7 @@ export function ligneDe(E: Etat, s: string, d: string, extra: Partial<LigneHist>
     vol += p[1]; ser += p[4];
   }
   if (!ser) return null;
-  return { d, s, nom: nomSeance(E, s), vol, ser, ex, det, ...extra };
+  return { d, s, nom: nomSeance(E, s), vol, ser, ex, det, ...(ts ? { ts } : {}), ...extra };
 }
 
 /** Insère ou remplace la ligne (même jour, même séance), ou la retire si elle est vide. Trié, borné. */
@@ -210,10 +223,14 @@ export function seriesParMuscle(H: LigneHist[], de: string, a: string): Record<s
   const r: Record<string, number> = {};
   for (const l of H) {
     if (l.d < de || l.d > a) continue;
+    /* même compte que la recommandation et l'avis d'Oxa : 1 série au muscle principal, ½ au secondaire */
     for (const id in l.ex) {
       const x = EX[id];
-      const m = x && (PAT2MUSC[x.pat] || (x.pat2 ? PAT2MUSC[x.pat2] : undefined));
-      if (m) r[m] = (r[m] || 0) + l.ex[id][4];
+      if (!x) continue;
+      const p = PAT2MUSC[x.pat], q = x.pat2 ? PAT2MUSC[x.pat2] : undefined, n = l.ex[id][4];
+      if (p) r[p] = (r[p] || 0) + n;
+      if (q && q !== p) r[q] = (r[q] || 0) + n / 2;
+      if (!p && q) r[q] = (r[q] || 0) + n / 2;
     }
   }
   return r;

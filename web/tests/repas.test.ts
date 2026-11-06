@@ -3,7 +3,7 @@ import { ALIM, EMOJI, emojiDe } from "@/lib/data/aliments";
 import { RECETTES } from "@/lib/data/recettes";
 import { auteurRecette, imgRecette } from "@/lib/medias";
 import {
-  allergenesDe, avecCeQueJai, chercherAliments, nomAliment, nouvelAliment, besoins, compatible, listeCourses, macros, mains, planSemaine, portion, prefsDe, quantite, R, recettesPour, regimeDe, semaineParDefaut, suggestions,
+  allergenesDe, avecCeQueJai, chercherAliments, nomAliment, nouvelAliment, besoins, compatible, listeCourses, macros, mains, planSemaine, portion, protManquantes, prefsDe, quantite, R, recettesPour, regimeDe, semaineParDefaut, suggestions,
 } from "@/lib/logic/repas";
 import type { Etat, Reponses } from "@/lib/logic/types";
 
@@ -80,13 +80,23 @@ describe("besoins", () => {
     const h = besoins(homme, true), f = besoins(femme, false);
     expect(h.kcal).toBeGreaterThan(2500); expect(h.kcal).toBeLessThan(3400);
     expect(f.kcal).toBeGreaterThan(1300); expect(f.kcal).toBeLessThan(1900);
-    expect(h.p).toBe(145); expect(f.p).toBe(120);
+    expect(h.p).toBe(160); expect(f.p).toBe(130);
+    /* le total affiché est bien la somme des macros */
+    for (const x of [h, f]) expect(Math.abs(x.p * 4 + x.g * 4 + x.l * 9 - x.kcal)).toBeLessThan(60);
     expect(f.l).toBeGreaterThanOrEqual(48);
     expect(besoins(homme, true).g).toBeGreaterThan(besoins(homme, false).g);
   });
   it("méthode de la main", () => {
     const m = mains(besoins(homme, true), "dejeuner");
     expect(m.paumes).toBeGreaterThanOrEqual(1.5); expect(m.legumes).toBe(2);
+  });
+  it("portion : calée sur l'énergie du repas, protéines tenues à 90 % sinon un complément est proposé", () => {
+    const b = besoins(homme, true);
+    for (const x of RECETTES.filter((r) => r.m === "repas")) {
+      const p = macros(x, portion(x, b, "dejeuner")).p, vise = b.p * 0.3;
+      if (vise - p >= 10) expect(protManquantes(x, b, "dejeuner")).toBeGreaterThan(0);
+      if (vise - p < 5) expect(protManquantes(x, b, "dejeuner")).toBe(0);
+    }
   });
   it("portion : plus grande pour un grand gabarit, bornée, desserts à une portion", () => {
     const r = R["poulet-riz-brocoli"];
@@ -146,8 +156,8 @@ describe("suggestions, avec ce que j'ai, semaine, courses", () => {
     expect(poulet.g).toBeCloseTo(attendu);
     expect(tout.some((x) => x.id === "riz" || x.id === "huile" || x.id === "sel_poivre")).toBe(false);
     expect(l.map((r) => r.k)[0]).toBe("leg");
-    /* deux personnes : deux fois plus */
-    expect(listeCourses(cases, b, 2, []).flatMap((r) => r.l).find((x) => x.id === "poulet")!.g).toBeCloseTo(attendu * 2);
+    /* deux personnes : ta portion + une portion de base pour l'autre */
+    expect(listeCourses(cases, b, 2, []).flatMap((r) => r.l).find((x) => x.id === "poulet")!.g).toBeCloseTo(attendu + 150 + 130);
   });
 });
 
@@ -163,5 +173,22 @@ describe("photos des recettes", () => {
       expect(vues.has(photo), `${r.id} : photo déjà utilisée`).toBe(false);
       vues.add(photo);
     }
+  });
+});
+
+describe("besoins selon les séances et le poids", () => {
+  const jour = (n: number) => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10);
+  it("ajustement au poids : sèche qui stagne → −150 kcal, prise trop rapide → −100 kcal", async () => {
+    const { ajustementPoids } = await import("@/lib/logic/repas");
+    expect(ajustementPoids({ objectif: 2, poids: [[jour(14), 80], [jour(0), 79.9]] }).kcal).toBe(-150);
+    expect(ajustementPoids({ objectif: 0, poids: [[jour(14), 70], [jour(0), 71.2]] }).kcal).toBe(-100);
+    expect(ajustementPoids({ objectif: 0, poids: [[jour(3), 70], [jour(0), 70]] }).kcal).toBe(0);
+  });
+  it("une heure de cardio fait monter l'énergie et les glucides", async () => {
+    const { besoins } = await import("@/lib/logic/repas");
+    const sans = besoins(homme, true);
+    const avec = besoins({ ...homme, CARDIO: [{ nom: "Vélo", f: "endurance", m: "velo", min: 75, effort: 1, ts: Date.now() }] } as typeof homme, true);
+    expect(avec.kcal).toBeGreaterThan(sans.kcal);
+    expect(avec.g).toBeGreaterThan(sans.g);
   });
 });

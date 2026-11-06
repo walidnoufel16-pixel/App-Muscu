@@ -26,11 +26,12 @@ export function Recommandation({ onAppliquer, className }: { onAppliquer?: (m: s
   const router = useRouter();
   const H = useRepere((s) => s.etat.HIST);
   const ecartes = useRepere((s) => s.etat.A.recoSans);
+  const niveau = useRepere((s) => s.etat.A.regularite);
   const muter = useRepere((s) => s.muter);
   const [auj] = useState(() => jourDe(Date.now()));
   const [i, setI] = useState(0);
   const [reglage, setReglage] = useState(false);
-  const r = useMemo(() => recommander(H || [], auj, ecartes || []), [H, auj, ecartes]);
+  const r = useMemo(() => recommander(H || [], auj, ecartes || [], niveau), [H, auj, ecartes, niveau]);
   if (!r) return null;
 
   const basculer = (z: ZoneEcartable) => {

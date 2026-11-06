@@ -35,7 +35,10 @@ const MODELES: Modele[] = [
   { id: "full", nom: () => tr("Full body"), g: ["pec", "dos", "qua", "isc", "epa", "abd"], large: true },
 ];
 
-const CIBLE = 10; // séries par groupe et par semaine
+/* séries par groupe et par semaine, selon le niveau (Profil) : 8 en débutant, 12 en régulier,
+   16 en confirmé ; 10 sans niveau connu */
+let CIBLE = 10;
+export const cibleNiveau = (niveau?: number) => (niveau == null ? 10 : niveau <= 1 ? 8 : niveau >= 3 ? 16 : 12);
 const ecart = (a: string, b: string) => Math.round((dateDe(b).getTime() - dateDe(a).getTime()) / 864e5);
 
 export type EtatGroupe = { dernier: string | null; jours: number; semaine: number; dernierVolume: number; recupere: boolean };
@@ -119,7 +122,8 @@ function candidats(E: Record<Groupe, EtatGroupe>, ecartes: Set<Groupe>): Proposi
 }
 
 /** La recommandation du jour, ou null sans aucune séance sur les 14 derniers jours. */
-export function recommander(H: LigneHist[], auj: string, ecartes: ZoneEcartable[] = []): Recommandation | null {
+export function recommander(H: LigneHist[], auj: string, ecartes: ZoneEcartable[] = [], niveau?: number): Recommandation | null {
+  CIBLE = cibleNiveau(niveau);
   const E = etatGroupes(H, auj);
   if (GROUPES.every((g) => !E[g].dernier)) return null;
   const parJour = seriesParJour(H, decaler(auj, -3), auj);
@@ -146,8 +150,8 @@ export const phrase = (l: string[]) => { const t = lister(l).toLowerCase(); retu
 
 /** La recommandation pour un jour donné, avec un repli quand Oxa manque de recul (aucune séance
     sur les 14 derniers jours) : un full body pour démarrer. Sert à l'agenda. */
-export function recoDuJour(H: LigneHist[], d: string, ecartes: ZoneEcartable[] = []): Recommandation & { debut?: boolean } {
-  const r = recommander(H, d, ecartes);
+export function recoDuJour(H: LigneHist[], d: string, ecartes: ZoneEcartable[] = [], niveau?: number): Recommandation & { debut?: boolean } {
+  const r = recommander(H, d, ecartes, niveau);
   if (r) return r;
   const exclus = groupesEcartes(ecartes), full = MODELES.find((m) => m.id === "full")!;
   const muscles = full.g.filter((g) => !exclus.has(g));

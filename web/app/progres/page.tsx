@@ -2,9 +2,10 @@
 
 /* Progrès : ce que l'entraînement a changé, en un coup d'œil.
    Tout vient de l'historique (HIST) et du cardio (CARDIO), rien n'est envoyé ailleurs. */
+import { AvatarProfil } from "@/components/repere/avatar-profil";
 import { loc, pct, pluriel, tr } from "@/lib/i18n";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { ArrowDownIcon, ArrowUpIcon, CaretDownIcon, CaretRightIcon, ChartLineUpIcon, GearSixIcon, ScalesIcon, SparkleIcon, TrophyIcon } from "@phosphor-icons/react";
+import { ArrowDownIcon, ArrowUpIcon, CaretDownIcon, CaretRightIcon, ChartLineUpIcon, GearSixIcon, ScalesIcon, SparkleIcon, TrashIcon, TrophyIcon } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LogoDisque } from "@/components/repere/logo";
 import { moisPrecedent, recap } from "@/lib/logic/recap";
@@ -12,7 +13,6 @@ import { avecSorties } from "@/lib/logic/course";
 import { AVANT, remplacement } from "@/lib/nav";
 import type { Route } from "next";
 import { Onglets } from "@/components/repere/onglets";
-import { ChoixLangue } from "@/components/repere/choix-langue";
 import { EnTete } from "@/components/repere/en-tete";
 import { Barres, Calendrier, Courbe } from "@/components/repere/graphes";
 import { SchemaCorps } from "@/components/repere/schema-corps";
@@ -30,6 +30,9 @@ import {
   activite, courbe, dateDe, decaler, exercicesFaits, jourDe, lundiDe, nomMuscle, records, semaines, seriesParMuscle, type LigneHist,
 } from "@/lib/logic/historique";
 import { useRepere } from "@/lib/store";
+import { retirerCardio, retirerDeHistorique } from "@/lib/logic/actions";
+import { confirmer } from "@/components/repere/confirmer";
+import { toast } from "sonner";
 import { usePremiereVisite } from "@/lib/entree";
 import { cn } from "@/lib/utils";
 
@@ -60,7 +63,7 @@ function Progres() {
 
   return (
     <>
-      <EnTete surtitre={tr("Ton évolution")} titre={tr("Progrès")} actions={<ChoixLangue />} />
+      <EnTete surtitre={tr("Ton évolution")} titre={tr("Progrès")} actions={<AvatarProfil />} />
       <div className={cn("flex flex-col gap-6 px-4", premiere && "entree")}>
         <Onglets label={tr("Progrès")} style="soulignes" valeur={onglet} onChange={changer}
           options={[{ v: "evolution", n: tr("Mon évolution") }, { v: "defis", n: tr("Défis & badges") }]} />
@@ -403,6 +406,19 @@ function Cardio({ H, C, auj }: { H: LigneHist[]; C: Parameters<typeof semaines>[
 
 function DetailJour({ jour, onClose, H, C }: { jour: string | null; onClose: () => void; H: LigneHist[]; C: Parameters<typeof activite>[1] }) {
   const SEANCES = useRepere((s) => s.etat.SEANCES);
+  const muter = useRepere((s) => s.muter);
+  /* une séance validée par erreur : retirée de l'historique (records, séries et badges suivent) */
+  const retirer = async (l: LigneHist) => {
+    if (!(await confirmer({ titre: tr("Retirer « {nom} » de ton historique ?", { nom: l.nom }), texte: tr("Ses séries de ce jour-là disparaissent de Progrès, des records et des charges proposées. La séance reste dans Mes séances."), ok: tr("Retirer"), danger: true }))) return;
+    muter((E) => retirerDeHistorique(E, l.d, l.s));
+    toast(tr("Séance retirée de ton historique"));
+    if (lignes.length <= 1 && !cardio.length) onClose();
+  };
+  const retirerC = async (c: { ts: number; nom: string }) => {
+    if (!(await confirmer({ titre: tr("Retirer « {nom} » de ton historique ?", { nom: c.nom }), ok: tr("Retirer"), danger: true }))) return;
+    muter((E) => retirerCardio(E, c.ts));
+    toast(tr("Séance retirée de ton historique"));
+  };
   const lignes = jour ? H.filter((l) => l.d === jour) : [];
   /* blocs cardio d'une séance libre : leur cardio du jour s'affiche dans la séance */
   const blocsDe = (l: LigneHist) => (l.s.startsWith("L|") ? (SEANCES[+l.s.slice(2)]?.blocs || []).map((b) => b.id) : []);
@@ -415,11 +431,21 @@ function DetailJour({ jour, onClose, H, C }: { jour: string | null; onClose: () 
             <DrawerTitle className="px-1 text-[20px] font-bold first-letter:uppercase">{long(jour)}</DrawerTitle>
             <DrawerDescription className="sr-only">{tr("Séances de ce jour")}</DrawerDescription>
             {/* chaque séance relue comme pendant l'entraînement, son cardio à sa place */}
-            {lignes.map((l) => <SeanceLue key={l.s} l={l} cardio={cardio.filter((c) => blocsDe(l).includes(c.ref || ""))} />)}
+            {lignes.map((l) => (
+              <div key={l.s}>
+                <SeanceLue l={l} cardio={cardio.filter((c) => blocsDe(l).includes(c.ref || ""))} />
+                <button onClick={() => retirer(l)} className="mt-2 flex items-center gap-1.5 px-1 text-[13.5px] font-semibold text-destructive">
+                  <TrashIcon className="size-4" />{tr("Retirer de mon historique")}
+                </button>
+              </div>
+            ))}
             {cardio.filter((c) => !lignes.some((l) => blocsDe(l).includes(c.ref || ""))).map((c, i) => (
               <div key={i} className="mt-3 flex items-center justify-between gap-3 rounded-2xl border bg-card p-3.5">
                 <span className="truncate text-[15px] font-semibold">{c.nom}</span>
-                <span className="shrink-0 text-[12.5px] text-muted-foreground">{dureeCardio(c)}</span>
+                <span className="flex shrink-0 items-center gap-2 text-[12.5px] text-muted-foreground">
+                  {dureeCardio(c)}
+                  <button aria-label={tr("Retirer de mon historique")} onClick={() => retirerC(c)} className="grid size-7 place-items-center rounded-full text-destructive active:bg-muted"><TrashIcon className="size-4" /></button>
+                </span>
               </div>
             ))}
           </div>

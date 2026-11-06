@@ -31,12 +31,13 @@ import { TitrePartie } from "@/components/repere/parties";
 import { FORMATS, MACHINES } from "@/lib/logic/cardio";
 import { ICONE_FORMAT } from "@/components/repere/reglages-cardio";
 import { useRepere } from "@/lib/store";
-import { AVANT } from "@/lib/nav";
+import { AVANT, parOnglet } from "@/lib/nav";
 import { useBrouillon } from "@/lib/brouillon";
 import { tactile } from "@/lib/repos";
 import { enchainer } from "@/lib/enchainement";
 import { ajouterAuSuivi } from "@/lib/suivi";
 import { confirmer } from "@/components/repere/confirmer";
+import { BoutonArreter } from "@/components/repere/seance-en-cours";
 import { usePremiereVisite } from "@/lib/entree";
 import { cn } from "@/lib/utils";
 
@@ -103,6 +104,7 @@ function Muscles({ ids }: { ids: string[] }) {
 
 /* ---------------- séance du plan ---------------- */
 function SeancePlan() {
+  const router = useRouter();
   const etat = useRepere((s) => s.etat);
   const muter = useRepere((s) => s.muter);
   const premiere = usePremiereVisite();
@@ -179,6 +181,7 @@ function SeancePlan() {
               <p className="px-2 pt-1 text-center text-[12.5px] leading-relaxed text-muted-foreground">
                 {tr("Effort visé")}{" "}<b className="font-semibold text-foreground">{tr("RPE")}{" "}{baseRPE(wk)}</b> : {rirTxt(baseRPE(wk))}{" "}{tr("à la fin de chaque série.")}
               </p>
+              {faits < cles.length && <div className="mt-2 mb-20"><BoutonArreter s={`${wk}|${day}`} nom={titreSeance(S.t)} onArretee={() => { parOnglet(); router.replace("/entrainement"); }} /></div>}
             </div>
           )}
         </>
@@ -259,7 +262,8 @@ function SeanceLibre({ i }: { i: number }) {
     if (restants && !(await confirmer({ titre: tr("Ajouter à mon suivi ?"), texte: tr(pluriel(restants) ? "{n} exercices ne sont pas terminés : seules les séries validées comptent." : "{n} exercice n'est pas terminé : seules les séries validées comptent.", { n: restants }), ok: tr("Ajouter") }))) return;
     tactile(12);
     ajouterAuSuivi(i);
-    router.push("/progres");
+    /* la séance finie ne reste pas dans la pile : Progrès s'ouvre comme depuis son onglet */
+    parOnglet(); router.replace("/progres");
   };
   /* chaque exercice garde sa position d'origine : ses séries le suivront (reattacherJournaux) */
   const modifier = () => { setLibre({ ...structuredClone(S), ex: S.ex.map((e, o) => ({ ...e, o })), idx: i }); router.push("/entrainement/composer", AVANT); };
@@ -339,6 +343,7 @@ function SeanceLibre({ i }: { i: number }) {
             <section className="mt-2 mb-24 rounded-[22px] bg-card p-4 text-center" aria-label={tr("Ajouter à mon suivi")}>
               <Button variant="plate" size="lg" className="w-full rounded-2xl" onClick={suivre}><ChartLineUpIcon weight="bold" />{tr("Ajouter à mon suivi")}</Button>
               <p className="mt-2 text-[12.5px] text-muted-foreground">{tr("Elle s'enregistre dans Progrès et repart à zéro pour la prochaine fois.")}</p>
+              <div className="mt-2 border-t border-border/70 pt-1"><BoutonArreter s={`L|${i}`} nom={S.nom} onArretee={() => { parOnglet(); router.replace("/entrainement"); }} /></div>
             </section>
           )}
         </div>

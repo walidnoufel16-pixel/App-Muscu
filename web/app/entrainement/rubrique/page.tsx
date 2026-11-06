@@ -16,9 +16,8 @@ import { VueStreet, type OngletStreet } from "@/components/repere/street";
 import { VueCourse } from "@/components/repere/course";
 import { useRepere } from "@/lib/store";
 import { AVANT, remplacement, useOngletsExercices } from "@/lib/nav";
-import { CreerSeance, MesSeances } from "@/components/repere/mes-seances";
+import { CreerSeance, FeuilleImport, MesSeances } from "@/components/repere/mes-seances";
 import { CorpsDuJour } from "@/components/repere/corps-du-jour";
-import { Recommandation } from "@/components/repere/recommandation";
 import { Hero, MaSemaine, ToutLeProgramme } from "@/components/repere/programme-vues";
 import { ProgrammeBientot } from "@/components/repere/bientot";
 import { useProgrammeActif } from "@/lib/fonctionnalites";
@@ -67,11 +66,10 @@ function Contenu() {
         {options.length > 0 && <Onglets label={nomRubrique(v)} options={options} valeur={onglet} onChange={changer} style={v === "soin" ? "pastilles" : "soulignes"} />}
         {v === "libre" ? (
           <div className="flex flex-col gap-6 pb-20">
-            {/* tes séances d'abord ; le corps pour en créer une sur les muscles touchés ; puis les trois façons de faire */}
-            <Recommandation />
+            {/* tes séances d'abord, puis le corps pour en créer une sur les muscles touchés ; créer, composer et importer passent par le bouton + et les raccourcis de l'accueil (sans séance : ici aussi) */}
             {aDesSeances && <MesSeances />}
             <CorpsDuJour titre={aDesSeances ? tr("Ou travaille autre chose aujourd'hui ?") : tr("Qu'est-ce que tu travailles aujourd'hui ?")} />
-            <CreerSeance />
+            {aDesSeances ? <FeuilleImport /> : <CreerSeance />}
           </div>
         ) : v === "programme" ? (
           !prog ? <ProgrammeBientot />
