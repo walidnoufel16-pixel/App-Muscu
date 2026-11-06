@@ -203,7 +203,7 @@ export function Prudence() {
   return <p className="px-2 text-center text-[11.5px] leading-relaxed text-muted-foreground">{tr("Des repères généraux, pas un avis médical. En cas de pathologie, de grossesse ou de trouble alimentaire, parles-en à un médecin ou à un diététicien.")}</p>;
 }
 
-/* ---------------- conseils du nutritionniste ----------------
+/* ---------------- conseils nutrition ----------------
    Repères simples et sûrs pour le sportif ; ce ne sont pas des prescriptions (voir Prudence). */
 export function ConseilsNutrition({ vegan }: { vegan: boolean }) {
   const [ouvert, setOuvert] = useState<number | null>(null);
@@ -215,8 +215,8 @@ export function ConseilsNutrition({ vegan }: { vegan: boolean }) {
     ["🧂", tr("Sel et chaleur"), tr("Après une séance longue ou très transpirée, un peu de sel dans le repas suivant aide à récupérer l'eau perdue.")],
   ];
   return (
-    <section className="rounded-[22px] bg-card p-4" aria-label={tr("Conseils du nutritionniste")}>
-      <h2 className="text-[17px] font-bold">{tr("Conseils du nutritionniste")}</h2>
+    <section className="rounded-[22px] bg-card p-4" aria-label={tr("Conseils nutrition")}>
+      <h2 className="text-[17px] font-bold">{tr("Conseils nutrition")}</h2>
       <div className="mt-2 flex flex-col">
         {l.map(([e, t, x], i) => (
           <button key={t} onClick={() => setOuvert(ouvert === i ? null : i)} aria-expanded={ouvert === i} className="border-b border-border/70 py-2.5 text-left last:border-b-0">
@@ -392,7 +392,7 @@ function Fiche({ r, b, c, kcal, pers0 }: { r: Recette; b: Besoins; c?: CreneauRe
         ))}
       </ol>
       <div className="mt-4 rounded-[18px] bg-plate-soft p-3.5">
-        <p className="text-[12px] font-semibold tracking-[0.08em] text-plate-ink uppercase">{tr("Le mot du nutritionniste")}</p>
+        <p className="text-[12px] font-semibold tracking-[0.08em] text-plate-ink uppercase">{tr("Le conseil nutrition")}</p>
         <p className="mt-1 text-[14px] leading-relaxed">{EN() ? r.noteEn : r.note}</p>
       </div>
     </div>

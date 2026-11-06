@@ -109,7 +109,7 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
   const q1 = await fiche.getByRole("list", { name: "Ingrédients" }).innerText();
   await fiche.getByRole("button", { name: "Une personne de plus" }).click();
   const q2 = await fiche.getByRole("list", { name: "Ingrédients" }).innerText();
-  ok(q1 !== q2 && /Le mot du nutritionniste/i.test(await fiche.innerText()), "fiche : ingrédients à la portion, ×2 personnes, mot du nutritionniste" + (q1 !== q2 ? "" : " (q1 = q2)"));
+  ok(q1 !== q2 && /Le conseil nutrition/i.test(await fiche.innerText()), "fiche : ingrédients à la portion, ×2 personnes, conseil nutrition" + (q1 !== q2 ? "" : " (q1 = q2)"));
   await cap(pg, "repas-fiche");
   await pg.keyboard.press("Escape");
   /* calories en option */
@@ -200,7 +200,7 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
   await idees.waitFor({ timeout: 8000 });
   await idees.getByRole("link").first().click();
   await pg.waitForURL(/\/repas\/?\?r=/);
-  await pg.getByRole("dialog").getByText("Le mot du nutritionniste").waitFor();
+  await pg.getByRole("dialog").getByText("Le conseil nutrition").waitFor();
   ok(true, "collation de la séance → recette ouverte dans Repas");
   await ctx.close();
 }
