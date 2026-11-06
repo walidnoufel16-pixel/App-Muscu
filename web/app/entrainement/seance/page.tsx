@@ -20,7 +20,7 @@ import { CarteSport } from "@/components/repere/carte-sport";
 import { EX } from "@/lib/data/exercices";
 import { AXES } from "@/lib/data/referentiels";
 import {
-  alternativesDe, baseRPE, ctxLibre, ctxPlan, kLibre, curId, espacementDe, key, musclesDe, nomPat, noRPE, okDe, rirTxt, rpeOf, sportsChoisis, titreSeance, week,
+  alternativesDe, baseRPE, ctxLibre, ctxPlan, variationDe, kLibre, curId, espacementDe, key, musclesDe, nomPat, noRPE, okDe, rirTxt, rpeOf, sportsChoisis, titreSeance, week,
 } from "@/lib/logic/core";
 import { exParDefaut, objCollation } from "@/lib/logic/assistant";
 import * as act from "@/lib/logic/actions";
@@ -167,7 +167,7 @@ function SeancePlan() {
                 return (
                   <ExerciceCarte
                     key={k} ancre={k}
-                    num={i + 1} id={c.id} prescr={prescr} repos={e[3]} rpe={r} role={e[4]} badge={badge}
+                    num={i + 1} id={c.id} prescr={prescr} repos={e[3]} rpe={r} role={e[4]} badge={badge} variation={L ? 0 : variationDe(c)}
                     L={L} n={e[1]} ouvert={ouvert === k}
                     onToggle={() => { tactile(5); setOuvert(ouvert === k ? null : k); }}
                     onFiche={() => ouvrirFiche(i)}
@@ -289,7 +289,7 @@ function SeanceLibre({ i }: { i: number }) {
     return (
       <ExerciceCarte
         key={c.k} ancre={c.k}
-        num={j + 1} id={e.id} prescr={prescr} repos={e.p} rpe={r} L={L} n={e.s} ouvert={ouvert === c.k}
+        num={j + 1} id={e.id} prescr={prescr} repos={e.p} rpe={r} variation={L ? 0 : variationDe(c)} L={L} n={e.s} ouvert={ouvert === c.k}
         onToggle={() => { tactile(5); setOuvert(ouvert === c.k ? null : c.k); }}
         onFiche={() => setFiche({ id: e.id, idx: -1, pres: [e.s, e.r, e.p], libelle: tr("séance libre"), rpe: r || undefined })}
         onTout={() => { tactile(12); muter((E) => act.toutCocher(E, c)); if (!L?.done && useRepere.getState().etat.LOG[c.k]?.done) fini(); }}
