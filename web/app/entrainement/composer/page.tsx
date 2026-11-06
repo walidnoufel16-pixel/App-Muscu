@@ -4,7 +4,7 @@ import { pluriel, tr } from "@/lib/i18n";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { ArrowsClockwiseIcon, ArrowsLeftRightIcon, CaretDownIcon, CaretRightIcon, DotsSixVerticalIcon, HeartbeatIcon, InfoIcon, MinusIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
+import { ArrowDownIcon, ArrowUpIcon, ArrowsClockwiseIcon, ArrowsLeftRightIcon, CaretDownIcon, CaretRightIcon, DotsSixVerticalIcon, HeartbeatIcon, InfoIcon, MinusIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EnTete } from "@/components/repere/en-tete";
@@ -16,7 +16,7 @@ import { MaterielRepliable } from "@/components/repere/filtre-materiel";
 import { confirmer } from "@/components/repere/confirmer";
 import { EX } from "@/lib/data/exercices";
 import { OBJS, PAS_REPOS } from "@/lib/data/referentiels";
-import { exoFiltre, musclesDe, nomPat, selDeclare, avecSalle } from "@/lib/logic/core";
+import { exoFiltre, kLibre, musclesDe, nb, nomPat, propositionLibre, selDeclare, avecSalle, variationDe } from "@/lib/logic/core";
 import { construireSeance, exParDefaut } from "@/lib/logic/assistant";
 import { zonesActives, zonesDe } from "@/lib/logic/forme";
 import * as act from "@/lib/logic/actions";
@@ -206,6 +206,8 @@ export default function PageComposer() {
                   <CarteCompo
                     key={x.e.id}
                     e={x.e} i={x.i} n={L.ex.length}
+                    /* la charge proposée et son pourquoi, comme dans la séance (clé du journal si la séance existe déjà) */
+                    prop={propositionLibre(etat, x.e, { obj: L.obj ?? L.gen?.obj, k: L.idx != null && x.e.o != null ? kLibre(L.idx, x.e.o) : "L|nouvelle|" + x.i })}
                     ouvert={ouv === x.e.id}
                     glisse={glisse === x.e.id}
                     onToggle={() => setOuv(ouv === x.e.id ? null : x.e.id)}
@@ -293,15 +295,17 @@ export default function PageComposer() {
 }
 
 function CarteCompo({
-  e, i, n, ouvert, glisse, onToggle, onSaisir, regl, reglRepos, deplacer, onFiche, onRemplacer, onRetirer,
+  e, i, n, prop, ouvert, glisse, onToggle, onSaisir, regl, reglRepos, deplacer, onFiche, onRemplacer, onRetirer,
 }: {
   e: ExLibre; i: number; n: number; ouvert: boolean; glisse: boolean;
+  prop?: ReturnType<typeof propositionLibre>;
   onToggle: () => void; onSaisir: (ev: React.PointerEvent) => void;
   regl: (i: number, c: "s" | "r", d: number) => void; reglRepos: (i: number, d: number) => void; deplacer: (i: number, d: number) => void;
   onFiche: () => void; onRemplacer: () => void; onRetirer: () => void;
 }) {
   const x = EX[e.id], mus = musclesDe([e.id]), pas = x.ch === "temps" ? 5 : x.ch === "dist" ? 50 : 1;
   const prescr = x.ch === "temps" ? `${e.s} × ${e.r}s${x.cote ? tr(" / côté") : ""}` : x.ch === "dist" ? `${e.s} × ${e.r}m` : `${e.s} × ${e.r}`;
+  const kg = x.ch === "kg" && prop ? prop.base.v : null, variation = kg != null ? variationDe({ id: e.id, base: prop!.base, prev: prop!.prev }) : 0;
   return (
     <div data-carte={e.id} className={cn("overflow-hidden rounded-[20px] border bg-card transition-shadow", glisse ? "z-10 border-plate shadow-[0_14px_34px_-14px_rgba(0,0,0,.45)]" : "border-border/80")}>
       <div className="flex items-center">
@@ -313,13 +317,24 @@ function CarteCompo({
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="truncate text-[16px] font-semibold tracking-[-0.01em]">{x.n}</span>
             {mus.length > 0 && <span className="truncate text-[12.5px] text-muted-foreground">{mus.join(" · ")}</span>}
-            <span className="num text-[15px] font-semibold text-foreground/80">{prescr} <span className="font-sans text-[12.5px] font-normal text-muted-foreground">{tr("· repos {p}", { p: e.p })}</span></span>
+            <span className="num text-[15px] font-semibold text-foreground/80">
+              {prescr}{kg != null && <> · <span className="text-foreground">{tr("{v} kg", { v: nb(kg) })}</span></>}
+              {variation > 0 && <span className="ml-1.5 inline-flex items-center gap-0.5 font-sans text-[12.5px] font-semibold text-plate-ink dark:text-plate"><ArrowUpIcon className="size-3" weight="bold" />{tr("{v} kg", { v: nb(variation) })}</span>}
+              {variation < 0 && <span className="ml-1.5 inline-flex items-center gap-0.5 font-sans text-[12.5px] font-semibold text-muted-foreground"><ArrowDownIcon className="size-3" weight="bold" />{tr("allégé")}</span>}
+              {" "}<span className="font-sans text-[12.5px] font-normal text-muted-foreground">{tr("· repos {p}", { p: e.p })}</span>
+            </span>
           </span>
           <CaretDownIcon className={cn("size-5 shrink-0 text-muted-foreground transition-transform", ouvert && "rotate-180")} />
         </button>
       </div>
       {ouvert && (
         <div className="animate-in fade-in-0 duration-150">
+          {prop?.why && (
+            <p className="border-t border-border/70 px-4 pt-2.5 text-[13px] leading-snug text-muted-foreground">
+              {kg != null && <span className="font-semibold text-plate-ink dark:text-plate">{tr("Pourquoi {v} kg", { v: nb(kg) })} · </span>}
+              {prop.why}
+            </p>
+          )}
           <div className="grid grid-cols-2 gap-2 border-t border-border/70 p-3">
             <Pas titre={tr("Séries")} val={e.s} moins={() => regl(i, "s", -1)} plus={() => regl(i, "s", 1)} d1={e.s <= 1} d2={e.s >= 6} />
             <Pas titre={x.ch === "temps" ? tr("Secondes") : x.ch === "dist" ? tr("Mètres") : tr("Répétitions")} val={e.r} moins={() => regl(i, "r", -pas)} plus={() => regl(i, "r", pas)} d1={e.r <= pas} />
