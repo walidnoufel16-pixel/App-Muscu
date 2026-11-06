@@ -409,9 +409,18 @@ export function chargeDepart(E: Etat, id: string, reps: number): Suggestion | nu
   if (!x || x.ch !== "kg") return null;
   let rm = 0;
   for (const l of E.HIST || []) { const q = l.ex?.[id]; if (q && q[2] > 0 && q[3] > 0) rm = Math.max(rm, q[2] * (1 + Math.min(q[3], 12) / 30)); }
-  if (!rm) return null;
-  const pas = pasExercice(x), v = auPalier(rm / (1 + (reps + 2) / 30), pas);
-  return v > 0 ? { v, reps, t: tr("Calculée d'après ta meilleure série sur cet exercice ({a} kg estimés au maximum).", { a: Math.round(rm) }) } : null;
+  let depuis = "";
+  if (!rm) {
+    /* jamais fait : le 1RM de la variante la plus proche (le plan alterne deux variantes), mis à l'échelle, à 90 % */
+    const va = varianteRecente(E, id, true), k = va ? rapportCharge(id, va.id) : 0;
+    if (!va || !(va.rm > 0) || !k) return null;
+    rm = va.rm * k * 0.9; depuis = va.id;
+  }
+  const pas = pasExercice(x), v = Math.min(auPalier(rm / (1 + (reps + 2) / 30), pas), depuis ? x.d * 2 : Infinity);
+  if (!(v > 0)) return null;
+  return depuis
+    ? { v, reps, t: tr("Première fois : estimée d'après ton {n}, une variante du même mouvement, avec une marge de prudence.", { n: EX[depuis].n.toLowerCase() }) }
+    : { v, reps, t: tr("Calculée d'après ta meilleure série sur cet exercice ({a} kg estimés au maximum).", { a: Math.round(rm) }) };
 }
 
 /* ---------------- contexte d'un exercice affiché ----------------
@@ -552,22 +561,48 @@ export function progressionLibre(
   return { v: bas + 1, reps, t: tr("Toutes tes séries réussies la dernière fois : une répétition de plus.") };
 }
 
-/** La dernière variante d'un exercice dans l'historique : même schéma moteur (développé haltères,
-    Arnold, militaire…), avec sa meilleure charge. `memeMateriel` la veut aussi au même matériel. */
-export function varianteRecente(E: Pick<Etat, "HIST">, id: string, memeMateriel = false): { id: string; d: string; ts: number; v: number } | null {
+/** La variante d'un exercice dans l'historique : même schéma moteur (développé haltères, Arnold,
+    militaire…). Sans `charge`, la plus récente (règle de pause : le muscle a travaillé).
+    Avec `charge`, la plus proche pour estimer une charge : même matériel et même type de charge,
+    de préférence même muscle secondaire (pat2) ; avec sa meilleure charge et son 1RM estimé. */
+export function varianteRecente(E: Pick<Etat, "HIST">, id: string, charge = false): { id: string; d: string; ts: number; v: number; rm: number } | null {
   const x = EX[id];
   if (!x) return null;
   const H = E.HIST || [];
+  const rang = (y: Exercice) => (!charge ? 0 : y.eq !== x.eq || y.ch !== x.ch ? -1 : (y.pat2 ?? "") === (x.pat2 ?? "") ? 2 : 1);
+  let mieux: { id: string; d: string; ts: number; v: number; rm: number; r: number } | null = null;
   for (let i = H.length - 1; i >= 0; i--) {
     const l = H[i];
     for (const [o, p] of Object.entries(l.ex)) {
       const y = EX[o];
-      if (o === id || !y || y.pat !== x.pat || (memeMateriel && (y.eq !== x.eq || y.ch !== x.ch))) continue;
+      if (o === id || !y || y.pat !== x.pat) continue;
+      const r = rang(y);
+      if (r < 0 || (mieux && r <= mieux.r)) continue;
       const [a, m, jj] = l.d.split("-").map(Number);
-      return { id: o, d: l.d, ts: new Date(a, m - 1, jj, 12).getTime(), v: p[2] };
+      mieux = { id: o, d: l.d, ts: new Date(a, m - 1, jj, 12).getTime(), v: p[2], rm: p[0], r };
+      if (!charge || r === 2) break;
     }
+    if (mieux && (!charge || mieux.r === 2)) break;
   }
-  return null;
+  return mieux && { id: mieux.id, d: mieux.d, ts: mieux.ts, v: mieux.v, rm: mieux.rm };
+}
+
+/** Rapport de charge entre deux exercices, d'après leurs charges de départ (leg curl 30, kickback 5…),
+    borné : une variante ne sert jamais à proposer plus du double ni moins du dixième. */
+export const rapportCharge = (id: string, de: string) => {
+  const a = EX[id]?.d || 0, b = EX[de]?.d || 0;
+  return a > 0 && b > 0 ? Math.min(2, Math.max(0.1, a / b)) : 0;
+};
+
+/** Première fois sur un exercice : charge de départ tirée de la variante la plus proche faite dans les
+    60 jours, mise à l'échelle et à 90 % par prudence. */
+export function departDepuisVariante(E: Pick<Etat, "HIST">, id: string, maintenant = Date.now()): { v: number; depuis: string; vv: number } | null {
+  const x = EX[id];
+  if (!x || x.ch !== "kg") return null;
+  const va = varianteRecente(E, id, true), k = va ? rapportCharge(id, va.id) : 0;
+  if (!va || !(va.v > 0) || !k || maintenant - va.ts > 60 * 864e5) return null;
+  const v = Math.min(auPalier(va.v * k * 0.9, pasExercice(x)), x.d * 2);
+  return v > 0 ? { v, depuis: va.id, vv: va.v } : null;
 }
 
 export function ctxLibre(E: Etat, idx: number, j: number): Ctx | null {
@@ -576,14 +611,14 @@ export function ctxLibre(E: Etat, idx: number, j: number): Ctx | null {
   const x = EX[e.id], k = kLibre(idx, j), h = historiqueEx(E, e.id, k, 3), d = h[0] ?? precedentDe(E.LOG, e.id, k);
   const pr = d ? progressionLibre(x, e, d, { obj: S.obj ?? S.gen?.obj, avant: h.slice(1), voisin: varianteRecente(E, e.id)?.ts }) : null;
   /* jamais fait : on part de la variante la plus proche (même mouvement, même matériel), à 90 % */
-  const va = !d && x.ch === "kg" ? varianteRecente(E, e.id, true) : null;
-  const depart = va && va.v > 0 && Date.now() - va.ts < 60 * 864e5 ? auPalier(va.v * 0.9, pasExercice(x)) : 0;
-  const aj = selonForme(E.A, x, e.id, pr ? { v: pr.v, reps: pr.reps } : d ? { v: maxV(d), reps: d.reps ?? e.r } : { v: depart || x.d, reps: e.r }, pasExercice(x));
+  /* jamais fait : on part de la variante la plus proche, mise à l'échelle (voir departDepuisVariante) */
+  const dv = d ? null : departDepuisVariante(E, e.id);
+  const aj = selonForme(E.A, x, e.id, pr ? { v: pr.v, reps: pr.reps } : d ? { v: maxV(d), reps: d.reps ?? e.r } : { v: dv?.v || x.d, reps: e.r }, pasExercice(x));
   return {
     k, id: e.id, n: e.s,
     base: aj.base,
     why: joindre(pr ? pr.t : d ? tr("Reprise de ta dernière séance sur cet exercice.")
-      : depart ? tr("Première fois : départ à 90 % de ton {n} ({v} kg), une variante du même mouvement.", { n: EX[va!.id].n.toLowerCase(), v: nb(va!.v) }) : undefined, aj.texte),
+      : dv ? tr("Première fois : estimée d'après ton {n} ({v} kg), une variante du même mouvement, avec une marge de prudence.", { n: EX[dv.depuis].n.toLowerCase(), v: nb(dv.vv) }) : undefined, aj.texte),
     repos: e.p, prev: d,
     ...(() => { const max = maxAuDessus(e.id, maxHist(E, e.id, k), d); return max ? { max } : {}; })(),
   };

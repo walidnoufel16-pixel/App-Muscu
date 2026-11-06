@@ -104,7 +104,37 @@ describe("variantes du même mouvement", () => {
     H[0].ex.arn[2] = 20;
     const E = { A: {}, LOG: {}, HIST: H, SEANCES: [{ nom: "Épaules", ex: [{ id: "dmh", s: 3, r: 10, p: "90 s" }] }] } as unknown as Etat;
     const c = ctxLibre(E, 0, 0)!;
-    expect(c.base.v).toBe(18);
-    expect(c.why).toMatch(/90 %.*développé arnold/i);
+    expect(c.base.v).toBe(24); // 20 × 16/12 (charges de départ) × 0,9
+    expect(c.why).toMatch(/développé arnold \(20 kg\)/i);
+  });
+});
+
+import { chargeDepart, departDepuisVariante } from "@/lib/logic/core";
+
+describe("variantes : mise à l'échelle", () => {
+  const jour = (n: number) => { const d = new Date(Date.now() - n * 864e5); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+  it("kickback après un leg curl à 40 kg : petite charge, pas 36 kg", () => {
+    const H = [ligne(jour(4), { lc: 3 })];
+    H[0].ex.lc[2] = 40;
+    const r = departDepuisVariante({ HIST: H }, "kick")!;
+    expect(r.depuis).toBe("lc");
+    expect(r.v).toBeLessThanOrEqual(7.5);
+    expect(r.v).toBeGreaterThan(0);
+  });
+  it("une variante trop ancienne (plus de 60 jours) ne sert pas", () => {
+    const H = [ligne(jour(70), { arn: 3 })];
+    expect(departDepuisVariante({ HIST: H }, "dmh")).toBeNull();
+  });
+  it("Oxa Plan : la variante jamais faite part du 1RM de l'autre variante", () => {
+    const H = [ligne(jour(7), { arn: 3 })];
+    H[0].ex.arn[0] = 26; // 1RM estimé
+    const E = { A: {}, LOG: {}, HIST: H } as unknown as Etat;
+    const s = chargeDepart(E, "dmh", 10)!;
+    expect(s.v).toBeGreaterThan(0);
+    expect(s.t).toMatch(/développé arnold/i);
+    // avec son propre historique, l'exercice garde son calcul
+    const H2 = [...H, ligne(jour(2), { dmh: 3 })];
+    H2[1].ex.dmh[2] = 18; H2[1].ex.dmh[3] = 10;
+    expect(chargeDepart({ ...E, HIST: H2 } as Etat, "dmh", 10)!.t).toMatch(/cet exercice/);
   });
 });
