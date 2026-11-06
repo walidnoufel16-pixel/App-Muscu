@@ -33,8 +33,7 @@ export function Demenagement() {
   useEffect(() => {
     let vu = false;
     try { vu = Date.now() - +(localStorage.getItem(VU) || 0) < 3 * 864e5; } catch {}
-    setAndroid(/Android/i.test(navigator.userAgent));
-    if (!vu && ancienneAdresse()) { const t = setTimeout(() => setOuvert(true), 1200); return () => clearTimeout(t); }
+    if (!vu && ancienneAdresse()) { const t = setTimeout(() => { setAndroid(/Android/i.test(navigator.userAgent)); setOuvert(true); }, 1200); return () => clearTimeout(t); }
   }, []);
   const plusTard = () => { try { localStorage.setItem(VU, String(Date.now())); } catch {} setOuvert(false); };
   const email = user?.email;

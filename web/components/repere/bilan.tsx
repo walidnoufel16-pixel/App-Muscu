@@ -108,8 +108,8 @@ function Suite() {
 /* Une seule proposition en plus par bilan : les rappels tant qu'ils n'ont pas été proposés,
    sinon (à partir de la 5e séance, une fois) la demande d'avis. */
 function UnePropositionDePlus() {
-  const [rappels, setRappels] = useState<boolean | null>(null);
-  useEffect(() => { if (dejaPropose()) setRappels(false); else etatRappels().then((e) => setRappels(e === "inactif")).catch(() => setRappels(false)); }, []);
+  const [rappels, setRappels] = useState<boolean | null>(() => (dejaPropose() ? false : null));
+  useEffect(() => { if (!dejaPropose()) etatRappels().then((e) => setRappels(e === "inactif")).catch(() => setRappels(false)); }, []);
   if (rappels === null) return null;
   return rappels ? <ProposerRappels /> : <DemanderAvis />;
 }
