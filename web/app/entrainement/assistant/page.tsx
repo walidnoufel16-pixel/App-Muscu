@@ -7,6 +7,8 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { toast } from "sonner";
+import { jourCourt, jourLong, maj } from "@/components/repere/agenda";
+import { programmerNouvelle } from "@/lib/logic/agenda";
 import { Input } from "@/components/ui/input";
 import { ReglagesCardio, type ChoixCardio } from "@/components/repere/reglages-cardio";
 import { QuestionnaireCourse } from "@/components/repere/course";
@@ -84,6 +86,8 @@ function Assistant() {
   const sel = street ? (selB ?? MATERIEL_STREET).filter((t) => OUTILS_STREET.includes(t)) : avecSalle(selB ?? [], A);
   /* muscles touchés sur le corps d'Entraînement : déjà cochés */
   const mUrl = useSearchParams().get("m");
+  /* ouvert depuis le menu d'un jour à venir : la séance créée y sera programmée */
+  const jourUrl = useSearchParams().get("jour");
   const [m, setM] = useState<string[]>(() => (mUrl ? mUrl.split(",").filter((k) => MUSC.some((g) => g.k === k)) : []));
   const [vue, setVue] = useState<"corps" | "liste">("corps");
   /* durée habituelle et objectif du profil sportif (Profil) */
@@ -99,6 +103,7 @@ function Assistant() {
   /* suggestion d'Oxa sur le choix des muscles ; « Non merci » suit la séance jusque dans le composeur */
   const H = useRepere((s) => s.etat.HIST);
   const [auj] = useState(() => jourDe(Date.now()));
+  const pour = jourUrl && /^\d{4}-\d{2}-\d{2}$/.test(jourUrl) && jourUrl > auj ? jourUrl : null;
   const [refus, setRefus] = useState<string[]>([]);
   const suggestion = street ? undefined : avisMuscles(m, { H, auj }).find((x) => !refus.includes(x.id));
   const budget = Math.round((DUREES.find((x) => x[0] === d) || DUREES[1])[1] / 3);
@@ -113,6 +118,13 @@ function Assistant() {
     /* combinée : le bloc cardio arrive à la fin, sans échauffement ; il se déplace ensuite dans le composeur */
     const blocs = type === "mixte" ? [{ ...nouveauBloc(ex.length, choix.f, choix.m, choix.n), r: { ...choix.r, echauf: 0 } }] : undefined;
     const seance = { nom: nomSeance(m) + (blocs ? tr(" + cardio") : ""), ex, obj, gen: { m: [...m], d, obj }, ...(blocs ? { blocs } : {}), ...(refus.length ? { avisIgnores: [...refus] } : {}) };
+    /* « Créer pour jeudi 12 » : enregistrée dans Mes séances et programmée ce jour-là */
+    if (commencer && pour) {
+      muter((E) => { E.SEANCES.push(seance); programmerNouvelle(E, pour, E.SEANCES.length - 1); });
+      toast.success(tr("Programmée : {nom}", { nom: seance.nom }), { description: maj(jourLong(pour)) });
+      router.replace("/entrainement" as Route, ARRIERE);
+      return;
+    }
     /* « Créer et commencer » : enregistrée dans Mes séances et lancée tout de suite */
     if (commencer) {
       const i = useRepere.getState().etat.SEANCES.length;
@@ -121,7 +133,7 @@ function Assistant() {
       router.replace(`/entrainement/seance?l=${i}` as Route, AVANT);
       return;
     }
-    setLibre({ ...seance, idx: null });
+    setLibre({ ...seance, idx: null, ...(pour ? { pour } : {}) });
     router.push("/entrainement/composer", AVANT);
   };
 
@@ -135,7 +147,7 @@ function Assistant() {
       >
         <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
           {type === "muscu"
-            ? tr("Choisis ce que tu veux travailler : Oxa te propose une séance, que tu modifies ensuite comme tu veux.")
+            ? tr("Choisis ce que tu veux travailler : Oxa construit ta séance, que tu modifies ensuite comme tu veux.")
             : type === "mixte"
               ? tr("De la musculation et un bloc cardio dans la même séance. Le bloc se place où tu veux : avant, entre deux exercices ou à la fin.")
               : type === "course"
@@ -294,7 +306,7 @@ function Assistant() {
             {tr("Ajuster")}
           </Button>
           <Button variant="plate" size="xl" className="flex-[1.6] disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 disabled:shadow-none" disabled={!peut} onClick={() => creer(true)}>
-            {tr("Créer et commencer")}
+            {pour ? tr("Créer pour {j}", { j: jourCourt(pour) }) : tr("Créer et commencer")}
           </Button>
         </div>
       </div>

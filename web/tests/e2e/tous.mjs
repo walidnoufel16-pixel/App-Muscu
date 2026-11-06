@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 /* Scénarios tenus à jour avec l'interface actuelle : ils bloquent la CI. */
-export const SUITE = ["menu", "navigation", "arreter", "visite", "agenda-reco", "cloture", "horsligne", "minuit", "relecture-en"];
+export const SUITE = ["menu", "navigation", "arreter", "visite", "menu-jour", "cloture", "horsligne", "minuit", "relecture-en"];
 
 const ici = dirname(fileURLToPath(import.meta.url));
 const noms = process.argv.slice(2).length ? process.argv.slice(2) : SUITE;

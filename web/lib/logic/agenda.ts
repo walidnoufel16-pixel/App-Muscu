@@ -93,6 +93,13 @@ export function programmer(A: Prevu[], p: Omit<Prevu, "id"> & { id?: string }): 
   return x;
 }
 
+/** Une séance libre créée pour un jour à venir (menu du jour) : programmée ce jour-là, avec le rappel habituel. */
+export function programmerNouvelle(E: Etat, d: string, i: number): Prevu {
+  E.AGENDA ??= [];
+  const rappel = E.A.rappelAgenda === undefined ? { veille: true, h: 20 } : E.A.rappelAgenda;
+  return programmer(E.AGENDA, { d, nom: E.SEANCES[i].nom, quoi: { t: "libre", i }, ...(rappel ? { rappel } : {}) });
+}
+
 /** Retire un prévu : ce jour seulement (pour une répétition) ou en entier. */
 export function retirer(A: Prevu[], id: string, jour: string | "tout") {
   const i = A.findIndex((p) => p.id === id);

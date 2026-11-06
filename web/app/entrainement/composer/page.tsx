@@ -31,7 +31,8 @@ import { ARRIERE, AVANT, remplacement, revenirA } from "@/lib/nav";
 import { preparer } from "@/lib/sons";
 import { Retour, useRetour } from "@/components/repere/retour";
 import { useBrouillon } from "@/lib/brouillon";
-import { remplacerLe } from "@/lib/logic/agenda";
+import { programmerNouvelle, remplacerLe } from "@/lib/logic/agenda";
+import { jourCourt } from "@/components/repere/agenda";
 import { AvisSeance } from "@/components/repere/avis-seance";
 import { lienRubrique } from "@/components/repere/rubriques";
 import { tactile } from "@/lib/repos";
@@ -133,6 +134,8 @@ export default function PageComposer() {
       /* modification : les séries déjà notées suivent leur exercice */
       muter((E) => {
         if (L.idx != null) { act.reattacherJournaux(E, L.idx, L.ex.map((e) => e.o)); E.SEANCES[L.idx] = s; } else E.SEANCES.push(s);
+        /* créée depuis le menu d'un jour à venir : programmée ce jour-là */
+        if (L.idx == null && L.pour) programmerNouvelle(E, L.pour, E.SEANCES.length - 1);
         /* renommée : la séance programmée porte le nouveau nom */
         const p = ag?.id ? E.AGENDA?.find((x) => x.id === ag.id) : undefined;
         if (p && p.quoi.t === "libre") p.nom = nom;
@@ -245,7 +248,9 @@ export default function PageComposer() {
         onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") })}
       />
       <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
-        {L.idx == null && !L.agenda ? (
+        {L.idx == null && L.pour ? (
+          <Button variant="plate" size="xl" className="w-full" disabled={!L.ex.length} onClick={() => enregistrer()}>{tr("Enregistrer pour {j}", { j: jourCourt(L.pour) })}</Button>
+        ) : L.idx == null && !L.agenda ? (
           <div className="flex gap-2">
             <Button variant="outline" size="xl" className="flex-1 bg-background" disabled={!L.ex.length} onClick={() => enregistrer()}>{tr("Enregistrer")}</Button>
             <Button variant="plate" size="xl" className="flex-[1.6]" disabled={!L.ex.length} onClick={() => enregistrer(true)}>{tr("Enregistrer et commencer")}</Button>

@@ -201,14 +201,6 @@ function Profil() {
 
         {/* ---------- réglages de l'app ---------- */}
         <Groupe titre={tr("Réglages de l'app")}>
-          {/* la proposition du jour sur l'accueil Entraînement */}
-          <section>
-            <h3 className="eyebrow mb-2 px-1">{tr("Accueil")}</h3>
-            <label className="flex items-center justify-between gap-3 rounded-[18px] bg-card px-4 py-3.5 text-[15px]">
-              <span>{tr("« Oxa te propose » sur l'accueil")}<span className="block text-[12.5px] text-muted-foreground">{tr("Une séance choisie d'après tes muscles récupérés.")}</span></span>
-              <input type="checkbox" checked={!etat.A.recoOff} onChange={(e) => useRepere.getState().muter((E) => { if (e.target.checked) { delete E.A.recoOff; delete E.A.recoMasquee; } else E.A.recoOff = true; })} className="size-5 shrink-0 accent-[var(--plate)]" />
-            </label>
-          </section>
           {/* rappels après quelques jours sans séance */}
           <section id="rappels" className="scroll-mt-20">
             <h3 className="eyebrow mb-2 px-1">{tr("Rappels")}</h3>

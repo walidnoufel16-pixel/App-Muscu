@@ -113,3 +113,25 @@ describe("séance en cours", () => {
     expect(f.get(avant)?.length).toBe(1);
   });
 });
+
+import { programmerNouvelle } from "@/lib/logic/agenda";
+import { feuilleDuJour } from "@/components/repere/agenda";
+import type { Etat } from "@/lib/logic/types";
+
+describe("menu du jour", () => {
+  it("toucher un jour vide : le menu (aujourd'hui et à venir), rien pour un jour passé ; sinon la feuille du jour", () => {
+    const vide = (d: string) => ({ d, fait: [], prevus: [], manques: [] }) as never;
+    expect(feuilleDuJour(vide("2026-11-09"), "2026-11-09")).toEqual({ m: "nouvelle", d: "2026-11-09" });
+    expect(feuilleDuJour(vide("2026-11-12"), "2026-11-09")).toEqual({ m: "nouvelle", d: "2026-11-12" });
+    expect(feuilleDuJour(vide("2026-11-05"), "2026-11-09")).toBeNull();
+    expect(feuilleDuJour({ d: "2026-11-12", fait: [], prevus: [{}], manques: [] } as never, "2026-11-09")).toEqual({ m: "jour", d: "2026-11-12" });
+  });
+  it("une séance créée pour un jour à venir est programmée ce jour-là, avec le rappel habituel", () => {
+    const E = { A: { rappelAgenda: { veille: false, h: 7 } }, SEANCES: [{ nom: "Dos", ex: [] }] } as unknown as Etat;
+    const p = programmerNouvelle(E, "2026-11-12", 0);
+    expect(E.AGENDA).toHaveLength(1);
+    expect(p).toMatchObject({ d: "2026-11-12", nom: "Dos", quoi: { t: "libre", i: 0 }, rappel: { veille: false, h: 7 } });
+    const E2 = { A: {}, SEANCES: [{ nom: "Jambes", ex: [] }] } as unknown as Etat;
+    expect(programmerNouvelle(E2, "2026-11-12", 0).rappel).toEqual({ veille: true, h: 20 });
+  });
+});
