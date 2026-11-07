@@ -11,12 +11,14 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/compone
 import { EX } from "@/lib/data/exercices";
 import { MUSC } from "@/lib/data/referentiels";
 import { bilanSemaine, jourDuBilan } from "@/lib/logic/bilan-semaine";
+import { nomGroupe, type Groupe } from "@/lib/logic/recommandation";
 import { nb } from "@/lib/logic/core";
 import { objectifProteines } from "@/lib/logic/nutrition";
 import { useRepere } from "@/lib/store";
 import { tactile } from "@/lib/repos";
 import { ORANGE } from "./recuperation";
 
+/* noms courts (Pecs, Ischios…) dans la liste, comme la feuille Récupération : rien n'est tronqué */
 const nomM = (k: string) => MUSC.find((g) => g.k === k)?.n ?? k;
 const court = (d: string) => new Date(d + "T12:00").toLocaleDateString(loc(), { day: "numeric", month: "short" });
 
@@ -90,7 +92,7 @@ export function CarteBilanSemaine({ auj }: { auj: string }) {
             <div className="flex flex-col gap-2 rounded-[18px] bg-card p-3.5">
               {b.parMuscle.map(({ k, n }) => (
                 <div key={k} className="flex items-center gap-3 text-[14px]">
-                  <span className="w-[92px] shrink-0 truncate">{nomM(k)}</span>
+                  <span className="w-[92px] shrink-0 truncate">{nomGroupe(k as Groupe)}</span>
                   <span className="relative h-2 flex-1 overflow-hidden rounded-full bg-muted">
                     <span className="absolute inset-y-0 left-0 rounded-full bg-plate" style={{ width: `${Math.min(100, (n / b.cible) * 100)}%`, opacity: n >= b.cible ? 1 : 0.55 }} />
                   </span>
