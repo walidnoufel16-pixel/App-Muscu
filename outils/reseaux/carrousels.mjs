@@ -20,7 +20,7 @@ const ecran = (f, h, bas, cl = "") => { const e = 860 / 390; return `<div class=
 // Les carrousels de la semaine 1 (compte démo « Alex »). Réécris le contenu pour chaque nouveau carrousel.
 const C = {
   "carrousel-1-series": [
-    { couv: 1, t: "Combien de séries par muscle <em>chaque semaine</em> ?", s: "La réponse dépend de ton niveau.", img: ["bilan", 262, 452] },
+    { couv: 1, t: "Combien de séries par muscle <em>chaque semaine</em> ?", s: "La réponse dépend de ton niveau.", img: ["bilan", 262, 524] },
     { n: "01", t: "Compte seulement les séries <em>difficiles</em>", l: ["Une série qui compte s'arrête à 1 à 3 répétitions de l'échec.", "L'échauffement ne compte pas.", "Un exercice compte pour son muscle principal, et pour moitié pour les muscles qui aident."] },
     { n: "02", t: "Les repères <em>par niveau</em>", tab: [["Débutant", "8 séries"], ["Régulier", "12 séries"], ["Avancé", "16 séries"]], s2: "par muscle et par semaine : les cibles d'Oxa." },
     { n: "03", t: "Coupe-les en <em>2 séances</em>", l: ["12 séries de pecs ? Plutôt 2 × 6 que 12 d'un coup.", "Tes dernières séries restent de qualité.", "Laisse 2 jours entre deux séances du même muscle, 3 pour les jambes après une grosse séance."] },
@@ -48,7 +48,7 @@ ul{list-style:none;margin-top:64px;display:flex;flex-direction:column;gap:30px}l
 .tab{margin-top:64px;background:#fff;border-radius:36px;overflow:hidden}.tab div{display:flex;justify-content:space-between;padding:40px 44px;font-size:48px;border-top:2px solid #ececf0}.tab div:first-child{border-top:0}.tab b{color:#0d9488}
 .s2{margin-top:30px;font-size:38px;line-height:1.3;color:#71717a}
 .glisse{position:absolute;bottom:72px;right:80px;font-size:32px;font-weight:700;color:#0d9488}.sombre .glisse{color:#2dd4bf}
-.couv-ecran{position:absolute;left:110px;right:110px;top:180px;transform:rotate(-3deg)}.couv-ecran .ecran{width:auto;margin:0;box-shadow:0 30px 90px rgba(0,0,0,.6),0 0 0 2px rgba(255,255,255,.1)}
+.couv-ecran{position:absolute;left:110px;right:110px;top:180px;}.couv-ecran .ecran{width:auto;margin:0;box-shadow:0 30px 90px rgba(0,0,0,.6),0 0 0 2px rgba(255,255,255,.1)}
 .s{margin-top:34px;font-size:44px;color:#a1a1aa;line-height:1.3}
 .ecran{margin:56px auto 0;width:860px;border-radius:40px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.5)}.ecran img{width:100%;display:block}
 .cta{position:absolute;bottom:80px;left:80px;right:80px;display:flex;justify-content:space-between;align-items:center;font-size:36px;font-weight:700}.cta span{background:#fff;color:#0a0a0c;padding:20px 40px;border-radius:999px}`;
