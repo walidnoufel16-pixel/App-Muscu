@@ -3,17 +3,17 @@
 Comptes : TikTok @oxafit.app · Instagram @oxafit.app · YouTube @oxafit
 Lien en bio : `https://oxafit.app/?src=tiktok` (TikTok), `https://oxafit.app/?src=instagram` (Instagram), `https://oxafit.app/?src=youtube` (YouTube, dans la description de chaque Short).
 
-Toutes les captures viennent du compte de démonstration « Alex » (6 semaines de séances fictives, aucune donnée réelle). Les vidéos font 12 s, en 1080×1920, avec le texte hors des zones couvertes par les boutons de TikTok, Reels et Shorts.
+Toutes les captures viennent du compte de démonstration « Alex » (6 semaines de séances fictives, aucune donnée réelle). Les vidéos font 12 à 14 s, en 1080×1920, avec le texte hors des zones couvertes par les boutons de TikTok, Reels et Shorts.
 
 ## Calendrier (lancement le vendredi 6 novembre)
 
 | Jour | Quoi | Où | Heure conseillée |
 |---|---|---|---|
 | Vendredi 6 | Vidéo 1 · Ta séance est prête | TikTok, Reels, Shorts | 18 h 30 |
-| Samedi 7 | Carrousel 1 · Combien de séries | Instagram, et TikTok en mode photo | 11 h |
+| Samedi 7 | Carrousel 1 · Ce qui fait vraiment progresser | Instagram, et TikTok en mode photo | 11 h |
 | Dimanche 8 | Vidéo 2 · Pourquoi 62,5 kg | TikTok, Reels, Shorts | 18 h 30 |
 | Lundi 9 | Carrousel 2 · Quand ajouter du poids | Instagram, et TikTok en mode photo | 12 h 30 |
-| Mardi 10 | Vidéo 3 · Assez de séries ? | TikTok, Reels, Shorts | 18 h 30 |
+| Mardi 10 | Vidéo 3 · La régularité bat l'intensité | TikTok, Reels, Shorts | 18 h 30 |
 
 Le pack suivant commence le mercredi 11.
 
@@ -63,39 +63,41 @@ Description : `La double progression, expliquée sous chaque charge. 👉 https:
 
 Commentaire à épingler : `La règle : une répétition de plus à chaque séance, et au haut de la fourchette, le plus petit palier. 💾`
 
-## Vidéo 3 · `video-3-bilan-semaine.mp4` · « Tu fais assez de séries pour tes pecs ? »
+## Vidéo 3 · `video-3-regularite.mp4` · « Une semaine à fond, puis plus rien ? »
 
-Pilier : récupération et suivi. À l'écran : le bilan du lundi, 6 séries de pecs face à une cible de 12, puis les records de la semaine.
+Pilier : récupération et régularité. À l'écran : la série « 6 semaines d'affilée », la ligne Récupération (« Tous tes muscles sont prêts »), puis le bilan du lundi : objectif tenu (3/3) et 14 records.
 
 **TikTok / Reels**
 ```
-Tu fais assez de séries pour tes pecs ?
-Une séance pecs par semaine avec 2 exercices de 3 séries : 6 séries. La cible d'un pratiquant régulier : 12, par muscle et par semaine.
-Chaque lundi, Oxa te montre où tu en es.
+Une semaine à fond… puis plus rien ? 😮‍💨
+Ce qui fait progresser, c'est de revenir. Des séances tenues, semaine après semaine, quand tes muscles sont prêts.
+Chaque lundi, Oxa te dit si ton objectif est tenu, et quels records sont tombés.
 
-Et toi, combien ? Dis-le en commentaire 👇
-#muscu #musculation #hypertrophie #programmemuscu #gym
+Ton objectif, c'est combien de séances par semaine ? 👇
+#muscu #musculation #regularite #motivation #gym
 ```
 **YouTube Shorts**
-Titre : `Combien de séries pour les pecs par semaine ? #shorts`
-Description : `8 en débutant, 12 en régulier, 16 en avancé. Ton bilan chaque lundi. 👉 https://oxafit.app/?src=youtube #muscu #musculation`
+Titre : `Le vrai secret pour progresser à la salle #shorts`
+Description : `La régularité bat l'intensité : tes semaines tenues, tes muscles prêts, tes records. 👉 https://oxafit.app/?src=youtube #muscu #musculation`
 
-Commentaire à épingler : `Les repères : 8 séries par muscle et par semaine en débutant, 12 en régulier, 16 en avancé.`
+Commentaire à épingler : `2 ou 3 séances tenues chaque semaine valent mieux qu'une semaine à fond. Tu vises combien ? 👇`
 
-## Carrousel 1 · `carrousel-1-series/1..6.png` · « Combien de séries par muscle ? »
+## Carrousel 1 · `carrousel-1-progresser/1..6.png` · « Ce qui fait vraiment progresser à la salle »
 
 Pilier : démythifier.
 
 ```
-Combien de séries par muscle chaque semaine ? 📊
+Ce qui fait vraiment progresser à la salle (et ce qui compte moins qu'on croit) 💡
 
-Débutant : 8 · Régulier : 12 · Avancé : 16
-Des séries difficiles, par muscle et par semaine. Coupe-les en 2 séances, et réduis si tes charges baissent.
+1. Savoir quoi faire en arrivant : tes exercices et tes charges, déjà prêts
+2. Revenir chaque semaine : 2 ou 3 séances, et les tenir
+3. Laisser récupérer : environ 2 jours par muscle, et une assiette prévue d'avance
+4. Ce qui compte moins : le programme parfait, l'échec à chaque série
 
 💾 Enregistre-le pour ta prochaine séance
-Et dis-moi en commentaire : tu en fais combien pour tes pecs ?
+Et dis-moi en commentaire : c'est quoi, ton point faible ?
 
-#musculation #muscu #programmemuscu #conseilmuscu #hypertrophie #gym #salledesport
+#musculation #muscu #conseilmuscu #debutantmuscu #gym
 ```
 
 ## Carrousel 2 · `carrousel-2-surcharge/1..6.png` · « Quand ajouter du poids ? »

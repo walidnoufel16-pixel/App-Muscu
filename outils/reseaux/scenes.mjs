@@ -53,14 +53,15 @@ const V = {
       s: "Chaque exercice a sa règle. Et sa raison.", surligne: [{ x: 26, y: 665, w: 330, h: 44, at: 0.6 }] },
     { fin: 1, d: 2.6, t: "Chaque charge,<br><em>avec sa raison.</em>" },
   ],
-  semaine: [
-    { img: "bilan", h: 169, bas: 520, d: 2.6, t: "Tu fais <em>assez de séries</em> pour tes pecs ?",
-      surligne: [{ x: 20, y: 307, w: 345, h: 30, at: 0.9 }] },
-    { img: "bilan", h: 169, bas: 520, d: 3.4, t: "Ici, <em>6 séries.</em><br>La cible : 12.",
-      s: "Par muscle et par semaine (niveau régulier)", surligne: [{ x: 14, y: 266, w: 214, h: 28, at: 0.5, jusqua: 1.6 }, { x: 20, y: 307, w: 345, h: 30, at: 1.7 }] },
-    { img: "progres", h: 105, bas: 312, d: 3, t: "Chaque lundi :<br><em>bilan et records.</em>",
-      surligne: [{ x: 14, y: 240, w: 362, h: 30, at: 0.8 }] },
-    { fin: 1, d: 3, t: "Et toi, combien de séries pour tes pecs ?", s: "Dis-le en commentaire" },
+  regularite: [
+    { img: "accueil", h: 105, bas: 325, d: 2.6, t: "Une semaine à fond.<br><em>Puis plus rien ?</em>" },
+    { img: "accueil", h: 105, bas: 325, d: 2.6, suite: 1, t: "Ce qui paie :<br><em>revenir.</em>",
+      surligne: [{ x: 26, y: 120, w: 160, h: 28, at: 0.4 }] },
+    { img: "accueil", h: 105, bas: 325, d: 2.8, suite: 1, t: "Muscles prêts ?<br><em>Tu y retournes.</em>",
+      surligne: [{ x: 18, y: 245, w: 355, h: 72, at: 0.4 }] },
+    { img: "progres", h: 105, bas: 312, d: 3.2, t: "Lundi : objectif tenu.<br><em>Et 14 records.</em>",
+      surligne: [{ x: 30, y: 152, w: 330, h: 70, at: 0.5, jusqua: 1.6 }, { x: 28, y: 243, w: 276, h: 24, at: 1.7 }] },
+    { fin: 1, d: 2.8, t: "La régularité<br><em>bat l'intensité.</em>", s: "Ton objectif par semaine ?" },
   ],
 };
 

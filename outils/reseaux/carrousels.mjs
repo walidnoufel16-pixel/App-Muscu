@@ -19,13 +19,13 @@ const nb = (t = "") => t.replace(/ ([?!:;%»])/g, "&nbsp;$1").replace(/« /g, "�
 const ecran = (f, h, bas, cl = "") => { const e = 860 / 390; return `<div class="ecran ${cl}" style="height:${(bas - h) * e}px"><img src="data:image/png;base64,${readFileSync(`${S}/brut/${f}.png`).toString("base64")}" style="margin-top:${-h * e}px"></div>`; };
 // Les carrousels de la semaine 1 (compte démo « Alex »). Réécris le contenu pour chaque nouveau carrousel.
 const C = {
-  "carrousel-1-series": [
-    { couv: 1, t: "Combien de séries par muscle <em>chaque semaine</em> ?", s: "La réponse dépend de ton niveau.", img: ["bilan", 262, 524] },
-    { n: "01", t: "Compte seulement les séries <em>difficiles</em>", l: ["Une série qui compte s'arrête à 1 à 3 répétitions de l'échec.", "L'échauffement ne compte pas.", "Un exercice compte pour son muscle principal, et pour moitié pour les muscles qui aident."] },
-    { n: "02", t: "Les repères <em>par niveau</em>", tab: [["Débutant", "8 séries"], ["Régulier", "12 séries"], ["Avancé", "16 séries"]], s2: "par muscle et par semaine : les cibles d'Oxa." },
-    { n: "03", t: "Coupe-les en <em>2 séances</em>", l: ["12 séries de pecs ? Plutôt 2 × 6 que 12 d'un coup.", "Tes dernières séries restent de qualité.", "Laisse 2 jours entre deux séances du même muscle, 3 pour les jambes après une grosse séance."] },
-    { n: "04", t: "Plus n'est pas <em>toujours</em> mieux", l: ["Tes charges baissent d'une semaine à l'autre ?", "Tu es courbaturé avant chaque séance ?", "Retire 2 à 4 séries par muscle pendant une semaine, puis reprends."] },
-    { fin: 1, t: "Oxa compte <em>pour toi</em>", s: "Tes séries par muscle, face à ta cible, chaque lundi.", img: ["bilan", 178, 520] },
+  "carrousel-1-progresser": [
+    { couv: 1, t: "Ce qui fait <em>vraiment</em> progresser à la salle", s: "Et ce qui compte moins qu'on croit.", img: ["accueil", 105, 325] },
+    { n: "01", t: "Savoir quoi faire <em>en arrivant</em>", l: ["Tu arrives avec tes exercices et tes charges, déjà prêts.", "Fini les 20 minutes à errer entre les machines.", "Tu notes chaque série : la prochaine fois, tu sais quoi battre."] },
+    { n: "02", t: "Revenir <em>chaque semaine</em>", l: ["Vise 2 ou 3 séances par semaine,&nbsp;et&nbsp;tiens-les.", "Mieux vaut 6 semaines tenues qu'une semaine à fond, puis plus rien.", "Une semaine ratée ? Tu reprends lundi, sans rattraper."] },
+    { n: "03", t: "Laisser <em>récupérer</em>", l: ["Un muscle travaillé : environ 2&nbsp;jours&nbsp;de&nbsp;repos.", "Jambes et dos, après une grosse séance : plutôt 3.", "Et une assiette prévue d'avance, avec des protéines à chaque repas."] },
+    { n: "04", t: "Ce qui compte <em>moins</em> qu'on&nbsp;croit", l: ["Le programme parfait : le meilleur, c'est celui que tu tiens.", "Finir chaque série à l'échec.", "Compter tes séries au détail près."] },
+    { fin: 1, t: "Oxa te dit quoi faire.<br><em>Toi, tu reviens.</em>", s: "Ta séance, tes muscles prêts, ta semaine tenue.", img: ["progres", 105, 312] },
   ],
   "carrousel-2-surcharge": [
     { couv: 1, t: "Quand ajouter du poids <em>à la salle</em> ?", s: "La règle de la double progression.", img: ["s0-dc-ouvert", 222, 395] },

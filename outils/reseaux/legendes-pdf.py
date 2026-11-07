@@ -18,27 +18,29 @@ Tu montes en charge comment, toi ? 👇
 "Quand ajouter du poids à la salle ? #shorts",
 "La double progression, expliquée sous chaque charge. 👉 https://oxafit.app/?src=youtube #muscu #surchargeprogressive",
 "La règle : une répétition de plus à chaque séance, et au haut de la fourchette, le plus petit palier. 💾")
-V3=("Vidéo 3 · Tu fais assez de séries pour tes pecs ?","video-3-bilan-semaine.mp4",
-"""Tu fais assez de séries pour tes pecs ?
-Une séance pecs par semaine avec 2 exercices de 3 séries : 6 séries. La cible d'un pratiquant régulier : 12, par muscle et par semaine.
-Chaque lundi, Oxa te montre où tu en es.
+V3=("Vidéo 3 · La régularité bat l'intensité","video-3-regularite.mp4",
+"""Une semaine à fond… puis plus rien ? 😮‍💨
+Ce qui fait progresser, c'est de revenir. Des séances tenues, semaine après semaine, quand tes muscles sont prêts.
+Chaque lundi, Oxa te dit si ton objectif est tenu, et quels records sont tombés.
 
-Et toi, combien ? Dis-le en commentaire 👇
-#muscu #musculation #hypertrophie #programmemuscu #gym""",
-"Combien de séries pour les pecs par semaine ? #shorts",
-"8 en débutant, 12 en régulier, 16 en avancé. Ton bilan chaque lundi. 👉 https://oxafit.app/?src=youtube #muscu #musculation",
-"Les repères : 8 séries par muscle et par semaine en débutant, 12 en régulier, 16 en avancé.")
-C1=("Carrousel 1 · Combien de séries par muscle ?","dossier carrousel-1-series, images 1 à 6",
-"""Combien de séries par muscle chaque semaine ? 📊
+Ton objectif, c'est combien de séances par semaine ? 👇
+#muscu #musculation #regularite #motivation #gym""",
+"Le vrai secret pour progresser à la salle #shorts",
+"La régularité bat l'intensité : tes semaines tenues, tes muscles prêts, tes records. 👉 https://oxafit.app/?src=youtube #muscu #musculation",
+"2 ou 3 séances tenues chaque semaine valent mieux qu'une semaine à fond. Tu vises combien ? 👇")
+C1=("Carrousel 1 · Ce qui fait vraiment progresser à la salle","dossier carrousel-1-progresser, images 1 à 6",
+"""Ce qui fait vraiment progresser à la salle (et ce qui compte moins qu'on croit) 💡
 
-Débutant : 8 · Régulier : 12 · Avancé : 16
-Des séries difficiles, par muscle et par semaine. Coupe-les en 2 séances, et réduis si tes charges baissent.
+1. Savoir quoi faire en arrivant : tes exercices et tes charges, déjà prêts
+2. Revenir chaque semaine : 2 ou 3 séances, et les tenir
+3. Laisser récupérer : environ 2 jours par muscle, et une assiette prévue d'avance
+4. Ce qui compte moins : le programme parfait, l'échec à chaque série
 
 💾 Enregistre-le pour ta prochaine séance
-Et dis-moi en commentaire : tu en fais combien pour tes pecs ?
+Et dis-moi en commentaire : c'est quoi, ton point faible ?
 
-#musculation #muscu #programmemuscu #conseilmuscu #hypertrophie #gym #salledesport""",
-"#musculation #muscu #programmemuscu #conseilmuscu #gym")
+#musculation #muscu #conseilmuscu #debutantmuscu #gym""",
+"#musculation #muscu #conseilmuscu #debutantmuscu #gym")
 C2=("Carrousel 2 · Quand ajouter du poids ?","dossier carrousel-2-surcharge, images 1 à 6",
 """Quand ajouter du poids à la salle ? La double progression 🏋️
 
@@ -80,13 +82,13 @@ ul{{margin:4px 0 0 0;padding-left:18px}} .note{{background:#ecfdf5;border-radius
 <p class=sous>Version à jour : lancement le vendredi 6 novembre (remplace l'ancienne version qui commençait le lundi). TikTok @oxafit.app · Instagram @oxafit.app · YouTube @oxafit</p>
 <table><tr><th>Jour</th><th>Quoi</th><th>Où</th><th>Heure</th></tr>
 <tr><td>Ven 6 ✓</td><td>Vidéo 1 · Ta séance est prête</td><td>TikTok, Reels, Shorts</td><td>18 h 30</td></tr>
-<tr><td>Sam 7</td><td>Carrousel 1 · Combien de séries</td><td>Instagram, TikTok photo</td><td>11 h</td></tr>
+<tr><td>Sam 7</td><td>Carrousel 1 · Ce qui fait vraiment progresser</td><td>Instagram, TikTok photo</td><td>11 h</td></tr>
 <tr><td>Dim 8</td><td>Vidéo 2 · Pourquoi 62,5 kg</td><td>TikTok, Reels, Shorts</td><td>18 h 30</td></tr>
 <tr><td>Lun 9</td><td>Carrousel 2 · Quand ajouter du poids</td><td>Instagram, TikTok photo</td><td>12 h 30</td></tr>
-<tr><td>Mar 10</td><td>Vidéo 3 · Assez de séries ?</td><td>TikTok, Reels, Shorts</td><td>18 h 30</td></tr></table>
+<tr><td>Mar 10</td><td>Vidéo 3 · La régularité bat l'intensité</td><td>TikTok, Reels, Shorts</td><td>18 h 30</td></tr></table>
 <div class=note><b>À chaque publication</b><ul>
 <li><b>Vidéos</b> : elles sont muettes, ajoute un son tendance sans paroles (volume du son à 30-50 %). Garde la première image comme miniature.</li>
-<li><b>Carrousels</b> : utilise les nouvelles couvertures (image 1 redressée, envoyée le 7 novembre).</li>
+<li><b>Carrousels</b> : le carrousel 1 est nouveau (dossier carrousel-1-progresser) ; la vidéo 3 aussi (video-3-regularite.mp4).</li>
 <li><b>Lien en bio</b> : oxafit.app/?src=tiktok, /?src=instagram, /?src=youtube.</li>
 <li><b>Première heure</b> : réponds à tous les commentaires. Pack 2 à partir du mercredi 11.</li></ul></div>
 {corps}
