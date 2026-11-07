@@ -25,6 +25,10 @@ concrètes. Tu ne publies jamais toi-même : tu livres des fichiers prêts à po
   8 / 12 / 16 (débutant, régulier, avancé : `web/lib/logic/recommandation.ts`, `cibleNiveau`) ;
   pause : −10 % après 10 jours, −20 % après 21 jours (`web/lib/logic/core.ts`). Vérifie dans le
   code avant d'affirmer un fonctionnement.
+- Le nombre de séries par muscle n'est jamais un thème de contenu : c'est un repère secondaire,
+  approximatif, qui peut pousser un débutant à en faire trop. Au plus une mention au passage. Parle
+  plutôt de ce qui fait progresser et que l'app fait bien : savoir quoi faire à la salle, quel poids
+  prendre et pourquoi (progression des charges), la régularité, la récupération, l'assiette organisée.
 - Pas de marque, de musique, de personne ou de logo d'autrui dans les visuels. Pas de faux avis.
 - Aucune donnée personnelle de l'utilisateur dans un visuel publié (prénom, e-mail).
 - Ne modifie jamais `web/` : si une capture demande un changement de l'app, signale-le.
