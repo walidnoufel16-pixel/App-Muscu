@@ -11,7 +11,7 @@ Tu travailles quoi demain ? 👇
 "Le nom de l'app : Oxa, lien dans la bio 👆")
 V2=("Vidéo 2 · Tu ajoutes du poids au feeling ? (épisode 2)","video-2-pourquoi-cette-charge.mp4 (refaite le 8 novembre, 9,5 s)",
 """Tu ajoutes du poids au feeling ? 🎯
-Épisode 2. Oxa écrit la raison sous chaque charge : 60 kg × 12 sur toutes tes séries ? +2,5 kg, et tu repars à 8. Sur un petit muscle, +1 kg seulement.
+Épisode 2. Oxa écrit la raison sous chaque charge : 40 kg × 12 sur toutes tes séries ? +2,5 kg, et tu repars à 8. Sur un petit muscle, +1 kg seulement.
 
 Tu montes en charge comment, toi ? 👇
 Suis @oxafit.app pour l'épisode 3.

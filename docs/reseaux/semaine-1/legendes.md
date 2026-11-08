@@ -47,12 +47,12 @@ Commentaire à épingler : `Le nom de l'app : Oxa, lien dans la bio 👆`
 
 ## Vidéo 2 · `video-2-pourquoi-cette-charge.mp4` · « Tu ajoutes du poids au feeling ? » (épisode 2)
 
-Pilier : le coach explique. 9,5 s. À l'écran : 0 à 1,8 s, « Épisode 2 · Tu ajoutes du poids au feeling ? » en plein écran sombre ; puis la réponse, le « Pourquoi 62,5 kg » de l'app (60 kg × 12 sur toutes les séries : +2,5 kg et retour à 8 répétitions) ; puis les élévations latérales (+1 kg seulement) ; fin « Épisode 2 · Suis Oxa pour l'épisode 3 ».
+Pilier : le coach explique. 9,5 s. À l'écran : 0 à 1,8 s, « Épisode 2 · Tu ajoutes du poids au feeling ? » en plein écran sombre ; puis la réponse, le « Pourquoi 42,5 kg » de l'app (40 kg × 12 sur toutes les séries : +2,5 kg et retour à 8 répétitions) ; puis les élévations latérales (+1 kg seulement) ; fin « Épisode 2 · Suis Oxa pour l'épisode 3 ».
 
 **TikTok / Reels**
 ```
 Tu ajoutes du poids au feeling ? 🎯
-Épisode 2. Oxa écrit la raison sous chaque charge : 60 kg × 12 sur toutes tes séries ? +2,5 kg, et tu repars à 8. Sur un petit muscle, +1 kg seulement.
+Épisode 2. Oxa écrit la raison sous chaque charge : 40 kg × 12 sur toutes tes séries ? +2,5 kg, et tu repars à 8. Sur un petit muscle, +1 kg seulement.
 
 Tu montes en charge comment, toi ? 👇
 Suis @oxafit.app pour l'épisode 3.

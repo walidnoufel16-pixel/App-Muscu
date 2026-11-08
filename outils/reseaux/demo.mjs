@@ -13,7 +13,7 @@ const lundi = (() => { const x = new Date(auj + "T12:00"); x.setDate(x.getDate()
 
 /* [id, séries, répétitions visées r, charge de départ, palier, repos] : fourchette r à r+2, comme l'app */
 const SEANCES = [
-  { nom: "Pecs · Épaules · Triceps", j: 0, min: 55, ex: [["dc", 3, 10, 57.5, 2.5, "2 min"], ["dhi", 3, 10, 18, 2, "90 s"], ["dm", 3, 10, 32.5, 2.5, "2 min"], ["el", 3, 13, 8, 1, "60 s"], ["tricor", 3, 10, 20, 2.5, "60 s"]] },
+  { nom: "Pecs · Épaules · Triceps", j: 0, min: 55, ex: [["dc", 3, 10, 37.5, 2.5, "2 min"], ["dhi", 3, 10, 18, 2, "90 s"], ["dm", 3, 10, 32.5, 2.5, "2 min"], ["el", 3, 13, 8, 1, "60 s"], ["tricor", 3, 10, 20, 2.5, "60 s"]] },
   { nom: "Dos · Biceps", j: 2, min: 50, ex: [["tp", 3, 10, 50, 2.5, "90 s"], ["rw", 3, 10, 45, 2.5, "2 min"], ["fp", 3, 13, 15, 2.5, "60 s"], ["curlb", 3, 10, 22.5, 2.5, "90 s"]] },
   { nom: "Jambes", j: 4, min: 60, ex: [["sq", 3, 8, 75, 2.5, "3 min"], ["rm", 3, 10, 65, 2.5, "2 min"], ["lext", 3, 10, 35, 2.5, "60 s"], ["lc", 3, 10, 27.5, 2.5, "60 s"], ["mol", 3, 13, 55, 5, "60 s"]] },
 ];

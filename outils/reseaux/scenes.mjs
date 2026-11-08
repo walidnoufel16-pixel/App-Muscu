@@ -57,8 +57,8 @@ const V = {
   ],
   pourquoi: [
     { accroche: 1, d: 1.8, k: "Épisode 2", t: "Tu ajoutes<br>du poids<br><em>au feeling ?</em>" },
-    { img: "s0-dc-ouvert", h: 205, bas: 650, d: 3.3, t: "Oxa te dit<br><em>pourquoi 62,5 kg.</em>",
-      s: "60 kg × 12 sur toutes tes séries : +2,5 kg, et tu repars à 8.", surligne: [{ x: 24, y: 349, w: 330, h: 44, at: 0.6 }] },
+    { img: "s0-dc-ouvert", h: 205, bas: 650, d: 3.3, t: "Oxa te dit<br><em>pourquoi 42,5 kg.</em>",
+      s: "40 kg × 12 sur toutes tes séries : +2,5 kg, et tu repars à 8.", surligne: [{ x: 24, y: 349, w: 330, h: 44, at: 0.6 }] },
     { img: "s0-el-ouvert", h: 515, bas: 724, d: 2.0, t: "Petit muscle :<br><em>+1 kg seulement.</em>",
       surligne: [{ x: 26, y: 665, w: 330, h: 44, at: 0.35 }] },
     { fin: 1, d: 2.4, ep: "Épisode 2", t: "Chaque charge,<br><em>avec sa raison.</em>", appel: "Suis Oxa pour l'épisode 3" },
