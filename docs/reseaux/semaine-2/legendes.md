@@ -3,7 +3,7 @@
 Comptes : TikTok @oxafit.app · Instagram @oxafit.app · YouTube @oxafit
 Lien en bio : `https://oxafit.app/?src=tiktok` (TikTok), `https://oxafit.app/?src=instagram` (Instagram), `https://oxafit.app/?src=youtube` (YouTube, dans la description de chaque Short).
 
-Thème de la semaine : la semaine se prépare. Toutes les captures viennent du compte de démonstration « Alex » (6 semaines de séances fictives, aucune donnée réelle). Les trois vidéos (15,5 s, 14,7 s et 15,5 s) s'ouvrent sur une phrase plein écran sans écran d'app, avec du mouvement dès la première demi-seconde, et finissent sur l'épisode suivant : samedi (vidéo 4), mardi (vidéo 5), mercredi (vidéo 6, le pack 3 commence mercredi 18 par l'épisode 7). Toutes en 1080×1920, avec le texte hors des zones couvertes par les boutons de TikTok, Reels et Shorts.
+Thème de la semaine : la semaine se prépare. Toutes les captures viennent du compte de démonstration « Alex » (6 semaines de séances fictives, aucune donnée réelle). Les trois vidéos (15,5 s, 15,2 s et 15,5 s) s'ouvrent sur une phrase plein écran sans écran d'app, avec du mouvement dès la première demi-seconde, et finissent sur l'épisode suivant : samedi (vidéo 4), mardi (vidéo 5), mercredi (vidéo 6, le pack 3 commence mercredi 18 par l'épisode 7). Toutes en 1080×1920, avec le texte hors des zones couvertes par les boutons de TikTok, Reels et Shorts.
 
 ## Calendrier (du mercredi 11 au mardi 17 novembre)
 
@@ -70,13 +70,13 @@ Ta source de protéines préférée, c'est quoi ? 👇
 
 ## Vidéo 5 · `video-5-recuperation.mp4` · « Muscles encore fatigués ? » (épisode 5)
 
-Pilier : récupération. 14,7 s (refaite le 8 novembre : silhouette verte et orange, feuille sans voile). À l'écran : 0 à 2,5 s, « Épisode 5 · Muscles encore fatigués ? » en plein écran sombre ; puis la feuille Récupération d'Alex un mardi, après une séance de dos et une sortie de 10 km difficile la veille : la silhouette en deux couleurs (de face, pecs, abdos, épaules et bras en turquoise, jambes en orange ; de dos, dos et jambes en orange), l'encadré sur quadriceps, ischios et mollets « demain » (« La course compte : jambes au repos ») ; puis le reste de la liste en turquoise, l'encadré sur Pecs « prêt » puis sur le bouton « Séance avec les muscles prêts » (« Le reste est prêt : vas-y ») ; fin « Récupère. Suis Oxa · prochain épisode mardi ».
+Pilier : récupération. 15,2 s (refaite le 8 novembre : silhouette verte et orange toujours à l'écran, feuille sans voile). À l'écran : 0 à 2,5 s, « Épisode 5 · Muscles encore fatigués ? » en plein écran sombre ; puis la feuille Récupération d'Alex un mardi, après une sortie de 10 km difficile la veille, silhouette de face et de dos visible tout du long (le haut du corps et le dos en vert, les jambes en orange) : « Orange : au repos. Vert : prêt. », un encadré orange sur quadriceps, ischios et mollets « demain », puis un encadré vert sur pecs et dos « prêt » ; puis « La course compte : jambes au repos. », l'encadré orange seul ; fin « Récupère. Suis Oxa · prochain épisode mardi ».
 
 **TikTok / Reels**
 ```
 Muscles encore fatigués ? Ton app devrait le savoir. 🟠
-Épisode 5. La feuille Récupération d'Oxa suit tes séances ET tes sorties de course : un 10 km un peu dur, et tes jambes passent en orange.
-Ce qui est prêt reste en turquoise, et Oxa te compose une séance avec ces muscles-là. Elle suit aussi tes trapèzes, tes lombaires, tes avant-bras et tes adducteurs.
+Épisode 5. La feuille Récupération d'Oxa compte tes sorties de course : un 10 km un peu dur, et tes jambes passent en orange. Pecs, dos, bras : en vert, prêts.
+Et Oxa te compose une séance avec les muscles prêts. Elle suit aussi tes trapèzes, tes lombaires, tes avant-bras et tes adducteurs.
 
 Toi, tu sens tes jambes combien de temps après une sortie ? 👇
 Suis @oxafit.app · prochain épisode mardi.
@@ -86,7 +86,7 @@ Suis @oxafit.app · prochain épisode mardi.
 Titre : `Muscles encore fatigués ? Ton app devrait le savoir #shorts`
 Description : `Épisode 5 : la récupération muscle par muscle, séances et course comprises. 👉 https://oxafit.app/?src=youtube #muscu #recuperation`
 
-Commentaire à épingler : `Orange = en récupération, turquoise = prêt. Et le bouton « Séance avec les muscles prêts » te compose la suite. Épisode 6 mardi 💾`
+Commentaire à épingler : `Orange = au repos, vert = prêt. Et le bouton « Séance avec les muscles prêts » te compose la suite. Épisode 6 mardi 💾`
 
 ## Carrousel 4 · `carrousel-4-courbatures/1..6.png` · « Pas de courbatures = séance ratée ? »
 
