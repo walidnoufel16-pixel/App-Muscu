@@ -26,8 +26,9 @@ import { BibliothequeMuscles } from "@/components/repere/bibliotheque-muscles";
 import { dire } from "@/components/repere/confirmer";
 import { DUREES, FULLBODY, MUSC, OBJS, PAT2MUSC } from "@/lib/data/referentiels";
 import { avecSalle, selDeclare } from "@/lib/logic/core";
-import { construireSeance, hasardDe, musclesPrioritaires, nomSeance } from "@/lib/logic/assistant";
+import { chargeLombaires, construireSeance, hasardDe, musclesPrioritaires, nomSeance } from "@/lib/logic/assistant";
 import { zonesActives, zonesDe } from "@/lib/logic/forme";
+import { effortsEndurance, etatGroupes } from "@/lib/logic/recommandation";
 import { useRepere } from "@/lib/store";
 import { ARRIERE, AVANT, remplacement, revenirA } from "@/lib/nav";
 import { Retour } from "@/components/repere/retour";
@@ -112,8 +113,10 @@ function Assistant() {
   const creer = (commencer = false) => {
     if (obj == null) return;
     const zones = zonesActives(A);
-    const H = useRepere.getState().etat.HIST || [], habitudes = new Set(H.slice(-12).flatMap((l) => Object.keys(l.ex)));
-    const ex = construireSeance(m, d, obj, sel, hasardDe(`${auj}|${m.join(",")}|${d}|${obj}|${sel.join(",")}`), (o) => zonesDe(o, zones).length > 0, A.regularite, { prio: musclesPrioritaires(prioNoms(A)), habitudes, dense: d === 30 });
+    const etat = useRepere.getState().etat, H = etat.HIST || [], habitudes = new Set(H.slice(-12).flatMap((l) => Object.keys(l.ex)));
+    /* lombaires en récupération (muscu, ce jour-là) : pas de soulevé de terre lourd */
+    const lombaires = !etatGroupes(H, pour ?? auj, effortsEndurance(etat.SORTIES, etat.CARDIO)).lom.recupere;
+    const ex = construireSeance(m, d, obj, sel, hasardDe(`${auj}|${m.join(",")}|${d}|${obj}|${sel.join(",")}`), (o) => zonesDe(o, zones).length > 0 || (lombaires && chargeLombaires(o)), A.regularite, { prio: musclesPrioritaires(prioNoms(A)), habitudes, dense: d === 30 });
     if (!ex.length) { dire(tr("Pas d'exercice disponible"), tr("Aucun exercice ne correspond à ces muscles avec le matériel coché. Ajoute du matériel ou choisis d'autres muscles.")); return; }
     /* combinée : le bloc cardio arrive à la fin, sans échauffement ; il se déplace ensuite dans le composeur */
     const blocs = type === "mixte" ? [{ ...nouveauBloc(ex.length, choix.f, choix.m, choix.n), r: { ...choix.r, echauf: 0 } }] : undefined;

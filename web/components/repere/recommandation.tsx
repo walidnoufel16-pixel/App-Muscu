@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { ArrowRightIcon, CheckIcon } from "@phosphor-icons/react";
 import { dateDe, decaler, jourDe } from "@/lib/logic/historique";
-import { lister, nomGroupe, phrase, nomZone, recommander, ZONES_ECARTABLES, type ZoneEcartable } from "@/lib/logic/recommandation";
+import { lister, nomGroupe, phrase, nomZone, effortsEndurance, recommander, ZONES_ECARTABLES, type ZoneEcartable } from "@/lib/logic/recommandation";
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
@@ -31,7 +31,8 @@ export function Recommandation({ onAppliquer, className }: { onAppliquer?: (m: s
   const [auj] = useState(() => jourDe(Date.now()));
   const [i, setI] = useState(0);
   const [reglage, setReglage] = useState(false);
-  const r = useMemo(() => recommander(H || [], auj, ecartes || [], niveau), [H, auj, ecartes, niveau]);
+  const S = useRepere((s) => s.etat.SORTIES), C = useRepere((s) => s.etat.CARDIO);
+  const r = useMemo(() => recommander(H || [], auj, ecartes || [], niveau, effortsEndurance(S, C)), [H, auj, ecartes, niveau, S, C]);
   if (!r) return null;
 
   const basculer = (z: ZoneEcartable) => {

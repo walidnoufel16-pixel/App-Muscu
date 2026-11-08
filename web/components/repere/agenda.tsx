@@ -22,7 +22,7 @@ import { decaler, jourDe } from "@/lib/logic/historique";
 import { dureeTotale } from "@/lib/logic/combinee";
 import { musclesDe } from "@/lib/logic/core";
 import { genererPlan, semaineDe, vdotActuel } from "@/lib/logic/course";
-import { musclesRecommandes, recoDuJour } from "@/lib/logic/recommandation";
+import { musclesRecommandes, effortsEndurance, recoDuJour } from "@/lib/logic/recommandation";
 import { activerRappels, etatRappels } from "@/lib/rappels";
 import { useRepere } from "@/lib/store";
 import { useBrouillon } from "@/lib/brouillon";
@@ -58,7 +58,7 @@ export function useLancer() {
     if (q.t === "course") { router.push(`/entrainement/course?s=${q.cle}` as Route, AVANT); return; }
     if (q.t === "plan") { muter((x) => { x.day = q.day; }); router.push("/entrainement/seance", AVANT); return; }
     /* recommandation d'Oxa : l'assistant s'ouvre avec les muscles conseillés ce jour-là */
-    const m = musclesRecommandes(recoDuJour(E.HIST || [], jourDe(Date.now()), E.A.recoSans || [], E.A.regularite));
+    const m = musclesRecommandes(recoDuJour(E.HIST || [], jourDe(Date.now()), E.A.recoSans || [], E.A.regularite, effortsEndurance(E.SORTIES, E.CARDIO)));
     router.push((m ? `/entrainement/assistant?m=${m.join(",")}` : "/entrainement/assistant?type=cardio") as Route, AVANT);
   };
 }
