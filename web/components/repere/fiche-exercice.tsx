@@ -12,7 +12,7 @@ import { useRepere } from "@/lib/store";
 import { useFiche } from "@/lib/fiches";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { imgEx, imgExGrand, sourceEx } from "@/lib/medias";
+import { imgEx, imgExGrand } from "@/lib/medias";
 import { etapesDe } from "@/lib/data/street";
 import { variantesDe } from "@/lib/logic/variantes";
 import { musclesDe } from "@/lib/logic/core";
@@ -105,7 +105,6 @@ function Contenu({ fiche }: { fiche: FicheOuverte }) {
       )}
       <div className="pt-2">
         <Duo key={id} id={id} />
-        {EX[id]?.img && <p className="mt-1.5 text-center text-[10.5px] text-muted-foreground">{sourceEx(id).mention}</p>}
       </div>
       <div className="mt-4 flex items-end justify-between gap-3">
         <div className="min-w-0">

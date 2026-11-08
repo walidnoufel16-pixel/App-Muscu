@@ -176,8 +176,8 @@ export const CREDITS: { quoi: string; nom: string; licence: string; lien: string
     return { quoi: tr("Photo recadrée · {n}", { n: p.n }), nom: ph.auteur, licence: ph.licence, lien: ph.lien };
   }),
   { quoi: tr("Photos des machines (Ma salle)"), nom: tr("Core Health & Fitness · Throwdown et Impulse Fitness"), licence: tr("Avec l'accord du fabricant"), lien: "https://www.corehandf.com" },
-  /* chaque photographe est nommé sous sa photo, dans la fiche de la recette */
-  { quoi: tr("Photos des recettes"), nom: tr("{n} photographes d'Unsplash, cités sous chaque photo", { n: new Set(Object.values(PHOTOS_RECETTES).map((ph) => ph.profil)).size }), licence: tr("Licence Unsplash"), lien: `https://unsplash.com/${UTM}` },
+  /* les sources ne sont plus sous les photos : chaque photographe des recettes est cité ici, avec un lien vers son profil */
+  ...[...new Map(Object.values(PHOTOS_RECETTES).map((ph) => [ph.profil, ph])).values()].map((ph) => ({ quoi: tr("Photos des recettes"), nom: tr("{n} sur Unsplash", { n: ph.auteur }), licence: tr("Licence Unsplash"), lien: `https://unsplash.com/@${ph.profil}${UTM}` })),
   { quoi: tr("Valeurs des produits (protéines)"), nom: tr("Open Food Facts, recherche par nom via wger"), licence: "ODbL", lien: "https://world.openfoodfacts.org" },
   { quoi: tr("Schéma du corps"), nom: tr("react-native-body-highlighter, Hicham Elabbassi"), licence: "MIT", lien: "https://github.com/HichamELBSI/react-native-body-highlighter" },
   { quoi: tr("Icônes"), nom: tr("Phosphor Icons"), licence: "MIT", lien: "https://phosphoricons.com" },

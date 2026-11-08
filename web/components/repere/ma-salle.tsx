@@ -6,7 +6,7 @@ import { BarbellIcon, BuildingsIcon, CaretRightIcon, CheckIcon, XIcon } from "@p
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { POSTES, ZONES_SALLE, type Poste } from "@/lib/data/salle";
-import { creditPoste, imgPoste, imgPosteGrand } from "@/lib/medias";
+import { imgPoste, imgPosteGrand } from "@/lib/medias";
 import { useRepere } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -29,12 +29,11 @@ function PhotoPoste({ p, className }: { p: Poste; className?: string }) {
   );
 }
 
-/* Une machine en grand, photo entière, avec son auteur. Se ferme avec la croix, en touchant le
+/* Une machine en grand, photo entière (son auteur est cité dans Crédits). Se ferme avec la croix, en touchant le
    fond ou avec Échap. Hors connexion sans la grande photo : la petite, sinon l'icône. */
 function Visionneuse({ p, onClose }: { p: Poste | null; onClose: () => void }) {
   const sources = p ? ([imgPosteGrand(p), imgPoste(p)].filter(Boolean) as string[]) : [];
   const [rate, setRate] = useState(0);
-  const credit = p ? creditPoste(p) : undefined;
   return (
     <Dialog open={!!p} onOpenChange={(o) => { if (!o) { setRate(0); onClose(); } }}>
       <DialogContent showCloseButton={false} onClick={() => { setRate(0); onClose(); }}
@@ -53,11 +52,6 @@ function Visionneuse({ p, onClose }: { p: Poste | null; onClose: () => void }) {
           <BarbellIcon className="size-24 text-white/50" weight="duotone" />
         )}
         <p className="text-center text-[18px] font-semibold">{p?.n}</p>
-        {credit && (
-          <a href={credit.lien} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-center text-[12.5px] text-white/65 underline underline-offset-2">
-            {credit.licence ? tr("Photo : {n} · {l}", { n: credit.nom, l: credit.licence }) : tr("Photo : {n}", { n: credit.nom })}
-          </a>
-        )}
       </DialogContent>
     </Dialog>
   );
