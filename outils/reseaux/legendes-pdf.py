@@ -9,7 +9,7 @@ Tu travailles quoi demain ? 👇
 "Ta séance de muscu prête en quelques touches #shorts",
 "Touche les muscles à travailler, Oxa compose ta séance avec tes charges. 👉 https://oxafit.app/?src=youtube #muscu #musculation",
 "Le nom de l'app : Oxa, lien dans la bio 👆")
-V2=("Vidéo 2 · Tu ajoutes du poids au feeling ? (épisode 2)","video-2-pourquoi-cette-charge.mp4 (refaite le 8 novembre, 22,8 s)",
+V2=("Vidéo 2 · Tu ajoutes du poids au feeling ? (épisode 2)","video-2-pourquoi-cette-charge.mp4 (refaite le 8 novembre, 15,5 s)",
 """Tu ajoutes du poids au feeling ? 🎯
 Épisode 2. Oxa écrit la raison sous chaque charge : 40 kg × 12 sur toutes tes séries ? +2,5 kg, et tu repars à 8. Sur un petit muscle, +1 kg seulement.
 
@@ -19,7 +19,7 @@ Suis @oxafit.app pour l'épisode 3.
 "Tu ajoutes du poids au feeling ? #shorts",
 "Épisode 2 : la double progression, expliquée sous chaque charge. 👉 https://oxafit.app/?src=youtube #muscu #surchargeprogressive",
 "La règle : une répétition de plus à chaque séance, et au haut de la fourchette, le plus petit palier. Épisode 3 mardi 💾")
-V3=("Vidéo 3 · Une semaine à fond, puis plus rien ? (épisode 3)","video-3-regularite.mp4 (refaite le 8 novembre, 22 s)",
+V3=("Vidéo 3 · Une semaine à fond, puis plus rien ? (épisode 3)","video-3-regularite.mp4 (refaite le 8 novembre, 15,5 s)",
 """Une semaine à fond… puis plus rien ? 😮‍💨
 Épisode 3. Ce qui fait progresser, c'est de revenir : des séances tenues, semaine après semaine, quand tes muscles sont prêts.
 Chaque lundi, Oxa te dit si ton objectif est tenu, et quels records sont tombés.
@@ -92,7 +92,7 @@ ul{{margin:4px 0 0 0;padding-left:18px}} .note{{background:#ecfdf5;border-radius
 <tr><td>Mar 10</td><td>Vidéo 3 · Une semaine à fond, puis plus rien ? (ép. 3)</td><td>TikTok, Reels, Shorts</td><td>18 h 30</td></tr></table>
 <div class=note><b>À chaque publication</b><ul>
 <li><b>Vidéos</b> : elles sont muettes, ajoute un son tendance sans paroles (volume du son à 30-50 %). Garde la première image comme miniature.</li>
-<li><b>Refaits le 8 novembre</b> : video-2-pourquoi-cette-charge.mp4, video-3-regularite.mp4 et la couverture du carrousel 2. Remplace les anciens fichiers avant de publier. Les vidéos font 22,8 et 22 s, s'ouvrent sur une phrase plein écran et finissent sur « Épisode 2 / 3 » : réponds aux commentaires en renvoyant vers l'épisode suivant.</li>
+<li><b>Refaits le 8 novembre</b> : video-2-pourquoi-cette-charge.mp4, video-3-regularite.mp4 et la couverture du carrousel 2. Remplace les anciens fichiers avant de publier. Les vidéos font 15,5 s chacune, s'ouvrent sur une phrase plein écran et finissent sur « Épisode 2 / 3 » : réponds aux commentaires en renvoyant vers l'épisode suivant.</li>
 <li><b>Lien en bio</b> : oxafit.app/?src=tiktok, /?src=instagram, /?src=youtube.</li>
 <li><b>Première heure</b> : réponds à tous les commentaires. Pack 2 à partir du mercredi 11.</li></ul></div>
 {corps}

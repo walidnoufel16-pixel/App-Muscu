@@ -16,7 +16,7 @@
               les vidéos se regardent sans le son.
      s        sous-titre facultatif (gris, plus petit)
      d        durée en s, facultative : sans d, elle est calculée (règle de lecture ci-dessous).
-     regarde  1 : la capture montre un chiffre à regarder sans cadre surligné (+ 1 s, comme surligne)
+     regarde  1 : la capture montre un chiffre à regarder sans cadre surligné (même durée qu'avec surligne)
      tap      [{ x, y, at }] doigt animé (px CSS de la capture, at en s depuis le début du plan)
      apres    { img, at } capture qui remplace img en fondu à at (l'état après le tap), même cadrage
      surligne [{ x, y, w, h, at, jusqua }] cadre turquoise + pénombre autour (px CSS de la capture)
@@ -32,12 +32,14 @@
      l'app arrive au plan suivant, comme réponse.
    Plan de fin : { fin: 1, t, s, ep, appel, d } (logo, ep = « Épisode 2 » facultatif, texte, appel =
      « Suis Oxa pour l'épisode 3 » facultatif, oxafit.app, « Lien dans la bio »).
-   Règle de lecture (8 novembre 2026, les plans passaient trop vite pour être lus) : un plan dure au moins
-   0,4 s par mot affiché + 1,5 s, jamais moins de 2,5 s, et + 1 s si la capture a un cadre surligné ou un
-   chiffre à regarder (surligne ou regarde). Mots comptés : k, t, s, ep, appel (pas la signature fixe du plan
+   Règle de lecture (8 novembre 2026, révisée le même jour : 22 s, c'était trop long) : seuls les plans avec
+   un encadré ralentissent. Plan avec surligne (ou regarde) : 0,4 s par mot affiché + 2,5 s, au moins 4,5 s,
+   pour lire le texte puis regarder le chiffre encadré (fais apparaître le cadre vers 1,2 s, après le texte).
+   Autres plans (accroche, texte seul, capture sans cadre, fin) : 0,3 s par mot + 1 s, au moins 2 s.
+   Mots comptés : k, t, s, ep, appel (pas la signature fixe du plan
    de fin : logo, oxafit.app, « Lien dans la bio ») ; un mot = un groupe avec au moins une lettre ou un
    chiffre (« × », « : », « ? » ne comptent pas). Sans d, c'est la durée du plan ; un d plus court est signalé.
-   Trop long ? Raccourcis le texte, n'accélère pas. Durée totale visée : 12 à 16 s, la lisibilité d'abord.
+   Trop long ? Raccourcis le texte, n'accélère pas. Durée totale visée : environ 12 à 15 s.
    Format qui retient : accroche plein écran, une série numérotée et un appel clair à la fin.
    Zones sûres en 1080 × 1920 : rien d'important à moins de 230 px du haut, 290 px du bas et 170 px de la
    droite (boutons j'aime / commentaire / partage). Le 1er plan est affiché dès la 1re image :
@@ -63,26 +65,27 @@ const V = {
   ],
   pourquoi: [
     { accroche: 1, k: "Épisode 2", t: "Tu ajoutes<br>du poids<br><em>au feeling ?</em>" },
-    { img: "s0-dc-ouvert", h: 205, bas: 650, t: "Oxa te dit<br><em>pourquoi 42,5 kg.</em>",
-      s: "40 kg × 12 partout : +2,5 kg.", surligne: [{ x: 24, y: 349, w: 330, h: 44, at: 0.6 }] },
+    { img: "s0-dc-ouvert", h: 205, bas: 650, t: "Oxa te dit<br><em>pourquoi.</em>",
+      surligne: [{ x: 24, y: 349, w: 330, h: 44, at: 1.2 }] },
     { img: "s0-el-ouvert", h: 515, bas: 724, t: "Petit muscle :<br><em>+1 kg seulement.</em>",
-      surligne: [{ x: 26, y: 665, w: 330, h: 44, at: 0.5 }] },
-    { fin: 1, ep: "Épisode 2", t: "Chaque charge,<br><em>avec sa raison.</em>", appel: "Suis Oxa pour l'épisode 3" },
+      surligne: [{ x: 26, y: 665, w: 330, h: 44, at: 1.2 }] },
+    { fin: 1, t: "Chaque charge<br><em>expliquée.</em>", appel: "Suis Oxa : épisode 3" },
   ],
   regularite: [
     { accroche: 1, k: "Épisode 3", t: "Une semaine<br>à fond.<br><em>Puis plus rien ?</em>" },
-    { img: "accueil", h: 105, bas: 325, t: "Ce qui paie :<br><em>revenir.</em>", s: "Muscles prêts ? Tu y retournes.",
-      surligne: [{ x: 26, y: 120, w: 160, h: 28, at: 0.6, jusqua: 2.8 }, { x: 18, y: 245, w: 355, h: 72, at: 3.0 }] },
-    { img: "progres", h: 105, bas: 312, t: "Lundi : objectif tenu.<br><em>Et 14 records.</em>",
-      surligne: [{ x: 28, y: 243, w: 276, h: 24, at: 0.6 }] },
-    { fin: 1, ep: "Épisode 3", t: "La régularité<br><em>bat l'intensité.</em>", appel: "Suis Oxa pour la suite" },
+    { img: "accueil", h: 105, bas: 325, t: "Ce qui paie :<br><em>revenir.</em>",
+      surligne: [{ x: 26, y: 120, w: 160, h: 28, at: 1.0, jusqua: 2.7 }, { x: 18, y: 245, w: 355, h: 72, at: 2.8 }] },
+    { img: "progres", h: 105, bas: 312, t: "Objectif tenu.<br><em>Et 14 records.</em>",
+      surligne: [{ x: 28, y: 243, w: 276, h: 24, at: 1.2 }] },
+    { fin: 1, t: "La régularité<br><em>bat l'intensité.</em>", appel: "Suis Oxa" },
   ],
 };
 
-/* Règle de lecture (voir en tête) : 0,4 s par mot affiché + 1,5 s, au moins 2,5 s, + 1 s pour une capture à regarder. */
+/* Règle de lecture (voir en tête) : encadré 0,4 s/mot + 2,5 s (au moins 4,5 s) ; autres plans 0,3 s/mot + 1 s (au moins 2 s). */
 const mots = (x) => [x.k, x.t, x.s, x.ep, x.appel].filter(Boolean).join(" ").replace(/<[^>]+>/g, " ")
   .split(/\s+/).filter((m) => /[\p{L}\p{N}]/u.test(m)).length;
-const duree = (x) => Math.round(10 * (Math.max(2.5, 0.4 * mots(x) + 1.5) + (x.img && (x.surligne?.length || x.regarde) ? 1 : 0))) / 10;
+const duree = (x) => Math.round(10 * (x.img && (x.surligne?.length || x.regarde)
+  ? Math.max(4.5, 0.4 * mots(x) + 2.5) : Math.max(2, 0.3 * mots(x) + 1))) / 10;
 for (const [v, plans] of Object.entries(V)) plans.forEach((x, i) => {
   const min = duree(x);
   if (x.d === undefined) x.d = min;
