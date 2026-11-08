@@ -29,25 +29,14 @@ describe("Ma salle", () => {
       }
     }
   });
-  it("photo Unsplash : affichée depuis leurs serveurs, photographe cité dans Crédits", () => {
-    const unsplash = POSTES.filter((p) => imgPoste(p)?.startsWith("https://images.unsplash.com/"));
-    expect(unsplash.length).toBe(6);
-    for (const p of unsplash) {
-      expect(imgPoste(p), p.id).toMatch(/^https:\/\/images\.unsplash\.com\//);
-      const c = CREDITS.find((x) => x.quoi.includes(p.n));
-      expect(c?.lien, p.id).toMatch(/^https:\/\/unsplash\.com\/@[\w-]+\?utm_source=repere&utm_medium=referral$/);
-      expect(c?.nom, p.id).toMatch(/ sur Unsplash$/);
-    }
-  });
-  it("photo libre : copiée dans public/img, auteur et licence dans Crédits", () => {
-    const libres = POSTES.filter((p) => imgPoste(p)?.startsWith("/img/poste-"));
-    expect(libres.map((p) => p.id).sort()).toEqual(["devinc", "latm", "mollass"]);
-    for (const p of libres) {
+  it("photos du fabricant : chaque poste sauf la reverse hyperextension, fichiers locaux, crédit Core Health & Fitness", () => {
+    const catalogue = POSTES.filter((p) => imgPoste(p)?.startsWith("/img/poste-"));
+    expect(POSTES.filter((p) => !catalogue.includes(p)).map((p) => p.id)).toEqual(["revhyp"]);
+    for (const p of catalogue) {
       expect(fs.existsSync(path.join(PUB, imgPoste(p)!)), p.id).toBe(true);
-      const c = CREDITS.find((x) => x.quoi.includes(p.n));
-      expect(c?.licence, p.id).toMatch(/^CC BY(-SA)? \d\.\d$/);
-      expect(c?.lien, p.id).toMatch(/^https:\/\//);
+      expect(creditPoste(p)?.licence, p.id).toBe("Avec l'accord du fabricant");
     }
+    expect(CREDITS.some((c) => c.nom.includes("Core Health & Fitness"))).toBe(true);
   });
   it("chaque machine avec photo l'a aussi en grand, avec son auteur ; les fichiers locaux existent", () => {
     for (const p of POSTES.filter((x) => imgPoste(x))) {
@@ -63,7 +52,7 @@ describe("Ma salle", () => {
   });
   it("hors connexion : la liste des photos à garder ne contient que des photos Unsplash, sans doublon", () => {
     const l = photosDistantes();
-    expect(l.length).toBe(63 * 2 + 6 * 2);
+    expect(l.length).toBe(63 * 2);
     expect(new Set(l).size).toBe(l.length);
     for (const u of l) expect(u).toMatch(/^https:\/\/images\.unsplash\.com\/photo-/);
   });
