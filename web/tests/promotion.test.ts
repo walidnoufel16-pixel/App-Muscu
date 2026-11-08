@@ -21,8 +21,8 @@ describe("blog public", () => {
     expect(l[0]).toContain(EX.susp.n);
     expect(l.at(-1)).toContain(EX.tr.n);
   });
-  it("8 articles du plus récent au plus ancien, chacun avec catégorie, couverture et temps de lecture", () => {
-    expect(ARTICLES.length).toBe(8);
+  it("au moins 8 articles (plus les programmés une fois leur date passée), du plus récent au plus ancien, chacun avec catégorie, couverture et temps de lecture", () => {
+    expect(ARTICLES.length).toBeGreaterThanOrEqual(8);
     for (let i = 1; i < ARTICLES.length; i++) expect(ARTICLES[i - 1].date >= ARTICLES[i].date).toBe(true);
     for (const a of ARTICLES) {
       expect(CATEGORIES).toContain(a.categorie);
@@ -30,7 +30,7 @@ describe("blog public", () => {
       if (a.couverture.startsWith("https://")) expect(a.credit?.lien).toMatch(/^https:\/\/unsplash\.com\/@/);
       expect(tempsLecture(a)).toBeGreaterThanOrEqual(1);
     }
-    expect(ARTICLES[0].slug).toBe("preparer-premier-hyrox");
+    expect(article("preparer-premier-hyrox")).toBeTruthy();
     expect(article("preparer-premier-hyrox")!.lien).toContain("obj=hyrox");
   });
   it("à lire aussi : deux autres articles, de la même catégorie d'abord", () => {
@@ -58,7 +58,7 @@ describe("blog public", () => {
   it("guides en tête (5, Hyrox d'abord, aux adresses /guides) et articles du blog (/blog)", () => {
     expect(GUIDES.map((g) => g.slug)).toEqual(["preparer-premier-hyrox", "programme-street-workout-debutant", "premiere-traction", "seance-full-body-sans-materiel", "repas-prise-de-muscle-petit-budget"]);
     for (const g of GUIDES) expect(adresse(g, "fr")).toBe(`/guides/${g.slug}/`);
-    expect(BILLETS.length).toBe(3);
+    expect(BILLETS.length).toBeGreaterThanOrEqual(3); // un article programmé s'ajoute à sa date
     for (const b of BILLETS) expect(adresse(b, "fr")).toMatch(/^\/blog\//);
     expect(GUIDES.length + BILLETS.length).toBe(ARTICLES.length);
   });
