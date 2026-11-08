@@ -9,24 +9,26 @@ Tu travailles quoi demain ? 👇
 "Ta séance de muscu prête en quelques touches #shorts",
 "Touche les muscles à travailler, Oxa compose ta séance avec tes charges. 👉 https://oxafit.app/?src=youtube #muscu #musculation",
 "Le nom de l'app : Oxa, lien dans la bio 👆")
-V2=("Vidéo 2 · Pourquoi 62,5 kg ?","video-2-pourquoi-cette-charge.mp4",
-"""Ton app te dit quel poids prendre… mais jamais pourquoi.
-Oxa écrit la raison sous chaque charge : 12 répétitions sur toutes tes séries ? +2,5 kg, et tu repars à 8. Sur un petit muscle, le palier est plus petit.
+V2=("Vidéo 2 · Tu ajoutes du poids au feeling ? (épisode 2)","video-2-pourquoi-cette-charge.mp4 (refaite le 8 novembre, 9,5 s)",
+"""Tu ajoutes du poids au feeling ? 🎯
+Épisode 2. Oxa écrit la raison sous chaque charge : 60 kg × 12 sur toutes tes séries ? +2,5 kg, et tu repars à 8. Sur un petit muscle, +1 kg seulement.
 
 Tu montes en charge comment, toi ? 👇
+Suis @oxafit.app pour l'épisode 3.
 #surchargeprogressive #muscu #musculation #progression #gym""",
-"Quand ajouter du poids à la salle ? #shorts",
-"La double progression, expliquée sous chaque charge. 👉 https://oxafit.app/?src=youtube #muscu #surchargeprogressive",
-"La règle : une répétition de plus à chaque séance, et au haut de la fourchette, le plus petit palier. 💾")
-V3=("Vidéo 3 · La régularité bat l'intensité","video-3-regularite.mp4",
+"Tu ajoutes du poids au feeling ? #shorts",
+"Épisode 2 : la double progression, expliquée sous chaque charge. 👉 https://oxafit.app/?src=youtube #muscu #surchargeprogressive",
+"La règle : une répétition de plus à chaque séance, et au haut de la fourchette, le plus petit palier. Épisode 3 mardi 💾")
+V3=("Vidéo 3 · Une semaine à fond, puis plus rien ? (épisode 3)","video-3-regularite.mp4 (refaite le 8 novembre, 9,6 s)",
 """Une semaine à fond… puis plus rien ? 😮‍💨
-Ce qui fait progresser, c'est de revenir. Des séances tenues, semaine après semaine, quand tes muscles sont prêts.
+Épisode 3. Ce qui fait progresser, c'est de revenir : des séances tenues, semaine après semaine, quand tes muscles sont prêts.
 Chaque lundi, Oxa te dit si ton objectif est tenu, et quels records sont tombés.
 
 Ton objectif, c'est combien de séances par semaine ? 👇
+Suis @oxafit.app pour la suite.
 #muscu #musculation #regularite #motivation #gym""",
-"Le vrai secret pour progresser à la salle #shorts",
-"La régularité bat l'intensité : tes semaines tenues, tes muscles prêts, tes records. 👉 https://oxafit.app/?src=youtube #muscu #musculation",
+"Une semaine à fond, puis plus rien ? #shorts",
+"Épisode 3 : la régularité bat l'intensité. Tes semaines tenues, tes muscles prêts, tes records. 👉 https://oxafit.app/?src=youtube #muscu #musculation",
 "2 ou 3 séances tenues chaque semaine valent mieux qu'une semaine à fond. Tu vises combien ? 👇")
 C1=("Carrousel 1 · Ce qui fait vraiment progresser à la salle","dossier carrousel-1-progresser, images 1 à 6",
 """Ce qui fait vraiment progresser à la salle (et ce qui compte moins qu'on croit) 💡
@@ -41,8 +43,9 @@ Et dis-moi en commentaire : c'est quoi, ton point faible ?
 
 #musculation #muscu #conseilmuscu #debutantmuscu #gym""",
 "#musculation #muscu #conseilmuscu #debutantmuscu #gym")
-C2=("Carrousel 2 · Quand ajouter du poids ?","dossier carrousel-2-surcharge, images 1 à 6",
-"""Quand ajouter du poids à la salle ? La double progression 🏋️
+C2=("Carrousel 2 · Bloqué au même poids depuis des semaines ?","dossier carrousel-2-surcharge, images 1 à 6 (couverture refaite le 8 novembre)",
+"""Bloqué au même poids depuis des semaines ? 🏋️
+La règle de la double progression, en 4 étapes :
 
 1. Une fourchette, par exemple 8 à 12 répétitions
 2. Des répétitions avant les kilos
@@ -50,6 +53,7 @@ C2=("Carrousel 2 · Quand ajouter du poids ?","dossier carrousel-2-surcharge, im
 4. Après une pause : −10 % (10 jours) ou −20 % (21 jours et plus)
 
 💾 Enregistre-le, et envoie-le à ton binôme de salle
+Toi, tu bloques sur quel exercice ? 👇
 
 #surchargeprogressive #musculation #muscu #progression #conseilmuscu #debutantmuscu #gym""",
 "#surchargeprogressive #musculation #muscu #progression #gym")
@@ -59,12 +63,12 @@ def video(jour,heure,v,fait=False):
   return f"""<section class="jour{' fait' if fait else ''}"><div class=tete><span class=date>{jour}</span><span class=h>{heure}</span>{'<span class=ok>✓ publiée</span>' if fait else ''}</div>
 <h2>{e(t)}</h2><p class=fic>Fichier : {e(f)} · TikTok, Instagram Reels et YouTube Shorts · ajoute un son tendance</p>
 {box("TikTok et Instagram Reels : légende",cap)}{box("YouTube Shorts : titre",yt)}{box("YouTube Shorts : description",ytd)}{box("Commentaire à épingler (TikTok et Instagram)",pin)}</section>"""
-def carrousel(jour,heure,c):
+def carrousel(jour,heure,c,fait=False):
   t,f,cap,tt=c
-  return f"""<section class=jour><div class=tete><span class=date>{jour}</span><span class=h>{heure}</span></div>
+  return f"""<section class="jour{' fait' if fait else ''}"><div class=tete><span class=date>{jour}</span><span class=h>{heure}</span>{'<span class=ok>✓ publié</span>' if fait else ''}</div>
 <h2>{e(t)}</h2><p class=fic>{e(f)} · Instagram (Publication, plusieurs images dans l'ordre) et TikTok en mode photo · pas de YouTube</p>
 {box("Instagram : légende",cap)}{box("TikTok (mode photo) : même texte, avec seulement ces hashtags à la fin",tt)}</section>"""
-corps=video("Vendredi 6 novembre","18 h 30",V1,True)+carrousel("Samedi 7 novembre","11 h",C1)+video("Dimanche 8 novembre","18 h 30",V2)+carrousel("Lundi 9 novembre","12 h 30",C2)+video("Mardi 10 novembre","18 h 30",V3)
+corps=video("Vendredi 6 novembre","18 h 30",V1,True)+carrousel("Samedi 7 novembre","11 h",C1,True)+video("Dimanche 8 novembre","18 h 30",V2)+carrousel("Lundi 9 novembre","12 h 30",C2)+video("Mardi 10 novembre","18 h 30",V3)
 doc=f"""<html><head><meta charset=utf-8><style>
 @page{{size:A4;margin:14mm 14mm 16mm}}
 body{{font-family:Inter,'Noto Color Emoji',sans-serif;color:#0a0a0c;font-size:11.5pt;line-height:1.45}}
@@ -79,16 +83,16 @@ pre{{white-space:pre-wrap;font-family:Inter,'Noto Color Emoji',sans-serif;backgr
 ul{{margin:4px 0 0 0;padding-left:18px}} .note{{background:#ecfdf5;border-radius:10px;padding:10px 12px;font-size:10.5pt}}
 </style></head><body>
 <h1>Pack 1 · légendes et calendrier</h1>
-<p class=sous>Version à jour : lancement le vendredi 6 novembre (remplace l'ancienne version qui commençait le lundi). TikTok @oxafit.app · Instagram @oxafit.app · YouTube @oxafit</p>
+<p class=sous>Version du dimanche 8 novembre : vidéos 2 et 3 et couverture du carrousel 2 refaites d'après les premières statistiques (remplace la version précédente). TikTok @oxafit.app · Instagram @oxafit.app · YouTube @oxafit</p>
 <table><tr><th>Jour</th><th>Quoi</th><th>Où</th><th>Heure</th></tr>
 <tr><td>Ven 6 ✓</td><td>Vidéo 1 · Ta séance est prête</td><td>TikTok, Reels, Shorts</td><td>18 h 30</td></tr>
-<tr><td>Sam 7</td><td>Carrousel 1 · Ce qui fait vraiment progresser</td><td>Instagram, TikTok photo</td><td>11 h</td></tr>
-<tr><td>Dim 8</td><td>Vidéo 2 · Pourquoi 62,5 kg</td><td>TikTok, Reels, Shorts</td><td>18 h 30</td></tr>
-<tr><td>Lun 9</td><td>Carrousel 2 · Quand ajouter du poids</td><td>Instagram, TikTok photo</td><td>12 h 30</td></tr>
-<tr><td>Mar 10</td><td>Vidéo 3 · La régularité bat l'intensité</td><td>TikTok, Reels, Shorts</td><td>18 h 30</td></tr></table>
+<tr><td>Sam 7 ✓</td><td>Carrousel 1 · Ce qui fait vraiment progresser</td><td>Instagram, TikTok photo</td><td>11 h</td></tr>
+<tr><td>Dim 8</td><td>Vidéo 2 · Tu ajoutes du poids au feeling ? (ép. 2)</td><td>TikTok, Reels, Shorts</td><td>18 h 30</td></tr>
+<tr><td>Lun 9</td><td>Carrousel 2 · Bloqué au même poids ?</td><td>Instagram, TikTok photo</td><td>12 h 30</td></tr>
+<tr><td>Mar 10</td><td>Vidéo 3 · Une semaine à fond, puis plus rien ? (ép. 3)</td><td>TikTok, Reels, Shorts</td><td>18 h 30</td></tr></table>
 <div class=note><b>À chaque publication</b><ul>
 <li><b>Vidéos</b> : elles sont muettes, ajoute un son tendance sans paroles (volume du son à 30-50 %). Garde la première image comme miniature.</li>
-<li><b>Carrousels</b> : le carrousel 1 est nouveau (dossier carrousel-1-progresser) ; la vidéo 3 aussi (video-3-regularite.mp4).</li>
+<li><b>Refaits le 8 novembre</b> : video-2-pourquoi-cette-charge.mp4, video-3-regularite.mp4 et la couverture du carrousel 2. Remplace les anciens fichiers avant de publier. Les vidéos font 9,5 s, s'ouvrent sur une phrase plein écran et finissent sur « Épisode 2 / 3 » : réponds aux commentaires en renvoyant vers l'épisode suivant.</li>
 <li><b>Lien en bio</b> : oxafit.app/?src=tiktok, /?src=instagram, /?src=youtube.</li>
 <li><b>Première heure</b> : réponds à tous les commentaires. Pack 2 à partir du mercredi 11.</li></ul></div>
 {corps}

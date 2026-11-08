@@ -3,7 +3,7 @@
 Comptes : TikTok @oxafit.app · Instagram @oxafit.app · YouTube @oxafit
 Lien en bio : `https://oxafit.app/?src=tiktok` (TikTok), `https://oxafit.app/?src=instagram` (Instagram), `https://oxafit.app/?src=youtube` (YouTube, dans la description de chaque Short).
 
-Toutes les captures viennent du compte de démonstration « Alex » (6 semaines de séances fictives, aucune donnée réelle). Les vidéos font 12 à 14 s, en 1080×1920, avec le texte hors des zones couvertes par les boutons de TikTok, Reels et Shorts.
+Toutes les captures viennent du compte de démonstration « Alex » (6 semaines de séances fictives, aucune donnée réelle). La vidéo 1 fait 12 s ; les vidéos 2 et 3 (refaites le 8 novembre d'après les premières statistiques) font 9,5 s, ouvrent sur une phrase plein écran sans écran d'app et finissent sur « Épisode 2 / 3 » et un appel à suivre. Toutes en 1080×1920, avec le texte hors des zones couvertes par les boutons de TikTok, Reels et Shorts.
 
 ## Calendrier (lancement le vendredi 6 novembre)
 
@@ -11,9 +11,9 @@ Toutes les captures viennent du compte de démonstration « Alex » (6 semaines 
 |---|---|---|---|
 | Vendredi 6 | Vidéo 1 · Ta séance est prête | TikTok, Reels, Shorts | 18 h 30 |
 | Samedi 7 | Carrousel 1 · Ce qui fait vraiment progresser | Instagram, et TikTok en mode photo | 11 h |
-| Dimanche 8 | Vidéo 2 · Pourquoi 62,5 kg | TikTok, Reels, Shorts | 18 h 30 |
-| Lundi 9 | Carrousel 2 · Quand ajouter du poids | Instagram, et TikTok en mode photo | 12 h 30 |
-| Mardi 10 | Vidéo 3 · La régularité bat l'intensité | TikTok, Reels, Shorts | 18 h 30 |
+| Dimanche 8 | Vidéo 2 · Tu ajoutes du poids au feeling ? (épisode 2) | TikTok, Reels, Shorts | 18 h 30 |
+| Lundi 9 | Carrousel 2 · Bloqué au même poids ? | Instagram, et TikTok en mode photo | 12 h 30 |
+| Mardi 10 | Vidéo 3 · Une semaine à fond, puis plus rien ? (épisode 3) | TikTok, Reels, Shorts | 18 h 30 |
 
 Le pack suivant commence le mercredi 11.
 
@@ -45,40 +45,42 @@ Description : `Touche les muscles à travailler, Oxa compose ta séance avec tes
 
 Commentaire à épingler : `Le nom de l'app : Oxa, lien dans la bio 👆`
 
-## Vidéo 2 · `video-2-pourquoi-cette-charge.mp4` · « Pourquoi 62,5 kg ? »
+## Vidéo 2 · `video-2-pourquoi-cette-charge.mp4` · « Tu ajoutes du poids au feeling ? » (épisode 2)
 
-Pilier : le coach explique. À l'écran : la flèche ↑ 2,5 kg, puis le « Pourquoi 62,5 kg » de l'app (60 kg × 12 sur toutes les séries : +2,5 kg et retour à 8 répétitions), puis les élévations latérales (+1 kg seulement).
+Pilier : le coach explique. 9,5 s. À l'écran : 0 à 1,8 s, « Épisode 2 · Tu ajoutes du poids au feeling ? » en plein écran sombre ; puis la réponse, le « Pourquoi 62,5 kg » de l'app (60 kg × 12 sur toutes les séries : +2,5 kg et retour à 8 répétitions) ; puis les élévations latérales (+1 kg seulement) ; fin « Épisode 2 · Suis Oxa pour l'épisode 3 ».
 
 **TikTok / Reels**
 ```
-Ton app te dit quel poids prendre… mais jamais pourquoi.
-Oxa écrit la raison sous chaque charge : 12 répétitions sur toutes tes séries ? +2,5 kg, et tu repars à 8. Sur un petit muscle, le palier est plus petit.
+Tu ajoutes du poids au feeling ? 🎯
+Épisode 2. Oxa écrit la raison sous chaque charge : 60 kg × 12 sur toutes tes séries ? +2,5 kg, et tu repars à 8. Sur un petit muscle, +1 kg seulement.
 
 Tu montes en charge comment, toi ? 👇
+Suis @oxafit.app pour l'épisode 3.
 #surchargeprogressive #muscu #musculation #progression #gym
 ```
 **YouTube Shorts**
-Titre : `Quand ajouter du poids à la salle ? #shorts`
-Description : `La double progression, expliquée sous chaque charge. 👉 https://oxafit.app/?src=youtube #muscu #surchargeprogressive`
+Titre : `Tu ajoutes du poids au feeling ? #shorts`
+Description : `Épisode 2 : la double progression, expliquée sous chaque charge. 👉 https://oxafit.app/?src=youtube #muscu #surchargeprogressive`
 
-Commentaire à épingler : `La règle : une répétition de plus à chaque séance, et au haut de la fourchette, le plus petit palier. 💾`
+Commentaire à épingler : `La règle : une répétition de plus à chaque séance, et au haut de la fourchette, le plus petit palier. Épisode 3 mardi 💾`
 
-## Vidéo 3 · `video-3-regularite.mp4` · « Une semaine à fond, puis plus rien ? »
+## Vidéo 3 · `video-3-regularite.mp4` · « Une semaine à fond. Puis plus rien ? » (épisode 3)
 
-Pilier : récupération et régularité. À l'écran : la série « 6 semaines d'affilée », la ligne Récupération (« Tous tes muscles sont prêts »), puis le bilan du lundi : objectif tenu (3/3) et 14 records.
+Pilier : récupération et régularité. 9,6 s. À l'écran : 0 à 1,8 s, « Épisode 3 · Une semaine à fond. Puis plus rien ? » en plein écran sombre ; puis la réponse, « Ce qui paie : revenir » sur l'accueil (la série « 6 semaines d'affilée », puis la ligne Récupération « Tous tes muscles sont prêts ») ; puis le bilan du lundi : objectif tenu (3/3) et 14 records ; fin « Épisode 3 · Suis Oxa pour la suite ».
 
 **TikTok / Reels**
 ```
 Une semaine à fond… puis plus rien ? 😮‍💨
-Ce qui fait progresser, c'est de revenir. Des séances tenues, semaine après semaine, quand tes muscles sont prêts.
+Épisode 3. Ce qui fait progresser, c'est de revenir : des séances tenues, semaine après semaine, quand tes muscles sont prêts.
 Chaque lundi, Oxa te dit si ton objectif est tenu, et quels records sont tombés.
 
 Ton objectif, c'est combien de séances par semaine ? 👇
+Suis @oxafit.app pour la suite.
 #muscu #musculation #regularite #motivation #gym
 ```
 **YouTube Shorts**
-Titre : `Le vrai secret pour progresser à la salle #shorts`
-Description : `La régularité bat l'intensité : tes semaines tenues, tes muscles prêts, tes records. 👉 https://oxafit.app/?src=youtube #muscu #musculation`
+Titre : `Une semaine à fond, puis plus rien ? #shorts`
+Description : `Épisode 3 : la régularité bat l'intensité. Tes semaines tenues, tes muscles prêts, tes records. 👉 https://oxafit.app/?src=youtube #muscu #musculation`
 
 Commentaire à épingler : `2 ou 3 séances tenues chaque semaine valent mieux qu'une semaine à fond. Tu vises combien ? 👇`
 
@@ -100,12 +102,13 @@ Et dis-moi en commentaire : c'est quoi, ton point faible ?
 #musculation #muscu #conseilmuscu #debutantmuscu #gym
 ```
 
-## Carrousel 2 · `carrousel-2-surcharge/1..6.png` · « Quand ajouter du poids ? »
+## Carrousel 2 · `carrousel-2-surcharge/1..6.png` · « Bloqué au même poids depuis des semaines ? »
 
-Pilier : le coach explique.
+Pilier : le coach explique. Couverture refaite le 8 novembre : texte seul, très grand, lisible en miniature.
 
 ```
-Quand ajouter du poids à la salle ? La double progression 🏋️
+Bloqué au même poids depuis des semaines ? 🏋️
+La règle de la double progression, en 4 étapes :
 
 1. Une fourchette, par exemple 8 à 12 répétitions
 2. Des répétitions avant les kilos
@@ -113,6 +116,7 @@ Quand ajouter du poids à la salle ? La double progression 🏋️
 4. Après une pause : −10 % (10 jours) ou −20 % (21 jours et plus)
 
 💾 Enregistre-le, et envoie-le à ton binôme de salle
+Toi, tu bloques sur quel exercice ? 👇
 
 #surchargeprogressive #musculation #muscu #progression #conseilmuscu #debutantmuscu #gym
 ```
