@@ -11,7 +11,7 @@ import { CaretRightIcon } from "@phosphor-icons/react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { CORPS, CORPS_F, CORPS_VB, CORPS_VB_F } from "@/lib/data/corps";
 import { PAT2MUSC } from "@/lib/data/referentiels";
-import { etatGroupes, GROUPES, nomGroupe, type EtatGroupe, type Groupe } from "@/lib/logic/recommandation";
+import { effortsEndurance, etatGroupes, GROUPES, MUSCLES_RECUP, nomGroupe, nomMuscle, type EtatGroupe, type Groupe, type MuscleRecup } from "@/lib/logic/recommandation";
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
@@ -20,10 +20,10 @@ export const ORANGE = "#ff9f0a";
 /* les muscles qu'on propose de travailler (mollets et abdos se récupèrent en un jour, on ne les cite pas en tête) */
 const EN_TETE: Groupe[] = ["pec", "dos", "epa", "qua", "isc", "bic", "tri"];
 
-function Corps({ cote, E, h }: { cote: "front" | "back"; E: Record<Groupe, EtatGroupe>; h: number }) {
+function Corps({ cote, E, h }: { cote: "front" | "back"; E: Record<MuscleRecup, EtatGroupe>; h: number }) {
   const femme = useRepere((s) => s.etat.A.sexe === 1);
   const couleur = (p?: string) => {
-    const g = p && (PAT2MUSC[p] as Groupe);
+    const g = p && (PAT2MUSC[p] as MuscleRecup);
     if (!g || !E[g]) return "color-mix(in oklab, var(--foreground) 10%, transparent)";
     return E[g].recupere ? "var(--plate)" : ORANGE;
   };
@@ -42,12 +42,15 @@ const delai = (e: EtatGroupe) => (e.reste === 1 ? tr("demain") : tr("dans {n} jo
 export function LigneRecuperation({ auj }: { auj: string }) {
   const router = useRouter();
   const H = useRepere((s) => s.etat.HIST);
-  const E = useMemo(() => etatGroupes(H || [], auj), [H, auj]);
+  const S = useRepere((s) => s.etat.SORTIES), C = useRepere((s) => s.etat.CARDIO);
+  const E = useMemo(() => etatGroupes(H || [], auj, effortsEndurance(S, C)), [H, S, C, auj]);
   const [ouvert, setOuvert] = useState(false);
-  if (GROUPES.every((g) => !E[g].dernier)) return null;
-  const prets = EN_TETE.filter((g) => E[g].recupere), repos = GROUPES.filter((g) => !E[g].recupere);
+  if (MUSCLES_RECUP.every((g) => !E[g].dernier && E[g].recupere)) return null;
+  /* trapèzes, lombaires, avant-bras, adducteurs : listés seulement s'ils ont travaillé ces 14 jours */
+  const suivis = MUSCLES_RECUP.filter((g) => (GROUPES as readonly string[]).includes(g) || E[g].dernier || !E[g].recupere);
+  const prets = EN_TETE.filter((g) => E[g].recupere), repos = suivis.filter((g) => !E[g].recupere);
   const bientot = repos.length ? Math.min(...repos.map((g) => E[g].reste)) : 0;
-  const tri = [...GROUPES].sort((a, b) => E[b].reste - E[a].reste);
+  const tri = [...suivis].sort((a, b) => E[b].reste - E[a].reste);
   const lancer = () => {
     tactile(10); setOuvert(false);
     router.push(`/entrainement/assistant?m=${prets.join(",")}` as Route, AVANT);
@@ -63,7 +66,7 @@ export function LigneRecuperation({ auj }: { auj: string }) {
           </span>
           {repos.length > 0 && (
             <span className="block truncate text-[12.5px] text-muted-foreground">
-              {repos.map(nomGroupe).join(", ")} · {bientot === 1 ? tr("prêts demain") : tr("prêts dans {n} jours", { n: bientot })}
+              {repos.map(nomMuscle).join(", ")} · {bientot === 1 ? tr("prêts demain") : tr("prêts dans {n} jours", { n: bientot })}
             </span>
           )}
         </span>
@@ -84,7 +87,7 @@ export function LigneRecuperation({ auj }: { auj: string }) {
               {tri.map((g) => (
                 <li key={g} className="flex items-center gap-3 border-t border-border/60 px-3.5 py-2.5 first:border-t-0">
                   <span className="size-2.5 shrink-0 rounded-full" style={{ background: E[g].recupere ? "var(--plate)" : ORANGE }} />
-                  <span className="flex-1 text-[15px]">{nomGroupe(g)}</span>
+                  <span className="flex-1 text-[15px]">{nomMuscle(g)}</span>
                   <span className="text-[13.5px] text-muted-foreground">
                     {!E[g].recupere ? delai(E[g]) : !E[g].dernier || E[g].jours >= 7 ? tr("prêt · pas travaillé depuis 7 j+") : tr("prêt")}
                   </span>

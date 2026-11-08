@@ -5,9 +5,18 @@
      cp ../outils/reseaux/captures.mjs tests/e2e/_captures.mjs
      DATE=2026-11-09 NODE_PATH=$(npm root -g) node tests/e2e/_captures.mjs ; rm tests/e2e/_captures.mjs
    Sortie : $PACK/brut/*.png en 1170×2532 (390×844 × 3). Noms :
-     accueil, accueil-bas, recup (feuille récupération), corps (assistant, pecs-triceps-épaules cochés),
+     accueil, accueil-bas, recup (feuille récupération), corps-vide (assistant, rien de coché, même cadrage que
+     corps : à enchaîner avec un tap animé), corps (assistant, pecs-triceps-épaules cochés),
      composer, composer-bas, progres, progres-bas, bilan (feuille de la semaine),
-     s<séance>-<exercice>-ferme / -ouvert (chaque exercice de chaque séance, carte fermée puis ouverte avec son « pourquoi »). */
+     repas-semaine (Repas › Ma semaine : budget tenu, jour par jour), repas-recette-haut (fiche recette : photo,
+     protéines, ingrédients ; le crédit photo Unsplash est visible, à rogner), repas-recette (la même fiche
+     descendue jusqu'à « Le conseil nutrition »), courses (liste de courses ouverte, prix par article),
+     proteines (anneau du jour 42 / 150 g et idées repas), proteines-ajout (feuille d'ajout en un geste),
+     proteines-scanner (même feuille, boutons Scanner et Chercher), street (test d'entrée et progrès),
+     street-programme (programme Force conseillé d'après le test), course (plan 10 km : J-41, niveau,
+     allures, semaine en cours), course-bas (tout le plan, semaines faites), soin (routine Épaules),
+     s<séance>-<exercice>-ferme / -ouvert (chaque exercice de chaque séance, carte fermée puis ouverte avec son « pourquoi »).
+   Jamais d'Oxa Plan (8 semaines) ni de son bandeau « Bientôt disponible ». */
 import { chromium } from "@playwright/test";
 import { readFileSync, mkdirSync } from "node:fs";
 import { servir } from "./serveur.mjs";
@@ -35,6 +44,11 @@ await essai("recup", async () => {
   await pg.goto(U + "/entrainement/"); await W(1500);
   await pg.getByRole("button", { name: /Récupération/ }).first().click(); await W(1200); await shot("recup");
 });
+await essai("corps-vide", async () => {
+  await pg.goto(U + "/entrainement/assistant/"); await W(2000);
+  const t = pg.getByText("De face", { exact: true }).first(), bb = await t.boundingBox();
+  await pg.evaluate((y) => scrollTo(0, scrollY + y - 120), bb.y); await W(600); await shot("corps-vide");
+});
 await essai("assistant", async () => {
   await pg.goto(U + "/entrainement/assistant/?m=pec,tri,epa"); await W(2000);
   const t = pg.getByText("De face", { exact: true }).first(), bb = await t.boundingBox();
@@ -48,6 +62,47 @@ await essai("progres", async () => {
   await pg.mouse.wheel(0, 600); await W(600); await shot("progres-bas");
   await pg.mouse.wheel(0, -2000); await W(400);
   await pg.getByRole("button", { name: "Ta semaine" }).click(); await W(1200); await shot("bilan");
+});
+/* Repas : la semaine et son budget, une fiche recette (jusqu'au conseil nutrition), la liste de courses */
+await essai("repas-semaine", async () => {
+  await pg.goto(U + "/repas/?v=semaine"); await W(2000); await shot("repas-semaine");
+});
+await essai("repas-recette", async () => {
+  await pg.goto(U + "/repas/?v=semaine"); await W(1800);
+  await pg.getByRole("button", { name: /^Lundi/ }).first().click(); await W(600);
+  await pg.locator('section[aria-label="Lundi"] button').nth(1).click(); await W(1500); await shot("repas-recette-haut");
+  /* la fiche défile dans sa feuille : on la descend jusqu'au bout, où est le conseil */
+  await pg.getByText("Le conseil nutrition", { exact: true }).evaluate((e) => { const d = e.closest(".overflow-y-auto"); d.scrollTop = d.scrollHeight; }); await W(700);
+  await shot("repas-recette");
+});
+await essai("courses", async () => {
+  await pg.goto(U + "/repas/?v=semaine"); await W(1800);
+  await pg.getByRole("button", { name: /Ma liste de courses/ }).click(); await W(1500); await shot("courses");
+});
+/* Protéines : l'anneau du jour (Repas › Aujourd'hui), puis la feuille d'ajout avec le scanner */
+await essai("proteines", async () => {
+  await pg.goto(U + "/repas/?v=jour"); await W(2000);
+  const carte = pg.getByRole("button", { name: /de protéines/ }).first(), bb = await carte.boundingBox();
+  await pg.evaluate((y) => scrollTo(0, scrollY + y - 330), bb.y); await W(600); await shot("proteines");
+  await carte.click(); await W(1500); await shot("proteines-ajout");
+  await pg.getByRole("button", { name: "Scanner", exact: true }).evaluate((e) => e.scrollIntoView({ block: "center" })); await W(600);
+  await shot("proteines-scanner");
+});
+/* Street : test d'entrée (deux tests, progrès) et programme conseillé */
+await essai("street", async () => {
+  await pg.goto(U + "/entrainement/rubrique/?v=street&o=programmes"); await W(2000); await shot("street");
+  const c = pg.getByText("Conseillé d'après ton test", { exact: true }).first(), bb = await c.boundingBox();
+  await pg.evaluate((y) => scrollTo(0, scrollY + y - 110), bb.y); await W(600); await shot("street-programme");
+});
+/* Course : le plan 10 km (niveau, allures, semaine en cours), puis tout le plan */
+await essai("course", async () => {
+  await pg.goto(U + "/entrainement/course/"); await W(2200); await shot("course");
+  const t = pg.getByText("Tout le plan", { exact: true }).first(), bb = await t.boundingBox();
+  await pg.evaluate((y) => scrollTo(0, scrollY + y - 110), bb.y); await W(600); await shot("course-bas");
+});
+/* Soin & mobilité : la routine d'une zone (épaules) */
+await essai("soin", async () => {
+  await pg.goto(U + "/entrainement/rubrique/?v=soin&o=epaules"); await W(2000); await shot("soin");
 });
 for (let i = 0; i < (etat.SEANCES || []).length; i++) {
   for (const { id } of etat.SEANCES[i].ex) {

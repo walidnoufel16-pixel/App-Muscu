@@ -96,6 +96,10 @@ export function construireSeance(muscles: string[], duree: number, obj: number, 
   return l.map((e) => ({ id: e.id, s: e.s, r: e.r, p: o.dense && !e.big && secondesDe(e.p) > 45 ? "45 s" : e.p }));
 }
 
+/** Charge lourdement le bas du dos (soulevés de terre, good mornings, rowing T-bar, rack pull) : écarté
+    quand les lombaires récupèrent, au profit d'une variante plus douce s'il y en a une. */
+export const chargeLombaires = (o: string) => EX[o]?.pat2 === "lo" || o === "rkp";
+
 /* Nom de la séance générée. */
 export const nomSeance = (m: string[]) =>
   m.length >= 5 ? tr("Full body") : m.map((k) => MUSC.find((g) => g.k === k)!.n).join(" · ");
