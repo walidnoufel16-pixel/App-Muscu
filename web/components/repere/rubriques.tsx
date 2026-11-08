@@ -21,19 +21,20 @@ export const nomRubrique = (v: Rubrique) =>
 
 /* photos des exercices (domaine public), sauf Oxa Street et Oxa Run (photos de l'éditeur), en grand ;
    hors connexion sans elles, la petite */
-const BANNIERES: Record<Rubrique, { photo: string; fond: string; texte: () => string }> = {
-  libre: { photo: "Dumbbell_Lunges_0", fond: "#0b7f73", texte: () => tr("Muscu, cardio ou combinée : crée ta séance, compose-la, ou parcours les exercices.") },
+/* `pos` : cadrage de la photo (object-position) quand le centre coupe le sujet */
+const BANNIERES: Record<Rubrique, { photo: string; fond: string; texte: () => string; pos?: string }> = {
+  libre: { photo: "Dumbbell_Lunges_0", fond: "#0b7f73", pos: "55% 6%", texte: () => tr("Muscu, cardio ou combinée : crée ta séance, compose-la, ou parcours les exercices.") },
   programme: { photo: "Barbell_Squat_0", fond: "#1e3a8a", texte: () => tr("Huit semaines de séances qui font monter l'effort semaine après semaine.") },
   street: { photo: "rubrique-street", fond: "var(--street)", texte: () => tr("Poids du corps et barre : programmes par niveau, du plus facile au plus dur.") },
   course: { photo: "rubrique-run", fond: "#9a4a1c", texte: () => tr("10 km, semi, marathon ou Hyrox : un plan jusqu'au jour J, à ton allure.") },
   soin: { photo: "Hamstring_Stretch_0", fond: "#5d6b55", texte: () => tr("Routines courtes par zone, pour bouger sans douleur.") },
 };
 
-export function Photo({ nom, className }: { nom: string; className?: string }) {
+export function Photo({ nom, className, pos }: { nom: string; className?: string; pos?: string }) {
   const petite = `/img/${nom}.avif`;
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={`/img/grand/${nom}.avif`} alt="" loading="lazy" className={cn("object-cover", className)}
+    <img src={`/img/grand/${nom}.avif`} alt="" loading="lazy" className={cn("object-cover", className)} style={pos ? { objectPosition: pos } : undefined}
       onError={(e) => { if (!e.currentTarget.src.endsWith(petite)) e.currentTarget.src = petite; else e.currentTarget.style.visibility = "hidden"; }} />
   );
 }
@@ -52,7 +53,7 @@ export function Bannieres({ rubriques, texte = {}, detail = {} }: {
             className="relative isolate flex min-h-[150px] overflow-hidden rounded-[22px] text-left text-white active:scale-[.99]" style={{ background: b.fond }}>
             {/* la photo occupe la droite et se fond dans l'aplat */}
             <span className="absolute inset-y-0 right-0 -z-10 w-[58%]">
-              <Photo nom={b.photo} className="size-full" />
+              <Photo nom={b.photo} pos={b.pos} className="size-full" />
               <span className="absolute inset-0" style={{ background: `linear-gradient(90deg, ${b.fond} 0%, color-mix(in oklab, ${b.fond} 85%, transparent) 22%, transparent 70%)` }} />
             </span>
             <span className="flex max-w-[68%] flex-col justify-center gap-1.5 p-4">
@@ -88,7 +89,7 @@ export function Mosaique({ rubriques, detail = {} }: { rubriques: Rubrique[]; de
         return (
           <button key={v} data-visite={`rubrique-${v}`} onClick={() => { noter("rubrique_ouverte", { r: v }); router.push(lienRubrique(v), AVANT); }}
             className={cn("relative isolate overflow-hidden rounded-[20px] text-left text-white active:scale-[.98]", large ? "col-span-2 h-[140px]" : "h-[124px]")} style={{ background: b.fond }}>
-            <Photo nom={b.photo} className="absolute inset-0 -z-10 size-full" />
+            <Photo nom={b.photo} pos={b.pos} className="absolute inset-0 -z-10 size-full" />
             <span className="absolute inset-0 -z-10" style={{ background: `linear-gradient(180deg, transparent 30%, color-mix(in oklab, ${b.fond} 92%, transparent) 90%)` }} />
             <span className="absolute inset-x-3 bottom-2.5">
               <span className="block text-[17px] leading-tight font-extrabold tracking-[-0.01em]">{nomRubrique(v)}</span>
