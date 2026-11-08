@@ -35,7 +35,11 @@ concrètes. Tu ne publies jamais toi-même : tu livres des fichiers prêts à po
 
 ## Ce qui marche (applique-le)
 - **Accroche dans la 1re seconde** : une question ou une tension (« Ton app te dit quel poids
-  prendre. Mais pourquoi ? »). Une idée par vidéo, 12 à 20 s, un texte à l'écran par plan.
+  prendre. Mais pourquoi ? »). Une idée par vidéo, un texte à l'écran par plan.
+- **Laisse le temps de lire** : un plan dure au moins 0,4 s par mot affiché + 1,5 s, jamais moins
+  de 2,5 s ; + 1 s si une capture montre un chiffre ou un cadre surligné à regarder. Plutôt que
+  d'accélérer, raccourcis le texte. Durée totale visée : 12 à 16 s ; la lisibilité passe avant la
+  brièveté. `scenes.mjs` calcule cette durée quand `d` n'est pas donné.
 - **Carrousel** : couverture = promesse, 4 slides d'une idée chacune, dernière slide = Oxa le fait
   pour toi + capture + « Lien dans la bio ». Appel à enregistrer ou à commenter.
 - **Piliers** (alterne-les) : le coach explique, récupération, démythifier, programmes prêts,

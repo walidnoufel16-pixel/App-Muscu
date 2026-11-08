@@ -3,7 +3,7 @@
 Comptes : TikTok @oxafit.app · Instagram @oxafit.app · YouTube @oxafit
 Lien en bio : `https://oxafit.app/?src=tiktok` (TikTok), `https://oxafit.app/?src=instagram` (Instagram), `https://oxafit.app/?src=youtube` (YouTube, dans la description de chaque Short).
 
-Toutes les captures viennent du compte de démonstration « Alex » (6 semaines de séances fictives, aucune donnée réelle). La vidéo 1 fait 12 s ; les vidéos 2 et 3 (refaites le 8 novembre d'après les premières statistiques) font 9,5 s, ouvrent sur une phrase plein écran sans écran d'app et finissent sur « Épisode 2 / 3 » et un appel à suivre. Toutes en 1080×1920, avec le texte hors des zones couvertes par les boutons de TikTok, Reels et Shorts.
+Toutes les captures viennent du compte de démonstration « Alex » (6 semaines de séances fictives, aucune donnée réelle). La vidéo 1 fait 12 s ; les vidéos 2 et 3 (refaites le 8 novembre d'après les premières statistiques) font 22,8 et 22 s, ouvrent sur une phrase plein écran sans écran d'app et finissent sur « Épisode 2 / 3 » et un appel à suivre. Toutes en 1080×1920, avec le texte hors des zones couvertes par les boutons de TikTok, Reels et Shorts.
 
 ## Calendrier (lancement le vendredi 6 novembre)
 
@@ -47,7 +47,7 @@ Commentaire à épingler : `Le nom de l'app : Oxa, lien dans la bio 👆`
 
 ## Vidéo 2 · `video-2-pourquoi-cette-charge.mp4` · « Tu ajoutes du poids au feeling ? » (épisode 2)
 
-Pilier : le coach explique. 9,5 s. À l'écran : 0 à 1,8 s, « Épisode 2 · Tu ajoutes du poids au feeling ? » en plein écran sombre ; puis la réponse, le « Pourquoi 42,5 kg » de l'app (40 kg × 12 sur toutes les séries : +2,5 kg et retour à 8 répétitions) ; puis les élévations latérales (+1 kg seulement) ; fin « Épisode 2 · Suis Oxa pour l'épisode 3 ».
+Pilier : le coach explique. 22,8 s. À l'écran : 0 à 4,7 s, « Épisode 2 · Tu ajoutes du poids au feeling ? » en plein écran sombre ; puis la réponse, le « Pourquoi 42,5 kg » de l'app (40 kg × 12 sur toutes les séries : +2,5 kg et retour à 8 répétitions) ; puis les élévations latérales (+1 kg seulement) ; fin « Épisode 2 · Suis Oxa pour l'épisode 3 ».
 
 **TikTok / Reels**
 ```
@@ -66,7 +66,7 @@ Commentaire à épingler : `La règle : une répétition de plus à chaque séan
 
 ## Vidéo 3 · `video-3-regularite.mp4` · « Une semaine à fond. Puis plus rien ? » (épisode 3)
 
-Pilier : récupération et régularité. 9,6 s. À l'écran : 0 à 1,8 s, « Épisode 3 · Une semaine à fond. Puis plus rien ? » en plein écran sombre ; puis la réponse, « Ce qui paie : revenir » sur l'accueil (la série « 6 semaines d'affilée », puis la ligne Récupération « Tous tes muscles sont prêts ») ; puis le bilan du lundi : objectif tenu (3/3) et 14 records ; fin « Épisode 3 · Suis Oxa pour la suite ».
+Pilier : récupération et régularité. 22 s. À l'écran : 0 à 5,1 s, « Épisode 3 · Une semaine à fond. Puis plus rien ? » en plein écran sombre ; puis la réponse, « Ce qui paie : revenir » sur l'accueil (la série « 6 semaines d'affilée », puis la ligne Récupération « Tous tes muscles sont prêts ») ; puis le bilan du lundi : objectif tenu (3/3) et 14 records ; fin « Épisode 3 · Suis Oxa pour la suite ».
 
 **TikTok / Reels**
 ```
