@@ -55,7 +55,7 @@ function Visionneuse({ p, onClose }: { p: Poste | null; onClose: () => void }) {
         <p className="text-center text-[18px] font-semibold">{p?.n}</p>
         {credit && (
           <a href={credit.lien} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-center text-[12.5px] text-white/65 underline underline-offset-2">
-            {tr("Photo : {n} · {l}", { n: credit.nom, l: credit.licence })}
+            {credit.licence ? tr("Photo : {n} · {l}", { n: credit.nom, l: credit.licence }) : tr("Photo : {n}", { n: credit.nom })}
           </a>
         )}
       </DialogContent>

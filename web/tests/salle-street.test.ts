@@ -34,9 +34,10 @@ describe("Ma salle", () => {
     expect(POSTES.filter((p) => !catalogue.includes(p)).map((p) => p.id)).toEqual(["revhyp"]);
     for (const p of catalogue) {
       expect(fs.existsSync(path.join(PUB, imgPoste(p)!)), p.id).toBe(true);
-      expect(creditPoste(p)?.licence, p.id).toBe("Avec l'accord du fabricant");
+      expect(creditPoste(p)?.nom, p.id).toMatch(/^(Throwdown|Impulse Fitness)$/);
+      expect(creditPoste(p)?.licence, p.id).toBe("");
     }
-    expect(CREDITS.some((c) => c.nom.includes("Core Health & Fitness"))).toBe(true);
+    expect(CREDITS.find((c) => c.nom.includes("Core Health & Fitness"))?.licence).toBe("Avec l'accord du fabricant");
   });
   it("chaque machine avec photo l'a aussi en grand, avec son auteur ; les fichiers locaux existent", () => {
     for (const p of POSTES.filter((x) => imgPoste(x))) {

@@ -71,7 +71,8 @@ export const imgPosteGrand = (p: { id: string; img?: string }) => {
 };
 /** Qui a fait la photo d'un poste, pour la mention sous la photo en grand. */
 export const creditPoste = (p: { id: string; img?: string }): { nom: string; lien: string; licence: string } | undefined => {
-  if (PHOTOS_CATALOGUE[p.id]) return { nom: MARQUES[PHOTOS_CATALOGUE[p.id]], lien: "https://www.corehandf.com", licence: tr("Avec l'accord du fabricant") };
+  /* l'accord du fabricant est mentionné une fois, dans Crédits, pas sous chaque photo */
+  if (PHOTOS_CATALOGUE[p.id]) return { nom: MARQUES[PHOTOS_CATALOGUE[p.id]], lien: "https://www.corehandf.com", licence: "" };
   if (p.img) { const s = sourceEx(p.img); return { nom: s.nom, lien: s.lien, licence: s.licence }; }
   if (PHOTOS_LIBRES[p.id]) { const ph = PHOTOS_LIBRES[p.id]; return { nom: ph.auteur, lien: ph.lien, licence: ph.licence }; }
   const ph = PHOTOS_POSTES[p.id];
