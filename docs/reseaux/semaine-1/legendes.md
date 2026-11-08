@@ -1,93 +1,133 @@
 # Pack semaine 1 : légendes et calendrier
 
 Comptes : TikTok @oxafit.app · Instagram @oxafit.app · YouTube @oxafit
-Lien à mettre en bio : `https://oxafit.app/?src=tiktok` (TikTok), `?src=instagram`, `?src=youtube`.
+Lien en bio : `https://oxafit.app/?src=tiktok` (TikTok), `https://oxafit.app/?src=instagram` (Instagram), `https://oxafit.app/?src=youtube` (YouTube, dans la description de chaque Short).
 
-## Calendrier conseillé (heures de publication : 12 h ou 18 h-21 h)
+Toutes les captures viennent du compte de démonstration « Alex » (6 semaines de séances fictives, aucune donnée réelle). La vidéo 1 fait 12 s ; les vidéos 2 et 3 (refaites le 8 novembre d'après les premières statistiques) font 15,5 s chacune, ouvrent sur une phrase plein écran sans écran d'app et finissent sur « Suis Oxa · prochain épisode mardi » (vidéo 2) et « … mercredi » (vidéo 3, le pack 2 commence mercredi 11 par l'épisode 4). Toutes en 1080×1920, avec le texte hors des zones couvertes par les boutons de TikTok, Reels et Shorts.
 
-| Jour | TikTok | Instagram | YouTube Shorts |
+## Calendrier (lancement le vendredi 6 novembre)
+
+| Jour | Quoi | Où | Heure conseillée |
 |---|---|---|---|
-| Lundi | Vidéo 1 | Vidéo 1 (Reel) | Vidéo 1 |
-| Mercredi | Vidéo 2 | Carrousel 1 | Vidéo 2 |
-| Vendredi | Vidéo 3 | Vidéo 2 (Reel) | Vidéo 3 |
-| Dimanche | — | Carrousel 2 + Vidéo 3 (Reel) | — |
+| Vendredi 6 | Vidéo 1 · Ta séance est prête | TikTok, Reels, Shorts | 18 h 30 |
+| Samedi 7 | Carrousel 1 · Ce qui fait vraiment progresser | Instagram, et TikTok en mode photo | 11 h |
+| Dimanche 8 | Vidéo 2 · Tu ajoutes du poids au feeling ? (épisode 2) | TikTok, Reels, Shorts | 18 h 30 |
+| Lundi 9 | Carrousel 2 · Bloqué au même poids ? | Instagram, et TikTok en mode photo | 12 h 30 |
+| Mardi 10 | Vidéo 3 · Une semaine à fond, puis plus rien ? (épisode 3) | TikTok, Reels, Shorts | 18 h 30 |
 
-Les vidéos sont muettes : ajoute un **son tendance** au moment de publier (TikTok : « Ajouter un son », volume à 30-50 % ; Instagram : « Audio »). C'est ce qui donne de la portée.
+Le pack suivant commence le mercredi 11.
+
+Une publication par jour, la même vidéo sur les trois réseaux. Compte environ 10 minutes par jour : 5 minutes pour publier, 5 minutes pour répondre aux commentaires.
+
+**Le son** : les vidéos sont muettes. Ajoute un son tendance au moment de publier (TikTok : « Ajouter un son », volume à 30-50 % ; Instagram : « Audio » ; YouTube : « Son »). C'est ce qui donne de la portée. Prends un son sans paroles qui couvrent le texte.
+
+**La miniature** : garde la première image (l'accroche y est déjà écrite). Sur Instagram, coche « Afficher sur la grille » et recadre au centre.
+
+**Le mode photo TikTok** : publie les 6 images du carrousel dans l'ordre, avec le texte de la légende Instagram (et 3 à 5 hashtags).
 
 ---
 
 ## Vidéo 1 · `video-1-seance-prete.mp4` · « Touche un muscle, ta séance est prête »
 
+Pilier : programmes prêts. À l'écran : rien de coché, le doigt touche les pecs puis les épaules, la séance apparaît avec ses charges (22 kg ↑ 2 kg, 37,5 kg ↑ 2,5 kg).
+
 **TikTok / Reels**
 ```
 Tu sais jamais quoi faire à la salle ? 🤔
-Touche les muscles que tu veux travailler, Oxa te sort la séance : exercices, séries, charges. Avec ton matériel et d'après ta récup.
+Touche les muscles que tu veux travailler : Oxa te sort la séance. Exercices, séries et charges, avec ton matériel.
 
-Lien en bio 👆
-#muscu #musculation #salledesport #programmemuscu #gym #fitnessfrance #coachsportif #appfitness
+Tu travailles quoi demain ? 👇
+#muscu #musculation #salledesport #programmemuscu #gym
 ```
-**YouTube Shorts** · Titre : `Ta séance de muscu prête en 3 secondes #shorts`
-Description : `Oxa choisit tes exercices et tes charges d'après tes muscles récupérés. 👉 https://oxafit.app/?src=youtube`
+**YouTube Shorts**
+Titre : `Ta séance de muscu prête en quelques touches #shorts`
+Description : `Touche les muscles à travailler, Oxa compose ta séance avec tes charges. 👉 https://oxafit.app/?src=youtube #muscu #musculation`
 
-## Vidéo 2 · `video-2-pourquoi-cette-charge.mp4` · « Pourquoi 30 kg ? »
+Commentaire à épingler : `Le nom de l'app : Oxa, lien dans la bio 👆`
+
+## Vidéo 2 · `video-2-pourquoi-cette-charge.mp4` · « Tu ajoutes du poids au feeling ? » (épisode 2)
+
+Pilier : le coach explique. 15,5 s. À l'écran : 0 à 3,4 s, « Épisode 2 · Tu ajoutes du poids au feeling ? » en plein écran sombre ; puis la réponse, le « Pourquoi 42,5 kg » de l'app (40 kg × 12 sur toutes les séries : +2,5 kg et retour à 8 répétitions) ; puis les élévations latérales (+1 kg seulement) ; fin « Charges expliquées. Suis Oxa · prochain épisode mardi ».
 
 **TikTok / Reels**
 ```
-Ton app te dit quel poids prendre… mais jamais pourquoi.
-Oxa t'explique chaque charge : +2,5 kg quand tu as réussi, −10 % après une pause, une estimation quand tu n'as jamais fait l'exercice.
+Tu ajoutes du poids au feeling ? 🎯
+Épisode 2. Oxa écrit la raison sous chaque charge : 40 kg × 12 sur toutes tes séries ? +2,5 kg, et tu repars à 8. Sur un petit muscle, +1 kg seulement.
 
-Tu savais pour la règle des −10 % ? 👇
-#surchargeprogressive #muscu #progression #musculation #gym #salledesport #conseilmuscu
+Tu montes en charge comment, toi ? 👇
+Suis @oxafit.app · prochain épisode mardi.
+#surchargeprogressive #muscu #musculation #progression #gym
 ```
-**YouTube Shorts** · Titre : `Quel poids prendre à la salle ? Ton coach t'explique #shorts`
+**YouTube Shorts**
+Titre : `Tu ajoutes du poids au feeling ? #shorts`
+Description : `Épisode 2 : la double progression, expliquée sous chaque charge. 👉 https://oxafit.app/?src=youtube #muscu #surchargeprogressive`
 
-## Vidéo 3 · `video-3-bilan-semaine.mp4` · « Ta semaine en 10 s »
+Commentaire à épingler : `La règle : une répétition de plus à chaque séance, et au haut de la fourchette, le plus petit palier. Épisode 3 mardi 💾`
+
+## Vidéo 3 · `video-3-regularite.mp4` · « Une semaine à fond. Puis plus rien ? » (épisode 3)
+
+Pilier : récupération et régularité. 15,5 s. À l'écran : 0 à 3,7 s, « Épisode 3 · Une semaine à fond. Puis plus rien ? » en plein écran sombre ; puis la réponse, « Ce qui paie : revenir » sur l'accueil (la série « 6 semaines d'affilée », puis la ligne Récupération « Tous tes muscles sont prêts ») ; puis le bilan du lundi : objectif tenu (3/3) et 14 records ; fin « Reviens. Suis Oxa · prochain épisode mercredi ».
 
 **TikTok / Reels**
 ```
-Chaque lundi, ton bilan : séries par muscle face à ta cible, records, et ce qui doit encore récupérer.
-Tu sais combien de séries tu as faites pour tes pecs cette semaine ? 👇
+Une semaine à fond… puis plus rien ? 😮‍💨
+Épisode 3. Ce qui fait progresser, c'est de revenir : des séances tenues, semaine après semaine, quand tes muscles sont prêts.
+Chaque lundi, Oxa te dit si ton objectif est tenu, et quels records sont tombés.
 
-#muscu #suivimuscu #progression #gym #musculation #fitnessfrance #routine
+Ton objectif, c'est combien de séances par semaine ? 👇
+Suis @oxafit.app · prochain épisode mercredi.
+#muscu #musculation #regularite #motivation #gym
 ```
-**YouTube Shorts** · Titre : `Mon bilan muscu de la semaine en 10 secondes #shorts`
+**YouTube Shorts**
+Titre : `Une semaine à fond, puis plus rien ? #shorts`
+Description : `Épisode 3 : la régularité bat l'intensité. Tes semaines tenues, tes muscles prêts, tes records. 👉 https://oxafit.app/?src=youtube #muscu #musculation`
 
-## Carrousel 1 · `carrousel-1-series/1..6.png` · Instagram
+Commentaire à épingler : `2 ou 3 séances tenues chaque semaine valent mieux qu'une semaine à fond. Tu vises combien ? 👇`
 
-```
-Combien de séries par muscle chaque semaine ? 📊
+## Carrousel 1 · `carrousel-1-progresser/1..6.png` · « Ce qui fait vraiment progresser à la salle »
 
-Débutant : 8 · Régulier : 12 · Avancé : 16 (séries difficiles, par muscle, par semaine)
-Coupe-les en 2 séances, et réduis si tes charges baissent.
-
-💾 Enregistre pour ta prochaine séance
-Et dis-moi en commentaire : tu en fais combien pour tes pecs ?
-
-#musculation #muscu #volumeentrainement #programmemuscu #conseilmuscu #gym #salledesport #hypertrophie
-```
-
-## Carrousel 2 · `carrousel-2-surcharge/1..6.png` · Instagram
+Pilier : démythifier.
 
 ```
-Prendre du poids à la salle sans se blesser : la double progression 🏋️
+Ce qui fait vraiment progresser à la salle (et ce qui compte moins qu'on croit) 💡
 
-1. Une fourchette (8-12)
+1. Savoir quoi faire en arrivant : tes exercices et tes charges, déjà prêts
+2. Revenir chaque semaine : 2 ou 3 séances, et les tenir
+3. Laisser récupérer : environ 2 jours par muscle, et une assiette prévue d'avance
+4. Ce qui compte moins : le programme parfait, l'échec à chaque série
+
+💾 Enregistre-le pour ta prochaine séance
+Et dis-moi en commentaire : c'est quoi, ton point faible ?
+
+#musculation #muscu #conseilmuscu #debutantmuscu #gym
+```
+
+## Carrousel 2 · `carrousel-2-surcharge/1..6.png` · « Bloqué au même poids depuis des semaines ? »
+
+Pilier : le coach explique. Couverture refaite le 8 novembre : texte seul, très grand, lisible en miniature.
+
+```
+Bloqué au même poids depuis des semaines ? 🏋️
+La règle de la double progression, en 4 étapes :
+
+1. Une fourchette, par exemple 8 à 12 répétitions
 2. Des répétitions avant les kilos
-3. À 12 partout : +2,5 kg et retour à 8
-4. Après une pause : −10 % ou −20 %
+3. À 12 partout : +2,5 kg, et retour à 8
+4. Après une pause : −10 % (10 jours) ou −20 % (21 jours et plus)
 
-💾 Enregistre, et envoie-le à ton binôme de salle
+💾 Enregistre-le, et envoie-le à ton binôme de salle
+Toi, tu bloques sur quel exercice ? 👇
 
-#surchargeprogressive #musculation #muscu #progression #gym #salledesport #conseilmuscu #debutantmuscu
+#surchargeprogressive #musculation #muscu #progression #conseilmuscu #debutantmuscu #gym
 ```
 
 ---
 
-## Répondre aux commentaires (10 min par jour)
-- Réponds à **tous** les commentaires la première heure : l'algorithme le voit.
-- Une question technique ? Réponds en 1 ou 2 phrases, puis « je fais une vidéo là-dessus » : je la prépare.
+## Répondre aux commentaires (5 min par jour)
+- Réponds à **tous** les commentaires dans la première heure.
+- Une question technique : réponds en 1 ou 2 phrases, puis « je fais une vidéo là-dessus ». Envoie-la-moi, je la prépare.
 - On te demande le nom de l'app : « Oxa, lien dans la bio 👆 ».
-- Jamais de promesse de résultat chiffré (« −10 kg en 1 mois »), jamais de conseil médical.
+- Jamais de promesse de résultat chiffré, jamais de conseil médical (une douleur : « vois un pro de santé »).
 
 ## Ce que tu m'envoies chaque dimanche (2 min)
-Les vues et abonnés de la semaine par réseau (une capture des statistiques suffit) et les commentaires qui reviennent. Je prépare la semaine suivante à partir de ça.
+Les vues, enregistrements et abonnés de la semaine par réseau (une capture des statistiques suffit) et les commentaires qui reviennent. Je prépare la semaine suivante à partir de ça.

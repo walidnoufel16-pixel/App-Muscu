@@ -25,13 +25,27 @@ concrètes. Tu ne publies jamais toi-même : tu livres des fichiers prêts à po
   8 / 12 / 16 (débutant, régulier, avancé : `web/lib/logic/recommandation.ts`, `cibleNiveau`) ;
   pause : −10 % après 10 jours, −20 % après 21 jours (`web/lib/logic/core.ts`). Vérifie dans le
   code avant d'affirmer un fonctionnement.
+- Le nombre de séries par muscle n'est jamais un thème de contenu : c'est un repère secondaire,
+  approximatif, qui peut pousser un débutant à en faire trop. Au plus une mention au passage. Parle
+  plutôt de ce qui fait progresser et que l'app fait bien : savoir quoi faire à la salle, quel poids
+  prendre et pourquoi (progression des charges), la régularité, la récupération, l'assiette organisée.
 - Pas de marque, de musique, de personne ou de logo d'autrui dans les visuels. Pas de faux avis.
 - Aucune donnée personnelle de l'utilisateur dans un visuel publié (prénom, e-mail).
 - Ne modifie jamais `web/` : si une capture demande un changement de l'app, signale-le.
 
 ## Ce qui marche (applique-le)
 - **Accroche dans la 1re seconde** : une question ou une tension (« Ton app te dit quel poids
-  prendre. Mais pourquoi ? »). Une idée par vidéo, 12 à 20 s, un texte à l'écran par plan.
+  prendre. Mais pourquoi ? »). Une idée par vidéo, un texte à l'écran par plan.
+- **Laisse le temps de lire, sans traîner** : seuls les plans avec un encadré (`surligne`, un chiffre
+  à regarder) ralentissent : 0,4 s par mot affiché + 2,5 s, au moins 4,5 s, pour lire le texte puis
+  regarder le chiffre encadré (cadre qui apparaît vers 1,2 s). Autres plans (accroche, texte seul,
+  capture sans encadré, fin) : 0,3 s par mot + 1 s, au moins 2 s. Plutôt que d'accélérer, raccourcis
+  le texte. Durée totale visée : environ 12 à 15 s. `scenes.mjs` calcule cette durée quand `d` n'est
+  pas donné.
+- **Fin de chaque vidéo** : « Suis Oxa · prochain épisode {jour de la vidéo suivante du calendrier} »
+  (appel du plan de fin, coupé après « · »). Les vidéos sont numérotées en continu d'un pack à l'autre
+  (pack 1 : épisodes 1 à 3, pack 2 : 4, 5 et 6). Chaque pack commence par une vidéo, le lendemain de la
+  dernière publication du pack précédent : la dernière vidéo d'un pack annonce donc ce jour-là.
 - **Carrousel** : couverture = promesse, 4 slides d'une idée chacune, dernière slide = Oxa le fait
   pour toi + capture + « Lien dans la bio ». Appel à enregistrer ou à commenter.
 - **Piliers** (alterne-les) : le coach explique, récupération, démythifier, programmes prêts,
@@ -52,8 +66,15 @@ concrètes. Tu ne publies jamais toi-même : tu livres des fichiers prêts à po
   3. Captures : `outils/reseaux/captures.mjs` (mode d'emploi en tête du fichier, `DATE=<lundi>`)
      → `/tmp/pack/brut/` : accueil, recup, corps, composer, progres, bilan, et chaque exercice
      fermé / ouvert (`s0-dc-ouvert.png` = développé couché avec son « pourquoi »).
-  4. Plans de vidéo : adapte le tableau `V` de `scenes.mjs` (image, haut et bas du recadrage en
-     px sur 844, texte, sous-titre, tap éventuel), puis `video.sh <nom> <sortie.mp4>`.
+     Repas : repas-semaine (budget tenu, jour par jour), repas-recette-haut et repas-recette (fiche
+     recette, puis « Le conseil nutrition »), courses (liste avec prix), proteines (anneau du jour),
+     proteines-ajout, proteines-scanner. Street : street (test d'entrée et progrès),
+     street-programme (programme conseillé). Course : course (plan 10 km, allures), course-bas
+     (tout le plan). Soin : soin (routine Épaules). Jamais d'Oxa Plan ni de son bandeau « Bientôt ».
+  4. Plans de vidéo : adapte le tableau `V` de `scenes.mjs` (format complet en tête du fichier :
+     plans coupés net, `d`, `tap`, `apres`, `surligne`, `suite`, plan de fin), lance-le, regarde
+     les aperçus `$PACK/scenes/<nom>-<i>.png` (avec `GUIDES=1` pour les zones masquées), puis
+     `video.sh <nom> <sortie.mp4>`. Zones sûres : 230 px en haut, 290 px en bas, 170 px à droite.
   5. Carrousels : adapte le tableau `C` de `carrousels.mjs`.
   Ne mets jamais l'historique réel d'un utilisateur dans un contenu.
 - Regarde chaque image produite avant de livrer : rien de coupé, rien qui dépasse, texte lisible

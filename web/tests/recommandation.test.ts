@@ -91,3 +91,69 @@ describe("recoDuJour (agenda)", () => {
     expect(musclesRecommandes(recoDuJour(H, MER))).not.toContain("pec");
   });
 });
+
+/* Trapèzes, lombaires, avant-bras, adducteurs ; course et cardio guidé. */
+import { effortsEndurance, MUSCLES_RECUP } from "@/lib/logic/recommandation";
+import { chargeLombaires, construireSeance } from "@/lib/logic/assistant";
+import type { Sortie } from "@/lib/logic/course";
+import type { HistoCardio } from "@/lib/logic/types";
+
+describe("récupération des autres muscles", () => {
+  it("shrugs et extensions lombaires : trapèzes et lombaires en récupération", () => {
+    const E = etatGroupes([seance(MAR, { shr: 4, lom: 3 })], MER);
+    expect(E.tra.recupere).toBe(false);
+    expect(E.lom.recupere).toBe(false);
+    expect(etatGroupes([seance(MAR, { shr: 4, lom: 3 })], "2026-11-05").lom.recupere).toBe(true);
+  });
+
+  it("un soulevé de terre (lombaires en second) fatigue les lombaires 48 h", () => {
+    const E = etatGroupes([seance(MAR, { sdt: 4 })], MER);
+    expect(E.lom).toMatchObject({ recupere: false, reste: 1 });
+  });
+
+  it("ces muscles ne changent pas les séances proposées", () => {
+    const r = recommander([seance(MAR, { shr: 4, lom: 3, poi: 3, add: 3 })], MER)!;
+    expect(r.propositions.length).toBeGreaterThan(0);
+    for (const p of r.propositions) for (const g of p.muscles) expect(["tra", "lom", "avb", "add"]).not.toContain(g);
+    expect(MUSCLES_RECUP).toHaveLength(13);
+  });
+});
+
+describe("course et cardio", () => {
+  const sortie = (d: string, km: number, rpe: number, course = false): Sortie => ({ d, km, sec: km * 330, rpe, course });
+  it("un footing court et facile ne compte pas ; une sortie longue, si", () => {
+    expect(effortsEndurance([sortie(MAR, 5, 4)])).toEqual([]);
+    const E = etatGroupes([push(LUN)], MER, effortsEndurance([sortie(MAR, 18, 6)]));
+    expect(E.qua).toMatchObject({ recupere: false, reste: 1 });
+    expect(E.mol.recupere).toBe(false);
+    expect(E.pec.recupere).toBe(true);
+  });
+
+  it("un marathon : 72 h", () => {
+    expect(effortsEndurance([sortie(LUN, 42.2, 9, true)])[0].jours).toBe(3);
+    expect(etatGroupes([], MER, effortsEndurance([sortie(LUN, 42.2, 9, true)])).isc.reste).toBe(1);
+  });
+
+  it("le lendemain d'une sortie longue, pas de séance de jambes proposée", () => {
+    const r = recommander([push(LUN)], MER, [], undefined, effortsEndurance([sortie(MAR, 20, 7)]))!;
+    for (const p of r.propositions) for (const g of ["qua", "isc", "mol"]) expect(p.muscles).not.toContain(g);
+  });
+
+  it("cardio guidé : du fractionné au rameur fatigue dos et jambes 24 h, une endurance courte rien", () => {
+    const ts = new Date(MAR + "T18:00").getTime();
+    const C = [{ nom: "x", f: "fractionne", m: "ram", min: 20, effort: 600, ts }, { nom: "y", f: "endurance", m: "velo", min: 30, effort: 1800, ts }] as HistoCardio[];
+    expect(effortsEndurance([], C)).toEqual([{ d: MAR, jours: 1, muscles: ["dos", "qua", "isc"] }]);
+  });
+});
+
+describe("assistant : lombaires en récupération", () => {
+  it("les soulevés de terre lourds sont reconnus", () => {
+    for (const o of ["sdt", "rm", "gm", "tbar", "rkp"]) expect(chargeLombaires(o)).toBe(true);
+    for (const o of ["lc", "sq", "lom", "hip"]) expect(chargeLombaires(o)).toBe(false);
+  });
+  it("une séance ischios évite les soulevés de terre quand c'est possible", () => {
+    const ex = construireSeance(["isc"], 60, 0, ["m0", "m1", "m2", "m3", "bt"], () => 0.5, chargeLombaires);
+    expect(ex.length).toBeGreaterThan(0);
+    expect(ex.some((e) => chargeLombaires(e.id))).toBe(false);
+  });
+});

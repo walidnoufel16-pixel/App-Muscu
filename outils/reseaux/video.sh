@@ -1,18 +1,11 @@
 #!/bin/bash
-# Usage : PACK=/tmp/pack ./video.sh <nom> <sortie.mp4> (lit $PACK/scenes/<nom>-1..N.png)
-# video.sh <nom> <sortie> : assemble scenes/<nom>-1..5.png en MP4 1080x1920, fondu entre scènes, léger zoom
+# Usage : PACK=/tmp/pack ./video.sh <nom> <sortie.mp4>
+# Assemble $PACK/scenes/<nom>/f0001.jpg … (faites par scenes.mjs, 30 images/s) en MP4 H.264 1080×1920,
+# avec une piste son muette : le son tendance s'ajoute dans l'app au moment de publier.
+# Vérifie ensuite quelques images : ffmpeg -i <sortie.mp4> -vf fps=2,scale=270:-1,tile=8x1 -frames:v 1 planche.png
+set -e
 P=${PACK:-/tmp/pack}; N=$1; OUT=$2
-D=3.4; DF=2.6; X=0.35; FPS=30
-args=(); filt=""; n=$(ls $P/scenes/$N-*.png | wc -l)
-for i in $(seq 1 $n); do
-  d=$D; [ $i -eq $n ] && d=$DF
-  args+=(-i $P/scenes/$N-$i.png)
-  fr=$(python3 -c "print(int($d*$FPS))")
-  filt+="[$((i-1)):v]scale=2160:3840,zoompan=z='1+0.035*on/$fr':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=$fr:s=1080x1920:fps=$FPS,format=yuv420p,setsar=1[v$i];"
-done
-prev="v1"; off=0
-for i in $(seq 2 $n); do
-  off=$(python3 -c "print(round($off+$D-$X,3))")
-  filt+="[$prev][v$i]xfade=transition=fade:duration=$X:offset=$off[x$i];"; prev="x$i"
-done
-ffmpeg -y -loglevel error "${args[@]}" -f lavfi -i anullsrc=r=44100:cl=stereo -filter_complex "${filt%;}" -map "[$prev]" -map $n:a -shortest -c:v libx264 -preset slow -crf 20 -pix_fmt yuv420p -r $FPS -c:a aac -b:a 64k -movflags +faststart "$OUT"
+[ -f "$P/scenes/$N/f0001.jpg" ] || { echo "pas d'images dans $P/scenes/$N : lance d'abord scenes.mjs $N" >&2; exit 1; }
+ffmpeg -y -loglevel error -framerate 30 -i "$P/scenes/$N/f%04d.jpg" -f lavfi -i anullsrc=r=44100:cl=stereo \
+  -map 0:v -map 1:a -shortest -c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p -r 30 \
+  -c:a aac -b:a 64k -movflags +faststart "$OUT"
