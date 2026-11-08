@@ -70,13 +70,13 @@ Ta source de protéines préférée, c'est quoi ? 👇
 
 ## Vidéo 5 · `video-5-recuperation.mp4` · « Muscles encore fatigués ? » (épisode 5)
 
-Pilier : récupération. 14,7 s. À l'écran : 0 à 2,5 s, « Épisode 5 · Muscles encore fatigués ? » en plein écran sombre ; puis la feuille Récupération d'Alex un mardi, après une séance pecs-épaules-triceps et une sortie de 10 km la veille : pecs, épaules, triceps « demain », puis quadriceps, ischios, mollets « demain » (la course compte) ; puis la fin de la liste, trapèzes, lombaires, avant-bras, adducteurs ; fin « Récupère. Suis Oxa · prochain épisode mardi ».
+Pilier : récupération. 14,7 s (refaite le 8 novembre : silhouette verte et orange, feuille sans voile). À l'écran : 0 à 2,5 s, « Épisode 5 · Muscles encore fatigués ? » en plein écran sombre ; puis la feuille Récupération d'Alex un mardi, après une séance de dos et une sortie de 10 km difficile la veille : la silhouette en deux couleurs (de face, pecs, abdos, épaules et bras en turquoise, jambes en orange ; de dos, dos et jambes en orange), l'encadré sur quadriceps, ischios et mollets « demain » (« La course compte : jambes au repos ») ; puis le reste de la liste en turquoise, l'encadré sur Pecs « prêt » puis sur le bouton « Séance avec les muscles prêts » (« Le reste est prêt : vas-y ») ; fin « Récupère. Suis Oxa · prochain épisode mardi ».
 
 **TikTok / Reels**
 ```
 Muscles encore fatigués ? Ton app devrait le savoir. 🟠
-Épisode 5. La feuille Récupération d'Oxa suit tes séances ET tes sorties de course : un 10 km un peu dur, et tes jambes passent en récupération.
-Elle suit aussi tes trapèzes, tes lombaires, tes avant-bras et tes adducteurs.
+Épisode 5. La feuille Récupération d'Oxa suit tes séances ET tes sorties de course : un 10 km un peu dur, et tes jambes passent en orange.
+Ce qui est prêt reste en turquoise, et Oxa te compose une séance avec ces muscles-là. Elle suit aussi tes trapèzes, tes lombaires, tes avant-bras et tes adducteurs.
 
 Toi, tu sens tes jambes combien de temps après une sortie ? 👇
 Suis @oxafit.app · prochain épisode mardi.
