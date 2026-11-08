@@ -31,7 +31,7 @@
      grandit (zoom), un trait turquoise se trace dessous. Durée : la règle de lecture, puis l'écran de
      l'app arrive au plan suivant, comme réponse.
    Plan de fin : { fin: 1, t, s, ep, appel, d } (logo, ep = « Épisode 2 » facultatif, texte, appel =
-     « Suis Oxa pour l'épisode 3 » facultatif, oxafit.app, « Lien dans la bio »).
+     « Suis Oxa · prochain épisode mardi » : jour de la vidéo suivante du calendrier, oxafit.app, « Lien dans la bio »).
    Règle de lecture (8 novembre 2026, révisée le même jour : 22 s, c'était trop long) : seuls les plans avec
    un encadré ralentissent. Plan avec surligne (ou regarde) : 0,4 s par mot affiché + 2,5 s, au moins 4,5 s,
    pour lire le texte puis regarder le chiffre encadré (fais apparaître le cadre vers 1,2 s, après le texte).
@@ -69,7 +69,7 @@ const V = {
       surligne: [{ x: 24, y: 349, w: 330, h: 44, at: 1.2 }] },
     { img: "s0-el-ouvert", h: 515, bas: 724, t: "Petit muscle :<br><em>+1 kg seulement.</em>",
       surligne: [{ x: 26, y: 665, w: 330, h: 44, at: 1.2 }] },
-    { fin: 1, t: "Chaque charge<br><em>expliquée.</em>", appel: "Suis Oxa : épisode 3" },
+    { fin: 1, t: "Charges<br><em>expliquées.</em>", appel: "Suis Oxa ·<br>prochain épisode mardi" },
   ],
   regularite: [
     { accroche: 1, k: "Épisode 3", t: "Une semaine<br>à fond.<br><em>Puis plus rien ?</em>" },
@@ -77,7 +77,7 @@ const V = {
       surligne: [{ x: 26, y: 120, w: 160, h: 28, at: 1.0, jusqua: 2.7 }, { x: 18, y: 245, w: 355, h: 72, at: 2.8 }] },
     { img: "progres", h: 105, bas: 312, t: "Objectif tenu.<br><em>Et 14 records.</em>",
       surligne: [{ x: 28, y: 243, w: 276, h: 24, at: 1.2 }] },
-    { fin: 1, t: "La régularité<br><em>bat l'intensité.</em>", appel: "Suis Oxa" },
+    { fin: 1, t: "<em>Reviens.</em>", appel: "Suis Oxa ·<br>prochain épisode mercredi" },
   ],
 };
 

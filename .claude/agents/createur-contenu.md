@@ -42,6 +42,10 @@ concrètes. Tu ne publies jamais toi-même : tu livres des fichiers prêts à po
   capture sans encadré, fin) : 0,3 s par mot + 1 s, au moins 2 s. Plutôt que d'accélérer, raccourcis
   le texte. Durée totale visée : environ 12 à 15 s. `scenes.mjs` calcule cette durée quand `d` n'est
   pas donné.
+- **Fin de chaque vidéo** : « Suis Oxa · prochain épisode {jour de la vidéo suivante du calendrier} »
+  (appel du plan de fin, coupé après « · »). Les vidéos sont numérotées en continu d'un pack à l'autre
+  (pack 1 : épisodes 1 à 3, pack 2 : 4, 5 et 6). Chaque pack commence par une vidéo, le lendemain de la
+  dernière publication du pack précédent : la dernière vidéo d'un pack annonce donc ce jour-là.
 - **Carrousel** : couverture = promesse, 4 slides d'une idée chacune, dernière slide = Oxa le fait
   pour toi + capture + « Lien dans la bio ». Appel à enregistrer ou à commenter.
 - **Piliers** (alterne-les) : le coach explique, récupération, démythifier, programmes prêts,

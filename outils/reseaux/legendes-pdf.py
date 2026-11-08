@@ -14,7 +14,7 @@ V2=("Vidéo 2 · Tu ajoutes du poids au feeling ? (épisode 2)","video-2-pourquo
 Épisode 2. Oxa écrit la raison sous chaque charge : 40 kg × 12 sur toutes tes séries ? +2,5 kg, et tu repars à 8. Sur un petit muscle, +1 kg seulement.
 
 Tu montes en charge comment, toi ? 👇
-Suis @oxafit.app pour l'épisode 3.
+Suis @oxafit.app · prochain épisode mardi.
 #surchargeprogressive #muscu #musculation #progression #gym""",
 "Tu ajoutes du poids au feeling ? #shorts",
 "Épisode 2 : la double progression, expliquée sous chaque charge. 👉 https://oxafit.app/?src=youtube #muscu #surchargeprogressive",
@@ -25,7 +25,7 @@ V3=("Vidéo 3 · Une semaine à fond, puis plus rien ? (épisode 3)","video-3-re
 Chaque lundi, Oxa te dit si ton objectif est tenu, et quels records sont tombés.
 
 Ton objectif, c'est combien de séances par semaine ? 👇
-Suis @oxafit.app pour la suite.
+Suis @oxafit.app · prochain épisode mercredi.
 #muscu #musculation #regularite #motivation #gym""",
 "Une semaine à fond, puis plus rien ? #shorts",
 "Épisode 3 : la régularité bat l'intensité. Tes semaines tenues, tes muscles prêts, tes records. 👉 https://oxafit.app/?src=youtube #muscu #musculation",
@@ -92,7 +92,7 @@ ul{{margin:4px 0 0 0;padding-left:18px}} .note{{background:#ecfdf5;border-radius
 <tr><td>Mar 10</td><td>Vidéo 3 · Une semaine à fond, puis plus rien ? (ép. 3)</td><td>TikTok, Reels, Shorts</td><td>18 h 30</td></tr></table>
 <div class=note><b>À chaque publication</b><ul>
 <li><b>Vidéos</b> : elles sont muettes, ajoute un son tendance sans paroles (volume du son à 30-50 %). Garde la première image comme miniature.</li>
-<li><b>Refaits le 8 novembre</b> : video-2-pourquoi-cette-charge.mp4, video-3-regularite.mp4 et la couverture du carrousel 2. Remplace les anciens fichiers avant de publier. Les vidéos font 15,5 s chacune, s'ouvrent sur une phrase plein écran et finissent sur « Épisode 2 / 3 » : réponds aux commentaires en renvoyant vers l'épisode suivant.</li>
+<li><b>Refaits le 8 novembre</b> : video-2-pourquoi-cette-charge.mp4, video-3-regularite.mp4 et la couverture du carrousel 2. Remplace les anciens fichiers avant de publier. Les vidéos font 15,5 s chacune, s'ouvrent sur une phrase plein écran et finissent sur « Suis Oxa · prochain épisode mardi » (vidéo 2) et « … mercredi » (vidéo 3, le pack 2 commence mercredi 11 par l'épisode 4) : réponds aux commentaires en renvoyant vers l'épisode suivant.</li>
 <li><b>Lien en bio</b> : oxafit.app/?src=tiktok, /?src=instagram, /?src=youtube.</li>
 <li><b>Première heure</b> : réponds à tous les commentaires. Pack 2 à partir du mercredi 11.</li></ul></div>
 {corps}
