@@ -1,7 +1,7 @@
 "use client";
 
 /* Muscles ciblés par un exercice, en miniature à droite du titre de la fiche : le corps de face et de
-   dos, le muscle principal en couleur foncée, les secondaires en couleur claire (musclesCibles), le
+   dos, le muscle principal en turquoise vif, les secondaires en turquoise foncé (musclesCibles), le
    reste du corps clair en thème sombre et sombre en thème clair. La toucher l'ouvre en grand, sur
    fond noir, avec le nom des muscles (comme une machine de Ma salle). Rien pour un exercice sans zone
    (cardio, mobilité, soin). */
@@ -14,8 +14,9 @@ import { CORPS, CORPS_F, CORPS_VB, CORPS_VB_F } from "@/lib/data/corps";
 import { musclesCibles } from "@/lib/logic/muscles-cibles";
 import { tactile } from "@/lib/repos";
 
-const PRINCIPAL = "color-mix(in oklab, var(--plate) 55%, black)";
-const SECONDAIRE = "var(--plate)";
+/* principal : le turquoise vif de la marque, qui attire l'œil ; secondaires : un turquoise plus foncé */
+const PRINCIPAL = "var(--plate)";
+const SECONDAIRE = "color-mix(in oklab, var(--plate) 55%, black)";
 const NEUTRE = "color-mix(in oklab, var(--foreground) 72%, var(--background))";
 /* en grand, toujours sur fond noir : corps clair */
 const NEUTRE_NOIR = "rgb(255 255 255 / 0.78)";
