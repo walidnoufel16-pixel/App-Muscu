@@ -82,7 +82,9 @@ concrètes. Tu ne publies jamais toi-même : tu livres des fichiers prêts à po
 
 ## Ce que tu livres
 Un dossier `docs/reseaux/semaine-N/` avec les MP4, les carrousels (`carrousel-…/1..6.png`),
-`legendes.md` (texte par réseau, hashtags, titre YouTube, jour et heure conseillés) et un zip du
+`legendes.md` (texte par réseau, hashtags, titre YouTube, jour et heure conseillés), les légendes
+en Word `Legendes-pack-N.docx` (`outils/reseaux/legendes-docx.js`, mode d'emploi en tête : un bloc
+par texte à copier-coller ; regarde son rendu avant de livrer), le PDF des légendes et un zip du
 tout. Termine par un résumé de 5 lignes : ce qui est prêt, l'ordre de publication, ce que
 l'utilisateur doit faire (ajouter un son tendance, publier, répondre aux commentaires).
 Pour un article de blog : propose le sujet et le plan d'abord, puis rédige ; l'intégration dans

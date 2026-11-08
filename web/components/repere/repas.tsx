@@ -15,7 +15,7 @@ import {
 import type { AlimentPerso, CreneauRepas, PrefsRepas } from "@/lib/logic/types";
 import { emojiDe, RAYONS } from "@/lib/data/aliments";
 import { useRepere } from "@/lib/store";
-import { auteurRecette, imgRecette } from "@/lib/medias";
+import { imgRecette } from "@/lib/medias";
 import { coutRecette, euros } from "@/lib/logic/budget";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
@@ -344,11 +344,6 @@ function Fiche({ r, b, c, kcal, pers0 }: { r: Recette; b: Besoins; c?: CreneauRe
   return (
     <div className="overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),20px)]">
       <VignetteRecette r={r} large className="mt-2 h-40 w-full rounded-[22px]" />
-      {auteurRecette(r.id) && (
-        <p className="mt-1 px-1 text-right text-[11px] text-muted-foreground">
-          {tr("Photo : ")}<a href={auteurRecette(r.id)!.lien} target="_blank" rel="noreferrer" className="underline underline-offset-2">{auteurRecette(r.id)!.nom}</a>{tr(" sur ")}<a href="https://unsplash.com/?utm_source=repere&utm_medium=referral" target="_blank" rel="noreferrer" className="underline underline-offset-2">Unsplash</a>
-        </p>
-      )}
       <DrawerTitle className="mt-3 px-1 text-[23px] leading-tight font-bold tracking-[-0.01em]">{nomRecette(r)}</DrawerTitle>
       <DrawerDescription className="mt-1 px-1 text-[13.5px] text-muted-foreground">
         {tr("{n} min", { n: r.min })} · {reg > 0 ? REGIMES[reg] : tr("Avec viande")}{alg.length ? " · " + tr("Contient : {l}", { l: alg.map((k) => ALLERGIES.find((x) => x[0] === k)![1].toLowerCase()).join(", ") }) : ""}

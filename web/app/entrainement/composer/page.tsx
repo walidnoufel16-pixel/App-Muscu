@@ -317,8 +317,11 @@ function CarteCompo({
         <button onPointerDown={onSaisir} aria-label={tr("Glisser pour déplacer")} className="grid h-16 w-8 shrink-0 cursor-grab touch-none place-items-center text-muted-foreground/70 active:cursor-grabbing">
           <DotsSixVerticalIcon className="size-5" />
         </button>
-        <button onClick={onToggle} aria-expanded={ouvert} className="flex min-w-0 flex-1 items-center gap-3 py-3 pr-3 text-left">
+        {/* toucher la photo ouvre la fiche de l'exercice, sans déplier la carte */}
+        <button onClick={onFiche} aria-label={tr("Fiche de {n}", { n: x.n })} className="shrink-0 py-3 active:scale-95">
           <Vignette id={e.id} num={i + 1} />
+        </button>
+        <button onClick={onToggle} aria-expanded={ouvert} className="flex min-w-0 flex-1 items-center gap-3 py-3 pr-3 pl-3 text-left">
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="truncate text-[16px] font-semibold tracking-[-0.01em]">{x.n}</span>
             {mus.length > 0 && <span className="truncate text-[12.5px] text-muted-foreground">{mus.join(" · ")}</span>}

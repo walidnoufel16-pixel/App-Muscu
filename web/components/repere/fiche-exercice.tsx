@@ -12,11 +12,12 @@ import { useRepere } from "@/lib/store";
 import { useFiche } from "@/lib/fiches";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { imgEx, imgExGrand, sourceEx } from "@/lib/medias";
+import { imgEx, imgExGrand } from "@/lib/medias";
 import { etapesDe } from "@/lib/data/street";
 import { variantesDe } from "@/lib/logic/variantes";
 import { musclesDe } from "@/lib/logic/core";
 import { Vignette } from "./exercice-carte";
+import { CorpsMuscles } from "./corps-muscles";
 
 export type FicheOuverte = {
   id: string;
@@ -104,10 +105,14 @@ function Contenu({ fiche }: { fiche: FicheOuverte }) {
       )}
       <div className="pt-2">
         <Duo key={id} id={id} />
-        {EX[id]?.img && <p className="mt-1.5 text-center text-[10.5px] text-muted-foreground">{sourceEx(id).mention}</p>}
       </div>
-      <div className="eyebrow mt-4">{e.m} · {nomPat(e.pat)}</div>
-      <DrawerTitle className="mt-1 text-[26px] leading-tight font-bold tracking-[-0.02em]">{e.n}</DrawerTitle>
+      <div className="mt-4 flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <div className="eyebrow">{e.m} · {nomPat(e.pat)}</div>
+          <DrawerTitle className="mt-1 text-[26px] leading-tight font-bold tracking-[-0.02em]">{e.n}</DrawerTitle>
+        </div>
+        <CorpsMuscles id={id} femme={etat.A.sexe === 1} />
+      </div>
       <DrawerDescription className="sr-only">{tr("Fiche de l'exercice")}</DrawerDescription>
 
       {origine && (
