@@ -49,8 +49,8 @@ const PHOTOS_LIBRES: Record<string, { auteur: string; licence: string; lien: str
    avec son accord : la machine sur fond blanc, prioritaire sur toute autre photo du poste. */
 const MARQUES = { th: "Throwdown", im: "Impulse Fitness" } as const;
 const PHOTOS_CATALOGUE: Record<string, keyof typeof MARQUES> = Object.fromEntries([
-  ...["battle", "corde", "ez", "landmine", "plyo", "sac", "skierg", "slam", "traineau", "trapbar"].map((id) => [id, "th"] as const),
-  ...["addabd", "airbike", "banc", "bancabdo", "bancplat", "bancreg", "beltsq", "biking", "chaise", "chest", "crm", "devinc", "dipsass", "dipsassis", "ellip", "epaules", "extlomb", "fessiers", "functr", "ghd", "hack", "hipthr", "hyper45", "latm", "legcurl", "legext", "mollass", "mollets", "multihanche", "pecdeck", "pendule", "poulie", "powertower", "presse", "pullover", "pupitre", "pupm", "rack", "rameur", "rotbuste", "rowhaut", "rowing", "smith", "squatlev", "stair", "tapis", "tapiscourbe", "tbarp", "tirhor", "tirvert", "trim", "velo", "velosa"].map((id) => [id, "im"] as const),
+  ...["battle", "corde", "ez", "kettle", "landmine", "plyo", "sac", "sandbag", "sangles", "skierg", "slam", "traineau", "trapbar", "ube"].map((id) => [id, "th"] as const),
+  ...["addabd", "airbike", "banc", "bancabdo", "bancplat", "bancreg", "bancrunch", "beltsq", "biking", "chaise", "chaiseabdo", "chest", "climber", "crm", "devinc", "dipsass", "dipsassis", "ecartdebout", "ellip", "epaules", "etirement", "extlomb", "fessiers", "functr", "ghd", "hack", "hipgen", "hipthr", "hyper45", "latm", "lcall", "legcurl", "legext", "mollass", "mollets", "multiflight", "multihanche", "multipresse", "multistation", "multitirage", "nordic", "pecdeck", "pecfly", "pendule", "poulie", "powertower", "presse", "pressehor", "pressevert", "pullover", "pupitre", "pupm", "rack", "rameur", "rotbuste", "rowhaut", "rowing", "sealrow", "sissy", "smith", "squatlev", "stair", "tapis", "tapiscourbe", "tbarp", "tirhor", "tirvert", "trim", "velo", "velosa"].map((id) => [id, "im"] as const),
 ]);
 
 /** Photo d'un poste de « Ma salle » : celle de son exercice, sinon une photo libre ou Unsplash, sinon rien (icône). */
