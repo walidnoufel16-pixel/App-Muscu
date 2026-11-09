@@ -98,8 +98,10 @@ export const feuilleDuJour = (j: JourAgenda, auj: string): Feuille | null =>
    groupes repliés. Toucher une séance ou une proposition : « Ajouter ce jour » la programme ce
    jour-là, « Programmer un autre jour » ouvre la feuille Programmer. Une séance créée pour un jour à
    venir y est programmée (?jour=, Brouillon.pour). */
-function FeuilleNouvelle({ d, auj, setF }: { d: string; auj: string; setF: (f: Feuille | null) => void }) {
+function FeuilleNouvelle({ d: d0, auj, setF }: { d: string; auj: string; setF: (f: Feuille | null) => void }) {
   const etat = useRepere((s) => s.etat);
+  /* le jour se change en haut de la feuille ; les propositions d'Oxa suivent */
+  const [d, setD] = useState(d0 < auj ? auj : d0);
   const muter = useRepere((s) => s.muter);
   const router = useRouter();
   const setLibre = useBrouillon((s) => s.setLibre);
@@ -154,7 +156,8 @@ function FeuilleNouvelle({ d, auj, setF }: { d: string; auj: string; setF: (f: F
   return (
     <>
       <DrawerTitle className="mt-2 px-1 text-[22px] font-extrabold">{d === auj ? tr("Aujourd'hui") : tr("Programmer une séance")}</DrawerTitle>
-      <DrawerDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">{maj(jourLong(d))}</DrawerDescription>
+      <DrawerDescription className="mt-0.5 mb-2.5 px-1 text-[13.5px] text-muted-foreground">{maj(jourLong(d))}</DrawerDescription>
+      <ChoixJour valeur={d} auj={auj} onChange={(x) => { tactile(5); setD(x); setOuvert(null); }} />
 
       <h3 className="eyebrow mt-4 mb-1.5 px-1">{tr("Créer une séance")}</h3>
       <div className="grid grid-cols-3 gap-1.5">
