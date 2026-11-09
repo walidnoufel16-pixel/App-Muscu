@@ -94,7 +94,7 @@ export const feuilleDuJour = (j: JourAgenda, auj: string): Feuille | null =>
 /* ---------------- la feuille « Programmer une séance » (un jour, le bouton +, « Programmer une séance ») ----------------
    En haut, créer : je choisis les muscles (assistant), exercice par exercice (composeur), importer.
    Puis « Oxa choisit pour toi » : les propositions d'Oxa d'après les muscles prêts ce jour-là (et,
-   pour un jour à venir, « Laisser Oxa choisir le jour même »). Enfin les séances déjà créées, en
+   pour un jour à venir, « Oxa décidera le jour J »). Enfin les séances déjà créées, en
    groupes repliés. Toucher une séance ou une proposition : « Ajouter ce jour » la programme ce
    jour-là, « Programmer un autre jour » ouvre la feuille Programmer. Une séance créée pour un jour à
    venir y est programmée (?jour=, Brouillon.pour). */
@@ -178,8 +178,9 @@ function FeuilleNouvelle({ d, auj, setF }: { d: string; auj: string; setF: (f: F
           {propositions.map((c, k) => ligne(c, k === 0, true))}
           {futur && (
             <button onClick={() => ajouter({ quoi: { t: "reco" }, nom: tr("Séance choisie par Oxa"), icone: null })}
-              className="rounded-2xl border-[1.5px] border-dashed border-plate/50 p-3 text-[14px] font-semibold text-plate-ink active:scale-[.99] dark:text-plate">
-              {tr("Laisser Oxa choisir le jour même")}
+              className="rounded-2xl border-[1.5px] border-dashed border-plate/50 px-3 py-2.5 text-center active:scale-[.99]">
+              <span className="block text-[14px] font-semibold text-plate-ink dark:text-plate">{tr("Oxa décidera le jour J")}</span>
+              <span className="block text-[12px] leading-snug text-muted-foreground">{tr("Le créneau est réservé ; les muscles seront choisis ce jour-là, d'après ta récupération.")}</span>
             </button>
           )}
         </div>
