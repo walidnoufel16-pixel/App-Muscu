@@ -34,9 +34,11 @@ await cap(pg, "accueil");
 // le menu du jour
 await pg.getByRole("button", { name: "Nouvelle séance" }).click();
 const dlg = pg.getByRole("dialog");
-await dlg.getByText("Créer une séance pour moi").waitFor();
-ok(await dlg.getByText("Composer exercice par exercice").isVisible() && await dlg.getByText("Importer une séance avec un code").isVisible(), "menu : créer pour moi, composer, importer");
-ok(await dlg.getByText("Mes séances").isVisible() && !(await dlg.getByText("Recommandation d'Oxa").count()), "menu : Mes séances, sans recommandation");
+await dlg.getByText("Je choisis les muscles").waitFor();
+ok(await dlg.getByText("Exercice par exercice").isVisible() && await dlg.getByText("Avec un code").isVisible(), "feuille : je choisis les muscles, exercice par exercice, importer");
+ok(await dlg.getByText("Oxa choisit pour toi").isVisible() && await dlg.getByText("Conseillée").isVisible(), "feuille : Oxa choisit pour toi, une proposition conseillée");
+ok(!(await dlg.getByRole("button", { name: /^Push/ }).count()), "Mes séances replié au départ");
+await dlg.getByRole("button", { name: /^Mes séances/ }).click();
 await dlg.getByRole("button", { name: /^Push/ }).click();
 await dlg.getByRole("button", { name: "Ajouter aujourd'hui" }).waitFor();
 ok(await dlg.getByRole("button", { name: "Programmer un autre jour" }).isVisible(), "toucher une séance : Ajouter aujourd'hui / Programmer un autre jour");
@@ -50,12 +52,25 @@ await cap(pg, "prevue");
 
 // programmer un autre jour : la feuille Programmer, sur la séance choisie
 await pg.getByRole("button", { name: "Nouvelle séance" }).click();
+await dlg.getByRole("button", { name: /^Mes séances/ }).click();
 await dlg.getByRole("button", { name: /^Push/ }).click();
 await dlg.getByRole("button", { name: "Programmer un autre jour" }).click();
 await dlg.getByRole("button", { name: "Programmer", exact: true }).click();
 await pg.waitForTimeout(500);
 e = await etat(pg);
 ok(e.AGENDA?.filter((p) => p.nom === "Push").length === 2 && e.AGENDA.some((p) => p.d > il(0)), "Programmer un autre jour → un 2e prévu, à venir");
+
+// une proposition d'Oxa, programmée demain avec ses muscles
+await pg.getByRole("button", { name: "Programmer", exact: false }).first().waitFor();
+await pg.goto(U + "/entrainement/");
+await pg.getByRole("button", { name: /Programmer/ }).first().click();
+await dlg.getByText("Oxa choisit pour toi").waitFor();
+ok(await dlg.getByRole("heading", { name: "Programmer une séance" }).count() === 1 || await dlg.getByText("Programmer une séance").count() > 0, "« Programmer » ouvre la feuille Programmer une séance");
+await dlg.getByRole("button", { name: /^Conseillée/ }).click();
+await dlg.getByRole("button", { name: /^Ajouter le / }).click();
+await pg.waitForTimeout(600);
+e = await etat(pg);
+ok(e.AGENDA?.some((p) => p.d === il(-1) && p.quoi.t === "reco" && p.quoi.m?.length > 0), "proposition d'Oxa programmée demain, avec ses muscles");
 
 // l'assistant ouvert pour un jour à venir
 const dans3 = il(-3);

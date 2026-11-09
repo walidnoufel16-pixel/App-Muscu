@@ -1,6 +1,6 @@
 "use client";
 
-/* Entraînement : la semaine en anneaux, la séance du jour en grand, trois raccourcis pour créer,
+/* Entraînement : la semaine en anneaux, la séance du jour en grand,
    « À venir » (et l'écran Agenda), puis les rubriques en mosaïque. Le bouton + ouvre « Nouvelle
    séance ». Oxa Plan ne s'ouvre que par sa rubrique. */
 import { AvatarProfil } from "@/components/repere/avatar-profil";
@@ -10,7 +10,7 @@ import { PlusIcon } from "@phosphor-icons/react";
 import { EnTete } from "@/components/repere/en-tete";
 import { Reprise } from "@/components/repere/motivation";
 import { FeuillesAgenda, type Feuille } from "@/components/repere/agenda";
-import { AVenir, CarteDuJour, Raccourcis, SemaineAnneaux } from "@/components/repere/accueil-entrainement";
+import { AVenir, CarteDuJour, SemaineAnneaux } from "@/components/repere/accueil-entrainement";
 import { FeuilleImport } from "@/components/repere/mes-seances";
 import { ProgrammeBientot } from "@/components/repere/bientot";
 import { Mosaique, type Rubrique } from "@/components/repere/rubriques";
@@ -59,7 +59,6 @@ export default function PageEntrainement() {
         {!debutant && <LigneRecuperation auj={auj} />}
         <CarteDuJour auj={auj} setF={setF} />
         <Reprise />
-        <Raccourcis />
         <div className="mt-2"><AVenir auj={auj} setF={setF} /></div>
         <section className="mt-2">
           <h2 className="mb-2 px-1 text-[20px] font-extrabold tracking-[-0.015em]">{debutant ? tr("Par où commencer") : tr("Explorer")}</h2>

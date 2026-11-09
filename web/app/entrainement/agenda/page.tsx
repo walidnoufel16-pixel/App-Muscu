@@ -9,7 +9,7 @@ import { BellIcon, CaretLeftIcon, CaretRightIcon, PlusIcon } from "@phosphor-ico
 import { EnTete } from "@/components/repere/en-tete";
 import { Retour } from "@/components/repere/retour";
 import { Segmente } from "@/components/repere/segmente";
-import { Case, FeuillesAgenda, initiales, jourCourt, jourLong, maj, sousTitre, type Feuille } from "@/components/repere/agenda";
+import { Case, FeuillesAgenda, initiales, jourCourt, jourLong, maj, nomPrevu, sousTitre, type Feuille } from "@/components/repere/agenda";
 import { FeuilleImport } from "@/components/repere/mes-seances";
 import { debutGrille, familleDe, joursAgenda, type JourAgenda } from "@/lib/logic/agenda";
 import { decaler, jourDe, lundiDe } from "@/lib/logic/historique";
@@ -107,7 +107,7 @@ export default function PageAgenda() {
             <h2 className="mt-3 mb-1.5 px-1 text-[13px] font-semibold tracking-[0.04em] text-muted-foreground uppercase">{tr("À venir")}</h2>
             <div className="rounded-[18px] bg-card px-3">
               {aVenir.map(({ p, d }) => (
-                <Rangee key={p.id + d} barre={familleDe(p.quoi) === "course" ? "run" : "prevu"} titre={p.nom}
+                <Rangee key={p.id + d} barre={familleDe(p.quoi) === "course" ? "run" : "prevu"} titre={nomPrevu(p)}
                   sous={`${maj(jourLong(d))}${sousTitre(etat, p) ? " · " + sousTitre(etat, p) : ""}`} rappel={p.rappel}
                   onClick={() => { tactile(5); setSel(d); setF({ m: "jour", d }); }} />
               ))}
@@ -192,11 +192,11 @@ function ListeJour({ j, auj, setF }: { j: JourAgenda; auj: string; setF: (f: Feu
           droite={f.famille === "muscu" ? tr("Refaire") : undefined} onClick={ouvrir} />
       ))}
       {j.prevus.map((p) => (
-        <Rangee key={p.id} barre={familleDe(p.quoi) === "course" ? "run" : "prevu"} titre={p.nom}
+        <Rangee key={p.id} barre={familleDe(p.quoi) === "course" ? "run" : "prevu"} titre={nomPrevu(p)}
           sous={[tr("Prévue"), sousTitre(etat, p), p.hebdo ? tr("chaque semaine") : ""].filter(Boolean).join(" · ")} rappel={p.rappel} onClick={ouvrir} />
       ))}
       {j.manques.map((p) => (
-        <Rangee key={p.id} barre="manque" titre={p.nom} sous={tr("Prévue, pas faite")} droite={tr("Reprogrammer")} onClick={ouvrir} />
+        <Rangee key={p.id} barre="manque" titre={nomPrevu(p)} sous={tr("Prévue, pas faite")} droite={tr("Reprogrammer")} onClick={ouvrir} />
       ))}
       {vide && j.d < auj && <p className="py-3 text-[13.5px] text-muted-foreground">{tr("Rien ce jour-là.")}</p>}
       {j.d >= auj && (

@@ -7,9 +7,9 @@ import { loc, tp, tr } from "@/lib/i18n";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { BellIcon, CheckIcon, DownloadSimpleIcon, FlameIcon, ListBulletsIcon, PencilSimpleIcon, PersonSimpleRunIcon, PlayIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
+import { BellIcon, CheckIcon, FlameIcon, ListBulletsIcon, PencilSimpleIcon, PersonSimpleRunIcon, PlayIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
 import { useEnCours } from "./seance-en-cours";
-import { feuilleDuJour, initiales, sousTitre, useLancer, type Feuille } from "./agenda";
+import { feuilleDuJour, initiales, nomPrevu, sousTitre, useLancer, type Feuille } from "./agenda";
 import { decaler, lundiDe } from "@/lib/logic/historique";
 import { familleDe, joursAgenda, tombeLe, type JourAgenda, type Prevu } from "@/lib/logic/agenda";
 import { avecSorties } from "@/lib/logic/course";
@@ -18,8 +18,7 @@ import { imgEx, imgExGrand } from "@/lib/medias";
 import { EX } from "@/lib/data/exercices";
 import { recoDuJour } from "@/lib/logic/recommandation";
 import { useRepere } from "@/lib/store";
-import { useBrouillon } from "@/lib/brouillon";
-import { AVANT, useMenu } from "@/lib/nav";
+import { AVANT } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 import type { Etat } from "@/lib/logic/types";
@@ -160,7 +159,7 @@ export function CarteDuJour({ auj, setF }: { auj: string; setF: (f: Feuille) => 
   const p = j.prevus[0];
   if (p)
     return (
-      <Hero ph={photoPrevu(etat, p)} tag={tr("Aujourd'hui · prévue")} titre={p.nom} sous={sousTitre(etat, p)}
+      <Hero ph={photoPrevu(etat, p)} tag={tr("Aujourd'hui · prévue")} titre={nomPrevu(p)} sous={sousTitre(etat, p)}
         principal={{ label: tr("Commencer"), icone: <PlayIcon className="size-4" weight="fill" />, onClick: () => lancer(etat, p) }}
         second={{ label: tr("Voir et modifier"), icone: <PencilSimpleIcon className="size-5" />, onClick: () => setF({ m: "jour", d: auj }) }} />
     );
@@ -191,27 +190,6 @@ export function CarteDuJour({ auj, setF }: { auj: string; setF: (f: Feuille) => 
   return null;
 }
 
-/* ---------------- les trois raccourcis pour créer ---------------- */
-export function Raccourcis() {
-  const router = useRouter();
-  const setLibre = useBrouillon((s) => s.setLibre);
-  const l = [
-    { icone: <SparkleIcon className="size-4" weight="fill" />, n: tr("Pour moi"), onClick: () => router.push("/entrainement/assistant", AVANT) },
-    { icone: <PlusIcon className="size-4" weight="bold" />, n: tr("Composer"), onClick: () => { setLibre({ nom: tr("Séance libre"), ex: [], idx: null }); router.push("/entrainement/composer", AVANT); } },
-    { icone: <DownloadSimpleIcon className="size-4" weight="bold" />, n: tr("Importer"), onClick: () => useMenu.setState({ importer: true }) },
-  ];
-  return (
-    <div className="grid grid-cols-3 gap-2">
-      {l.map((x) => (
-        <button key={x.n} onClick={() => { tactile(6); x.onClick(); }} className="flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-full bg-card px-2 text-[13px] font-semibold active:scale-[.97]">
-          <span className="shrink-0 text-plate-ink dark:text-plate">{x.icone}</span>
-          <span className="truncate">{x.n}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
 /* ---------------- à venir ---------------- */
 export function AVenir({ auj, setF }: { auj: string; setF: (f: Feuille) => void }) {
   const etat = useRepere((s) => s.etat);
@@ -238,19 +216,19 @@ export function AVenir({ auj, setF }: { auj: string; setF: (f: Feuille) => void 
             <button key={p.id + d} onClick={() => { tactile(5); setF({ m: "jour", d }); }} className="w-[160px] shrink-0 rounded-[16px] bg-card px-3 py-2.5 text-left active:scale-[.98]">
               <span className={cn("block text-[11.5px] font-bold tracking-[0.04em] uppercase", familleDe(p.quoi) !== "course" && "text-plate-ink dark:text-plate")}
                 style={familleDe(p.quoi) === "course" ? { color: RUN } : undefined}>{jour(d)}</span>
-              <span className="mt-0.5 block truncate text-[15px] font-bold">{p.nom}</span>
+              <span className="mt-0.5 flex items-center gap-1 truncate text-[15px] font-bold">{p.quoi.t === "reco" && <SparkleIcon className="size-3.5 shrink-0 text-plate" weight="fill" />}<span className="truncate">{nomPrevu(p)}</span></span>
               <span className="mt-0.5 flex items-center gap-1 text-[12.5px] text-muted-foreground">
                 {p.rappel && <BellIcon className="size-3.5 shrink-0" weight="fill" />}
                 <span className="truncate">{p.rappel ? (p.rappel.veille ? tr("la veille à {h} h", { h: p.rappel.h }) : tr("à {h} h", { h: p.rappel.h })) : (sousTitre(etat, p) ?? (p.hebdo ? tr("chaque semaine") : ""))}</span>
               </span>
             </button>
           ))}
-          <button onClick={() => { tactile(6); setF({ m: "programmer", d: decaler(auj, 1) }); }} className="flex w-[110px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-[16px] border-[1.5px] border-dashed border-plate/50 text-[14px] font-semibold text-plate-ink dark:text-plate">
+          <button onClick={() => { tactile(6); setF({ m: "nouvelle", d: decaler(auj, 1) }); }} className="flex w-[110px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-[16px] border-[1.5px] border-dashed border-plate/50 text-[14px] font-semibold text-plate-ink dark:text-plate">
             <PlusIcon className="size-5" weight="bold" />{tr("Programmer")}
           </button>
         </div>
       ) : (
-        <button onClick={() => { tactile(6); setF({ m: "programmer", d: decaler(auj, 1) }); }} className="flex w-full items-center justify-center gap-1.5 rounded-[16px] border-[1.5px] border-dashed border-plate/50 py-3 text-[14.5px] font-semibold text-plate-ink dark:text-plate">
+        <button onClick={() => { tactile(6); setF({ m: "nouvelle", d: decaler(auj, 1) }); }} className="flex w-full items-center justify-center gap-1.5 rounded-[16px] border-[1.5px] border-dashed border-plate/50 py-3 text-[14.5px] font-semibold text-plate-ink dark:text-plate">
           <PlusIcon className="size-4" weight="bold" />{tr("Programmer une séance")}
         </button>
       )}
