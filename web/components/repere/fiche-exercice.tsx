@@ -117,11 +117,7 @@ function Contenu({ fiche }: { fiche: FicheOuverte }) {
 
       {origine && (
         <>
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            <span className="num rounded-full bg-foreground px-3 py-1 text-[15px] font-bold text-background">{tr("{a} × {a1}", { a: fiche.pres[0], a1: fiche.pres[1] })}</span>
-            <span className="rounded-full bg-muted px-3 py-1 text-[13px] font-medium">{tr("repos")}{" "}{fiche.pres[2]}</span>
-            <span className="rounded-full bg-muted px-3 py-1 text-[13px] font-medium">{fiche.libelle}</span>
-          </div>
+          {/* séries, répétitions et repos se règlent dans la séance, pas dans la fiche de l'exercice */}
           {fiche.rpe && !noRPE(id) ? (
             <div className="mt-3 flex items-center gap-3 rounded-2xl border bg-card p-3">
               <span className="num text-[28px] leading-none font-bold text-plate-ink">{tr("RPE")}{" "}{fiche.rpe}</span>
