@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { BellIcon, CheckIcon, FlameIcon, ListBulletsIcon, PencilSimpleIcon, PersonSimpleRunIcon, PlayIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
 import { useEnCours } from "./seance-en-cours";
-import { feuilleDuJour, initiales, sousTitre, useLancer, type Feuille } from "./agenda";
+import { feuilleDuJour, initiales, nomPrevu, sousTitre, useLancer, type Feuille } from "./agenda";
 import { decaler, lundiDe } from "@/lib/logic/historique";
 import { familleDe, joursAgenda, tombeLe, type JourAgenda, type Prevu } from "@/lib/logic/agenda";
 import { avecSorties } from "@/lib/logic/course";
@@ -159,7 +159,7 @@ export function CarteDuJour({ auj, setF }: { auj: string; setF: (f: Feuille) => 
   const p = j.prevus[0];
   if (p)
     return (
-      <Hero ph={photoPrevu(etat, p)} tag={tr("Aujourd'hui · prévue")} titre={p.nom} sous={sousTitre(etat, p)}
+      <Hero ph={photoPrevu(etat, p)} tag={tr("Aujourd'hui · prévue")} titre={nomPrevu(p)} sous={sousTitre(etat, p)}
         principal={{ label: tr("Commencer"), icone: <PlayIcon className="size-4" weight="fill" />, onClick: () => lancer(etat, p) }}
         second={{ label: tr("Voir et modifier"), icone: <PencilSimpleIcon className="size-5" />, onClick: () => setF({ m: "jour", d: auj }) }} />
     );
@@ -216,7 +216,7 @@ export function AVenir({ auj, setF }: { auj: string; setF: (f: Feuille) => void 
             <button key={p.id + d} onClick={() => { tactile(5); setF({ m: "jour", d }); }} className="w-[160px] shrink-0 rounded-[16px] bg-card px-3 py-2.5 text-left active:scale-[.98]">
               <span className={cn("block text-[11.5px] font-bold tracking-[0.04em] uppercase", familleDe(p.quoi) !== "course" && "text-plate-ink dark:text-plate")}
                 style={familleDe(p.quoi) === "course" ? { color: RUN } : undefined}>{jour(d)}</span>
-              <span className="mt-0.5 block truncate text-[15px] font-bold">{p.nom}</span>
+              <span className="mt-0.5 flex items-center gap-1 truncate text-[15px] font-bold">{p.quoi.t === "reco" && <SparkleIcon className="size-3.5 shrink-0 text-plate" weight="fill" />}<span className="truncate">{nomPrevu(p)}</span></span>
               <span className="mt-0.5 flex items-center gap-1 text-[12.5px] text-muted-foreground">
                 {p.rappel && <BellIcon className="size-3.5 shrink-0" weight="fill" />}
                 <span className="truncate">{p.rappel ? (p.rappel.veille ? tr("la veille à {h} h", { h: p.rappel.h }) : tr("à {h} h", { h: p.rappel.h })) : (sousTitre(etat, p) ?? (p.hebdo ? tr("chaque semaine") : ""))}</span>

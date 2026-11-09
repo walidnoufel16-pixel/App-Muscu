@@ -23,7 +23,7 @@ import { decaler, jourDe } from "@/lib/logic/historique";
 import { dureeTotale } from "@/lib/logic/combinee";
 import { musclesDe } from "@/lib/logic/core";
 import { genererPlan, semaineDe, vdotActuel } from "@/lib/logic/course";
-import { musclesRecommandes, effortsEndurance, nomGroupe, recoDuJour, type Groupe } from "@/lib/logic/recommandation";
+import { musclesRecommandes, effortsEndurance, recoDuJour } from "@/lib/logic/recommandation";
 import { activerRappels, etatRappels } from "@/lib/rappels";
 import { useRepere } from "@/lib/store";
 import { useBrouillon } from "@/lib/brouillon";
@@ -180,7 +180,7 @@ function FeuilleNouvelle({ d: d0, auj, setF }: { d: string; auj: string; setF: (
         <div className="flex flex-col gap-1.5">
           {propositions.map((c, k) => ligne(c, k === 0, true))}
           {futur && (
-            <button onClick={() => ajouter({ quoi: { t: "reco" }, nom: tr("Séance choisie par Oxa"), icone: null })}
+            <button onClick={() => ajouter({ quoi: { t: "reco" }, nom: tr("Choix d'Oxa"), icone: null })}
               className="rounded-2xl border-[1.5px] border-dashed border-plate/50 px-3 py-2.5 text-center active:scale-[.99]">
               <span className="block text-[14px] font-semibold text-plate-ink dark:text-plate">{tr("Oxa décidera le jour J")}</span>
               <span className="block text-[12px] leading-snug text-muted-foreground">{tr("Le créneau est réservé ; les muscles seront choisis ce jour-là, d'après ta récupération.")}</span>
@@ -216,7 +216,7 @@ export function Case({ j, auj, onClick }: { j: JourAgenda; auj: string; onClick:
     : p
       ? cn("border-2 border-dashed bg-card", run ? "border-[#9a4a1c] text-[#9a4a1c] dark:text-[#e0895a]" : "border-plate text-plate-ink dark:text-plate")
       : m ? "bg-foreground/[.06] text-muted-foreground line-through decoration-1" : passe ? "bg-foreground/[.03] text-muted-foreground/60" : "bg-foreground/[.07]";
-  const nom = f ? (f.famille === "course" ? tr("Course") : nomCourt(f.nom)) : p ? nomCourt(p.nom) : m ? nomCourt(m.nom) : "";
+  const nom = f ? (f.famille === "course" ? tr("Course") : nomCourt(f.nom)) : p ? nomCourt(nomPrevu(p)) : m ? nomCourt(nomPrevu(m)) : "";
   const plus = j.fait.length + j.prevus.length > 1;
   return (
     <button
@@ -232,6 +232,10 @@ export function Case({ j, auj, onClick }: { j: JourAgenda; auj: string; onClick:
   );
 }
 
+/** Le nom affiché d'une séance prévue : « Choix d'Oxa » quand Oxa décide le jour J (y compris les
+    anciennes, enregistrées sous un nom plus long). */
+export const nomPrevu = (p: Prevu) => (p.quoi.t === "reco" && !p.quoi.m?.length ? tr("Choix d'Oxa") : p.nom);
+
 export function sousTitre(E: Etat, p: Prevu) {
   if (p.quoi.t === "libre") {
     const i = indexLibre(E, p.quoi.i, p.nom), s = E.SEANCES[i];
@@ -239,7 +243,7 @@ export function sousTitre(E: Etat, p: Prevu) {
   }
   if (p.quoi.t === "course") return "Oxa Run";
   if (p.quoi.t === "plan") return "Oxa Plan";
-  if (p.quoi.t === "reco") return p.quoi.m?.length ? tr("Proposée par Oxa · {m}", { m: p.quoi.m.map((g) => nomGroupe(g as Groupe)).join(", ") }) : tr("Choisie le jour même par Oxa");
+  if (p.quoi.t === "reco") return p.quoi.m?.length ? tr("Proposée par Oxa") : tr("Muscles choisis le jour J");
   return undefined;
 }
 
@@ -312,7 +316,7 @@ function FeuilleJour({ d, auj, j, setF }: { d: string; auj: string; j: JourAgend
         return (
           <div key={p.id} className="mt-4">
             <div className={cn("px-1 text-[11px] font-bold tracking-[0.12em] uppercase", manque ? "text-muted-foreground" : "text-plate-ink dark:text-plate")}>{manque ? tr("Prévue, pas faite") : tr("Prévue")}</div>
-            <div className="mt-0.5 px-1 text-[18px] font-bold">{p.nom}</div>
+            <div className="mt-0.5 px-1 text-[18px] font-bold">{nomPrevu(p)}</div>
             <p className="px-1 text-[13px] text-muted-foreground">{[sousTitre(etat, p), p.hebdo ? tr("chaque {j}", { j: nomJourSemaine(p.d) }) : "", texteRappel(p.rappel)].filter(Boolean).join(" · ")}</p>
             <div className="mt-3 grid grid-cols-2 gap-2">
               {d === auj && !manque && <button onClick={() => { tactile(8); setF(null); lancer(etat, p); }} className="col-span-2 h-12 rounded-full bg-plate text-[15px] font-semibold text-plate-foreground active:scale-[.98]">{tr("Commencer")}</button>}
@@ -508,7 +512,7 @@ function FeuilleDeplacer({ id, de, auj, fermer }: { id: string; de: string; auj:
   if (!p) return null;
   return (
     <>
-      <DrawerTitle className="mt-2 px-1 text-[21px] font-extrabold">{tr("Déplacer « {nom} »", { nom: p.nom })}</DrawerTitle>
+      <DrawerTitle className="mt-2 px-1 text-[21px] font-extrabold">{tr("Déplacer « {nom} »", { nom: nomPrevu(p) })}</DrawerTitle>
       <DrawerDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">
         {p.hebdo ? tr("Seulement la séance du {a} ; les autres semaines ne bougent pas.", { a: jourLong(de) }) : tr("Prévue {a}", { a: jourLong(de) })}
       </DrawerDescription>
