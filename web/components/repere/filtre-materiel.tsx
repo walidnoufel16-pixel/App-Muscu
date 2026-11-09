@@ -13,6 +13,10 @@ import { LienSalle } from "./ma-salle";
 export function FiltreMateriel({ sel, onChange, declare, types }: { sel: string[]; onChange: (s: string[]) => void; declare: string[]; types?: string[] }) {
   const trie = (l: string[]) => l.slice().sort().join();
   const perso = trie(sel) !== trie(declare);
+  const visibles = TYPES.filter(([t]) => !types || types.includes(t));
+  /* « Tout sélectionner » coche tous les matériels proposés ; une fois tout coché, il les décoche */
+  const tout = visibles.every(([t]) => sel.includes(t));
+  const basculerTout = () => onChange(tout ? sel.filter((x) => !visibles.some(([t]) => t === x)) : [...new Set([...sel, ...visibles.map(([t]) => t)])]);
   return (
     <div>
       <div className="mb-2 flex items-baseline justify-between">
@@ -24,7 +28,10 @@ export function FiltreMateriel({ sel, onChange, declare, types }: { sel: string[
         )}
       </div>
       <div className="flex flex-wrap gap-1.5">
-        {TYPES.filter(([t]) => !types || types.includes(t)).map(([t, n]) => {
+        <button onClick={basculerTout} className="h-9 rounded-full border border-plate px-3.5 text-[13.5px] font-semibold text-plate-ink dark:text-plate">
+          {tout ? tr("Tout désélectionner") : tr("Tout sélectionner")}
+        </button>
+        {visibles.map(([t, n]) => {
           const on = sel.includes(t);
           return (
             <button

@@ -2905,5 +2905,7 @@
 "Secondaires": "Secondary",
 "Obliques": "Obliques",
 "Grand dorsal": "Lats",
-"Fiche de {n}": "{n}: details"
+"Fiche de {n}": "{n}: details",
+"Tout sélectionner": "Select all",
+"Tout désélectionner": "Deselect all"
 }
