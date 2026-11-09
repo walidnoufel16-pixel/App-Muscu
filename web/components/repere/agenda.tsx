@@ -11,7 +11,8 @@ import type { Route } from "next";
 import { toast } from "sonner";
 import { confirmer } from "./confirmer";
 import { retirerDeHistorique } from "@/lib/logic/actions";
-import { BellIcon, CaretRightIcon, CheckIcon, DownloadSimpleIcon, HeartbeatIcon, PersonSimpleRunIcon, PlusIcon, SparkleIcon, BarbellIcon } from "@phosphor-icons/react";
+import { BellIcon, CaretDownIcon, CaretRightIcon, CheckIcon, DownloadSimpleIcon, HeartbeatIcon, PersonSimpleIcon, PersonSimpleRunIcon, PlusIcon, SparkleIcon, BarbellIcon } from "@phosphor-icons/react";
+import { MiniCorps } from "./corps-muscles";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { Segmente } from "./segmente";
 import {
@@ -22,7 +23,7 @@ import { decaler, jourDe } from "@/lib/logic/historique";
 import { dureeTotale } from "@/lib/logic/combinee";
 import { musclesDe } from "@/lib/logic/core";
 import { genererPlan, semaineDe, vdotActuel } from "@/lib/logic/course";
-import { musclesRecommandes, effortsEndurance, recoDuJour } from "@/lib/logic/recommandation";
+import { musclesRecommandes, effortsEndurance, nomGroupe, recoDuJour, type Groupe } from "@/lib/logic/recommandation";
 import { activerRappels, etatRappels } from "@/lib/rappels";
 import { useRepere } from "@/lib/store";
 import { useBrouillon } from "@/lib/brouillon";
@@ -57,8 +58,8 @@ export function useLancer() {
     if (q.t === "cardio") { const i = indexCardio(E, q.i, p.nom); if (i >= 0) router.push(`/entrainement/cardio?s=${i}` as Route, AVANT); return; }
     if (q.t === "course") { router.push(`/entrainement/course?s=${q.cle}` as Route, AVANT); return; }
     if (q.t === "plan") { muter((x) => { x.day = q.day; }); router.push("/entrainement/seance", AVANT); return; }
-    /* recommandation d'Oxa : l'assistant s'ouvre avec les muscles conseillés ce jour-là */
-    const m = musclesRecommandes(recoDuJour(E.HIST || [], jourDe(Date.now()), E.A.recoSans || [], E.A.regularite, effortsEndurance(E.SORTIES, E.CARDIO)));
+    /* proposition d'Oxa : l'assistant s'ouvre avec ses muscles ; sans muscles, ceux conseillés ce jour-là */
+    const m = q.t === "reco" && q.m?.length ? q.m : musclesRecommandes(recoDuJour(E.HIST || [], jourDe(Date.now()), E.A.recoSans || [], E.A.regularite, effortsEndurance(E.SORTIES, E.CARDIO)));
     router.push((m ? `/entrainement/assistant?m=${m.join(",")}` : "/entrainement/assistant?type=cardio") as Route, AVANT);
   };
 }
@@ -90,23 +91,30 @@ export function FeuillesAgenda({ f, setF, auj }: { f: Feuille | null; setF: (f: 
 export const feuilleDuJour = (j: JourAgenda, auj: string): Feuille | null =>
   !j.fait.length && !j.prevus.length && !j.manques.length ? (j.d >= auj ? { m: "nouvelle", d: j.d } : null) : { m: "jour", d: j.d };
 
-/* ---------------- le menu du jour (toucher un jour, ou le bouton +) ----------------
-   En haut, créer : pour moi (assistant), exercice par exercice (composeur), importer. Dessous, les
-   séances déjà créées : « Ajouter ce jour » les programme ce jour-là, « Programmer un autre jour »
-   ouvre la feuille Programmer. Un jour à venir suit la séance créée (?jour=, Brouillon.pour). */
+/* ---------------- la feuille « Programmer une séance » (un jour, le bouton +, « Programmer une séance ») ----------------
+   En haut, créer : je choisis les muscles (assistant), exercice par exercice (composeur), importer.
+   Puis « Oxa choisit pour toi » : les propositions d'Oxa d'après les muscles prêts ce jour-là (et,
+   pour un jour à venir, « Laisser Oxa choisir le jour même »). Enfin les séances déjà créées, en
+   groupes repliés. Toucher une séance ou une proposition : « Ajouter ce jour » la programme ce
+   jour-là, « Programmer un autre jour » ouvre la feuille Programmer. Une séance créée pour un jour à
+   venir y est programmée (?jour=, Brouillon.pour). */
 function FeuilleNouvelle({ d, auj, setF }: { d: string; auj: string; setF: (f: Feuille | null) => void }) {
   const etat = useRepere((s) => s.etat);
   const muter = useRepere((s) => s.muter);
   const router = useRouter();
   const setLibre = useBrouillon((s) => s.setLibre);
   const [ouvert, setOuvert] = useState<string | null>(null);
-  const futur = d > auj;
+  const [deplies, setDeplies] = useState<string[]>([]);
+  const futur = d > auj, femme = etat.A.sexe === 1;
   const aller = (url: string) => { setF(null); router.push(url as Route, AVANT); };
-  const items: { icone: React.ReactNode; fond: string; titre: string; sous: string; onClick: () => void }[] = [
-    { icone: <SparkleIcon className="size-[18px]" weight="fill" />, fond: "bg-plate text-plate-foreground", titre: tr("Créer une séance pour moi"), sous: tr("Oxa la construit selon les muscles choisis"), onClick: () => aller("/entrainement/assistant" + (futur ? `?jour=${d}` : "")) },
-    { icone: <PlusIcon className="size-[18px]" weight="bold" />, fond: "bg-foreground/80 text-background", titre: tr("Composer exercice par exercice"), sous: tr("Tu choisis tout"), onClick: () => { setLibre({ nom: tr("Séance libre"), ex: [], idx: null, ...(futur ? { pour: d } : {}) }); aller("/entrainement/composer"); } },
-    { icone: <DownloadSimpleIcon className="size-[18px]" weight="bold" />, fond: "bg-muted-foreground text-background", titre: tr("Importer une séance avec un code"), sous: tr("Une séance partagée par un ami"), onClick: () => { setF(null); setTimeout(() => useMenu.setState({ importer: true }), 350); } },
+  const creer: { icone: React.ReactNode; accent?: boolean; titre: string; sous: string; onClick: () => void }[] = [
+    { icone: <PersonSimpleIcon className="size-[18px]" weight="bold" />, accent: true, titre: tr("Je choisis les muscles"), sous: tr("Oxa construit la séance"), onClick: () => aller("/entrainement/assistant" + (futur ? `?jour=${d}` : "")) },
+    { icone: <PlusIcon className="size-[18px]" weight="bold" />, titre: tr("Exercice par exercice"), sous: tr("Tu choisis tout"), onClick: () => { setLibre({ nom: tr("Séance libre"), ex: [], idx: null, ...(futur ? { pour: d } : {}) }); aller("/entrainement/composer"); } },
+    { icone: <DownloadSimpleIcon className="size-[18px]" weight="bold" />, titre: tr("Importer"), sous: tr("Avec un code"), onClick: () => { setF(null); setTimeout(() => useMenu.setState({ importer: true }), 350); } },
   ];
+  /* les propositions d'Oxa pour ce jour-là */
+  const reco = useMemo(() => recoDuJour(etat.HIST || [], d, etat.A.recoSans || [], etat.A.regularite, effortsEndurance(etat.SORTIES, etat.CARDIO)), [etat, d]);
+  const propositions: Choix[] = reco.propositions.slice(0, 3).map((p) => ({ quoi: { t: "reco", m: p.muscles }, nom: p.nom, sous: p.raison, icone: <MiniCorps groupes={p.muscles} femme={femme} /> }));
   const groupes = useMemo(() => seancesDuJour(etat, d, auj), [etat, d, auj]);
   const ajouter = (c: Choix) => {
     tactile(12);
@@ -116,54 +124,80 @@ function FeuilleNouvelle({ d, auj, setF }: { d: string; auj: string; setF: (f: F
     toast.success(futur ? tr("Programmée : {nom}", { nom: c.nom }) : tr("Ajoutée à aujourd'hui : {nom}", { nom: c.nom }), { description: maj(jourLong(d)) + (rappel ? " · " + texteRappel(rappel) : "") });
     setF(null);
   };
+  /* une ligne (séance ou proposition) : la toucher montre « Ajouter ce jour » et « Programmer un autre jour » */
+  const ligne = (c: Choix, conseillee = false, vignette = false) => {
+    const cle = c.nom + JSON.stringify(c.quoi), sel = ouvert === cle;
+    return (
+      <div key={cle} className={cn("rounded-2xl", conseillee ? "bg-plate-soft ring-1 ring-plate/50" : "bg-muted/60", sel && "ring-1 ring-plate/50")}>
+        <button onClick={() => { tactile(6); setOuvert(sel ? null : cle); }} aria-expanded={sel} className="flex w-full items-center gap-3 p-3 text-left">
+          {vignette ? c.icone : <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-plate-soft text-plate-ink dark:text-plate">{c.icone}</span>}
+          <span className="min-w-0 flex-1">
+            {conseillee && <span className="mb-0.5 inline-block rounded-full bg-plate px-1.5 py-px text-[10.5px] font-bold text-plate-foreground">{tr("Conseillée")}</span>}
+            <span className="block truncate text-[15px] font-semibold">{c.nom}</span>
+            {(c.sous || c.deja) && <span className="line-clamp-2 block text-[12.5px] leading-snug text-muted-foreground">{[c.sous, c.deja ? tr("déjà dans l'agenda") : ""].filter(Boolean).join(" · ")}</span>}
+          </span>
+          <CaretRightIcon className={cn("size-4 shrink-0 text-muted-foreground transition-transform", sel && "rotate-90")} />
+        </button>
+        {sel && (
+          <div className="grid grid-cols-[1fr_1.3fr] gap-2 px-3 pb-3">
+            <button onClick={() => ajouter(c)} className="h-11 rounded-full bg-plate px-2 text-[13.5px] font-semibold whitespace-nowrap text-plate-foreground active:scale-[.98]">
+              {d === auj ? tr("Ajouter aujourd'hui") : tr("Ajouter le {j}", { j: jourCourt(d) })}
+            </button>
+            <button onClick={() => { tactile(6); setF({ m: "programmer", d: futur ? d : decaler(auj, 1), quoi: c.quoi, nom: c.nom }); }} className="h-11 rounded-full border border-border bg-card px-2 text-[13.5px] font-semibold whitespace-nowrap active:scale-[.98]">
+              {tr("Programmer un autre jour")}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
   return (
     <>
-      <DrawerTitle className="mt-2 px-1 text-[22px] font-extrabold">{d === auj ? tr("Aujourd'hui") : maj(jourLong(d))}</DrawerTitle>
-      <DrawerDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">{d === auj ? maj(jourLong(d)) : tr("Crée une séance ou choisis une des tiennes.")}</DrawerDescription>
-      <div className="mt-3.5 overflow-hidden rounded-2xl bg-muted/60">
-        {items.map((x) => (
-          <button key={x.titre} onClick={() => { tactile(6); x.onClick(); }} className="flex w-full items-center gap-3 border-b border-border/70 px-3.5 py-3 text-left last:border-b-0 active:bg-muted">
-            <span className={cn("grid size-9 shrink-0 place-items-center rounded-[10px]", x.fond)}>{x.icone}</span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-[15.5px] font-semibold">{x.titre}</span>
-              <span className="block text-[12.5px] text-muted-foreground">{x.sous}</span>
-            </span>
-            <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" />
+      <DrawerTitle className="mt-2 px-1 text-[22px] font-extrabold">{d === auj ? tr("Aujourd'hui") : tr("Programmer une séance")}</DrawerTitle>
+      <DrawerDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">{maj(jourLong(d))}</DrawerDescription>
+
+      <h3 className="eyebrow mt-4 mb-1.5 px-1">{tr("Créer une séance")}</h3>
+      <div className="grid grid-cols-3 gap-1.5">
+        {creer.map((x) => (
+          <button key={x.titre} onClick={() => { tactile(6); x.onClick(); }} className="flex min-w-0 flex-col items-start gap-0.5 rounded-2xl bg-muted/60 p-2.5 text-left active:scale-[.98]">
+            <span className={cn("mb-1 grid size-8 place-items-center rounded-[10px]", x.accent ? "bg-plate text-plate-foreground" : "bg-foreground/10")}>{x.icone}</span>
+            <span className="text-[13px] leading-tight font-semibold">{x.titre}</span>
+            <span className="text-[11px] leading-tight text-muted-foreground">{x.sous}</span>
           </button>
         ))}
       </div>
-      {groupes.map((g) => (
-        <section key={g.titre} className="mt-4">
-          <h3 className="eyebrow mb-1.5 px-1">{g.titre}</h3>
-          <div className="flex flex-col gap-1.5">
-            {g.l.map((c) => {
-              const cle = c.nom + JSON.stringify(c.quoi), sel = ouvert === cle;
-              return (
-                <div key={cle} className={cn("rounded-2xl bg-muted/60", sel && "ring-1 ring-plate/50")}>
-                  <button onClick={() => { tactile(6); setOuvert(sel ? null : cle); }} aria-expanded={sel} className="flex w-full items-center gap-3 p-3 text-left">
-                    <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-plate-soft text-plate-ink dark:text-plate">{c.icone}</span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[15px] font-semibold">{c.nom}</span>
-                      {(c.sous || c.deja) && <span className="line-clamp-2 block text-[12.5px] leading-snug text-muted-foreground">{[c.sous, c.deja ? tr("déjà dans l'agenda") : ""].filter(Boolean).join(" · ")}</span>}
-                    </span>
-                    <CaretRightIcon className={cn("size-4 shrink-0 text-muted-foreground transition-transform", sel && "rotate-90")} />
-                  </button>
-                  {sel && (
-                    <div className="grid grid-cols-[1fr_1.3fr] gap-2 px-3 pb-3">
-                      <button onClick={() => ajouter(c)} className="h-11 rounded-full bg-plate px-2 text-[13.5px] font-semibold whitespace-nowrap text-plate-foreground active:scale-[.98]">
-                        {d === auj ? tr("Ajouter aujourd'hui") : tr("Ajouter le {j}", { j: jourCourt(d) })}
-                      </button>
-                      <button onClick={() => { tactile(6); setF({ m: "programmer", d: futur ? d : decaler(auj, 1), quoi: c.quoi, nom: c.nom }); }} className="h-11 rounded-full border border-border bg-card px-2 text-[13.5px] font-semibold whitespace-nowrap active:scale-[.98]">
-                        {tr("Programmer un autre jour")}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      ))}
+
+      <section className="mt-4">
+        <h3 className="eyebrow mb-0.5 flex items-center gap-1.5 px-1"><SparkleIcon className="size-3.5 text-plate" weight="fill" />{tr("Oxa choisit pour toi")}</h3>
+        <p className="mb-1.5 px-1 text-[12.5px] text-muted-foreground">
+          {propositions.length
+            ? d === auj ? tr("Les muscles prêts aujourd'hui, d'après ta récupération.") : tr("Les muscles prêts ce jour-là, d'après ta récupération.")
+            : reco.type === "fait" ? tr("Tu t'es déjà entraîné ce jour-là : laisse récupérer.") : tr("Tes muscles récupèrent ce jour-là : repos ou cardio léger.")}
+        </p>
+        <div className="flex flex-col gap-1.5">
+          {propositions.map((c, k) => ligne(c, k === 0, true))}
+          {futur && (
+            <button onClick={() => ajouter({ quoi: { t: "reco" }, nom: tr("Séance choisie par Oxa"), icone: null })}
+              className="rounded-2xl border-[1.5px] border-dashed border-plate/50 p-3 text-[14px] font-semibold text-plate-ink active:scale-[.99] dark:text-plate">
+              {tr("Laisser Oxa choisir le jour même")}
+            </button>
+          )}
+        </div>
+      </section>
+
+      {groupes.map((g) => {
+        const deplie = deplies.includes(g.titre);
+        return (
+          <section key={g.titre} className="mt-3">
+            <button onClick={() => { tactile(5); setDeplies((l) => (deplie ? l.filter((x) => x !== g.titre) : [...l, g.titre])); }} aria-expanded={deplie}
+              className="flex w-full items-center justify-between rounded-2xl bg-muted/60 px-3.5 py-3 text-left">
+              <span className="text-[15px] font-semibold">{g.titre}<span className="ml-1.5 font-medium text-muted-foreground">{g.l.length}</span></span>
+              <CaretDownIcon className={cn("size-4 text-muted-foreground transition-transform", deplie && "rotate-180")} />
+            </button>
+            {deplie && <div className="mt-1.5 flex flex-col gap-1.5">{g.l.map((c) => ligne(c))}</div>}
+          </section>
+        );
+      })}
     </>
   );
 }
@@ -201,7 +235,7 @@ export function sousTitre(E: Etat, p: Prevu) {
   }
   if (p.quoi.t === "course") return "Oxa Run";
   if (p.quoi.t === "plan") return "Oxa Plan";
-  if (p.quoi.t === "reco") return tr("Choisie le jour même par Oxa");
+  if (p.quoi.t === "reco") return p.quoi.m?.length ? tr("Proposée par Oxa · {m}", { m: p.quoi.m.map((g) => nomGroupe(g as Groupe)).join(", ") }) : tr("Choisie le jour même par Oxa");
   return undefined;
 }
 

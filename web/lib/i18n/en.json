@@ -2907,5 +2907,19 @@
 "Grand dorsal": "Lats",
 "Fiche de {n}": "{n}: details",
 "Tout sélectionner": "Select all",
-"Tout désélectionner": "Deselect all"
+"Tout désélectionner": "Deselect all",
+"Je choisis les muscles": "I pick the muscles",
+"Oxa construit la séance": "Oxa builds the session",
+"Exercice par exercice": "Exercise by exercise",
+"Avec un code": "With a code",
+"Oxa choisit pour toi": "Oxa picks for you",
+"Les muscles prêts aujourd'hui, d'après ta récupération.": "Muscles ready today, based on your recovery.",
+"Les muscles prêts ce jour-là, d'après ta récupération.": "Muscles ready that day, based on your recovery.",
+"Tu t'es déjà entraîné ce jour-là : laisse récupérer.": "You already trained that day: let it recover.",
+"Tes muscles récupèrent ce jour-là : repos ou cardio léger.": "Your muscles are recovering that day: rest or light cardio.",
+"Séance choisie par Oxa": "Session picked by Oxa",
+"Laisser Oxa choisir le jour même": "Let Oxa pick on the day",
+"Conseillée": "Recommended",
+"Proposée par Oxa · {m}": "Suggested by Oxa · {m}",
+"Ta semaine en un coup d'œil, ta séance du jour et l'agenda. Le bouton + ou un jour : crée ta séance, ou laisse Oxa te proposer la sienne selon tes muscles récupérés.": "Your week at a glance, today's session and the calendar. The + button or a day: build your session, or let Oxa suggest one based on your recovered muscles."
 }

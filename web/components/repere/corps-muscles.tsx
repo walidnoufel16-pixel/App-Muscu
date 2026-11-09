@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { EX } from "@/lib/data/exercices";
 import { CORPS, CORPS_F, CORPS_VB, CORPS_VB_F } from "@/lib/data/corps";
 import { musclesCibles } from "@/lib/logic/muscles-cibles";
+import { PAT2MUSC } from "@/lib/data/referentiels";
 import { tactile } from "@/lib/repos";
 
 /* principal : le turquoise vif de la marque, qui attire l'œil ; secondaires : un turquoise plus foncé */
@@ -80,5 +81,23 @@ export function CorpsMuscles({ id, femme, h = 92 }: { id: string; femme?: boolea
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+/** Petit corps de face et de dos, les groupes donnés (« dos », « bic »…) en turquoise : la vignette
+    d'une proposition d'Oxa. */
+export function MiniCorps({ groupes, femme, h = 44 }: { groupes: string[]; femme?: boolean; h?: number }) {
+  const C = femme ? CORPS_F : CORPS, VB = femme ? CORPS_VB_F : CORPS_VB;
+  return (
+    <span className="flex shrink-0 gap-px" aria-hidden>
+      {(["front", "back"] as const).map((cote) => (
+        <svg key={cote} viewBox={VB[cote]} style={{ height: h }} className="w-auto">
+          {C[cote].map((r) => (
+            <path key={r.i} d={r.d} style={{ fill: r.p && groupes.includes(PAT2MUSC[r.p]) ? "var(--plate)" : NEUTRE }}
+              className="stroke-card [stroke-width:0.4px] [vector-effect:non-scaling-stroke]" />
+          ))}
+        </svg>
+      ))}
+    </span>
   );
 }

@@ -9,7 +9,7 @@ import type { Etat } from "./types";
 
 export type QuoiPrevu =
   | { t: "libre"; i: number }
-  | { t: "reco" }
+  | { t: "reco"; m?: string[] } // m : muscles proposés par Oxa ; sans m, Oxa choisit le jour même
   | { t: "course"; cle: string }
   | { t: "plan"; wk: number; day: number }
   | { t: "cardio"; i: number };
