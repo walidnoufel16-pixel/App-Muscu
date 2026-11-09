@@ -90,8 +90,9 @@ export async function signalerErreur(e: unknown, page = typeof location !== "und
   try {
     const err = e instanceof Error ? e : new Error(typeof e === "string" ? e : JSON.stringify(e)?.slice(0, 300) || "inconnue");
     const message = `${err.name}: ${err.message}`.slice(0, 300);
-    /* bruit sans intérêt : extensions du navigateur, coupures réseau, scripts tiers */
-    if (/ResizeObserver loop|Failed to fetch|NetworkError|Load failed|chrome-extension:|moz-extension:|AbortError/i.test(message + (err.stack || ""))) return;
+    /* bruit sans intérêt : extensions du navigateur, coupures réseau, scripts tiers, et l'animation de
+       changement d'écran annulée par le navigateur quand l'app passe en arrière-plan (sans effet visible) */
+    if (/ResizeObserver loop|Failed to fetch|NetworkError|Load failed|chrome-extension:|moz-extension:|AbortError|Transition was aborted|Transition was skipped|Skipping view transition/i.test(message + (err.stack || ""))) return;
     if (vues.has(message) || vues.size >= 20) return;
     vues.add(message);
     const id = appareil(), c = await sb();
