@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { AVANT } from "@/lib/nav";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { EX } from "@/lib/data/exercices";
-import { histo, nb, noRPE, rirTxt, UNITE } from "@/lib/logic/core";
+import { histo, nb, UNITE } from "@/lib/logic/core";
 import { useRepere } from "@/lib/store";
 import { useFiche } from "@/lib/fiches";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -117,13 +117,7 @@ function Contenu({ fiche }: { fiche: FicheOuverte }) {
 
       {origine && (
         <>
-          {/* séries, répétitions et repos se règlent dans la séance, pas dans la fiche de l'exercice */}
-          {fiche.rpe && !noRPE(id) ? (
-            <div className="mt-3 flex items-center gap-3 rounded-2xl border bg-card p-3">
-              <span className="num text-[28px] leading-none font-bold text-plate-ink">{tr("RPE")}{" "}{fiche.rpe}</span>
-              <span className="text-[13.5px] leading-snug text-muted-foreground">{tr("{a} à la fin de la série", { a: rirTxt(fiche.rpe) })}</span>
-            </div>
-          ) : null}
+          {/* séries, répétitions, repos et RPE se règlent dans la séance, pas dans la fiche de l'exercice */}
           {fiche.onRemplacer && (
             <button onClick={fiche.onRemplacer} className="mt-2 flex w-full items-center gap-3 rounded-2xl border bg-card p-3 text-left active:scale-[.99]">
               <ArrowsLeftRightIcon className="size-5 text-muted-foreground" />
