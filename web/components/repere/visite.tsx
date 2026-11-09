@@ -31,7 +31,7 @@ export const useVisite = create<{ etape: number | null; mini: boolean }>(() => (
 export const revoirVisite = () => useVisite.setState({ etape: 0 });
 
 type BulleDef = { cible: string; k: () => string; t: () => string; d: () => string };
-const ENTRAINEMENT: BulleDef = { cible: "entrainement", k: () => tr("Entraînement"), t: () => tr("Tes séances"), d: () => tr("Ta semaine en un coup d'œil, ta séance du jour et l'agenda. « Pour moi » : Oxa compose une séance selon les muscles que tu as récupérés.") };
+const ENTRAINEMENT: BulleDef = { cible: "entrainement", k: () => tr("Entraînement"), t: () => tr("Tes séances"), d: () => tr("Ta semaine en un coup d'œil, ta séance du jour et l'agenda. Le bouton + ou un jour : crée ta séance, ou laisse Oxa te proposer la sienne selon tes muscles récupérés.") };
 const ENTRAINEMENT_PLAN: BulleDef = { cible: "entrainement", k: () => tr("Entraînement"), t: () => tr("Tes séances"), d: () => tr("Ta semaine en un coup d'œil et ta séance du jour. Des séances libres quand tu veux, en plus de ton programme.") };
 const PROGRAMME: BulleDef = { cible: "rubrique-programme", k: () => "Oxa Plan", t: () => tr("Ton programme sur 8 semaines"), d: () => tr("L'effort monte de semaine en semaine, puis une semaine d'allègement pour récupérer. Tes charges s'ajustent toutes seules à ce que tu réussis.") };
 const AUTRES: BulleDef[] = [

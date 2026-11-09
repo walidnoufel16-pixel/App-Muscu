@@ -87,9 +87,10 @@ await pg.getByRole("button", { name: "Mes séances" }).click();
 await pg.waitForURL(/\/entrainement\/rubrique\/\?v=libre/);
 ok(true, "retour de la séance vers Mes séances");
 
-// « Pour moi » ouvre l'assistant, le retour ramène à l'accueil
+// + › « Je choisis les muscles » ouvre l'assistant, le retour ramène à l'accueil
 await pg.goto(U + "/entrainement/");
-await pg.getByRole("button", { name: "Pour moi" }).click();
+await pg.getByRole("button", { name: "Nouvelle séance" }).click();
+await pg.getByRole("dialog").getByText("Je choisis les muscles").click();
 await pg.waitForURL(/\/entrainement\/assistant\/$/);
 ok(await pg.getByRole("button", { name: "Entraînement" }).waitFor({ timeout: 3000 }).then(() => true, () => false), "assistant : retour libellé « Entraînement »");
 await pg.getByRole("button", { name: "Entraînement" }).click();
