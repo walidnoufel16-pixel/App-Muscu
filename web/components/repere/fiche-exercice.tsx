@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { AVANT } from "@/lib/nav";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { EX } from "@/lib/data/exercices";
-import { histo, nb, nomPat, noRPE, rirTxt, UNITE } from "@/lib/logic/core";
+import { histo, nb, UNITE } from "@/lib/logic/core";
 import { useRepere } from "@/lib/store";
 import { useFiche } from "@/lib/fiches";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -106,10 +106,10 @@ function Contenu({ fiche }: { fiche: FicheOuverte }) {
       <div className="pt-2">
         <Duo key={id} id={id} />
       </div>
-      <div className="mt-4 flex items-end justify-between gap-3">
+      {/* les muscles se lisent sur le schéma, plus de ligne de texte au-dessus du titre */}
+      <div className="mt-4 flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <div className="eyebrow">{e.m} · {nomPat(e.pat)}</div>
-          <DrawerTitle className="mt-1 text-[26px] leading-tight font-bold tracking-[-0.02em]">{e.n}</DrawerTitle>
+          <DrawerTitle className="text-[26px] leading-tight font-bold tracking-[-0.02em]">{e.n}</DrawerTitle>
         </div>
         <CorpsMuscles id={id} femme={etat.A.sexe === 1} />
       </div>
@@ -117,17 +117,7 @@ function Contenu({ fiche }: { fiche: FicheOuverte }) {
 
       {origine && (
         <>
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            <span className="num rounded-full bg-foreground px-3 py-1 text-[15px] font-bold text-background">{tr("{a} × {a1}", { a: fiche.pres[0], a1: fiche.pres[1] })}</span>
-            <span className="rounded-full bg-muted px-3 py-1 text-[13px] font-medium">{tr("repos")}{" "}{fiche.pres[2]}</span>
-            <span className="rounded-full bg-muted px-3 py-1 text-[13px] font-medium">{fiche.libelle}</span>
-          </div>
-          {fiche.rpe && !noRPE(id) ? (
-            <div className="mt-3 flex items-center gap-3 rounded-2xl border bg-card p-3">
-              <span className="num text-[28px] leading-none font-bold text-plate-ink">{tr("RPE")}{" "}{fiche.rpe}</span>
-              <span className="text-[13.5px] leading-snug text-muted-foreground">{tr("{a} à la fin de la série", { a: rirTxt(fiche.rpe) })}</span>
-            </div>
-          ) : null}
+          {/* séries, répétitions, repos et RPE se règlent dans la séance, pas dans la fiche de l'exercice */}
           {fiche.onRemplacer && (
             <button onClick={fiche.onRemplacer} className="mt-2 flex w-full items-center gap-3 rounded-2xl border bg-card p-3 text-left active:scale-[.99]">
               <ArrowsLeftRightIcon className="size-5 text-muted-foreground" />
