@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { AVANT } from "@/lib/nav";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { EX } from "@/lib/data/exercices";
-import { histo, nb, nomPat, noRPE, rirTxt, UNITE } from "@/lib/logic/core";
+import { histo, nb, noRPE, rirTxt, UNITE } from "@/lib/logic/core";
 import { useRepere } from "@/lib/store";
 import { useFiche } from "@/lib/fiches";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -106,10 +106,10 @@ function Contenu({ fiche }: { fiche: FicheOuverte }) {
       <div className="pt-2">
         <Duo key={id} id={id} />
       </div>
-      <div className="mt-4 flex items-end justify-between gap-3">
+      {/* les muscles se lisent sur le schéma, plus de ligne de texte au-dessus du titre */}
+      <div className="mt-4 flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <div className="eyebrow">{e.m} · {nomPat(e.pat)}</div>
-          <DrawerTitle className="mt-1 text-[26px] leading-tight font-bold tracking-[-0.02em]">{e.n}</DrawerTitle>
+          <DrawerTitle className="text-[26px] leading-tight font-bold tracking-[-0.02em]">{e.n}</DrawerTitle>
         </div>
         <CorpsMuscles id={id} femme={etat.A.sexe === 1} />
       </div>
