@@ -11,7 +11,7 @@ import type { Route } from "next";
 import { toast } from "sonner";
 import { confirmer } from "./confirmer";
 import { retirerDeHistorique } from "@/lib/logic/actions";
-import { BellIcon, CaretDownIcon, CaretRightIcon, CheckIcon, DownloadSimpleIcon, HeartbeatIcon, PersonSimpleIcon, PersonSimpleRunIcon, PlusIcon, SparkleIcon, BarbellIcon } from "@phosphor-icons/react";
+import { BellIcon, CaretDownIcon, CaretLeftIcon, CaretRightIcon, PencilSimpleIcon, CalendarDotsIcon, CheckIcon, DownloadSimpleIcon, HeartbeatIcon, PersonSimpleIcon, PersonSimpleRunIcon, PlusIcon, SparkleIcon, BarbellIcon } from "@phosphor-icons/react";
 import { MiniCorps } from "./corps-muscles";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { Segmente } from "./segmente";
@@ -21,16 +21,20 @@ import {
 } from "@/lib/logic/agenda";
 import { decaler, jourDe } from "@/lib/logic/historique";
 import { dureeTotale } from "@/lib/logic/combinee";
-import { musclesDe } from "@/lib/logic/core";
+import { avecSalle, kLibre, musclesDe, nb, propositionLibre, selDeclare, variationDe } from "@/lib/logic/core";
+import { chargeLombaires, construireSeance, dureeEstimee, hasardDe, musclesPrioritaires } from "@/lib/logic/assistant";
+import { zonesActives, zonesDe } from "@/lib/logic/forme";
+import { prioNoms } from "@/lib/logic/questionnaire";
+import { Vignette } from "./exercice-carte";
 import { genererPlan, semaineDe, vdotActuel } from "@/lib/logic/course";
-import { musclesRecommandes, effortsEndurance, recoDuJour } from "@/lib/logic/recommandation";
+import { musclesRecommandes, effortsEndurance, etatGroupes, recoDuJour } from "@/lib/logic/recommandation";
 import { activerRappels, etatRappels } from "@/lib/rappels";
 import { useRepere } from "@/lib/store";
 import { useBrouillon } from "@/lib/brouillon";
 import { AVANT, useMenu } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
-import type { Etat } from "@/lib/logic/types";
+import type { Etat, SeanceLibre } from "@/lib/logic/types";
 import { EX } from "@/lib/data/exercices";
 
 export const jourLong = (d: string) => new Date(d + "T12:00").toLocaleDateString(loc(), { weekday: "long", day: "numeric", month: "long" });
@@ -107,6 +111,8 @@ function FeuilleNouvelle({ d: d0, auj, setF }: { d: string; auj: string; setF: (
   const setLibre = useBrouillon((s) => s.setLibre);
   const [ouvert, setOuvert] = useState<string | null>(null);
   const [deplies, setDeplies] = useState<string[]>([]);
+  /* une séance (ou une proposition d'Oxa) vue en détail avant de l'ajouter */
+  const [apercu, setApercu] = useState<Choix | null>(null);
   const futur = d > auj, femme = etat.A.sexe === 1;
   const aller = (url: string) => { setF(null); router.push(url as Route, AVANT); };
   const creer: { icone: React.ReactNode; accent?: boolean; titre: string; sous: string; onClick: () => void }[] = [
@@ -129,9 +135,11 @@ function FeuilleNouvelle({ d: d0, auj, setF }: { d: string; auj: string; setF: (
   /* une ligne (séance ou proposition) : la toucher montre « Ajouter ce jour » et « Programmer un autre jour » */
   const ligne = (c: Choix, conseillee = false, vignette = false) => {
     const cle = c.nom + JSON.stringify(c.quoi), sel = ouvert === cle;
+    /* séance de muscu ou proposition d'Oxa : l'aperçu ; course et cardio : les boutons tout de suite */
+    const voir = c.quoi.t === "libre" || (c.quoi.t === "reco" && !!c.quoi.m?.length);
     return (
       <div key={cle} className={cn("rounded-2xl", conseillee ? "bg-plate-soft ring-1 ring-plate/50" : "bg-muted/60", sel && "ring-1 ring-plate/50")}>
-        <button onClick={() => { tactile(6); setOuvert(sel ? null : cle); }} aria-expanded={sel} className="flex w-full items-center gap-3 p-3 text-left">
+        <button onClick={() => { tactile(6); if (voir) setApercu(c); else setOuvert(sel ? null : cle); }} aria-expanded={voir ? undefined : sel} className="flex w-full items-center gap-3 p-3 text-left">
           {vignette ? c.icone : <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-plate-soft text-plate-ink dark:text-plate">{c.icone}</span>}
           <span className="min-w-0 flex-1">
             {conseillee && <span className="mb-0.5 inline-block rounded-full bg-plate px-1.5 py-px text-[10.5px] font-bold text-plate-foreground">{tr("Conseillée")}</span>}
@@ -153,6 +161,7 @@ function FeuilleNouvelle({ d: d0, auj, setF }: { d: string; auj: string; setF: (
       </div>
     );
   };
+  if (apercu) return <Apercu c={apercu} d={d} auj={auj} retour={() => setApercu(null)} ajouter={ajouter} setF={setF} />;
   return (
     <>
       <DrawerTitle className="mt-2 px-1 text-[22px] font-extrabold">{d === auj ? tr("Aujourd'hui") : tr("Programmer une séance")}</DrawerTitle>
@@ -202,6 +211,105 @@ function FeuilleNouvelle({ d: d0, auj, setF }: { d: string; auj: string; setF: (
           </section>
         );
       })}
+    </>
+  );
+}
+
+/* ---------------- l'aperçu d'une séance avant de l'ajouter à un jour ----------------
+   Les exercices avec séries, répétitions et charge proposée (comme dans la séance). « Ajouter »
+   la programme ce jour-là ; « Modifier » ouvre le composeur, qui l'enregistre pour ce jour-là.
+   Une proposition d'Oxa est construite ici (comme l'assistant) puis enregistrée dans Mes séances. */
+function Apercu({ c, d, auj, retour, ajouter, setF }: { c: Choix; d: string; auj: string; retour: () => void; ajouter: (c: Choix) => void; setF: (f: Feuille | null) => void }) {
+  const etat = useRepere((s) => s.etat);
+  const muter = useRepere((s) => s.muter);
+  const router = useRouter();
+  const setLibre = useBrouillon((s) => s.setLibre);
+  const q = c.quoi, A = etat.A, futur = d > auj;
+  const i = q.t === "libre" ? indexLibre(etat, q.i, c.nom) : -1;
+  const m = q.t === "reco" ? q.m ?? [] : [];
+  /* la séance montrée : la séance enregistrée, ou celle qu'Oxa construit avec ces muscles */
+  const [genere] = useState<SeanceLibre | null>(() => {
+    if (q.t !== "reco") return null;
+    const duree = typeof A.duree === "number" && [30, 45, 60].includes(A.duree) ? A.duree : 45, obj = A.objectif ?? 0;
+    const sel = avecSalle(selDeclare(A), A), zones = zonesActives(A), H = etat.HIST || [];
+    const habitudes = new Set(H.slice(-12).flatMap((l) => Object.keys(l.ex)));
+    const lombaires = !etatGroupes(H, d, effortsEndurance(etat.SORTIES, etat.CARDIO)).lom.recupere;
+    const ex = construireSeance(m, duree, obj, sel, hasardDe(`${d}|${m.join(",")}|${duree}|${obj}|${sel.join(",")}`), (o) => zonesDe(o, zones).length > 0 || (lombaires && chargeLombaires(o)), A.regularite, { prio: musclesPrioritaires(prioNoms(A)), habitudes, dense: duree === 30 });
+    return { nom: c.nom, ex, obj, gen: { m: [...m], d: duree, obj } };
+  });
+  const S = q.t === "libre" ? etat.SEANCES[i] ?? null : genere;
+  if (!S) return null;
+  const obj = S.obj ?? S.gen?.obj;
+  const duree = q.t === "libre" ? dureeTotale(S) : dureeEstimee(S.ex);
+  const quand = d === auj ? tr("Ajouter aujourd'hui") : tr("Ajouter le {j}", { j: jourCourt(d) });
+  const ajouterIci = () => {
+    if (q.t === "libre") return ajouter(c);
+    /* proposition d'Oxa : enregistrée dans Mes séances, puis programmée ce jour-là */
+    tactile(12);
+    const rappel = futur ? (A.rappelAgenda === undefined ? { veille: true, h: 20 } : A.rappelAgenda) : null;
+    muter((E) => { E.SEANCES.push(structuredClone(S)); E.AGENDA ??= []; programmer(E.AGENDA, { d, nom: S.nom, quoi: { t: "libre", i: E.SEANCES.length - 1 }, ...(rappel ? { rappel } : {}) }); });
+    toast.success(futur ? tr("Programmée : {nom}", { nom: S.nom }) : tr("Ajoutée à aujourd'hui : {nom}", { nom: S.nom }), { description: maj(jourLong(d)) + (rappel ? " · " + texteRappel(rappel) : "") });
+    setF(null);
+  };
+  const modifier = () => {
+    tactile(6);
+    if (q.t === "libre") setLibre({ ...structuredClone(S), ex: S.ex.map((e, o) => ({ ...e, o })), idx: i, pour: d });
+    else setLibre({ ...structuredClone(S), idx: null, pour: d });
+    setF(null);
+    router.push("/entrainement/composer", AVANT);
+  };
+  return (
+    <>
+      <button onClick={() => { tactile(5); retour(); }} className="mt-1 -ml-1 flex items-center gap-0.5 text-[14.5px] font-medium text-plate-ink dark:text-plate">
+        <CaretLeftIcon className="size-4" weight="bold" />{tr("Retour")}
+      </button>
+      <p className="eyebrow mt-3 px-1">{jourLong(d)}</p>
+      {q.t === "reco" && (
+        <span className="mt-1.5 ml-1 inline-flex items-center gap-1 rounded-full bg-plate-soft px-2 py-0.5 text-[11.5px] font-bold text-plate-ink dark:text-plate">
+          <SparkleIcon className="size-3" weight="fill" />{tr("Proposée par Oxa")}
+        </span>
+      )}
+      <DrawerTitle className="mt-1 px-1 text-[22px] leading-tight font-extrabold">{S.nom}</DrawerTitle>
+      <DrawerDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">
+        {S.ex.length ? `${tp(S.ex.length, "{n} exercice", "{n} exercices")} · ${tr("environ {a} min", { a: duree })}` : tr("Aucun exercice ne correspond à ton matériel déclaré.")}
+      </DrawerDescription>
+
+      <div className="mt-3 overflow-hidden rounded-2xl bg-muted/60">
+        {S.ex.map((e, j) => {
+          const x = EX[e.id];
+          if (!x) return null;
+          const p = propositionLibre(etat, e, { obj, k: i >= 0 ? kLibre(i, j) : "L|apercu|" + j });
+          const v = p?.base.v ?? 0, hausse = p ? variationDe({ id: e.id, base: p.base, prev: p.prev }) : 0;
+          const serie = `${e.s} × ${e.r}${x.ch === "temps" ? " s" : x.ch === "dist" ? " m" : ""}`;
+          const charge = x.ch === "kg" && v ? `${nb(v)} kg` : x.ch === "lest" && v ? `+${nb(v)} kg` : "";
+          return (
+            <div key={e.id + j} className="flex items-center gap-3 border-t border-border/60 p-2.5 first:border-t-0">
+              <Vignette id={e.id} className="size-11 rounded-[11px]" />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[14.5px] font-semibold">{x.n}</span>
+                <span className="block text-[12.5px] text-muted-foreground">
+                  <span className="num">{serie}</span>{charge && <> · <span className="num font-semibold text-foreground">{charge}</span></>}
+                  {hausse > 0 && <span className="num ml-1.5 font-semibold text-plate-ink dark:text-plate">↑ +{nb(hausse)} kg</span>}
+                </span>
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-4 flex flex-col gap-2">
+        <button disabled={!S.ex.length} onClick={ajouterIci} className="h-12 rounded-full bg-plate text-[15px] font-semibold text-plate-foreground active:scale-[.98] disabled:opacity-50">{quand}</button>
+        <div className={cn("grid gap-2", q.t === "libre" ? "grid-cols-2" : "grid-cols-1")}>
+          <button disabled={!S.ex.length} onClick={modifier} className="flex h-11 items-center justify-center gap-1.5 rounded-full border border-border bg-card text-[14px] font-semibold active:scale-[.98] disabled:opacity-50">
+            <PencilSimpleIcon className="size-4" weight="bold" />{tr("Modifier")}
+          </button>
+          {q.t === "libre" && (
+            <button onClick={() => { tactile(6); setF({ m: "programmer", d: futur ? d : decaler(auj, 1), quoi: q, nom: c.nom }); }} className="flex h-11 items-center justify-center gap-1.5 rounded-full border border-border bg-card text-[14px] font-semibold active:scale-[.98]">
+              <CalendarDotsIcon className="size-4" weight="bold" />{tr("Autre jour")}
+            </button>
+          )}
+        </div>
+      </div>
     </>
   );
 }

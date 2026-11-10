@@ -2927,5 +2927,7 @@
 "Choix d'Oxa": "Oxa's pick",
 "Proposée par Oxa": "Suggested by Oxa",
 "Muscles choisis le jour J": "Muscles picked on the day",
-"Ta semaine, ta récupération muscle par muscle et ta séance du jour. Le bouton + ou « Programmer une séance » : crée ta séance, ou laisse Oxa te la proposer selon tes muscles prêts.": "Your week, your recovery muscle by muscle and today's session. The + button or \u00ab Schedule a session \u00bb: build your session, or let Oxa suggest one based on your ready muscles."
+"Ta semaine, ta récupération muscle par muscle et ta séance du jour. Le bouton + ou « Programmer une séance » : crée ta séance, ou laisse Oxa te la proposer selon tes muscles prêts.": "Your week, your recovery muscle by muscle and today's session. The + button or \u00ab Schedule a session \u00bb: build your session, or let Oxa suggest one based on your ready muscles.",
+  "Autre jour": "Another day",
+  "Aucun exercice ne correspond à ton matériel déclaré.": "No exercise matches your declared equipment."
 }
