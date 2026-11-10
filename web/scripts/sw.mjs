@@ -14,7 +14,10 @@ const liste = fichiers(OUT)
   .map((p) => "/" + relative(OUT, p).split(sep).join("/"))
   /* les photos en grand (≈ 19 Mo) ne sont pas mises en cache d'avance : gardées quand on les regarde */
   /* ni le moteur du scanner (≈ 1 Mo, il faut de toute façon le réseau pour trouver un produit) */
-  .filter((p) => p !== "/sw.js" && !p.endsWith(".txt") && !p.endsWith(".map") && !p.startsWith("/img/grand/") && !p.startsWith("/zxing/"))
+  /* les données de navigation de Next (.txt) des écrans de l'app sont gardées aussi (≈ 1,3 Mo) : sans elles,
+     un réseau qui traîne bloquait le passage d'un écran à l'autre (« Je choisis les muscles » ne s'ouvrait
+     pas). Elles sont de la même version que les pages du même cache. Pas celles du blog ni des guides. */
+  .filter((p) => p !== "/sw.js" && !(p.endsWith(".txt") && (p === "/robots.txt" || /^\/(blog|guides|en)\//.test(p))) && !p.endsWith(".map") && !p.startsWith("/img/grand/") && !p.startsWith("/zxing/"))
   .map((p) => p.replace(/index\.html$/, ""))
   .sort();
 /* empreinte de chaque photo en grand : une photo refaite change d'empreinte, la copie gardée
@@ -89,8 +92,14 @@ self.addEventListener("fetch", (e) => {
   const u = new URL(req.url), chemin = u.pathname;
   const donneesNav = chemin.endsWith(".txt") || u.searchParams.has("_rsc") || req.headers.get("RSC") === "1";
   if (req.mode === "navigate" || chemin === "/manifest.webmanifest" || donneesNav || ["/blog", "/guides", "/en/blog", "/en/guides"].some((d) => chemin === d || chemin.startsWith(d + "/"))) {
-    e.respondWith(fetch(req).then((r) => { const c = r.clone(); caches.open(C).then((x) => x.put(req, c)); return r; })
-      .catch(() => caches.match(req, { ignoreSearch: true }).then((r) => r || caches.match("/"))));
+    /* réseau qui traîne (une barre, une salle en sous-sol) : au bout de 2,5 s, la copie gardée ; le
+       réseau, s'il finit par répondre, met la copie à jour pour la prochaine fois */
+    const reseau = fetch(req).then((r) => { if (r.ok) { const c = r.clone(); caches.open(C).then((x) => x.put(req, c)); } return r; });
+    const copie = () => caches.match(req, { ignoreSearch: true }).then((r) => r || (req.mode === "navigate" ? caches.match("/") : undefined));
+    const attente = new Promise((ok) => setTimeout(ok, 2500));
+    /* (données de navigation sans copie : une erreur, et Next ouvre la page en entier, qui vient du cache) */
+    e.respondWith(Promise.race([reseau.catch(() => null), attente]).then((r) => r || copie().then((c) => c || (donneesNav ? Response.error() : reseau)))
+      .catch(() => copie().then((c) => c || Response.error())));
     return;
   }
   e.respondWith(caches.match(req, { ignoreSearch: true }).then((r) => r || fetch(req).then((res) => {
