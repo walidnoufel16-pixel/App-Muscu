@@ -41,7 +41,9 @@ ok(!(await dlg.getByRole("button", { name: /^Push/ }).count()), "Mes séances re
 await dlg.getByRole("button", { name: /^Mes séances/ }).click();
 await dlg.getByRole("button", { name: /^Push/ }).click();
 await dlg.getByRole("button", { name: "Ajouter aujourd'hui" }).waitFor();
-ok(await dlg.getByRole("button", { name: "Programmer un autre jour" }).isVisible(), "toucher une séance : Ajouter aujourd'hui / Programmer un autre jour");
+ok(await dlg.getByRole("button", { name: "Modifier" }).isVisible() && await dlg.getByRole("button", { name: "Autre jour" }).isVisible(), "toucher une séance : l'aperçu, Ajouter aujourd'hui / Modifier / Autre jour");
+ok(await dlg.getByText("Développé couché").first().isVisible() && await dlg.getByText(/4 × 8/).isVisible(), "aperçu : les exercices avec séries × répétitions");
+await cap(pg, "apercu");
 await cap(pg, "menu");
 await dlg.getByRole("button", { name: "Ajouter aujourd'hui" }).click();
 await pg.getByText("Aujourd'hui · prévue").waitFor();
@@ -54,7 +56,7 @@ await cap(pg, "prevue");
 await pg.getByRole("button", { name: "Nouvelle séance" }).click();
 await dlg.getByRole("button", { name: /^Mes séances/ }).click();
 await dlg.getByRole("button", { name: /^Push/ }).click();
-await dlg.getByRole("button", { name: "Programmer un autre jour" }).click();
+await dlg.getByRole("button", { name: "Autre jour" }).click();
 await dlg.getByRole("button", { name: "Programmer", exact: true }).click();
 await pg.waitForTimeout(500);
 e = await etat(pg);
@@ -67,10 +69,26 @@ await pg.getByRole("button", { name: /Programmer/ }).first().click();
 await dlg.getByText("Oxa choisit pour toi").waitFor();
 ok(await dlg.getByRole("heading", { name: "Programmer une séance" }).count() === 1 || await dlg.getByText("Programmer une séance").count() > 0, "« Programmer » ouvre la feuille Programmer une séance");
 await dlg.getByRole("button", { name: /^Conseillée/ }).click();
+await dlg.getByText("Proposée par Oxa").waitFor();
+await cap(pg, "apercu-oxa");
 await dlg.getByRole("button", { name: /^Ajouter le / }).click();
 await pg.waitForTimeout(600);
 e = await etat(pg);
-ok(e.AGENDA?.some((p) => p.d === il(-1) && p.quoi.t === "reco" && p.quoi.m?.length > 0), "proposition d'Oxa programmée demain, avec ses muscles");
+ok(e.SEANCES.length === 2 && e.AGENDA?.some((p) => p.d === il(-1) && p.quoi.t === "libre" && p.quoi.i === 1), "proposition d'Oxa vue puis programmée demain : enregistrée dans Mes séances");
+
+// voir, modifier puis ajouter : le composeur l'enregistre pour ce jour-là
+await pg.getByRole("button", { name: /Programmer/ }).first().click();
+await dlg.getByText("Oxa choisit pour toi").waitFor();
+await dlg.getByRole("button", { name: /^Conseillée/ }).click();
+await dlg.getByRole("button", { name: "Modifier" }).click();
+await pg.waitForURL(/composer/);
+const enr = pg.getByRole("button", { name: /^Enregistrer pour / });
+await enr.waitFor();
+await cap(pg, "composer-pour");
+await enr.click();
+await pg.waitForURL(/\/entrainement\/?$/);
+e = await etat(pg);
+ok(e.SEANCES.length === 3 && e.AGENDA.some((p) => p.d === il(-1) && p.quoi.t === "libre" && p.quoi.i === 2), "Modifier → composeur → Enregistrer pour … : enregistrée et programmée");
 
 // l'assistant ouvert pour un jour à venir
 const dans3 = il(-3);
@@ -86,7 +104,7 @@ await cap(pg, "assistant");
 await bt.click();
 await pg.waitForURL(/\/entrainement\/?$/);
 e = await etat(pg);
-ok(e.SEANCES.length === 2 && e.AGENDA.some((p) => p.d === dans3 && p.quoi.t === "libre" && p.quoi.i === 1), "Créer pour … → séance créée et programmée ce jour-là");
+ok(e.SEANCES.length === 4 && e.AGENDA.some((p) => p.d === dans3 && p.quoi.t === "libre" && p.quoi.i === 3), "Créer pour … → séance créée et programmée ce jour-là");
 ok(!errs.length, "aucune erreur JS " + errs.join(" | "));
 
 // un compte qui n'a jamais fait de séance : la carte « Ta première séance », vers l'assistant pré-coché
