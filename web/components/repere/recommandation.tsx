@@ -33,8 +33,8 @@ export function Recommandation({ onAppliquer, className }: { onAppliquer?: (m: s
   const [reglage, setReglage] = useState(false);
   /* « Ignorer » : le bloc disparaît jusqu'à la prochaine ouverture de l'écran */
   const [ignore, setIgnore] = useState(false);
-  const S = useRepere((s) => s.etat.SORTIES), C = useRepere((s) => s.etat.CARDIO);
-  const r = useMemo(() => recommander(H || [], auj, ecartes || [], niveau, effortsEndurance(S, C)), [H, auj, ecartes, niveau, S, C]);
+  const S = useRepere((s) => s.etat.SORTIES), C = useRepere((s) => s.etat.CARDIO), AV = useRepere((s) => s.etat.A.avant);
+  const r = useMemo(() => recommander(H || [], auj, ecartes || [], niveau, effortsEndurance(S, C, AV)), [AV, H, auj, ecartes, niveau, S, C]);
   if (!r || ignore) return null;
 
   const basculer = (z: ZoneEcartable) => {

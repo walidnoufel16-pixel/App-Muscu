@@ -157,3 +157,23 @@ describe("assistant : lombaires en récupération", () => {
     expect(ex.some((e) => chargeLombaires(e.id))).toBe(false);
   });
 });
+
+describe("séance déclarée à l'accueil (dernières 48 h)", () => {
+  it("les muscles déclarés récupèrent sans séance dans l'historique", async () => {
+    const { effortsEndurance: ef } = await import("@/lib/logic/recommandation");
+    /* hier pecs, triceps et dos : aujourd'hui ils récupèrent, la proposition les évite */
+    const efforts = ef([], [], { d: MAR, m: ["pec", "tri", "dos"] });
+    const E = etatGroupes([], MER, efforts);
+    expect(E.pec.recupere).toBe(false);
+    expect(E.dos.recupere).toBe(false);
+    expect(E.qua.recupere).toBe(true);
+    const r = recoDuJour([], MER, [], undefined, efforts);
+    expect(r.propositions[0].muscles).not.toContain("pec");
+    expect(r.propositions[0].muscles).not.toContain("tri");
+    /* avant-hier : pecs prêts, le dos (3 jours) récupère encore */
+    const E2 = etatGroupes([], MER, ef([], [], { d: LUN, m: ["pec", "dos"] }));
+    expect(E2.pec.recupere).toBe(true);
+    expect(E2.dos.recupere).toBe(false);
+    expect(ef([], [], { d: MAR, m: [] })).toEqual([]);
+  });
+});

@@ -115,7 +115,7 @@ function Assistant() {
     const zones = zonesActives(A);
     const etat = useRepere.getState().etat, H = etat.HIST || [], habitudes = new Set(H.slice(-12).flatMap((l) => Object.keys(l.ex)));
     /* lombaires en récupération (muscu, ce jour-là) : pas de soulevé de terre lourd */
-    const lombaires = !etatGroupes(H, pour ?? auj, effortsEndurance(etat.SORTIES, etat.CARDIO)).lom.recupere;
+    const lombaires = !etatGroupes(H, pour ?? auj, effortsEndurance(etat.SORTIES, etat.CARDIO, etat.A.avant)).lom.recupere;
     const ex = construireSeance(m, d, obj, sel, hasardDe(`${auj}|${m.join(",")}|${d}|${obj}|${sel.join(",")}`), (o) => zonesDe(o, zones).length > 0 || (lombaires && chargeLombaires(o)), A.regularite, { prio: musclesPrioritaires(prioNoms(A)), habitudes, dense: d === 30 });
     if (!ex.length) { dire(tr("Pas d'exercice disponible"), tr("Aucun exercice ne correspond à ces muscles avec le matériel coché. Ajoute du matériel ou choisis d'autres muscles.")); return; }
     /* combinée : le bloc cardio arrive à la fin, sans échauffement ; il se déplace ensuite dans le composeur */

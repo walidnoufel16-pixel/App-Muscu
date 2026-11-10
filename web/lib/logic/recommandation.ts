@@ -37,6 +37,17 @@ export const nomGroupe = (g: Groupe) => ({
 export const nomMuscle = (g: MuscleRecup) => (GROUPES as readonly string[]).includes(g) ? nomGroupe(g as Groupe)
   : ({ tra: tr("Trapèzes"), lom: tr("Lombaires"), avb: tr("Avant-bras"), add: tr("Adducteurs") } as Record<string, string>)[g];
 
+/** Séance faite avant d'installer Oxa (accueil : « Tu t'es entraîné ces dernières 48 h ? ») : le jour et les muscles. */
+export type Avant = { d: string; m: string[] };
+/** Les muscles déclarés à l'accueil, en jours de récupération comme après une séance de volume moyen
+    (abdos et mollets 1 jour, lombaires 2, dos et jambes 3, les autres 2) ; sans fausse séance dans l'historique. */
+export function effortsDeclares(av?: Avant | null): Endurance[] {
+  if (!av?.d || !av.m?.length) return [];
+  const delai = (g: string) => (g === "abd" || g === "mol" ? 1 : g === "qua" || g === "isc" || g === "dos" ? 3 : 2);
+  const m = av.m.filter((g): g is MuscleRecup => SUIVIS.has(g));
+  return [1, 2, 3].map((jours) => ({ d: av.d, jours, muscles: m.filter((g) => delai(g) === jours) })).filter((e) => e.muscles.length);
+}
+
 /** Un effort d'endurance qui fatigue des muscles : `jours` de récupération à partir du jour `d`. */
 export type Endurance = { d: string; jours: number; muscles: MuscleRecup[] };
 const JAMBES: MuscleRecup[] = ["qua", "isc", "mol"];
@@ -48,8 +59,8 @@ const MUSCLES_MACHINE: Record<string, MuscleRecup[]> = { tapis: JAMBES, ellip: J
       ou une sortie très dure (ressenti 8 et plus), 24 h après 8 km ou une sortie soutenue (6 et plus) ;
       rien pour un footing court et facile ;
     - cardio guidé : 24 h après du fractionné de 10 min et plus, ou une heure d'endurance. */
-export function effortsEndurance(S: Sortie[] = [], C: HistoCardio[] = []): Endurance[] {
-  const out: Endurance[] = [];
+export function effortsEndurance(S: Sortie[] = [], C: HistoCardio[] = [], avant?: Avant | null): Endurance[] {
+  const out: Endurance[] = effortsDeclares(avant);
   for (const s of S) {
     const jours = s.km >= 25 || (s.course && s.km >= 21) ? 3 : s.km >= 15 || s.course || s.rpe >= 8 ? 2 : s.km >= 8 || s.rpe >= 6 ? 1 : 0;
     if (jours) out.push({ d: s.d, jours, muscles: JAMBES });
@@ -172,7 +183,8 @@ function candidats(E: Record<Groupe, EtatGroupe>, ecartes: Set<Groupe>): Proposi
 export function recommander(H: LigneHist[], auj: string, ecartes: ZoneEcartable[] = [], niveau?: number, efforts: Endurance[] = []): Recommandation | null {
   CIBLE = cibleNiveau(niveau);
   const E = etatGroupes(H, auj, efforts);
-  if (GROUPES.every((g) => !E[g].dernier)) return null;
+  /* aucune séance sur 14 jours et rien en récupération (course, cardio, séance déclarée à l'accueil) : pas de recul */
+  if (GROUPES.every((g) => !E[g].dernier && E[g].recupere)) return null;
   const parJour = seriesParJour(H, decaler(auj, -3), auj);
   const faits = Object.keys(parJour).sort().map((d) => ({ d, groupes: GROUPES.filter((g) => (parJour[d][g] || 0) >= 2) })).filter((f) => f.groupes.length);
   const exclus = groupesEcartes(ecartes);

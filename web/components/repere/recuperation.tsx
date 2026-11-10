@@ -42,8 +42,8 @@ const delai = (e: EtatGroupe) => (e.reste === 1 ? tr("demain") : tr("dans {n} jo
 export function LigneRecuperation({ auj }: { auj: string }) {
   const router = useRouter();
   const H = useRepere((s) => s.etat.HIST);
-  const S = useRepere((s) => s.etat.SORTIES), C = useRepere((s) => s.etat.CARDIO);
-  const E = useMemo(() => etatGroupes(H || [], auj, effortsEndurance(S, C)), [H, S, C, auj]);
+  const S = useRepere((s) => s.etat.SORTIES), C = useRepere((s) => s.etat.CARDIO), AV = useRepere((s) => s.etat.A.avant);
+  const E = useMemo(() => etatGroupes(H || [], auj, effortsEndurance(S, C, AV)), [AV, H, S, C, auj]);
   const [ouvert, setOuvert] = useState(false);
   if (MUSCLES_RECUP.every((g) => !E[g].dernier && E[g].recupere)) return null;
   /* trapèzes, lombaires, avant-bras, adducteurs : listés seulement s'ils ont travaillé ces 14 jours */

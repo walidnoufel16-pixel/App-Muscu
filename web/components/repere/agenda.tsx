@@ -63,7 +63,7 @@ export function useLancer() {
     if (q.t === "course") { router.push(`/entrainement/course?s=${q.cle}` as Route, AVANT); return; }
     if (q.t === "plan") { muter((x) => { x.day = q.day; }); router.push("/entrainement/seance", AVANT); return; }
     /* proposition d'Oxa : l'assistant s'ouvre avec ses muscles ; sans muscles, ceux conseillés ce jour-là */
-    const m = q.t === "reco" && q.m?.length ? q.m : musclesRecommandes(recoDuJour(E.HIST || [], jourDe(Date.now()), E.A.recoSans || [], E.A.regularite, effortsEndurance(E.SORTIES, E.CARDIO)));
+    const m = q.t === "reco" && q.m?.length ? q.m : musclesRecommandes(recoDuJour(E.HIST || [], jourDe(Date.now()), E.A.recoSans || [], E.A.regularite, effortsEndurance(E.SORTIES, E.CARDIO, E.A.avant)));
     router.push((m ? `/entrainement/assistant?m=${m.join(",")}` : "/entrainement/assistant?type=cardio") as Route, AVANT);
   };
 }
@@ -121,7 +121,7 @@ function FeuilleNouvelle({ d: d0, auj, setF }: { d: string; auj: string; setF: (
     { icone: <DownloadSimpleIcon className="size-[18px]" weight="bold" />, titre: tr("Importer"), sous: tr("Avec un code"), onClick: () => { setF(null); setTimeout(() => useMenu.setState({ importer: true }), 350); } },
   ];
   /* les propositions d'Oxa pour ce jour-là */
-  const reco = useMemo(() => recoDuJour(etat.HIST || [], d, etat.A.recoSans || [], etat.A.regularite, effortsEndurance(etat.SORTIES, etat.CARDIO)), [etat, d]);
+  const reco = useMemo(() => recoDuJour(etat.HIST || [], d, etat.A.recoSans || [], etat.A.regularite, effortsEndurance(etat.SORTIES, etat.CARDIO, etat.A.avant)), [etat, d]);
   const propositions: Choix[] = reco.propositions.slice(0, 3).map((p) => ({ quoi: { t: "reco", m: p.muscles }, nom: p.nom, sous: p.raison, icone: <MiniCorps groupes={p.muscles} femme={femme} /> }));
   const groupes = useMemo(() => seancesDuJour(etat, d, auj), [etat, d, auj]);
   const ajouter = (c: Choix) => {
@@ -233,7 +233,7 @@ function Apercu({ c, d, auj, retour, ajouter, setF }: { c: Choix; d: string; auj
     const duree = typeof A.duree === "number" && [30, 45, 60].includes(A.duree) ? A.duree : 45, obj = A.objectif ?? 0;
     const sel = avecSalle(selDeclare(A), A), zones = zonesActives(A), H = etat.HIST || [];
     const habitudes = new Set(H.slice(-12).flatMap((l) => Object.keys(l.ex)));
-    const lombaires = !etatGroupes(H, d, effortsEndurance(etat.SORTIES, etat.CARDIO)).lom.recupere;
+    const lombaires = !etatGroupes(H, d, effortsEndurance(etat.SORTIES, etat.CARDIO, etat.A.avant)).lom.recupere;
     const ex = construireSeance(m, duree, obj, sel, hasardDe(`${d}|${m.join(",")}|${duree}|${obj}|${sel.join(",")}`), (o) => zonesDe(o, zones).length > 0 || (lombaires && chargeLombaires(o)), A.regularite, { prio: musclesPrioritaires(prioNoms(A)), habitudes, dense: duree === 30 });
     return { nom: c.nom, ex, obj, gen: { m: [...m], d: duree, obj } };
   });

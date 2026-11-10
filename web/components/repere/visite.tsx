@@ -24,6 +24,7 @@ import { AVANT } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 import { lienRubrique } from "./rubriques";
 import { MiseEnRoute, profilMinimal } from "./profil-sportif";
+import { AccueilPremier, useAccueil } from "./accueil-premier";
 
 const CLE = "repere.visite", CLE_PLAN = "repere.visite.plan";
 /** Étape en cours : null = fermée ; 0 bienvenue ; 1 à n bulles ; n + 1 la fin. */
@@ -66,9 +67,10 @@ export function Visite() {
   useEffect(() => {
     if (!pret || !pseudo || !neuf || bilan || etape !== null || mini || ancienne) return;
     if (!RACINE.test(chemin) || lu(CLE)) return;
-    const t = setTimeout(() => useVisite.setState({ etape: 0 }), 700);
+    /* sans Oxa Plan : l'accueil (profil sportif, dernières 48 h, première séance) à la place de la visite */
+    const t = setTimeout(() => (prog ? useVisite.setState({ etape: 0 }) : useAccueil.setState({ ouvert: true })), 700);
     return () => clearTimeout(t);
-  }, [pret, pseudo, neuf, bilan, etape, mini, chemin, ancienne]);
+  }, [pret, pseudo, neuf, bilan, etape, mini, chemin, ancienne, prog]);
 
   /* Oxa Plan ouvert plus tard : une bulle sur sa tuile, une fois, tant que le programme n'est pas construit */
   useEffect(() => {
@@ -120,6 +122,7 @@ export function Visite() {
         </DrawerContent>
       </Drawer>
 
+      <AccueilPremier onFin={(e) => { mesurer("visite_finie", { etape: e, accueil: true }); noter(CLE); if (prog) noter(CLE_PLAN); }} />
       {etape !== null && etape >= 1 && etape <= n && <Bulle key={etape} b={bulles[etape - 1]} i={etape} total={n} onSuivant={suivant} onPasser={finir} />}
       {mini && etape === null && <Bulle b={MINI} i={1} total={1} onSuivant={() => { finMini(); router.push(lienRubrique("programme"), AVANT); }} onPasser={finMini} onAbsent={() => useVisite.setState({ mini: false })} bouton={tr("Découvrir")} passer={tr("Plus tard")} />}
 

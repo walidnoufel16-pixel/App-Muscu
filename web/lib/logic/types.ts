@@ -82,6 +82,10 @@ export type Reponses = {
   rappelAgenda?: { veille: boolean; h: number } | null;
   /** Zones que « Ma recommandation du jour » ne propose plus (lib/logic/recommandation.ts). */
   recoSans?: ("pec" | "dos" | "epa" | "bras" | "abd" | "jambes")[];
+  /* accueil : séance faite juste avant d'installer Oxa (jour, muscles), pour la récupération */
+  avant?: { d: string; m: string[] };
+  /* accueil (profil sportif + 48 h) terminé */
+  accueil?: boolean;
   /** « Oxa te propose » masqué sur l'accueil : pour un jour (sa date) ou tout le temps (Profil le réactive). */
   recoMasquee?: string;
   recoOff?: boolean;
