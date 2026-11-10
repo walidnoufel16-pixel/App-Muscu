@@ -17,7 +17,7 @@ import { AVANT } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 import { decaler, jourDe } from "@/lib/logic/historique";
-import { effortsEndurance, etatGroupes, GROUPES, nomMuscle, phrase, nomGroupe, recoDuJour, type MuscleRecup } from "@/lib/logic/recommandation";
+import { effortsEndurance, etatGroupes, GROUPES, nomMuscle, phrase, recoDuJour, type MuscleRecup } from "@/lib/logic/recommandation";
 import { EditeurProfil, profilMinimal, type Ligne } from "./profil-sportif";
 import { MonMateriel } from "./mon-materiel";
 
@@ -26,6 +26,8 @@ export const useAccueil = create<{ ouvert: boolean }>(() => ({ ouvert: false }))
 const QUESTIONS: (Ligne | "materiel")[] = ["sexe", "age", "corps", "objectif", "niveau", "rythme", "materiel", "prio", "sport"];
 /* les muscles qu'on peut déclarer (ceux que suit la récupération, sans avant-bras ni adducteurs) */
 const MUSCLES: MuscleRecup[] = [...GROUPES, "tra", "lom"];
+/* les fessiers ne sont pas suivis à part : ils comptent avec les ischios (hip thrust, pont, soulevé roumain) */
+const nom = (g: MuscleRecup) => (g === "isc" ? tr("Ischios et fessiers") : nomMuscle(g));
 
 export function AccueilPremier({ onFin }: { onFin: (etape: number) => void }) {
   /* monté par AppShell à la place de l'app : ouvert jusqu'à « Plus tard » ou la fin */
@@ -161,7 +163,7 @@ function Avant48({ suivant, retour }: { suivant: () => void; retour: () => void 
               const on = m.includes(g);
               return (
                 <button key={g} aria-pressed={on} onClick={() => { tactile(5); setM((l) => (on ? l.filter((x) => x !== g) : [...l, g])); }}
-                  className={cn("h-9 rounded-full border-[1.5px] px-3.5 text-[14px] font-semibold", on ? "border-foreground bg-foreground text-background" : "border-border")}>{nomMuscle(g)}</button>
+                  className={cn("h-9 rounded-full border-[1.5px] px-3.5 text-[14px] font-semibold", on ? "border-foreground bg-foreground text-background" : "border-border")}>{nom(g)}</button>
               );
             })}
           </div>
@@ -183,7 +185,7 @@ function Fin({ fermer }: { fermer: () => void }) {
   const p = r.type === "seance" ? r.propositions[0] : undefined;
   const aller = (url: string) => { tactile(10); fermer(); router.push(url as Route, AVANT); };
   const raison = recup.length
-    ? tr("{m} récupèrent encore. Construite avec ton matériel.", { m: phrase(recup.map(nomGroupe)) })
+    ? tr("{m} récupèrent encore. Construite avec ton matériel.", { m: phrase(recup.map(nom)) })
     : tr("Construite avec ton matériel, à ton niveau.");
   return (
     <>
@@ -193,8 +195,8 @@ function Fin({ fermer }: { fermer: () => void }) {
       <div className="mt-3 flex flex-wrap gap-1.5">
         {recup.length ? (
           <>
-            {prets.map((g) => <span key={g} className="rounded-full bg-plate-soft px-2.5 py-1 text-[12.5px] font-bold text-plate-ink dark:text-plate">{nomGroupe(g)} · {tr("prêt")}</span>)}
-            {recup.map((g) => <span key={g} className="rounded-full bg-[#fff1e6] px-2.5 py-1 text-[12.5px] font-bold text-[#b45309] dark:bg-[#3a2410] dark:text-[#fb923c]">{nomGroupe(g)} · {tr("récupère")}</span>)}
+            {prets.map((g) => <span key={g} className="rounded-full bg-plate-soft px-2.5 py-1 text-[12.5px] font-bold text-plate-ink dark:text-plate">{nom(g)} · {tr("prêt")}</span>)}
+            {recup.map((g) => <span key={g} className="rounded-full bg-[#fff1e6] px-2.5 py-1 text-[12.5px] font-bold text-[#b45309] dark:bg-[#3a2410] dark:text-[#fb923c]">{nom(g)} · {tr("récupère")}</span>)}
           </>
         ) : <span className="rounded-full bg-plate-soft px-3 py-1 text-[13px] font-bold text-plate-ink dark:text-plate">{tr("Tous prêts")}</span>}
       </div>
