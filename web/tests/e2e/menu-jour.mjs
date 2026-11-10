@@ -96,15 +96,22 @@ await pg.goto(U + `/entrainement/assistant/?jour=${dans3}&m=dos`);
 /* profil vide : les 3 questions de mise en route s'ouvrent d'abord */
 const plusTard = pg.getByRole("button", { name: "Plus tard" });
 if (await plusTard.waitFor({ timeout: 3000 }).then(() => true, () => false)) await plusTard.click();
-const bt = pg.getByRole("button", { name: /^Créer pour / });
+const bt = pg.getByRole("button", { name: "Voir la séance" });
 await bt.waitFor();
-ok(true, "assistant pour un jour à venir : « " + (await bt.textContent()) + " »");
+ok(!(await pg.getByRole("button", { name: /^Créer pour / }).count()), "assistant pour un jour à venir : « Voir la séance », plus de programmation à l'aveugle");
 if (await bt.isDisabled()) for (const m of ["Haltères", "Barre", "Machines", "Poids du corps"]) await pg.getByRole("button", { name: m, exact: true }).first().click().catch(() => {});
 await cap(pg, "assistant");
 await bt.click();
+await pg.waitForURL(/composer/);
+e = await etat(pg);
+ok(e.SEANCES.length === 3, "Voir la séance → l'aperçu (composeur), rien d'enregistré encore");
+const enr2 = pg.getByRole("button", { name: /^Enregistrer pour / });
+await enr2.waitFor();
+await cap(pg, "assistant-apercu");
+await enr2.click();
 await pg.waitForURL(/\/entrainement\/?$/);
 e = await etat(pg);
-ok(e.SEANCES.length === 4 && e.AGENDA.some((p) => p.d === dans3 && p.quoi.t === "libre" && p.quoi.i === 3), "Créer pour … → séance créée et programmée ce jour-là");
+ok(e.SEANCES.length === 4 && e.AGENDA.some((p) => p.d === dans3 && p.quoi.t === "libre" && p.quoi.i === 3), "Enregistrer pour … → séance créée et programmée ce jour-là");
 ok(!errs.length, "aucune erreur JS " + errs.join(" | "));
 
 // un compte qui n'a jamais fait de séance : la carte « Ta première séance », vers l'assistant pré-coché

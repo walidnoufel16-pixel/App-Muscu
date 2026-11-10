@@ -6,8 +6,6 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { toast } from "sonner";
-import { jourCourt, jourLong, maj } from "@/components/repere/agenda";
-import { programmerNouvelle } from "@/lib/logic/agenda";
 import { Input } from "@/components/ui/input";
 import { ReglagesCardio, type ChoixCardio } from "@/components/repere/reglages-cardio";
 import { QuestionnaireCourse } from "@/components/repere/course";
@@ -119,15 +117,9 @@ function Assistant() {
     /* combinée : le bloc cardio arrive à la fin, sans échauffement ; il se déplace ensuite dans le composeur */
     const blocs = type === "mixte" ? [{ ...nouveauBloc(ex.length, choix.f, choix.m, choix.n), r: { ...choix.r, echauf: 0 } }] : undefined;
     const seance = { nom: nomSeance(m) + (blocs ? tr(" + cardio") : ""), ex, obj, gen: { m: [...m], d, obj }, ...(blocs ? { blocs } : {}), ...(refus.length ? { avisIgnores: [...refus] } : {}) };
-    /* « Créer pour jeudi 12 » : enregistrée dans Mes séances et programmée ce jour-là */
-    if (commencer && pour) {
-      muter((E) => { E.SEANCES.push(seance); programmerNouvelle(E, pour, E.SEANCES.length - 1); });
-      toast.success(tr("Programmée : {nom}", { nom: seance.nom }), { description: maj(jourLong(pour)) });
-      router.replace("/entrainement" as Route, ARRIERE);
-      return;
-    }
-    /* « Créer et commencer » : enregistrée dans Mes séances et lancée tout de suite */
-    if (commencer) {
+    /* « Créer et commencer » : enregistrée dans Mes séances et lancée tout de suite ; pour un jour à
+       venir, jamais sans l'avoir vue : le composeur la montre, « Enregistrer pour … » la programme */
+    if (commencer && !pour) {
       const i = useRepere.getState().etat.SEANCES.length;
       muter((E) => { E.SEANCES.push(seance); });
       preparer(); remplacement();
@@ -302,14 +294,20 @@ function Assistant() {
       {/* un voile sous les boutons fixes : le contenu qui défile ne se lit pas à travers (boutons grisés compris) */}
       <div aria-hidden className="pointer-events-none fixed inset-x-0 bottom-0 z-20 h-[calc(max(env(safe-area-inset-bottom),14px)+80px)] bg-gradient-to-t from-background from-60% to-transparent" />
       <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
-        <div className="flex gap-2">
-          <Button variant="outline" size="xl" className="flex-1 bg-background disabled:opacity-100 disabled:text-muted-foreground" disabled={!peut} onClick={() => creer()}>
-            {tr("Ajuster")}
+        {pour ? (
+          <Button variant="plate" size="xl" className="w-full disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 disabled:shadow-none" disabled={!peut} onClick={() => creer()}>
+            {tr("Voir la séance")}
           </Button>
-          <Button variant="plate" size="xl" className="flex-[1.6] disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 disabled:shadow-none" disabled={!peut} onClick={() => creer(true)}>
-            {pour ? tr("Créer pour {j}", { j: jourCourt(pour) }) : tr("Créer et commencer")}
-          </Button>
-        </div>
+        ) : (
+          <div className="flex gap-2">
+            <Button variant="outline" size="xl" className="flex-1 bg-background disabled:opacity-100 disabled:text-muted-foreground" disabled={!peut} onClick={() => creer()}>
+              {tr("Ajuster")}
+            </Button>
+            <Button variant="plate" size="xl" className="flex-[1.6] disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 disabled:shadow-none" disabled={!peut} onClick={() => creer(true)}>
+              {tr("Créer et commencer")}
+            </Button>
+          </div>
+        )}
       </div>
       </>
       )}

@@ -1,7 +1,7 @@
 /* « L'avis d'Oxa » (lib/logic/avis-seance.ts). */
 import { describe, expect, it } from "vitest";
 import { appliquerAvis, avisMuscles, avisSeance, candidat, estPoly } from "@/lib/logic/avis-seance";
-import { construireSeance } from "@/lib/logic/assistant";
+import { construireSeance, hasardDe } from "@/lib/logic/assistant";
 import { EX } from "@/lib/data/exercices";
 import type { ExLibre, SeanceLibre } from "@/lib/logic/types";
 import type { LigneHist } from "@/lib/logic/historique";
@@ -165,8 +165,9 @@ describe("suggestion au choix des muscles", () => {
     expect(s).toMatchObject({ id: "recup", alerte: true });
     expect(s.ajouter).toBeUndefined();
   });
+  /* (séance composée à la main : sur une séance qu'Oxa vient de construire, plus aucun conseil d'équilibre) */
   it("« Non merci » au choix des muscles : le composeur ne repropose pas le gainage", () => {
-    const L = seance(construireSeance(["pec", "dos", "epa", "bic", "tri"], 60, 0, SEL, () => 0.3), { obj: 0, gen: { m: ["pec", "dos", "epa", "bic", "tri"], d: 60, obj: 0 } });
+    const L = seance(construireSeance(["pec", "dos", "epa", "bic", "tri"], 60, 0, SEL, () => 0.3), { obj: 0 });
     expect(ids(avis(L, { H: semaine }))).toContain("gainage");
     expect(ids(avis({ ...L, avisIgnores: ["gainage"] }, { H: semaine }))).not.toContain("gainage");
   });
@@ -180,5 +181,15 @@ describe("suggestions et séance déclarée à l'accueil", () => {
     expect(avisMuscles(["dos", "bic"], { auj: AUJ, efforts }).some((x) => x.id === "poussee")).toBe(false);
     expect(avisMuscles(["dos", "bic"], { auj: AUJ }).some((x) => x.id === "poussee")).toBe(true);
     expect(avisMuscles(["pec"], { auj: AUJ, efforts })[0]).toMatchObject({ id: "recup", alerte: true });
+  });
+});
+
+describe("séance construite par Oxa", () => {
+  it("pas de conseil d'équilibre (ajouter un autre muscle) sur une séance qu'Oxa vient de construire", () => {
+    for (const m of [["pec", "tri", "epa"], ["dos", "bic"], ["qua", "isc", "mol"], ["pec", "dos", "epa", "qua", "isc", "abd"]])
+      for (let k = 0; k < 10; k++) {
+        const L = seance(construireSeance(m, 45, 0, SEL, hasardDe("o" + k)), { obj: 0, gen: { m, d: 45, obj: 0 } });
+        expect(avis(L, { H: semaine }).filter((a) => a.f === "equilibre").map((a) => a.id), m.join()).toEqual([]);
+      }
   });
 });

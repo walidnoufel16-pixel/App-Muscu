@@ -213,7 +213,11 @@ export function avisSeance(L: Brouillon, c: ContexteAvis): Avis[] {
       bouton: tr("Garder 4 séries"), action: { t: "regler", r: lourds.map((e) => ({ id: e.id, s: 4 })) } });
 
   /* refusés au choix des muscles (« Non merci ») : on n'y revient pas */
-  return out.filter((a) => !L.avisIgnores?.includes(a.id));
+  /* séance construite par Oxa, sur les muscles choisis : l'équilibre de la semaine est déjà pensé par la
+     recommandation (rotation, volume) ; proposer d'y ajouter d'autres muscles se contredirait. Dès qu'un
+     exercice d'un autre muscle y entre, les conseils d'équilibre reviennent. */
+  const oxa = !!L.gen && ex.every((e) => { const g = groupe(e.id); return !g || L.gen!.m.includes(g); });
+  return out.filter((a) => !L.avisIgnores?.includes(a.id) && !(oxa && a.f === "equilibre"));
 }
 
 /** Suggestion au moment du choix des muscles (Créer une séance pour moi). Mêmes identifiants que
