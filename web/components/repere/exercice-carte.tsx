@@ -5,7 +5,8 @@ import { ArrowsLeftRightIcon, BarbellIcon, CaretDownIcon, CheckIcon, CrosshairIc
 import { EX } from "@/lib/data/exercices";
 import { musclesDe, nb, okDe, resumeDe } from "@/lib/logic/core";
 import { EtiquetteZone } from "./forme";
-import type { Journal } from "@/lib/logic/types";
+import { EtiquetteRole, PourquoiRole } from "./role-exercice";
+import type { Journal, RoleEx } from "@/lib/logic/types";
 import { useCelebrer } from "@/lib/celebrer";
 import { cn } from "@/lib/utils";
 
@@ -68,9 +69,11 @@ export function EtatCarte({ L, id, n }: { L?: Journal; id: string; n: number }) 
 
 /* Carte d'exercice repliable, commune au plan et aux séances libres. */
 export function ExerciceCarte({
-  ancre, num, id, prescr, repos, rpe, role, badge, variation = 0, L, n, ouvert, onToggle, onFiche, onRemplacer, onTout, children,
+  ancre, num, id, prescr, repos, rpe, role, ro, badge, variation = 0, L, n, ouvert, onToggle, onFiche, onRemplacer, onTout, children,
 }: {
   ancre: string; num: number; id: string; prescr: string; repos: string; rpe?: number; role?: number; badge?: string;
+  /** séance construite par Oxa : base, complément, isolation ou gainage (l'ordre expliqué) */
+  ro?: RoleEx;
   /** charge proposée moins celle de la dernière fois (kg) : « ↑ 2,5 kg » ou « ↓ allégé » ; rien si elle ne bouge pas */
   variation?: number;
   L?: Journal; n: number; ouvert: boolean;
@@ -100,6 +103,7 @@ export function ExerciceCarte({
           <span className="flex items-center gap-2">
             <span className="truncate text-[16px] leading-tight font-semibold tracking-[-0.01em]">{x.n}</span>
             {badge && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10.5px] font-medium text-muted-foreground">{badge}</span>}
+            <EtiquetteRole ro={ro} />
             <EtiquetteZone id={id} />
           </span>
           {mus.length > 0 && (
@@ -124,6 +128,7 @@ export function ExerciceCarte({
 
       {ouvert && (
         <div className="animate-in fade-in-0 slide-in-from-top-1 duration-200">
+          <PourquoiRole ro={ro} className="border-t border-border/70 px-4 py-2.5" />
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border/70 px-4 py-2.5 text-[12.5px] text-muted-foreground">
             {role !== undefined && (
               <span className="inline-flex items-center gap-1.5 font-medium text-foreground">

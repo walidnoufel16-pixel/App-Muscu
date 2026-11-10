@@ -36,7 +36,10 @@ export type PlanIA = {
 };
 
 /* o : position d'origine pendant une modification dans le composeur (jamais enregistrée). */
-export type ExLibre = { id: string; s: number; r: number; p: string; o?: number };
+/* ro : place de l'exercice dans une séance construite par Oxa (b base, c complément, i isolation,
+   g gainage), affichée en étiquette pour expliquer l'ordre */
+export type ExLibre = { id: string; s: number; r: number; p: string; o?: number; ro?: RoleEx };
+export type RoleEx = "b" | "c" | "i" | "g";
 export type SeanceLibre = {
   nom: string;
   ex: ExLibre[];

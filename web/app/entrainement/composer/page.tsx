@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EnTete } from "@/components/repere/en-tete";
 import { Vignette } from "@/components/repere/exercice-carte";
+import { EtiquetteRole, PourquoiRole } from "@/components/repere/role-exercice";
 import { FicheExercice, type FicheOuverte } from "@/components/repere/fiche-exercice";
 import { Remplacer } from "@/components/repere/seance-vues";
 import { FeuilleAjout } from "@/components/repere/ajout-exercice";
@@ -36,6 +37,7 @@ import { programmerNouvelle, remplacerLe } from "@/lib/logic/agenda";
 import { jourCourt, jourLong, maj } from "@/components/repere/agenda";
 import { toast } from "sonner";
 import { AvisSeance } from "@/components/repere/avis-seance";
+import { estPoly } from "@/lib/logic/avis-seance";
 import { lienRubrique } from "@/components/repere/rubriques";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
@@ -320,6 +322,8 @@ export default function PageComposer() {
           majLibre((l) => {
             const e = l.ex[remp!], x = EX[o], old = EX[e.id];
             if (x.ch !== old.ch) e.r = x.ch === "temps" ? 45 : x.ch === "dist" ? 250 : 10;
+            /* l'étiquette (base, isolation…) ne suit que si le nouvel exercice joue le même rôle */
+            if (e.ro && (e.ro === "g" ? x.pat !== old.pat : estPoly(o) !== estPoly(e.id))) delete e.ro;
             e.id = o;
             delete e.o; // un autre exercice : il ne reprend pas les séries du précédent
           });
@@ -355,7 +359,7 @@ function CarteCompo({
         </button>
         <button onClick={onToggle} aria-expanded={ouvert} className="flex min-w-0 flex-1 items-center gap-3 py-3 pr-3 pl-3 text-left">
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="truncate text-[16px] font-semibold tracking-[-0.01em]">{x.n}</span>
+            <span className="flex min-w-0 items-center gap-2"><span className="truncate text-[16px] font-semibold tracking-[-0.01em]">{x.n}</span><EtiquetteRole ro={e.ro} /></span>
             {mus.length > 0 && <span className="truncate text-[12.5px] text-muted-foreground">{mus.join(" · ")}</span>}
             <span className="num text-[15px] font-semibold text-foreground/80">
               {prescr}{kg != null && <> · <span className="text-foreground">{tr("{v} kg", { v: nb(kg) })}</span></>}
@@ -369,6 +373,7 @@ function CarteCompo({
       </div>
       {ouvert && (
         <div className="animate-in fade-in-0 duration-150">
+          <PourquoiRole ro={e.ro} className="border-t border-border/70 px-4 py-2.5" />
           {prop?.why && (
             <p className="border-t border-border/70 px-4 pt-2.5 text-[13px] leading-snug text-muted-foreground">
               {kg != null && <span className="font-semibold text-plate-ink dark:text-plate">{tr("Pourquoi {v} kg", { v: nb(kg) })} · </span>}
