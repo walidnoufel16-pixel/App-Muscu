@@ -84,7 +84,8 @@ function Assistant() {
     revenirA("/entrainement/rubrique", () => router.replace(lienRubrique("libre"), ARRIERE));
   };
   const { sel: selB, setSel, setLibre } = useBrouillon();
-  const sel = street ? (selB ?? MATERIEL_STREET).filter((t) => OUTILS_STREET.includes(t)) : avecSalle(selB ?? [], A);
+  /* le matériel déclaré dans le profil, pré-coché ; on l'adapte sur place si besoin */
+  const sel = street ? (selB ?? MATERIEL_STREET).filter((t) => OUTILS_STREET.includes(t)) : avecSalle(selB ?? selDeclare(A), A);
   /* muscles touchés sur le corps d'Entraînement : déjà cochés */
   const mUrl = useSearchParams().get("m");
   /* ouvert depuis le menu d'un jour à venir : la séance créée y sera programmée */
