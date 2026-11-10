@@ -89,8 +89,13 @@ self.addEventListener("fetch", (e) => {
   const u = new URL(req.url), chemin = u.pathname;
   const donneesNav = chemin.endsWith(".txt") || u.searchParams.has("_rsc") || req.headers.get("RSC") === "1";
   if (req.mode === "navigate" || chemin === "/manifest.webmanifest" || donneesNav || ["/blog", "/guides", "/en/blog", "/en/guides"].some((d) => chemin === d || chemin.startsWith(d + "/"))) {
-    e.respondWith(fetch(req).then((r) => { const c = r.clone(); caches.open(C).then((x) => x.put(req, c)); return r; })
-      .catch(() => caches.match(req, { ignoreSearch: true }).then((r) => r || caches.match("/"))));
+    /* réseau qui traîne (une barre, une salle en sous-sol) : au bout de 2,5 s, la copie gardée ; le
+       réseau, s'il finit par répondre, met la copie à jour pour la prochaine fois */
+    const reseau = fetch(req).then((r) => { if (r.ok) { const c = r.clone(); caches.open(C).then((x) => x.put(req, c)); } return r; });
+    const copie = () => caches.match(req, { ignoreSearch: true }).then((r) => r || (req.mode === "navigate" ? caches.match("/") : undefined));
+    const attente = new Promise((ok) => setTimeout(ok, 2500));
+    e.respondWith(Promise.race([reseau.catch(() => null), attente]).then((r) => r || copie().then((c) => c || reseau))
+      .catch(() => copie().then((c) => c || Response.error())));
     return;
   }
   e.respondWith(caches.match(req, { ignoreSearch: true }).then((r) => r || fetch(req).then((res) => {
