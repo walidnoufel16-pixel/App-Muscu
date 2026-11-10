@@ -12,7 +12,7 @@ const jour = (d) => `${d.getFullYear()}-${deux(d.getMonth() + 1)}-${deux(d.getDa
 const il = (n) => { const d = new Date(); d.setHours(12); d.setDate(d.getDate() - n); return jour(d); };
 const H = [{ d: il(1), s: "L|0", nom: "Push", vol: 1000, ser: 10, ex: { dc: [70, 1000, 60, 8, 4], dh: [30, 500, 60, 10, 3], tri: [20, 300, 60, 10, 3] } }];
 const SEANCES = [{ nom: "Push", ex: [{ id: "dc", s: 4, r: 8, p: "2 min" }, { id: "dh", s: 3, r: 10, p: "90 s" }] }];
-const base = { A: { objectif: 0, materiel: 0, acc: [] }, LOG: {}, SWAP: {}, SWAPP: {}, PLAN: null, SEANCES, wk: 0, day: 0, FINI: false, HIST: H, ts: Date.now() };
+const base = { A: { objectif: 0, materiel: 0, acc: [], objHebdo: 5 }, LOG: {}, SWAP: {}, SWAPP: {}, PLAN: null, SEANCES, wk: 0, day: 0, FINI: false, HIST: H, ts: Date.now() };
 const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 const ok = (c, m) => { console.log(c ? "OK  " : "ÉCHEC", m); if (!c) process.exitCode = 1; };
 const cap = async (pg, n) => { if (process.env.CAPTURES) await pg.screenshot({ path: `${process.env.CAPTURES}/${n}.png` }); };
