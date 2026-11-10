@@ -32,7 +32,8 @@ import { preparer } from "@/lib/sons";
 import { Retour, useRetour } from "@/components/repere/retour";
 import { useBrouillon } from "@/lib/brouillon";
 import { programmerNouvelle, remplacerLe } from "@/lib/logic/agenda";
-import { jourCourt } from "@/components/repere/agenda";
+import { jourCourt, jourLong, maj } from "@/components/repere/agenda";
+import { toast } from "sonner";
 import { AvisSeance } from "@/components/repere/avis-seance";
 import { lienRubrique } from "@/components/repere/rubriques";
 import { tactile } from "@/lib/repos";
@@ -118,7 +119,8 @@ export default function PageComposer() {
     const s = { nom, ex: L.ex.map((e) => { const c = { ...e }; delete c.o; return c; }), ...(L.blocs?.length ? { blocs: L.blocs } : {}), ...(L.obj != null ? { obj: L.obj } : {}), ...(L.colObj != null ? { colObj: L.colObj } : {}), ...(L.gen ? { gen: L.gen } : {}), ...(L.code ? { code: L.code } : {}), ...(L.avisIgnores?.length ? { avisIgnores: L.avisIgnores } : {}) };
     /* modifiée depuis « Mon agenda » : la séance elle-même, ou une variante pour ce jour-là seulement */
     const ag = L.agenda;
-    const variante = !!ag && L.idx != null && (await confirmer({
+    /* une séance existante, modifiée avant d'être ajoutée à un jour (aperçu de l'agenda) : même question */
+    const variante = (!!ag || !!L.pour) && L.idx != null && (await confirmer({
       titre: tr("Pour ce jour, ou pour de bon ?"),
       texte: tr("Une variante garde « {nom} » telle qu'elle est et programme la version modifiée ce jour-là.", { nom: etat.SEANCES[L.idx]?.nom ?? nom }),
       ok: tr("Une variante pour ce jour"), non: tr("Modifier ma séance"),
@@ -129,13 +131,14 @@ export default function PageComposer() {
       muter((E) => {
         E.SEANCES.push(s);
         if (ag?.id) remplacerLe(E.AGENDA ?? [], ag.id, ag.d, { t: "libre", i: E.SEANCES.length - 1 }, nom);
+        else if (L.pour) programmerNouvelle(E, L.pour, E.SEANCES.length - 1);
       });
     } else
       /* modification : les séries déjà notées suivent leur exercice */
       muter((E) => {
         if (L.idx != null) { act.reattacherJournaux(E, L.idx, L.ex.map((e) => e.o)); E.SEANCES[L.idx] = s; } else E.SEANCES.push(s);
-        /* créée depuis le menu d'un jour à venir : programmée ce jour-là */
-        if (L.idx == null && L.pour) programmerNouvelle(E, L.pour, E.SEANCES.length - 1);
+        /* créée (ou revue dans l'aperçu) pour un jour : programmée ce jour-là */
+        if (L.pour) programmerNouvelle(E, L.pour, L.idx ?? E.SEANCES.length - 1);
         /* renommée : la séance programmée porte le nouveau nom */
         const p = ag?.id ? E.AGENDA?.find((x) => x.id === ag.id) : undefined;
         if (p && p.quoi.t === "libre") p.nom = nom;
@@ -146,6 +149,12 @@ export default function PageComposer() {
     if (commencer && L.idx == null && !variante) {
       preparer(); remplacement();
       router.replace(`/entrainement/seance?l=${useRepere.getState().etat.SEANCES.length - 1}` as Route, AVANT);
+      return;
+    }
+    /* pour un jour : retour à Entraînement, où elle apparaît dans la semaine */
+    if (L.pour) {
+      toast.success(tr("Programmée : {nom}", { nom }), { description: maj(jourLong(L.pour)) });
+      router.replace("/entrainement" as Route, ARRIERE);
       return;
     }
     /* modification : retour à la séance ; création : retour à Entraînement, où elle apparaît */
@@ -248,7 +257,7 @@ export default function PageComposer() {
         onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") })}
       />
       <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
-        {L.idx == null && L.pour ? (
+        {L.pour ? (
           <Button variant="plate" size="xl" className="w-full" disabled={!L.ex.length} onClick={() => enregistrer()}>{tr("Enregistrer pour {j}", { j: jourCourt(L.pour) })}</Button>
         ) : L.idx == null && !L.agenda ? (
           <div className="flex gap-2">
