@@ -17,7 +17,8 @@ import { AVANT } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 import { decaler, jourDe } from "@/lib/logic/historique";
-import { effortsEndurance, etatGroupes, GROUPES, nomMuscle, nomZone, phrase, recoDuJour, ZONES_ECARTABLES, basculerZone, ecartesDe, type MuscleRecup } from "@/lib/logic/recommandation";
+import { effortsEndurance, etatGroupes, GROUPES, nomMuscle, nomZone, phrase, ZONES_ECARTABLES, basculerZone, ecartesDe, type MuscleRecup } from "@/lib/logic/recommandation";
+import { recoPour } from "@/lib/logic/agenda";
 import { EditeurProfil, profilMinimal, type Ligne } from "./profil-sportif";
 import { MonMateriel } from "./mon-materiel";
 
@@ -103,21 +104,15 @@ function Question({ i, suivant, retour }: { i: number; suivant: () => void; reto
   /* objectif, niveau et rythme règlent les séances : il faut une réponse */
   const ok = k === "objectif" ? A.objectif != null : k === "niveau" ? A.regularite != null : k === "rythme" ? A.objHebdo != null : true;
   const valider = () => {
-    /* âge, taille et poids : la valeur affichée vaut réponse */
-    muter((E) => {
-      const p = (E.A.profil ||= {});
-      if (k === "age") p["Âge"] ??= 30;
-      if (k === "corps") { p["Taille"] ??= E.A.sexe === 1 ? 165 : 177; if (p["Poids"] == null) { p["Poids"] = 70; E.A.poids = [...((E.A.poids as [string, number][]) || []), [jourDe(Date.now()), 70]]; } }
-      if (k === "rythme") E.A.duree ??= 45;
-      if (k === "sport") E.A.sport ??= [0];
-      if (k === "prio") E.A.prio ??= [];
-    });
+    /* rien d'inventé : âge, taille, poids, sports et muscles prioritaires restent vides tant qu'on n'y a
+       pas touché (pas de fausse pesée) ; seule la durée affichée, 45 min, vaut réponse */
+    if (k === "rythme") muter((E) => { E.A.duree ??= 45; });
     suivant();
   };
   return (
     <>
       <Progression i={i} />
-      <div className="eyebrow px-1">{tr("{i} / {n} · Profil sportif", { i, n: QUESTIONS.length + 1 })}</div>
+      <div className="eyebrow px-1">{tr("{i} / {n} · Profil sportif", { i, n: QUESTIONS.length })}</div>
       {k === "materiel" ? (
         <>
           <DialogTitle className="mt-2 px-1 text-[22px] font-extrabold">{tr("Ton matériel")}</DialogTitle>
@@ -146,7 +141,7 @@ function Avant48({ suivant, retour }: { suivant: () => void; retour: () => void 
   return (
     <>
       <Progression i={QUESTIONS.length + 1} />
-      <div className="eyebrow px-1">{tr("{i} / {n} · Avant Oxa", { i: QUESTIONS.length + 1, n: QUESTIONS.length + 1 })}</div>
+      <div className="eyebrow px-1">{tr("Dernière question · Avant Oxa")}</div>
       <DialogTitle className="mt-2 px-1 text-[22px] leading-tight font-extrabold">{tr("Tu t'es entraîné ces dernières 48 h ?")}</DialogTitle>
       <DialogDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">{tr("Oxa en tient compte pour ne pas te faire retravailler des muscles qui récupèrent.")}</DialogDescription>
       <div role="radiogroup" className="mt-4 flex rounded-2xl bg-card p-1">
@@ -181,8 +176,10 @@ function Fin({ fermer }: { fermer: () => void }) {
   const [auj] = useState(() => jourDe(Date.now()));
   const efforts = useMemo(() => effortsEndurance(etat.SORTIES, etat.CARDIO, etat.A.avant), [etat]);
   const E = useMemo(() => etatGroupes(etat.HIST || [], auj, efforts), [etat, auj, efforts]);
-  const r = useMemo(() => recoDuJour(etat.HIST || [], auj, etat.A.recoSans || [], etat.A.regularite, efforts), [etat, auj, efforts]);
-  const recup = GROUPES.filter((g) => !E[g].recupere), prets = GROUPES.filter((g) => E[g].recupere);
+  const r = useMemo(() => recoPour(etat, auj), [etat, auj]);
+  /* les muscles écartés n'apparaissent ni prêts ni en récupération */
+  const exclus = new Set(ecartesDe(etat.A.recoSans).flatMap((z) => (z === "bras" ? ["bic", "tri"] : [z]))), vus = GROUPES.filter((g) => !exclus.has(g));
+  const recup = vus.filter((g) => !E[g].recupere), prets = vus.filter((g) => E[g].recupere);
   const p = r.type === "seance" ? r.propositions[0] : undefined;
   const aller = (url: string) => { tactile(10); fermer(); router.push(url as Route, AVANT); };
   const raison = recup.length
@@ -213,7 +210,7 @@ function Fin({ fermer }: { fermer: () => void }) {
         ) : (
           <>
             <h2 className="mt-1.5 text-[21px] leading-tight font-extrabold">{tr("Repos aujourd'hui")}</h2>
-            <p className="mt-1 text-[13.5px] leading-snug opacity-85">{tr("Tes muscles récupèrent : c'est pendant le repos qu'ils se construisent.")}{r.demain && <> {tr("Demain : {s}.", { s: r.demain.nom.toLowerCase() })}</>}</p>
+            <p className="mt-1 text-[13.5px] leading-snug opacity-85">{r.pause ?? tr("Tes muscles récupèrent : c'est pendant le repos qu'ils se construisent.")}{r.demain && <> {tr("Demain : {s}.", { s: r.demain.nom.toLowerCase() })}</>}</p>
             <div className="mt-3.5 flex gap-2">
               <button onClick={() => aller("/entrainement/assistant?type=cardio")} className="h-11 flex-1 rounded-full bg-white text-[14.5px] font-semibold text-[#0a0a0c] active:scale-[.98]">{tr("Cardio doux")}</button>
               {r.demain && <button onClick={() => aller(`/entrainement/assistant?jour=${decaler(auj, 1)}&m=${r.demain!.muscles.join(",")}`)} className="h-11 flex-1 rounded-full border-[1.5px] border-black/30 text-[14px] font-semibold active:scale-[.98]">{tr("Programmer demain")}</button>}

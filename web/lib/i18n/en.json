@@ -2959,5 +2959,14 @@
   "1 min pour des séances à ta mesure": "1 min for sessions made for you",
   "Ischios et fessiers": "Hamstrings and glutes",
   "Des muscles à ne pas travailler ?": "Muscles you don't want to train?",
-  "encore": "still"
+  "encore": "still",
+  "Dernière question · Avant Oxa": "Last question · Before Oxa",
+  "Ou, si tu y tiens :": "Or, if you really want to:",
+  "Première fois : charge prudente, estimée d'après ton profil. Si les répétitions sont faciles, monte d'un cran à la série suivante.": "First time: a cautious load, estimated from your profile. If the reps feel easy, go up one step on the next set.",
+  "Bas du corps": "Lower body",
+  "Ta séance de la semaine est faite : récupère.": "Your session for the week is done: recover.",
+  "Tes {n} séances de la semaine sont faites : récupère.": "Your {n} sessions for the week are done: recover.",
+  "Entraîné hier : à {n} séances par semaine, un jour de repos entre deux séances.": "Trained yesterday: at {n} sessions a week, a rest day between two sessions.",
+  "Deux jours d'affilée : un jour de repos avant la suivante.": "Two days in a row: a rest day before the next one.",
+  "{a} récupèrent : retirés de ta séance.": "{a} recovering: removed from your session."
 }

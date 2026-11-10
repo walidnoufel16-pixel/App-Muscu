@@ -605,6 +605,25 @@ export function departDepuisVariante(E: Pick<Etat, "HIST">, id: string, maintena
   return v > 0 ? { v, depuis: va.id, vv: va.v } : null;
 }
 
+/** Première fois sans historique ni variante : la charge par défaut de l'exercice (calée sur un
+    homme régulier, environ 10 répétitions) mise à l'échelle du profil, avec prudence (NSCA :
+    partir d'une charge soulevée 15 fois et plus, puis ajuster). Niveau : débutant ×0,5, régulier
+    ×0,8, confirmé ×1 (inconnu ×0,65) ; femme : haut du corps ×0,6, bas ×0,75 ; poids de corps
+    entre ×0,85 et ×1,15 autour de 75 kg ; répétitions visées (Epley). */
+export function departProfil(A: Reponses, x: Exercice, reps: number) {
+  if (x.ch !== "kg" || !(x.d > 0)) return x.d;
+  const r = A.regularite, kNiv = r == null ? 0.65 : r <= 1 ? 0.5 : r >= 3 ? 1 : 0.8;
+  const bas = BAS.has(x.pat) || x.pat === "mol" || x.pat === "add";
+  const kSexe = A.sexe === 1 ? (bas ? 0.75 : 0.6) : 1;
+  const kg = +((A.profil as Record<string, number> | undefined)?.["Poids"] ?? 0);
+  const kPoids = kg > 0 ? Math.min(1.15, Math.max(0.85, kg / 75)) : 1;
+  const kReps = (1 + 10 / 30) / (1 + Math.max(1, reps || 10) / 30);
+  const pas = pasExercice(x), min = x.eq === 1 && x.d >= 40 ? 20 : pas;
+  /* au palier le plus proche (arrondir toujours en dessous donnerait 2 kg en haltères) */
+  return Math.max(min, Math.round((x.d * kNiv * kSexe * kPoids * kReps) / pas) * pas);
+}
+const PREMIERE = () => tr("Première fois : charge prudente, estimée d'après ton profil. Si les répétitions sont faciles, monte d'un cran à la série suivante.");
+
 /** Charge proposée pour un exercice de séance libre, et pourquoi : la séance (ctxLibre) et le
     composeur (avant même d'enregistrer) l'affichent à l'identique. `k` : clé du journal de
     l'exercice ; pour une séance pas encore enregistrée, une clé qui n'existe pas. */
@@ -615,11 +634,12 @@ export function propositionLibre(E: Etat, e: ExLibre, o: { obj?: number; k: stri
   const pr = d ? progressionLibre(x, e, d, { obj: o.obj, avant: h.slice(1), voisin: varianteRecente(E, e.id)?.ts }) : null;
   /* jamais fait : on part de la variante la plus proche, mise à l'échelle (voir departDepuisVariante) */
   const dv = d ? null : departDepuisVariante(E, e.id);
-  const aj = selonForme(E.A, x, e.id, pr ? { v: pr.v, reps: pr.reps } : d ? { v: maxV(d), reps: d.reps ?? e.r } : { v: dv?.v || x.d, reps: e.r }, pasExercice(x));
+  const aj = selonForme(E.A, x, e.id, pr ? { v: pr.v, reps: pr.reps } : d ? { v: maxV(d), reps: d.reps ?? e.r } : { v: dv?.v || departProfil(E.A, x, e.r), reps: e.r }, pasExercice(x));
   return {
     base: aj.base,
     why: joindre(pr ? pr.t : d ? tr("Reprise de ta dernière séance sur cet exercice.")
-      : dv ? tr("Première fois : estimée d'après ton {n} ({v} kg), une variante du même mouvement, avec une marge de prudence.", { n: EX[dv.depuis].n.toLowerCase(), v: nb(dv.vv) }) : undefined, aj.texte),
+      : dv ? tr("Première fois : estimée d'après ton {n} ({v} kg), une variante du même mouvement, avec une marge de prudence.", { n: EX[dv.depuis].n.toLowerCase(), v: nb(dv.vv) })
+      : x.ch === "kg" ? PREMIERE() : undefined, aj.texte),
     prev: d,
   };
 }

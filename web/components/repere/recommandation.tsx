@@ -10,7 +10,8 @@ import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { ArrowRightIcon, CheckIcon } from "@phosphor-icons/react";
 import { dateDe, decaler, jourDe } from "@/lib/logic/historique";
-import { lister, nomGroupe, phrase, nomZone, effortsEndurance, recommander, ZONES_ECARTABLES, basculerZone, ecartesDe, type ZoneEcartable } from "@/lib/logic/recommandation";
+import { lister, nomGroupe, phrase, nomZone, ZONES_ECARTABLES, basculerZone, ecartesDe, type ZoneEcartable } from "@/lib/logic/recommandation";
+import { recoPour } from "@/lib/logic/agenda";
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
@@ -24,17 +25,16 @@ const nomJour = (d: string, auj: string) =>
 
 export function Recommandation({ onAppliquer, className }: { onAppliquer?: (m: string[]) => void; className?: string }) {
   const router = useRouter();
-  const H = useRepere((s) => s.etat.HIST);
   const ecartes = useRepere((s) => s.etat.A.recoSans);
-  const niveau = useRepere((s) => s.etat.A.regularite);
   const muter = useRepere((s) => s.muter);
   const [auj] = useState(() => jourDe(Date.now()));
   const [i, setI] = useState(0);
   const [reglage, setReglage] = useState(false);
   /* « Ignorer » : le bloc disparaît jusqu'à la prochaine ouverture de l'écran */
   const [ignore, setIgnore] = useState(false);
-  const S = useRepere((s) => s.etat.SORTIES), C = useRepere((s) => s.etat.CARDIO), AV = useRepere((s) => s.etat.A.avant);
-  const r = useMemo(() => recommander(H || [], auj, ecartes || [], niveau, effortsEndurance(S, C, AV)), [AV, H, auj, ecartes, niveau, S, C]);
+  /* la même recommandation que la feuille « Programmer une séance » (rythme, agenda, récupération) */
+  const etat = useRepere((s) => s.etat);
+  const r = useMemo(() => recoPour(etat, auj), [etat, auj]);
   if (!r || ignore) return null;
 
   const basculer = (z: ZoneEcartable) => {
@@ -90,10 +90,10 @@ export function Recommandation({ onAppliquer, className }: { onAppliquer?: (m: s
       ) : (
         <>
           <h2 className="mt-3 text-[21px] leading-tight font-extrabold tracking-[-0.01em]">
-            {r.type === "fait" ? tr("Séance faite aujourd'hui") : tr("Repos ou cardio léger")}
+            {r.type === "fait" ? tr("Séance faite aujourd'hui") : r.pause ? tr("Repos aujourd'hui") : tr("Repos ou cardio léger")}
           </h2>
           <p className="mt-1 text-[13.5px] leading-snug text-muted-foreground">
-            {r.type === "fait" ? tr("Ton corps récupère : c'est pendant le repos que les muscles se construisent.") : tr("Tes muscles récupèrent encore de tes dernières séances : c'est pendant le repos qu'ils se construisent.")}
+            {r.type === "fait" ? tr("Ton corps récupère : c'est pendant le repos que les muscles se construisent.") : r.pause ?? tr("Tes muscles récupèrent encore de tes dernières séances : c'est pendant le repos qu'ils se construisent.")}
             {r.demain && <> {tr("Demain : {s}.", { s: r.demain.nom.toLowerCase() })}</>}
           </p>
           {r.type === "repos" && (
@@ -101,8 +101,8 @@ export function Recommandation({ onAppliquer, className }: { onAppliquer?: (m: s
               <button onClick={() => router.push("/entrainement/assistant?type=cardio" as Route, AVANT)} className="flex h-11 flex-1 items-center justify-center rounded-full bg-plate text-[14.5px] font-semibold text-plate-foreground active:scale-[.98]">
                 {tr("Cardio doux")}
               </button>
-              {r.demain && (
-                <button onClick={() => ouvrir(r.demain!.muscles)} className="h-11 rounded-full border-[1.5px] border-border px-4 text-[14px] font-semibold active:scale-[.98]">
+              {(r.autres?.[0] ?? r.demain) && (
+                <button onClick={() => ouvrir((r.autres?.[0] ?? r.demain)!.muscles)} className="h-11 rounded-full border-[1.5px] border-border px-4 text-[14px] font-semibold active:scale-[.98]">
                   {tr("Séance quand même")}
                 </button>
               )}

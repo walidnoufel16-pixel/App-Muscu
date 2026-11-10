@@ -11,10 +11,10 @@
    - Séances possibles : les splits classiques ; on écarte celles qui touchent un groupe qui récupère
      ou que la personne a écarté, puis on préfère les groupes les moins travaillés de la semaine et
      ceux laissés de côté depuis le plus longtemps. */
-import { tr } from "@/lib/i18n";
+import { tp, tr } from "@/lib/i18n";
 import { EX } from "@/lib/data/exercices";
 import { PAT2MUSC } from "@/lib/data/referentiels";
-import { dateDe, decaler, jourDe, type LigneHist } from "./historique";
+import { dateDe, decaler, jourDe, lundiDe, type LigneHist } from "./historique";
 import type { HistoCardio } from "./types";
 import type { Sortie } from "./course";
 
@@ -85,7 +85,16 @@ const MODELES: Modele[] = [
   { id: "epaabd", nom: () => tr("Épaules et abdos"), g: ["epa", "abd"] },
   { id: "haut", nom: () => tr("Haut du corps"), g: ["pec", "dos", "epa", "bic", "tri"], large: true },
   { id: "full", nom: () => tr("Full body"), g: ["pec", "dos", "qua", "isc", "epa", "abd"], large: true },
+  { id: "bas", nom: () => tr("Bas du corps"), g: ["qua", "isc", "mol", "abd"], large: true },
 ];
+/* Les séances proposées selon le profil (ACSM 2009 : full body 2 à 3 fois par semaine pour débuter ;
+   un split n'a d'intérêt qu'à partir de 4 séances par semaine) :
+   - débutant (« Je débute ou je reprends »), quel que soit le rythme : full body ;
+   - régulier ou confirmé, 3 séances par semaine ou moins : full body, haut du corps, bas du corps ;
+   - 4 séances et plus (ou rythme inconnu) : les splits. */
+type Mode = "full" | "fhb" | "split";
+const modeDe = (niveau?: number, hebdo?: number): Mode => (niveau != null && niveau <= 1 ? "full" : hebdo != null && hebdo <= 3 ? "fhb" : "split");
+const MODELES_MODE: Record<Mode, string[]> = { full: ["full"], fhb: ["full", "haut", "bas"], split: ["push", "pull", "jambes", "epaabd", "haut", "full"] };
 
 /* séries par groupe et par semaine, selon le niveau (Profil) : 8 en débutant, 12 en régulier,
    16 en confirmé ; 10 sans niveau connu */
@@ -149,7 +158,26 @@ export type Recommandation = {
   propositions: Proposition[];
   /** repos ou séance déjà faite : ce qui irait le mieux demain */
   demain?: Proposition;
+  /** repos pour le rythme (séances de la semaine faites, jours d'affilée) : pourquoi */
+  pause?: string;
+  /** repos pour le rythme : la séance qui irait quand même */
+  autres?: Proposition[];
 };
+/** Rythme déclaré (Profil, séances par semaine) et jours d'entraînement (muscu, course, cardio,
+    séances déjà programmées), le jour même exclu. */
+export type Rythme = { hebdo?: number; jours?: string[] };
+
+/* Repos imposé par le rythme : séances de la semaine (lundi → dimanche, comme les anneaux) déjà
+   faites ; à 3 séances par semaine ou moins, jamais deux jours d'affilée ; à 4, jamais trois. */
+function pauseDe(auj: string, o: Rythme): string | undefined {
+  const h = o.hebdo, J = new Set((o.jours || []).filter((j) => j < auj));
+  if (!h) return;
+  const lundi = lundiDe(auj), n = [...J].filter((j) => j >= lundi).length;
+  if (n >= h) return tp(h, "Ta séance de la semaine est faite : récupère.", "Tes {n} séances de la semaine sont faites : récupère.");
+  const hier = J.has(decaler(auj, -1)), avant = J.has(decaler(auj, -2));
+  if (h <= 3 && hier) return tr("Entraîné hier : à {n} séances par semaine, un jour de repos entre deux séances.", { n: h });
+  if (h === 4 && hier && avant) return tr("Deux jours d'affilée : un jour de repos avant la suivante.");
+}
 
 const groupesEcartes = (ecartes: ZoneEcartable[] = []) => new Set(ecartes.flatMap((z) => GROUPES_ZONE[z] ?? []));
 
@@ -157,21 +185,28 @@ const groupesEcartes = (ecartes: ZoneEcartable[] = []) => new Set(ecartes.flatMa
    d'abord tourner sur les autres (le principe du split) */
 const frais = (g: Groupe, e: EtatGroupe) => g !== "abd" && g !== "mol" && e.jours <= 2 && e.dernierVolume >= 4;
 
-function propositions(E: Record<Groupe, EtatGroupe>, ecartes: Set<Groupe>): Proposition[] {
-  const toutes = candidats(E, ecartes);
+function propositions(E: Record<Groupe, EtatGroupe>, ecartes: Set<Groupe>, mode: Mode = "split"): Proposition[] {
+  const toutes = candidats(E, ecartes, mode);
   const tournantes = toutes.filter((p) => !p.muscles.some((g) => frais(g, E[g])));
   return tournantes.length ? tournantes : toutes;
 }
 
-function candidats(E: Record<Groupe, EtatGroupe>, ecartes: Set<Groupe>): Proposition[] {
+function candidats(E: Record<Groupe, EtatGroupe>, ecartes: Set<Groupe>, mode: Mode = "split"): Proposition[] {
   const res: { p: Proposition; score: number }[] = [];
+  /* au-delà d'une fois et demie le volume de la semaine visé, un muscle n'est plus proposé */
+  const plein = (x: Groupe) => E[x].semaine >= 1.5 * CIBLE;
   for (const m of MODELES) {
-    const g = m.g.filter((x) => !ecartes.has(x));
+    if (!MODELES_MODE[mode].includes(m.id)) continue;
+    let g = m.g.filter((x) => !ecartes.has(x));
     /* un split dont un groupe principal est écarté ne veut plus rien dire ; haut du corps et full body s'en passent */
     if (!m.large && g.length < m.g.length && !(m.id === "push" && g.includes("pec"))) continue;
-    if (g.length < (m.large ? 3 : 1)) continue;
-    if (g.some((x) => !E[x].recupere)) continue;
-    const score = g.reduce((n, x) => n + Math.max(0, CIBLE - E[x].semaine) / CIBLE + Math.min(E[x].jours, 7) / 7, 0) / g.length - (m.large ? 0.15 : 0);
+    /* full body, haut et bas du corps : les muscles qui récupèrent (ou déjà assez travaillés) en sont retirés */
+    const retires = m.large ? g.filter((x) => !E[x].recupere || plein(x)) : [];
+    if (m.large) g = g.filter((x) => !retires.includes(x));
+    if (g.length < (m.large ? (m.id === "bas" ? 2 : 3) : 1)) continue;
+    if (g.some((x) => !E[x].recupere || plein(x))) continue;
+    /* une séance amputée de muscles qui récupèrent passe après une séance entière */
+    const score = g.reduce((n, x) => n + Math.max(0, CIBLE - E[x].semaine) / CIBLE + Math.min(E[x].jours, 7) / 7, 0) / g.length - (m.large ? 0.15 : 0) - (retires.length / m.g.length) * 0.6;
     const jamais = g.filter((x) => E[x].semaine === 0);
     /* comme la feuille Récupération : le muscle le plus récent et le plus ancien, au-delà de 7 jours « 7 j et plus » */
     const js = g.map((x) => E[x].jours), depuis = Math.min(...js), jusqua = Math.max(...js);
@@ -179,13 +214,15 @@ function candidats(E: Record<Groupe, EtatGroupe>, ecartes: Set<Groupe>): Proposi
       : depuis >= 7 ? tr("Au repos depuis 7 jours et plus.")
       : jusqua === depuis ? tr("Au repos depuis {n} jours.", { n: depuis })
       : tr("Au repos depuis {n} jours et plus.", { n: depuis });
-    res.push({ p: { id: m.id, nom: m.nom(), muscles: g, raison }, score });
+    const sans = retires.filter((x) => !E[x].recupere);
+    res.push({ p: { id: m.id, nom: m.nom(), muscles: g, raison: sans.length ? tr("{a} récupèrent : retirés de ta séance.", { a: phrase(sans.map(nomGroupe)) }) : raison }, score });
   }
   return res.sort((a, b) => b.score - a.score).map((x) => x.p);
 }
 
 /** La recommandation du jour, ou null sans aucune séance sur les 14 derniers jours. */
-export function recommander(H: LigneHist[], auj: string, ecartes: ZoneEcartable[] = [], niveau?: number, efforts: Endurance[] = []): Recommandation | null {
+export function recommander(H: LigneHist[], auj: string, ecartes: ZoneEcartable[] = [], niveau?: number, efforts: Endurance[] = [], o: Rythme = {}): Recommandation | null {
+  const mode = modeDe(niveau, o.hebdo);
   CIBLE = cibleNiveau(niveau);
   const E = etatGroupes(H, auj, efforts);
   /* aucune séance sur 14 jours et rien en récupération (course, cardio, séance déclarée à l'accueil) : pas de recul */
@@ -194,12 +231,15 @@ export function recommander(H: LigneHist[], auj: string, ecartes: ZoneEcartable[
   const faits = Object.keys(parJour).sort().map((d) => ({ d, groupes: GROUPES.filter((g) => (parJour[d][g] || 0) >= 2) })).filter((f) => f.groupes.length);
   const exclus = groupesEcartes(ecartes);
   const recuperent = GROUPES.filter((g) => !E[g].recupere && !exclus.has(g));
-  const ajouterRecup = (p: Proposition) => recuperent.length
+  /* (sauf si la raison dit déjà qu'ils sont retirés de la séance) */
+  const ajouterRecup = (p: Proposition) => recuperent.length && !recuperent.some((g) => p.raison.includes(nomGroupe(g)))
     ? { ...p, raison: p.raison + " " + tr("{a} récupèrent.", { a: phrase(recuperent.slice(0, 3).map(nomGroupe)) }) }
     : p;
-  const demain = () => propositions(etatGroupes(H, decaler(auj, 1), efforts), exclus)[0];
+  const demain = () => propositions(etatGroupes(H, decaler(auj, 1), efforts), exclus, mode)[0];
   if (faits.at(-1)?.d === auj) return { faits, type: "fait", propositions: [], demain: demain() };
-  const props = propositions(E, exclus);
+  const props = propositions(E, exclus, mode);
+  const pause = pauseDe(auj, o);
+  if (pause) return { faits, type: "repos", propositions: [], pause, autres: props.length ? [ajouterRecup(props[0]), ...props.slice(1)] : [], demain: demain() };
   if (!props.length) return { faits, type: "repos", propositions: [], demain: demain() };
   return { faits, type: "seance", propositions: [ajouterRecup(props[0]), ...props.slice(1)], demain: undefined };
 }
@@ -214,13 +254,16 @@ export const phrase = (l: string[]) => { const t = lister(l).toLowerCase(); retu
 
 /** La recommandation pour un jour donné, avec un repli quand Oxa manque de recul (aucune séance
     sur les 14 derniers jours) : un full body pour démarrer. Sert à l'agenda. */
-export function recoDuJour(H: LigneHist[], d: string, ecartes: ZoneEcartable[] = [], niveau?: number, efforts: Endurance[] = []): Recommandation & { debut?: boolean } {
-  const r = recommander(H, d, ecartes, niveau, efforts);
+export function recoDuJour(H: LigneHist[], d: string, ecartes: ZoneEcartable[] = [], niveau?: number, efforts: Endurance[] = [], o: Rythme = {}): Recommandation & { debut?: boolean } {
+  const r = recommander(H, d, ecartes, niveau, efforts, o);
   if (r) return r;
   const exclus = groupesEcartes(ecartes), full = MODELES.find((m) => m.id === "full")!;
   const muscles = full.g.filter((g) => !exclus.has(g));
-  return { faits: [], type: "seance", debut: true, propositions: [{ id: "full", nom: full.nom(), muscles: muscles.length ? muscles : full.g, raison: tr("Idéal pour démarrer.") }] };
+  const p: Proposition = { id: "full", nom: full.nom(), muscles: muscles.length ? muscles : full.g, raison: tr("Idéal pour démarrer.") };
+  const pause = pauseDe(d, o);
+  if (pause) return { faits: [], type: "repos", debut: true, propositions: [], pause, autres: [p], demain: p };
+  return { faits: [], type: "seance", debut: true, propositions: [p] };
 }
 
 /** Les muscles à cocher pour lancer la recommandation de ce jour (séance conseillée, sinon celle de demain). */
-export const musclesRecommandes = (r: Recommandation) => (r.propositions[0] ?? r.demain)?.muscles ?? null;
+export const musclesRecommandes = (r: Recommandation) => (r.propositions[0] ?? r.autres?.[0] ?? r.demain)?.muscles ?? null;

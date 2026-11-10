@@ -16,7 +16,7 @@ import { MiniCorps } from "./corps-muscles";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { Segmente } from "./segmente";
 import {
-  deplacer, HEURES_JOUR, HEURES_VEILLE, joursAgenda, nomCourt, prochainsJours, programmer, retirer,
+  deplacer, HEURES_JOUR, HEURES_VEILLE, joursAgenda, nomCourt, prochainsJours, programmer, recoPour, retirer,
   type JourAgenda, type Prevu, type QuoiPrevu, type Rappel,
 } from "@/lib/logic/agenda";
 import { decaler, jourDe } from "@/lib/logic/historique";
@@ -27,7 +27,7 @@ import { zonesActives, zonesDe } from "@/lib/logic/forme";
 import { prioNoms } from "@/lib/logic/questionnaire";
 import { Vignette } from "./exercice-carte";
 import { genererPlan, semaineDe, vdotActuel } from "@/lib/logic/course";
-import { musclesRecommandes, effortsEndurance, etatGroupes, recoDuJour } from "@/lib/logic/recommandation";
+import { musclesRecommandes, effortsEndurance, etatGroupes } from "@/lib/logic/recommandation";
 import { activerRappels, etatRappels } from "@/lib/rappels";
 import { useRepere } from "@/lib/store";
 import { useBrouillon } from "@/lib/brouillon";
@@ -63,7 +63,7 @@ export function useLancer() {
     if (q.t === "course") { router.push(`/entrainement/course?s=${q.cle}` as Route, AVANT); return; }
     if (q.t === "plan") { muter((x) => { x.day = q.day; }); router.push("/entrainement/seance", AVANT); return; }
     /* proposition d'Oxa : l'assistant s'ouvre avec ses muscles ; sans muscles, ceux conseillés ce jour-là */
-    const m = q.t === "reco" && q.m?.length ? q.m : musclesRecommandes(recoDuJour(E.HIST || [], jourDe(Date.now()), E.A.recoSans || [], E.A.regularite, effortsEndurance(E.SORTIES, E.CARDIO, E.A.avant)));
+    const m = q.t === "reco" && q.m?.length ? q.m : musclesRecommandes(recoPour(E, jourDe(Date.now())));
     router.push((m ? `/entrainement/assistant?m=${m.join(",")}` : "/entrainement/assistant?type=cardio") as Route, AVANT);
   };
 }
@@ -121,8 +121,10 @@ function FeuilleNouvelle({ d: d0, auj, setF }: { d: string; auj: string; setF: (
     { icone: <DownloadSimpleIcon className="size-[18px]" weight="bold" />, titre: tr("Importer"), sous: tr("Avec un code"), onClick: () => { setF(null); setTimeout(() => useMenu.setState({ importer: true }), 350); } },
   ];
   /* les propositions d'Oxa pour ce jour-là */
-  const reco = useMemo(() => recoDuJour(etat.HIST || [], d, etat.A.recoSans || [], etat.A.regularite, effortsEndurance(etat.SORTIES, etat.CARDIO, etat.A.avant)), [etat, d]);
-  const propositions: Choix[] = reco.propositions.slice(0, 3).map((p) => ({ quoi: { t: "reco", m: p.muscles }, nom: p.nom, sous: p.raison, icone: <MiniCorps groupes={p.muscles} femme={femme} /> }));
+  const reco = useMemo(() => recoPour(etat, d, auj), [etat, d, auj]);
+  /* repos pour le rythme : les séances qui iraient quand même, sans « Conseillée » */
+  const quandMeme = !reco.propositions.length && !!reco.autres?.length;
+  const propositions: Choix[] = (reco.propositions.length ? reco.propositions : reco.autres || []).slice(0, 3).map((p) => ({ quoi: { t: "reco", m: p.muscles }, nom: p.nom, sous: p.raison, icone: <MiniCorps groupes={p.muscles} femme={femme} /> }));
   const groupes = useMemo(() => seancesDuJour(etat, d, auj), [etat, d, auj]);
   const ajouter = (c: Choix) => {
     tactile(12);
@@ -182,12 +184,13 @@ function FeuilleNouvelle({ d: d0, auj, setF }: { d: string; auj: string; setF: (
       <section className="mt-4">
         <h3 className="eyebrow mb-0.5 flex items-center gap-1.5 px-1"><SparkleIcon className="size-3.5 text-plate" weight="fill" />{tr("Oxa choisit pour toi")}</h3>
         <p className="mb-1.5 px-1 text-[12.5px] text-muted-foreground">
-          {propositions.length
+          {reco.pause ? reco.pause + (quandMeme ? " " + tr("Ou, si tu y tiens :") : "")
+            : propositions.length
             ? d === auj ? tr("Les muscles prêts aujourd'hui, d'après ta récupération.") : tr("Les muscles prêts ce jour-là, d'après ta récupération.")
             : reco.type === "fait" ? tr("Tu t'es déjà entraîné ce jour-là : laisse récupérer.") : tr("Tes muscles récupèrent ce jour-là : repos ou cardio léger.")}
         </p>
         <div className="flex flex-col gap-1.5">
-          {propositions.map((c, k) => ligne(c, k === 0, true))}
+          {propositions.map((c, k) => ligne(c, k === 0 && !quandMeme, true))}
           {futur && (
             <button onClick={() => ajouter({ quoi: { t: "reco" }, nom: tr("Choix d'Oxa"), icone: null })}
               className="rounded-2xl border-[1.5px] border-dashed border-plate/50 px-3 py-2.5 text-center active:scale-[.99]">

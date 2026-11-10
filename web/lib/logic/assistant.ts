@@ -40,7 +40,10 @@ export function hasardDe(cle: string): Hasard {
   return () => { h = (h + 0x6d2b79f5) | 0; let t = Math.imul(h ^ (h >>> 15), 1 | h); t ^= t + Math.imul(t ^ (t >>> 7), 61 | t); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
 
-export function construireSeance(muscles: string[], duree: number, obj: number, sel: string[], rnd: Hasard = Math.random, evite: (o: string) => boolean = () => false, niveau?: number, o: { prio?: string[]; habitudes?: Set<string>; dense?: boolean } = {}): ExLibre[] {
+export function construireSeance(muscles: string[], duree: number, obj: number, sel: string[], rnd: Hasard = Math.random, eviteZones: (o: string) => boolean = () => false, niveau?: number, o: { prio?: string[]; habitudes?: Set<string>; dense?: boolean } = {}): ExLibre[] {
+  /* débutant : pas de soulevé de terre ni de good morning à la barre (technique et charge sur le bas du
+     dos) ; soulevé de terre roumain aux haltères, hip thrust… à la place, s'il y en a */
+  const evite = (x: string) => eviteZones(x) || (niveau != null && niveau <= 1 && EX[x]?.eq === 1 && chargeLombaires(x));
   const facteur = niveau == null ? 1 : niveau <= 1 ? 0.8 : niveau >= 3 ? 1.15 : 1;
   /* `o.dense` (séance de 30 min) : repos courts sur l'isolation, ce qui laisse la place à 2 séries de plus */
   const series = Math.round((DUREES.find((d) => d[0] === duree) || DUREES[1])[1] * facteur) + (o.dense ? 2 : 0);
