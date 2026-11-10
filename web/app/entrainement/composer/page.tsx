@@ -214,6 +214,14 @@ export default function PageComposer() {
 
         <section>
           <div className="eyebrow mb-2 px-1">{tr("Ta séance · {length} exercice{a} {a1} {a2}", { length: L.ex.length, a: pluriel(L.ex.length) ? "s" : "", a1: L.blocs?.length ? tr(" + {length} bloc{a} cardio", { length: L.blocs.length, a: pluriel(L.blocs.length) ? "s" : "" }) : "", a2: L.ex.length ? tr(" · environ {a} min", { a: dureeSeance(L) }) : "" })}</div>
+          {/* séance d'Oxa nettement plus courte que la durée choisie : on le dit, et pourquoi */}
+          {L.gen && L.ex.length > 0 && dureeSeance(L) <= L.gen.d - 10 && (
+            <p className="mb-2 px-1 text-[12.5px] leading-snug text-muted-foreground">
+              {(etat.A.regularite ?? 2) <= 1
+                ? tr("Environ {a} min au lieu de {b} : à ton niveau, c'est suffisant pour progresser.", { a: dureeSeance(L), b: L.gen.d })
+                : tr("Environ {a} min au lieu de {b} : ajoute un exercice, un muscle ou du matériel pour la remplir.", { a: dureeSeance(L), b: L.gen.d })}
+            </p>
+          )}
           <div ref={liste} className="flex flex-col gap-2">
             {L.ex.length || L.blocs?.length ? sections(L).map((sec, k, tout) => (
               <div key={sec.p + k} data-partie={sec.p} className="flex flex-col gap-2">

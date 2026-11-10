@@ -3,7 +3,7 @@
 import { describe, expect, it } from "vitest";
 import fx from "./fixtures/parite.json";
 import {
-  curId, dispoDeclare, espacementDe, key, musclesDe, resumeDe, rpeOf, secondesDe, suggere, titreSeance, week, wkDone, wkFull, ctxPlan,
+  curId, dispoDeclare, espacementDe, key, musclesDe, resumeDe, rpeOf, secondesDe, suggere, titreSeance, week, wkDone, wkFull, ctxPlan, departProfil,
 } from "@/lib/logic/core";
 import { objCollation } from "@/lib/logic/assistant";
 import { EX } from "@/lib/data/exercices";
@@ -57,7 +57,15 @@ describe.each(PROFILS)("profil %i", (_i, p) => {
       if (w !== 0) continue; // Oxa Plan v2 : voir plus haut
       const c = ctxPlan({ ...E, wk: w, day: 0 }, i, W)!;
       if (!dispoDeclare(E.A, P.ctx[k].id)) { expect(E.LOG[w + "|0|" + i]?.ex ? c.id === E.LOG[w + "|0|" + i].ex : dispoDeclare(E.A, c.id), k).toBe(true); continue; }
-      expect(JSON.parse(JSON.stringify(c)), k).toEqual(P.ctx[k]);
+      /* Correction volontaire (audit S1) : la première fois, sans historique, l'ancien code partait de la
+         charge par défaut de l'exercice, la même pour tout le monde ; c'est désormais celle du profil. */
+      const ref = P.ctx[k], x = EX[c.id];
+      if (x?.ch !== "aucune" && ref.base.v === x?.d && !ref.why) {
+        expect(c.base.v, k).toBe(departProfil(E.A, x, ref.base.reps));
+        expect(JSON.parse(JSON.stringify({ ...c, base: { ...c.base, v: ref.base.v }, why: undefined })), k).toEqual(ref);
+        continue;
+      }
+      expect(JSON.parse(JSON.stringify(c)), k).toEqual(ref);
     }
   });
 });

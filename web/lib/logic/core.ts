@@ -482,11 +482,11 @@ export function ctxPlan(E: Etat, i: number, W = week(E)): Ctx | null {
   for (let p = E.wk - 1; p >= 0 && !prev; p--)
     if (curId(E, p, E.day, i, e[0], W) === id && E.LOG[key(p, E.day, i)]?.done) prev = E.LOG[key(p, E.day, i)];
   const dep = g ? null : chargeDepart(E, id, e[2]);
-  const aj = selonForme(E.A, x, id, g ? { v: g.v, reps: g.reps } : dep ? { v: dep.v, reps: e[2] } : { v: x.d, reps: e[2] }, pasExercice(x));
+  const aj = selonForme(E.A, x, id, g ? { v: g.v, reps: g.reps } : dep ? { v: dep.v, reps: e[2] } : { v: departProfil(E.A, x, e[2]), reps: e[2] }, pasExercice(x));
   const c: Ctx = {
     k, id, n: e[1],
     base: aj.base,
-    why: joindre(g ? g.t : dep?.t, aj.texte), repos: e[3],
+    why: joindre(g ? g.t : dep?.t ?? (x.ch === "kg" && !g ? PREMIERE() : undefined), aj.texte), repos: e[3],
     prev: precedentHist(E, id, k) || prev || precedentDe(E.LOG, id, k),
   };
   const max = maxAuDessus(id, maxHist(E, id, k), c.prev);
@@ -611,6 +611,8 @@ export function departDepuisVariante(E: Pick<Etat, "HIST">, id: string, maintena
     ×0,8, confirmé ×1 (inconnu ×0,65) ; femme : haut du corps ×0,6, bas ×0,75 ; poids de corps
     entre ×0,85 et ×1,15 autour de 75 kg ; répétitions visées (Epley). */
 export function departProfil(A: Reponses, x: Exercice, reps: number) {
+  /* lest (tractions, dips…) : au poids du corps d'abord, sauf pour un confirmé */
+  if (x.ch === "lest") return (A.regularite ?? 0) >= 3 ? x.d : 0;
   if (x.ch !== "kg" || !(x.d > 0)) return x.d;
   const r = A.regularite, kNiv = r == null ? 0.65 : r <= 1 ? 0.5 : r >= 3 ? 1 : 0.8;
   const bas = BAS.has(x.pat) || x.pat === "mol" || x.pat === "add";
@@ -618,7 +620,9 @@ export function departProfil(A: Reponses, x: Exercice, reps: number) {
   const kg = +((A.profil as Record<string, number> | undefined)?.["Poids"] ?? 0);
   const kPoids = kg > 0 ? Math.min(1.15, Math.max(0.85, kg / 75)) : 1;
   const kReps = (1 + 10 / 30) / (1 + Math.max(1, reps || 10) / 30);
-  const pas = pasExercice(x), min = x.eq === 1 && x.d >= 40 ? 20 : pas;
+  /* une barre ne descend pas sous son poids à vide : 20 kg pour une barre olympique, 10 kg pour une
+     barre EZ ou une petite barre (charges par défaut plus légères) */
+  const pas = pasExercice(x), min = x.eq === 1 ? (x.d >= 30 ? 20 : 10) : pas;
   /* au palier le plus proche (arrondir toujours en dessous donnerait 2 kg en haltères) */
   return Math.max(min, Math.round((x.d * kNiv * kSexe * kPoids * kReps) / pas) * pas);
 }

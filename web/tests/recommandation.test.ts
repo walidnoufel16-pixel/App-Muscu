@@ -17,7 +17,7 @@ const jambes = (d: string) => seance(d, { sq: 4, pr: 4, rm: 3, mol: 3 });
 
 describe("recommander", () => {
   it("pecs/triceps lundi + dos/biceps mardi → mercredi jambes ou épaules/abdos, jamais pecs ni dos", () => {
-    const r = recommander([push(LUN), pull(MAR)], MER)!;
+    const r = recommander([push(LUN), pull(MAR)], MER, [], undefined, [], { hebdo: 5 })!;
     expect(r.type).toBe("seance");
     expect(["jambes", "epaabd"]).toContain(r.propositions[0].id);
     for (const p of r.propositions) {
@@ -29,7 +29,7 @@ describe("recommander", () => {
   });
 
   it("des jambes travaillées la veille sont écartées", () => {
-    const r = recommander([jambes(MAR)], MER)!;
+    const r = recommander([jambes(MAR)], MER, [], undefined, [], { hebdo: 5 })!;
     for (const p of r.propositions) for (const g of ["qua", "isc", "mol"]) expect(p.muscles).not.toContain(g);
   });
 
@@ -53,7 +53,7 @@ describe("recommander", () => {
   });
 
   it("une séance déjà faite aujourd'hui → « fait », avec une idée pour demain", () => {
-    const r = recommander([push(MER)], MER)!;
+    const r = recommander([push(MER)], MER, [], undefined, [], { hebdo: 5 })!;
     expect(r.type).toBe("fait");
     expect(r.demain).toBeDefined();
     expect(r.demain!.muscles).not.toContain("pec");
