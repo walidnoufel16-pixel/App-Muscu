@@ -1702,7 +1702,6 @@
 "Ma semaine sur Oxa : {s} séance(s) sur {o}{r}.": "My week on Oxa: {s} workout(s) out of {o}{r}.",
 "Objectif tenu": "Goal reached",
 "Partager ma semaine": "Share my week",
-"Pourquoi {v} kg": "Why {v} kg",
 "Protéines : objectif atteint {n} jour(s) sur 7": "Protein: goal reached {n} day(s) out of 7",
 "Prêts : {l}": "Ready: {l}",
 "Records": "Records",
@@ -2998,5 +2997,8 @@
   "Exercice qui fait travailler plusieurs muscles à la fois : le plus lourd, on le fait en premier, quand tu es frais.": "Works several muscles at once: the heaviest lift, done first while you're fresh.",
   "Un autre mouvement de base pour le même muscle, sous un autre angle, un peu moins lourd : il vient après les exercices de base.": "Another compound lift for the same muscle, from a different angle and a bit lighter: it comes after the main lifts.",
   "Un seul muscle travaillé, avec une charge plus légère : il finit le travail une fois les gros exercices faits.": "One muscle at a time with a lighter load: it finishes the job once the big lifts are done.",
-  "En fin de séance : les abdos et le bas du dos tiennent ton corps pendant les autres exercices, on ne les fatigue pas avant.": "At the end: your abs and lower back keep you stable during the other lifts, so we don't tire them first."
+  "En fin de séance : les abdos et le bas du dos tiennent ton corps pendant les autres exercices, on ne les fatigue pas avant.": "At the end: your abs and lower back keep you stable during the other lifts, so we don't tire them first.",
+  "{n} : pourquoi à cette place": "{n}: why it's here",
+  "Pourquoi {v} kg ?": "Why {v} kg?",
+  "Pourquoi cette proposition ?": "Why this suggestion?"
 }

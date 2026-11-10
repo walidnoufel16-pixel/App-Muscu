@@ -285,17 +285,17 @@ function Apercu({ c, d, auj, retour, ajouter, setF }: { c: Choix; d: string; auj
           const serie = `${e.s} × ${e.r}${x.ch === "temps" ? " s" : x.ch === "dist" ? " m" : ""}`;
           const charge = x.ch === "kg" && v ? `${nb(v)} kg` : x.ch === "lest" && v ? `+${nb(v)} kg` : "";
           return (
-            <div key={e.id + j} role={e.ro ? "button" : undefined} aria-expanded={e.ro ? vu === j : undefined} onClick={e.ro ? () => { tactile(4); setVu(vu === j ? null : j); } : undefined}
+            <div key={e.id + j}
               className="flex flex-wrap items-center gap-x-3 border-t border-border/60 p-2.5 first:border-t-0">
               <Vignette id={e.id} className="size-11 rounded-[11px]" />
               <span className="min-w-0 flex-1">
-                <span className="flex min-w-0 items-center gap-2"><span className="truncate text-[14.5px] font-semibold">{x.n}</span><EtiquetteRole ro={e.ro} /></span>
+                <span className="flex min-w-0 items-center gap-2"><span className="truncate text-[14.5px] font-semibold">{x.n}</span><EtiquetteRole ro={e.ro} ouvert={vu === j} onToggle={() => setVu(vu === j ? null : j)} /></span>
                 <span className="block text-[12.5px] text-muted-foreground">
                   <span className="num">{serie}</span>{charge && <> · <span className="num font-semibold text-foreground">{charge}</span></>}
                   {hausse > 0 && <span className="num ml-1.5 font-semibold text-plate-ink dark:text-plate">↑ +{nb(hausse)} kg</span>}
                 </span>
               </span>
-              {vu === j && <PourquoiRole ro={e.ro} className="mt-2 w-full basis-full" />}
+              {vu === j && <PourquoiRole ro={e.ro} onFermer={() => setVu(null)} className="mt-2 w-full basis-full" />}
             </div>
           );
         })}

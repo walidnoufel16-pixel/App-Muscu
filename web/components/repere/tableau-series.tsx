@@ -1,5 +1,6 @@
 "use client";
 
+import { Pourquoi } from "./role-exercice";
 import { loc, tr } from "@/lib/i18n";
 import { ConseilZone } from "./forme";
 import { useCallback, useRef, useState } from "react";
@@ -119,10 +120,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
     <div className="px-3 pb-3">
       <ConseilZone id={c.id} />
       {why && (
-        <p className="mx-1 mb-2 text-[13px] leading-snug text-muted-foreground">
-          {x.ch === "kg" && !L && <span className="font-semibold text-plate-ink dark:text-plate">{tr("Pourquoi {v} kg", { v: nb(c.base.v) })} · </span>}
-          {why}
-        </p>
+        <Pourquoi titre={x.ch === "kg" && !L ? tr("Pourquoi {v} kg ?", { v: nb(c.base.v) }) : tr("Pourquoi cette proposition ?")} className="mx-1 mb-2">{why}</Pourquoi>
       )}
       {/* ton max sur l'exercice, quand il dépasse ce que montre « Précédent » */}
       {c.max && (

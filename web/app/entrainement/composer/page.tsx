@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EnTete } from "@/components/repere/en-tete";
 import { Vignette } from "@/components/repere/exercice-carte";
-import { EtiquetteRole, PourquoiRole } from "@/components/repere/role-exercice";
+import { EtiquetteRole, Pourquoi, PourquoiRole } from "@/components/repere/role-exercice";
 import { FicheExercice, type FicheOuverte } from "@/components/repere/fiche-exercice";
 import { Remplacer } from "@/components/repere/seance-vues";
 import { FeuilleAjout } from "@/components/repere/ajout-exercice";
@@ -345,6 +345,7 @@ function CarteCompo({
   onFiche: () => void; onRemplacer: () => void; onRetirer: () => void;
 }) {
   const x = EX[e.id], mus = musclesDe([e.id]), pas = x.ch === "temps" ? 5 : x.ch === "dist" ? 50 : 1;
+  const [vuRole, setVuRole] = useState(false);
   const prescr = x.ch === "temps" ? `${e.s} × ${e.r}s${x.cote ? tr(" / côté") : ""}` : x.ch === "dist" ? `${e.s} × ${e.r}m` : `${e.s} × ${e.r}`;
   const kg = x.ch === "kg" && prop ? prop.base.v : null, variation = kg != null ? variationDe({ id: e.id, base: prop!.base, prev: prop!.prev }) : 0;
   return (
@@ -359,7 +360,7 @@ function CarteCompo({
         </button>
         <button onClick={onToggle} aria-expanded={ouvert} className="flex min-w-0 flex-1 items-center gap-3 py-3 pr-3 pl-3 text-left">
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="flex min-w-0 items-center gap-2"><span className="truncate text-[16px] font-semibold tracking-[-0.01em]">{x.n}</span><EtiquetteRole ro={e.ro} /></span>
+            <span className="flex min-w-0 items-center gap-2"><span className="truncate text-[16px] font-semibold tracking-[-0.01em]">{x.n}</span><EtiquetteRole ro={e.ro} ouvert={vuRole} onToggle={() => setVuRole(!vuRole)} /></span>
             {mus.length > 0 && <span className="truncate text-[12.5px] text-muted-foreground">{mus.join(" · ")}</span>}
             <span className="num text-[15px] font-semibold text-foreground/80">
               {prescr}{kg != null && <> · <span className="text-foreground">{tr("{v} kg", { v: nb(kg) })}</span></>}
@@ -371,14 +372,13 @@ function CarteCompo({
           <CaretDownIcon className={cn("size-5 shrink-0 text-muted-foreground transition-transform", ouvert && "rotate-180")} />
         </button>
       </div>
+      {vuRole && <PourquoiRole ro={e.ro} onFermer={() => setVuRole(false)} className="mx-3 mb-3 -mt-1" />}
       {ouvert && (
         <div className="animate-in fade-in-0 duration-150">
-          <PourquoiRole ro={e.ro} className="border-t border-border/70 px-4 py-2.5" />
           {prop?.why && (
-            <p className="border-t border-border/70 px-4 pt-2.5 text-[13px] leading-snug text-muted-foreground">
-              {kg != null && <span className="font-semibold text-plate-ink dark:text-plate">{tr("Pourquoi {v} kg", { v: nb(kg) })} · </span>}
+            <Pourquoi titre={kg != null ? tr("Pourquoi {v} kg ?", { v: nb(kg) }) : tr("Pourquoi cette proposition ?")} className="border-t border-border/70 px-4 pt-2.5">
               {prop.why}
-            </p>
+            </Pourquoi>
           )}
           <div className="grid grid-cols-2 gap-2 border-t border-border/70 p-3">
             <Pas titre={tr("Séries")} val={e.s} moins={() => regl(i, "s", -1)} plus={() => regl(i, "s", 1)} d1={e.s <= 1} d2={e.s >= 6} />

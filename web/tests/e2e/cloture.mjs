@@ -35,7 +35,7 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
   ok(await pg.getByRole("region", { name: "Ajouter à mon suivi" }).count() === 0, "rien de validé : pas de carte de suivi");
   for (const id of ["dmh", "tri"]) {
     const c = pg.locator(`[data-ex="${id}"]`).first();
-    if ((await c.locator("button[aria-expanded]").getAttribute("aria-expanded")) !== "true") await c.locator("button[aria-expanded]").click();
+    if ((await c.locator("button[aria-expanded]").first().getAttribute("aria-expanded")) !== "true") await c.locator("button[aria-expanded]").first().click();
     await c.getByRole("button", { name: "Tout valider" }).click();
     await pg.waitForTimeout(900);
   }
