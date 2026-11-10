@@ -20,6 +20,14 @@ let t0 = Date.now();
 await pg.getByRole("link", { name: /Progrès/ }).first().click().catch(() => pg.getByText("Progrès").last().click());
 const vu = await pg.getByRole("heading", { name: "Progrès" }).first().waitFor({ timeout: 12000 }).then(() => true, () => false);
 ok(vu && Date.now() - t0 < 8000, `réseau qui traîne : l'onglet Progrès s'ouvre (${Date.now() - t0} ms)`);
+/* le cas vu sur téléphone : « Programmer une séance » › « Je choisis les muscles » */
+await pg.getByRole("link", { name: /Entraînement/ }).first().click().catch(() => {});
+await pg.getByRole("button", { name: "Nouvelle séance" }).waitFor({ timeout: 10000 });
+await pg.getByRole("button", { name: "Nouvelle séance" }).click();
+await pg.getByRole("dialog").getByText("Je choisis les muscles").click();
+t0 = Date.now();
+const vu3 = await pg.getByText("Créer une séance pour moi").first().waitFor({ timeout: 15000 }).then(() => true, () => false);
+ok(vu3 && Date.now() - t0 < 9000, `réseau qui traîne : « Je choisis les muscles » ouvre l'assistant (${Date.now() - t0} ms)`);
 t0 = Date.now();
 await pg.goto(U + "/repas/", { timeout: 15000 }).catch(() => {});
 const vu2 = await pg.getByRole("heading", { level: 1 }).first().waitFor({ timeout: 12000 }).then(() => true, () => false);
