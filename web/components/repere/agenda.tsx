@@ -4,6 +4,7 @@
    rappel la veille ou le jour même à l'heure choisie), la feuille « Nouvelle séance » du bouton +,
    et les cases de la grille. Servent à l'accueil d'Entraînement et à l'écran Agenda.
    Logique : lib/logic/agenda.ts. */
+import { EtiquetteRole, PourquoiRole } from "./role-exercice";
 import { loc, tp, tr } from "@/lib/i18n";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -236,6 +237,8 @@ function Apercu({ c, d, auj, retour, ajouter, setF }: { c: Choix; d: string; auj
     const ex = seancePour(etat, m, duree, obj, avecSalle(selDeclare(A), A), d);
     return { nom: c.nom, ex, obj, gen: { m: [...m], d: duree, obj } };
   });
+  /* exercice dont on lit pourquoi il est à cette place (base, isolation…) */
+  const [vu, setVu] = useState<number | null>(null);
   const S = q.t === "libre" ? etat.SEANCES[i] ?? null : genere;
   if (!S) return null;
   const obj = S.obj ?? S.gen?.obj;
@@ -282,15 +285,17 @@ function Apercu({ c, d, auj, retour, ajouter, setF }: { c: Choix; d: string; auj
           const serie = `${e.s} × ${e.r}${x.ch === "temps" ? " s" : x.ch === "dist" ? " m" : ""}`;
           const charge = x.ch === "kg" && v ? `${nb(v)} kg` : x.ch === "lest" && v ? `+${nb(v)} kg` : "";
           return (
-            <div key={e.id + j} className="flex items-center gap-3 border-t border-border/60 p-2.5 first:border-t-0">
+            <div key={e.id + j}
+              className="flex flex-wrap items-center gap-x-3 border-t border-border/60 p-2.5 first:border-t-0">
               <Vignette id={e.id} className="size-11 rounded-[11px]" />
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[14.5px] font-semibold">{x.n}</span>
+                <span className="flex min-w-0 items-center gap-2"><span className="truncate text-[14.5px] font-semibold">{x.n}</span><EtiquetteRole ro={e.ro} ouvert={vu === j} onToggle={() => setVu(vu === j ? null : j)} /></span>
                 <span className="block text-[12.5px] text-muted-foreground">
                   <span className="num">{serie}</span>{charge && <> · <span className="num font-semibold text-foreground">{charge}</span></>}
                   {hausse > 0 && <span className="num ml-1.5 font-semibold text-plate-ink dark:text-plate">↑ +{nb(hausse)} kg</span>}
                 </span>
               </span>
+              {vu === j && <PourquoiRole ro={e.ro} onFermer={() => setVu(null)} className="mt-2 w-full basis-full" />}
             </div>
           );
         })}
