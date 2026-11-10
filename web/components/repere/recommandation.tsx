@@ -12,6 +12,7 @@ import { ArrowRightIcon, CheckIcon } from "@phosphor-icons/react";
 import { dateDe, decaler, jourDe } from "@/lib/logic/historique";
 import { lister, nomGroupe, phrase, nomZone, ZONES_ECARTABLES, basculerZone, ecartesDe, type ZoneEcartable } from "@/lib/logic/recommandation";
 import { recoPour } from "@/lib/logic/agenda";
+import { jourCourt } from "./agenda";
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
@@ -23,7 +24,8 @@ const nomJour = (d: string, auj: string) =>
   : d === decaler(auj, -2) ? tr("Avant-hier")
   : dateDe(d).toLocaleDateString(loc(), { weekday: "short" }).replace(".", "");
 
-export function Recommandation({ onAppliquer, className }: { onAppliquer?: (m: string[]) => void; className?: string }) {
+/** `jour` : le jour visé (assistant ouvert pour un jour à venir) ; aujourd'hui par défaut. */
+export function Recommandation({ onAppliquer, className, jour }: { onAppliquer?: (m: string[]) => void; className?: string; jour?: string }) {
   const router = useRouter();
   const ecartes = useRepere((s) => s.etat.A.recoSans);
   const muter = useRepere((s) => s.muter);
@@ -34,7 +36,8 @@ export function Recommandation({ onAppliquer, className }: { onAppliquer?: (m: s
   const [ignore, setIgnore] = useState(false);
   /* la même recommandation que la feuille « Programmer une séance » (rythme, agenda, récupération) */
   const etat = useRepere((s) => s.etat);
-  const r = useMemo(() => recoPour(etat, auj), [etat, auj]);
+  const d = jour && jour > auj ? jour : auj;
+  const r = useMemo(() => recoPour(etat, d, auj), [etat, d, auj]);
   if (!r || ignore) return null;
 
   const basculer = (z: ZoneEcartable) => {
@@ -55,7 +58,7 @@ export function Recommandation({ onAppliquer, className }: { onAppliquer?: (m: s
 
   return (
     <section className={cn("rounded-[22px] p-4", plein ? "bg-[linear-gradient(160deg,var(--plate),color-mix(in_oklab,var(--plate)_78%,black))] text-plate-foreground" : "bg-card", className)}>
-      <div className={cn("text-[11px] font-bold tracking-[0.12em] uppercase", plein ? "opacity-75" : "text-plate-ink dark:text-plate")}>{tr("Ma recommandation du jour")}</div>
+      <div className={cn("text-[11px] font-bold tracking-[0.12em] uppercase", plein ? "opacity-75" : "text-plate-ink dark:text-plate")}>{d === auj ? tr("Ma recommandation du jour") : tr("Ma recommandation pour {j}", { j: jourCourt(d) })}</div>
 
       {r.faits.length > 0 && !onAppliquer && (
         <div className="mt-2.5 flex flex-wrap gap-1.5">

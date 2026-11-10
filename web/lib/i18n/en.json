@@ -2968,5 +2968,20 @@
   "Tes {n} séances de la semaine sont faites : récupère.": "Your {n} sessions for the week are done: recover.",
   "Entraîné hier : à {n} séances par semaine, un jour de repos entre deux séances.": "Trained yesterday: at {n} sessions a week, a rest day between two sessions.",
   "Deux jours d'affilée : un jour de repos avant la suivante.": "Two days in a row: a rest day before the next one.",
-  "{a} récupèrent : retirés de ta séance.": "{a} recovering: removed from your session."
+  "{a} récupèrent : retirés de ta séance.": "{a} recovering: removed from your session.",
+  "Garder aussi dans Mes séances": "Also keep in My sessions",
+  "Gardée dans Mes séances": "Kept in My sessions",
+  "Garder": "Keep",
+  "{m} récupère encore. Construite avec ton matériel.": "{m} still recovering. Built with your equipment.",
+  "Ma recommandation pour {j}": "My suggestion for {j}",
+  "{a} récupère encore.": "{a} still recovering.",
+  "Course, cardio ou séance d'avant Oxa : allège, ou garde ce muscle pour une prochaine séance.": "Running, cardio or a session before Oxa: go lighter, or save this muscle for another session.",
+  "Travaillés {q} : allège-les, ou garde-les pour une prochaine séance.": "Worked {q}: go lighter, or save them for another session.",
+  "{a} récupère {q}.": "{a} recovering {q}.",
+  "Pecs, épaules et triceps": "Chest, shoulders and triceps",
+  "Ta séance de muscu de la semaine est faite : récupère.": "Your strength session for the week is done: recover.",
+  "Tes {n} séances de muscu de la semaine sont faites : récupère.": "Your {n} strength sessions for the week are done: recover.",
+  "Pas travaillés ces 7 derniers jours.": "Not trained in the last 7 days.",
+  "{a} récupère : retiré de ta séance.": "{a} recovering: removed from your session.",
+  "{a} récupère.": "{a} recovering."
 }

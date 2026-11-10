@@ -172,7 +172,10 @@ export function recoPour(E: Etat & { AGENDA?: Prevu[] }, d: string, auj = jourDe
   const J = joursAgenda(E, debut, auj, n), jours: string[] = [], prevus: LigneHist[] = [];
   for (const j of J) {
     const futurs = j.d >= auj ? j.prevus : [];
-    if (j.fait.length || futurs.length) jours.push(j.d);
+    /* pour le rythme, seuls les jours de musculation comptent : la course et le cardio fatiguent les
+       jambes (effortsEndurance), mais un footing ou le « cardio doux » conseillé un jour de repos ne
+       doivent pas bloquer la séance du lendemain */
+    if (j.fait.some((f) => f.famille === "muscu") || futurs.some((p) => familleDe(p.quoi) === "muscu")) jours.push(j.d);
     for (const p of futurs) {
       const ex: LigneHist["ex"] = {};
       if (p.quoi.t === "libre") for (const e of E.SEANCES[p.quoi.i]?.ex || []) ex[e.id] = [0, 0, 0, e.r, e.s];

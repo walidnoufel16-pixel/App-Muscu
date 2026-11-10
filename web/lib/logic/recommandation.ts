@@ -79,7 +79,7 @@ export function effortsEndurance(S: Sortie[] = [], C: HistoCardio[] = [], avant?
 
 type Modele = { id: string; nom: () => string; g: Groupe[]; large?: boolean };
 const MODELES: Modele[] = [
-  { id: "push", nom: () => tr("Pecs et triceps"), g: ["pec", "tri", "epa"] },
+  { id: "push", nom: () => tr("Pecs, épaules et triceps"), g: ["pec", "tri", "epa"] },
   { id: "pull", nom: () => tr("Dos et biceps"), g: ["dos", "bic"] },
   { id: "jambes", nom: () => tr("Jambes"), g: ["qua", "isc", "mol"] },
   { id: "epaabd", nom: () => tr("Épaules et abdos"), g: ["epa", "abd"] },
@@ -173,7 +173,7 @@ function pauseDe(auj: string, o: Rythme): string | undefined {
   const h = o.hebdo, J = new Set((o.jours || []).filter((j) => j < auj));
   if (!h) return;
   const lundi = lundiDe(auj), n = [...J].filter((j) => j >= lundi).length;
-  if (n >= h) return tp(h, "Ta séance de la semaine est faite : récupère.", "Tes {n} séances de la semaine sont faites : récupère.");
+  if (n >= h) return tp(h, "Ta séance de muscu de la semaine est faite : récupère.", "Tes {n} séances de muscu de la semaine sont faites : récupère.");
   const hier = J.has(decaler(auj, -1)), avant = J.has(decaler(auj, -2));
   if (h <= 3 && hier) return tr("Entraîné hier : à {n} séances par semaine, un jour de repos entre deux séances.", { n: h });
   if (h === 4 && hier && avant) return tr("Deux jours d'affilée : un jour de repos avant la suivante.");
@@ -211,12 +211,12 @@ function candidats(E: Record<Groupe, EtatGroupe>, ecartes: Set<Groupe>, mode: Mo
     const jamais = g.filter((x) => E[x].semaine === 0);
     /* comme la feuille Récupération : le muscle le plus récent et le plus ancien, au-delà de 7 jours « 7 j et plus » */
     const js = g.map((x) => E[x].jours), depuis = Math.min(...js), jusqua = Math.max(...js);
-    const raison = jamais.length === g.length || depuis >= 99 ? tr("Pas encore travaillés cette semaine.")
+    const raison = jamais.length === g.length || depuis >= 99 ? tr("Pas travaillés ces 7 derniers jours.")
       : depuis >= 7 ? tr("Au repos depuis 7 jours et plus.")
       : jusqua === depuis ? tr("Au repos depuis {n} jours.", { n: depuis })
       : tr("Au repos depuis {n} jours et plus.", { n: depuis });
     const sans = retires.filter((x) => !E[x].recupere);
-    res.push({ p: { id: m.id, nom: m.nom(), muscles: g, raison: sans.length ? tr("{a} récupèrent : retirés de ta séance.", { a: phrase(sans.map(nomGroupe)) }) : raison }, score });
+    res.push({ p: { id: m.id, nom: m.nom(), muscles: g, raison: sans.length ? tp(sans.length, "{a} récupère : retiré de ta séance.", "{a} récupèrent : retirés de ta séance.", { a: phrase(sans.map(nomGroupe)) }) : raison }, score });
   }
   return res.sort((a, b) => b.score - a.score).map((x) => x.p);
 }
@@ -234,9 +234,15 @@ export function recommander(H: LigneHist[], auj: string, ecartes: ZoneEcartable[
   const recuperent = GROUPES.filter((g) => !E[g].recupere && !exclus.has(g));
   /* (sauf si la raison dit déjà qu'ils sont retirés de la séance) */
   const ajouterRecup = (p: Proposition) => recuperent.length && !recuperent.some((g) => p.raison.includes(nomGroupe(g)))
-    ? { ...p, raison: p.raison + " " + tr("{a} récupèrent.", { a: phrase(recuperent.slice(0, 3).map(nomGroupe)) }) }
+    ? { ...p, raison: p.raison + " " + tp(Math.min(3, recuperent.length), "{a} récupère.", "{a} récupèrent.", { a: phrase(recuperent.slice(0, 3).map(nomGroupe)) }) }
     : p;
-  const demain = () => propositions(etatGroupes(H, decaler(auj, 1), efforts), exclus, mode)[0];
+  /* demain : rien à proposer si demain est aussi un jour de repos pour le rythme (aujourd'hui compte
+     comme un jour d'entraînement si une séance y est faite) */
+  const demain = () => {
+    const j = decaler(auj, 1), fait = faits.at(-1)?.d === auj;
+    if (pauseDe(j, { ...o, jours: [...(o.jours || []), ...(fait ? [auj] : [])] })) return undefined;
+    return propositions(etatGroupes(H, j, efforts), exclus, mode)[0];
+  };
   if (faits.at(-1)?.d === auj) return { faits, type: "fait", propositions: [], demain: demain() };
   const props = propositions(E, exclus, mode);
   const pause = pauseDe(auj, o);
@@ -262,7 +268,7 @@ export function recoDuJour(H: LigneHist[], d: string, ecartes: ZoneEcartable[] =
   const muscles = full.g.filter((g) => !exclus.has(g));
   const p: Proposition = { id: "full", nom: full.nom(), muscles: muscles.length ? muscles : full.g, raison: tr("Idéal pour démarrer.") };
   const pause = pauseDe(d, o);
-  if (pause) return { faits: [], type: "repos", debut: true, propositions: [], pause, autres: [p], demain: p };
+  if (pause) return { faits: [], type: "repos", debut: true, propositions: [], pause, autres: [p], demain: pauseDe(decaler(d, 1), o) ? undefined : p };
   return { faits: [], type: "seance", debut: true, propositions: [p] };
 }
 

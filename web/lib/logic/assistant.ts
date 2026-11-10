@@ -52,7 +52,7 @@ const CASES: Record<string, string[][]> = {
   isc: [["rm", "rmh", "ht", "trap", "sdt", "gm", "sdts", "kbsdt1", "pth", "elgm", "pont"], ["lc", "lcas", "lcd", "nord"], ["ht", "pont", "pont1", "kick", "kickpc", "pth", "elpt"]],
   pec: [["dc", "dh", "chpm", "dcsm", "dhn", "kbfp", "pomp", "pompl", "eldc", "dip"], ["dci", "dhi", "dcism", "chpi", "pompe"], ["ecart", "pecdk", "ecah", "ecai", "ecab", "ecpb", "ecpi", "elec"]],
   dos: [["tp", "tr", "trs", "tpn", "tpsu", "tp1", "eltr"], ["rw", "rh", "tps", "rw2", "rwapp", "rwm", "tbarp", "seal", "tps1", "landr", "rwsu", "rwhm", "tbar", "kbrw", "kbrw2", "ra"], ["tbt", "tbtc", "pull"]],
-  epa: [["dmh", "dm", "dmm", "arn", "dmsm", "dmhd", "kbdm", "kbdma", "eldm", "pv3"], ["el", "elp", "eli", "elel"], ["ois", "rmf", "oisp", "oisc", "oisi", "eloi"]],
+  epa: [["dmh", "dm", "dmm", "arn", "dmsm", "dmhd", "kbdm", "kbdma", "eldm"], ["el", "elp", "eli", "elel"], ["ois", "rmf", "oisp", "oisc", "oisi", "eloi"]],
   bic: [["curlh", "cu", "curlb", "curlez", "curlp", "pup", "pupp", "pupm", "spid", "drag", "curlc"], ["mart", "martc", "martx", "zott"]],
   tri: [["dcs", "dipt", "bfront", "skull", "dipm", "bfronth", "pompt", "bdips"], ["tri", "tricor", "nuq", "extnh", "extdb", "trim", "kickt", "trinv", "elskull"]],
   mol: [["mol", "molh", "molp", "mol1", "elmol"], ["molA", "molah", "molab"]],
@@ -119,7 +119,8 @@ export function construireSeance(muscles: string[], duree: number, obj: number, 
     const kg = l.filter((x) => EX[x].ch === "kg"), c = l.filter((x) => EX[x].ch !== "aucune");
     return tirer(kg.length ? kg : c.length ? c : l, rnd);
   };
-  const estPoly = (x: string) => !!EX[x].pat2 && x !== "pull" && !["ae", "ft"].includes(EX[x].pat);
+  /* un second schéma « avant-bras », « trapèzes », « adducteurs » ou « mollets » ne fait pas un polyarticulaire (curls) */
+  const estPoly = (x: string) => !!EX[x].pat2 && !["avb", "tra", "add", "mol"].includes(EX[x].pat2!) && x !== "pull" && !["ae", "ft"].includes(EX[x].pat);
   const ajouter = (g: (typeof G)[number], c: number) => {
     const l = c < 0 ? secours(g.k) : candidats(g.k, c);
     if (!l.length) return false;
@@ -141,7 +142,8 @@ export function construireSeance(muscles: string[], duree: number, obj: number, 
   for (const g of ordre) { let ok = false; for (let c = 0; c < (CASES[g.k]?.length || 1) && !ok; c++) ok = ajouter(g, c); if (!ok) ajouter(g, -1); }
   /* trop long : 2 séries sur l'isolation et le tronc, puis partout sauf le principal, puis partout */
   for (const garde of [(e: (typeof res)[number]) => e.role === "principal" || e.role === "accessoire", (e: (typeof res)[number]) => e.role === "principal", () => false])
-    for (const e of res) if (!tient() && !garde(e) && e.s > 2) e.s = 2;
+    /* en partant de la fin : les petits muscles et l'isolation d'abord, le mouvement principal en dernier */
+    for (const e of [...res].reverse()) if (!tient() && !garde(e) && e.s > 2) e.s = 2;
   /* 2. les cases suivantes, tour par tour (grands muscles d'abord), tant que la durée le permet */
   for (let c = 1; c < 3; c++)
     for (const g of ordre) {

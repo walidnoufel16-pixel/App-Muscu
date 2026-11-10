@@ -5,7 +5,7 @@
    48 h ? » (les muscles comptent dans la récupération, sans fausse séance dans l'historique), puis
    la fin : muscles prêts, et une première séance qui en tient compte (ou repos). Une seule fois ;
    « Plus tard » le referme (le profil reste à compléter dans Profil). */
-import { tr } from "@/lib/i18n";
+import { tp, tr } from "@/lib/i18n";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
@@ -183,7 +183,7 @@ function Fin({ fermer }: { fermer: () => void }) {
   const p = r.type === "seance" ? r.propositions[0] : undefined;
   const aller = (url: string) => { tactile(10); fermer(); router.push(url as Route, AVANT); };
   const raison = recup.length
-    ? tr("{m} récupèrent encore. Construite avec ton matériel.", { m: phrase(recup.map(nom)) })
+    ? tp(recup.length, "{m} récupère encore. Construite avec ton matériel.", "{m} récupèrent encore. Construite avec ton matériel.", { m: phrase(recup.map(nom)) })
     : tr("Construite avec ton matériel, à ton niveau.");
   return (
     <>

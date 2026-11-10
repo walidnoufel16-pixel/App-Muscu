@@ -115,9 +115,12 @@ export default function PageComposer() {
   const majBloc = (id: string, c: Partial<BlocCardio>) => majLibre((l) => { const b = l.blocs?.find((x) => x.id === id); if (b) Object.assign(b, c); });
   const retirerBloc = (id: string) => { majLibre((l) => { l.blocs = (l.blocs || []).filter((x) => x.id !== id); }); setBlocOuvert(null); };
 
-  const enregistrer = async (commencer = false) => {
+  const enregistrer = async (commencer = false, garder = !!L.garder) => {
     let nom = L.nom.trim() || tr("Séance libre");
-    const s = { nom, ex: L.ex.map((e) => { const c = { ...e }; delete c.o; return c; }), ...(L.blocs?.length ? { blocs: L.blocs } : {}), ...(L.obj != null ? { obj: L.obj } : {}), ...(L.colObj != null ? { colObj: L.colObj } : {}), ...(L.gen ? { gen: L.gen } : {}), ...(L.code ? { code: L.code } : {}), ...(L.avisIgnores?.length ? { avisIgnores: L.avisIgnores } : {}) };
+    /* une séance construite par Oxa ne va dans « Mes séances » que si on le décide : « Enregistrer »
+       (la garder), ou la case « Garder dans Mes séances » ; sinon elle reste jouable depuis l'agenda */
+    const auto = L.idx == null ? !!L.gen && (!!L.pour || commencer) && !garder : !!L.auto && !garder;
+    const s = { nom, ex: L.ex.map((e) => { const c = { ...e }; delete c.o; return c; }), ...(L.blocs?.length ? { blocs: L.blocs } : {}), ...(L.obj != null ? { obj: L.obj } : {}), ...(L.colObj != null ? { colObj: L.colObj } : {}), ...(L.gen ? { gen: L.gen } : {}), ...(L.code ? { code: L.code } : {}), ...(L.avisIgnores?.length ? { avisIgnores: L.avisIgnores } : {}), ...(auto ? { auto: true } : {}) };
     /* modifiée depuis « Mon agenda » : la séance elle-même, ou une variante pour ce jour-là seulement */
     const ag = L.agenda;
     /* une séance existante, modifiée avant d'être ajoutée à un jour (aperçu de l'agenda) : même question */
@@ -155,7 +158,8 @@ export default function PageComposer() {
     /* pour un jour : retour à Entraînement, où elle apparaît dans la semaine */
     if (L.pour) {
       toast.success(tr("Programmée : {nom}", { nom }), { description: maj(jourLong(L.pour)) });
-      router.replace("/entrainement" as Route, ARRIERE);
+      /* retour à Entraînement en dépilant l'assistant : un retour arrière ne ramène pas à une séance déjà créée */
+      revenirA("/entrainement", () => router.replace("/entrainement" as Route, ARRIERE));
       return;
     }
     /* modification : retour à la séance ; création : retour à Entraînement, où elle apparaît */
@@ -258,12 +262,19 @@ export default function PageComposer() {
         onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") })}
       />
       <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
+        {/* séance d'Oxa : « Mes séances » seulement si on le décide */}
+        {L.gen && (L.pour ? L.idx == null || !!L.auto : L.idx == null) && (
+          <label className="mb-2 flex items-center gap-2.5 rounded-2xl bg-card px-3.5 py-2.5 text-[14px] font-medium shadow-sm">
+            <input type="checkbox" checked={!!L.garder} onChange={(e) => majLibre((l) => { l.garder = e.target.checked; })} className="size-[18px] accent-[var(--plate)]" />
+            {tr("Garder aussi dans Mes séances")}
+          </label>
+        )}
         {L.pour ? (
           <Button variant="plate" size="xl" className="w-full" disabled={!L.ex.length} onClick={() => enregistrer()}>{tr("Enregistrer pour {j}", { j: jourCourt(L.pour) })}</Button>
         ) : L.idx == null && !L.agenda ? (
           <div className="flex gap-2">
-            <Button variant="outline" size="xl" className="flex-1 bg-background" disabled={!L.ex.length} onClick={() => enregistrer()}>{tr("Enregistrer")}</Button>
-            <Button variant="plate" size="xl" className="flex-[1.6]" disabled={!L.ex.length} onClick={() => enregistrer(true)}>{tr("Enregistrer et commencer")}</Button>
+            <Button variant="outline" size="xl" className="flex-1 bg-background" disabled={!L.ex.length} onClick={() => enregistrer(false, true)}>{tr("Enregistrer")}</Button>
+            <Button variant="plate" size="xl" className="flex-[1.6]" disabled={!L.ex.length} onClick={() => enregistrer(true)}>{L.gen ? tr("Commencer") : tr("Enregistrer et commencer")}</Button>
           </div>
         ) : (
           <Button variant="plate" size="xl" className="w-full" disabled={!L.ex.length} onClick={() => enregistrer()}>{tr("Enregistrer la séance")}</Button>

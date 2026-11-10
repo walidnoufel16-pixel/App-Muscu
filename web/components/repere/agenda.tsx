@@ -246,7 +246,7 @@ function Apercu({ c, d, auj, retour, ajouter, setF }: { c: Choix; d: string; auj
     /* proposition d'Oxa : enregistrée dans Mes séances, puis programmée ce jour-là */
     tactile(12);
     const rappel = futur ? (A.rappelAgenda === undefined ? { veille: true, h: 20 } : A.rappelAgenda) : null;
-    muter((E) => { E.SEANCES.push(structuredClone(S)); E.AGENDA ??= []; programmer(E.AGENDA, { d, nom: S.nom, quoi: { t: "libre", i: E.SEANCES.length - 1 }, ...(rappel ? { rappel } : {}) }); });
+    muter((E) => { E.SEANCES.push({ ...structuredClone(S), auto: true }); E.AGENDA ??= []; programmer(E.AGENDA, { d, nom: S.nom, quoi: { t: "libre", i: E.SEANCES.length - 1 }, ...(rappel ? { rappel } : {}) }); });
     toast.success(futur ? tr("Programmée : {nom}", { nom: S.nom }) : tr("Ajoutée à aujourd'hui : {nom}", { nom: S.nom }), { description: maj(jourLong(d)) + (rappel ? " · " + texteRappel(rappel) : "") });
     setF(null);
   };
@@ -499,7 +499,7 @@ type Choix = { quoi: QuoiPrevu; nom: string; sous?: string; icone: React.ReactNo
 /** Les séances qu'on peut mettre un jour donné : mes séances, Oxa Run de la semaine, cardio. */
 function seancesDuJour(etat: Etat, d: string, auj: string): { titre: string; l: Choix[] }[] {
   const o: { titre: string; l: Choix[] }[] = [];
-  const libres = etat.SEANCES.map((s, i) => ({ s, i })).filter(({ s }) => s.ex.length);
+  const libres = etat.SEANCES.map((s, i) => ({ s, i })).filter(({ s }) => s.ex.length && !s.auto);
   if (libres.length) o.push({ titre: tr("Mes séances"), l: libres.map(({ s, i }) => ({ quoi: { t: "libre", i }, nom: s.nom, sous: musclesDe(s.ex.map((e) => e.id)).slice(0, 3).join(", "), icone: <BarbellIcon className="size-5" /> })) });
   const c = etat.COURSE;
   if (c && d >= c.debut && d <= c.date) {

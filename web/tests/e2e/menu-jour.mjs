@@ -74,7 +74,8 @@ await cap(pg, "apercu-oxa");
 await dlg.getByRole("button", { name: /^Ajouter le / }).click();
 await pg.waitForTimeout(600);
 e = await etat(pg);
-ok(e.SEANCES.length === 2 && e.AGENDA?.some((p) => p.d === il(-1) && p.quoi.t === "libre" && p.quoi.i === 1), "proposition d'Oxa vue puis programmée demain : enregistrée dans Mes séances");
+ok(e.SEANCES.length === 2 && e.AGENDA?.some((p) => p.d === il(-1) && p.quoi.t === "libre" && p.quoi.i === 1), "proposition d'Oxa vue puis programmée demain");
+ok(e.SEANCES[1].auto === true, "… sans entrer dans « Mes séances » (pas choisi de la garder)");
 
 // voir, modifier puis ajouter : le composeur l'enregistre pour ce jour-là
 await pg.getByRole("button", { name: /Programmer/ }).first().click();
@@ -84,6 +85,7 @@ await dlg.getByRole("button", { name: "Modifier" }).click();
 await pg.waitForURL(/composer/);
 const enr = pg.getByRole("button", { name: /^Enregistrer pour / });
 await enr.waitFor();
+ok(await pg.getByText("Garder aussi dans Mes séances").isVisible(), "composeur : la case « Garder aussi dans Mes séances »");
 await cap(pg, "composer-pour");
 await enr.click();
 await pg.waitForURL(/\/entrainement\/?$/);

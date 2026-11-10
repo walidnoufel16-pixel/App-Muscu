@@ -121,7 +121,8 @@ function Assistant() {
        venir, jamais sans l'avoir vue : le composeur la montre, « Enregistrer pour … » la programme */
     if (commencer && !pour) {
       const i = useRepere.getState().etat.SEANCES.length;
-      muter((E) => { E.SEANCES.push(seance); });
+      /* lancée tout de suite : pas dans « Mes séances » sauf si on la garde (bouton de la séance) */
+      muter((E) => { E.SEANCES.push({ ...seance, auto: true }); });
       preparer(); remplacement();
       router.replace(`/entrainement/seance?l=${i}` as Route, AVANT);
       return;
@@ -179,7 +180,7 @@ function Assistant() {
       {/* de la place sous le dernier bloc : le bouton fixe « Créer ma séance » ne cache rien */}
       <div className="flex flex-col gap-6 px-4 pb-36">
         {!street && <CalculePour duree={d} objectif={obj} />}
-        {type === "muscu" && !street && !mUrl && <Recommandation onAppliquer={setM} />}
+        {type === "muscu" && !street && !mUrl && <Recommandation onAppliquer={setM} jour={pour ?? undefined} />}
         <section>
           <div className="mb-2 flex items-baseline justify-between px-1">
             <span className="eyebrow">{tr("Muscles{a}", { a: m.length ? ` · ${m.length}` : "" })}</span>

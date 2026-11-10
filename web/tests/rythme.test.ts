@@ -64,7 +64,7 @@ describe("full body débutant", () => {
     const r = recoDuJour([], "2026-11-10", [], 1, effortsEndurance([], [], { d: "2026-11-09", m: ["pec", "tri"] }), { hebdo: 3 });
     expect(r.propositions[0].id).toBe("full");
     expect(r.propositions[0].muscles).not.toContain("pec");
-    expect(r.propositions[0].raison).toMatch(/retirés/);
+    expect(r.propositions[0].raison).toBe("Pecs récupère : retiré de ta séance.");
   });
 });
 
@@ -92,5 +92,21 @@ describe("charges de départ", () => {
       const ex = construireSeance(["isc", "dos"], 60, 0, SEL, hasardDe("s" + k), () => false, 1);
       expect(ex.some((e) => EX[e.id].eq === 1 && chargeLombaires(e.id))).toBe(false);
     }
+  });
+});
+
+describe("régressions du contre-audit", () => {
+  it("R1 : le cardio doux et la course ne comptent pas pour le rythme de la muscu", async () => {
+    const { recoPour } = await import("@/lib/logic/agenda");
+    const E = { A: { regularite: 1, objHebdo: 3 }, HIST: [], SEANCES: [], LOG: {},
+      CARDIO: [{ ts: new Date("2026-11-09T18:00").getTime(), f: "doux", m: "velo", min: 20 }],
+      SORTIES: [{ d: "2026-11-09", km: 6, rpe: 4 }] } as unknown as Etat;
+    const r = recoPour(E, "2026-11-10", "2026-11-10");
+    expect(r.type).toBe("seance");
+  });
+  it("R5 : pas de « demain » quand demain est aussi un repos pour le rythme", () => {
+    const r = recoDuJour([], "2026-11-07", [], 1, [], { hebdo: 3, jours: ["2026-11-02", "2026-11-04", "2026-11-06"] });
+    expect(r.type).toBe("repos");
+    expect(r.demain).toBeUndefined();
   });
 });

@@ -44,6 +44,9 @@ export type SeanceLibre = {
   obj?: number;
   colObj?: number;
   gen?: { m: string[]; d: number; obj: number };
+  /* construite par Oxa et programmée ou lancée sans que l'utilisateur ait choisi de la garder : hors de
+     « Mes séances » (elle reste jouable depuis l'agenda) jusqu'à « Garder dans Mes séances » */
+  auto?: boolean;
   /* avis refusés au choix des muscles (« Non merci ») : le composeur ne les repropose pas */
   avisIgnores?: string[];
   /* Blocs cardio d'une séance combinée, placés librement entre les exercices. */
