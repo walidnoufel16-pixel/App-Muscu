@@ -171,3 +171,14 @@ describe("suggestion au choix des muscles", () => {
     expect(ids(avis({ ...L, avisIgnores: ["gainage"] }, { H: semaine }))).not.toContain("gainage");
   });
 });
+
+describe("suggestions et séance déclarée à l'accueil", () => {
+  it("pecs travaillés hier (déclarés) : pas de « + Pectoraux », alerte si on les coche", async () => {
+    const { effortsEndurance } = await import("@/lib/logic/recommandation");
+    const hier = new Date(AUJ + "T12:00"); hier.setDate(hier.getDate() - 1);
+    const efforts = effortsEndurance([], [], { d: hier.toISOString().slice(0, 10), m: ["pec", "tri"] });
+    expect(avisMuscles(["dos", "bic"], { auj: AUJ, efforts }).some((x) => x.id === "poussee")).toBe(false);
+    expect(avisMuscles(["dos", "bic"], { auj: AUJ }).some((x) => x.id === "poussee")).toBe(true);
+    expect(avisMuscles(["pec"], { auj: AUJ, efforts })[0]).toMatchObject({ id: "recup", alerte: true });
+  });
+});

@@ -106,7 +106,8 @@ function Assistant() {
   const [auj] = useState(() => jourDe(Date.now()));
   const pour = jourUrl && /^\d{4}-\d{2}-\d{2}$/.test(jourUrl) && jourUrl > auj ? jourUrl : null;
   const [refus, setRefus] = useState<string[]>([]);
-  const suggestion = street ? undefined : avisMuscles(m, { H, auj }).find((x) => !refus.includes(x.id));
+  const efforts = useRepere((s) => s.etat.SORTIES), cardios = useRepere((s) => s.etat.CARDIO), avant = useRepere((s) => s.etat.A.avant);
+  const suggestion = street ? undefined : avisMuscles(m, { H, auj, efforts: effortsEndurance(efforts, cardios, avant) }).find((x) => !refus.includes(x.id));
   const budget = Math.round((DUREES.find((x) => x[0] === d) || DUREES[1])[1] / 3);
   const peut = m.length > 0 && obj != null && sel.some((t) => !t.startsWith("x:"));
 

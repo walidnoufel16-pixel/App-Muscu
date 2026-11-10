@@ -16,7 +16,7 @@ import type { BlocCardio, ExLibre, Reponses } from "./types";
 import { exoFiltre, secondesDe } from "./core";
 import { exParDefaut, prescription } from "./assistant";
 import { dureeTotale, ordre, partiesDe, ranger, recomposer } from "./combinee";
-import { etatGroupes, nomGroupe, phrase, type Groupe } from "./recommandation";
+import { etatGroupes, nomGroupe, phrase, type Endurance, type Groupe } from "./recommandation";
 import type { LigneHist } from "./historique";
 import { zonesDe } from "./forme";
 
@@ -219,27 +219,30 @@ export function avisSeance(L: Brouillon, c: ContexteAvis): Avis[] {
 /** Suggestion au moment du choix des muscles (Créer une séance pour moi). Mêmes identifiants que
     les avis du composeur : refusée ici, elle n'y revient pas. */
 export type Suggestion = { id: string; titre: string; texte: string; ajouter?: string[]; alerte?: boolean };
-export function avisMuscles(m: string[], c: { H?: LigneHist[]; auj: string }): Suggestion[] {
+export function avisMuscles(m: string[], c: { H?: LigneHist[]; auj: string; efforts?: Endurance[] }): Suggestion[] {
   if (!m.length) return [];
   const a = (k: string) => m.includes(k), out: Suggestion[] = [];
-  const E = c.H?.length ? etatGroupes(c.H, c.auj) : null;
+  /* efforts : course, cardio et séance déclarée à l'accueil (dernières 48 h) */
+  const E = c.H?.length || c.efforts?.length ? etatGroupes(c.H || [], c.auj, c.efforts) : null;
+  /* jamais proposer d'ajouter un muscle qui récupère encore */
+  const pret = (g: Groupe) => !E || E[g].recupere;
   if (E) {
-    const recup = (Object.keys(E) as Groupe[]).filter((g) => a(g) && E[g].dernier && !E[g].recupere);
+    const recup = (Object.keys(E) as Groupe[]).filter((g) => a(g) && !E[g].recupere);
     if (recup.length) {
-      const j = Math.min(...recup.map((g) => E[g].jours));
-      const quand = j === 0 ? tr("de la séance d'aujourd'hui") : j === 1 ? tr("de la séance d'hier") : tr("de ta séance d'il y a {n} jours", { n: j });
+      const avec = recup.filter((g) => E[g].dernier), j = avec.length ? Math.min(...avec.map((g) => E[g].jours)) : -1;
+      const quand = j < 0 ? tr("encore") : j === 0 ? tr("de la séance d'aujourd'hui") : j === 1 ? tr("de la séance d'hier") : tr("de ta séance d'il y a {n} jours", { n: j });
       out.push({ id: "recup", alerte: true, titre: tr("{a} récupèrent {q}.", { a: phrase(recup.map(nomGroupe)), q: quand }), texte: tr("Allège-les aujourd'hui, ou garde-les pour plus tard.") });
     }
   }
-  if (a("pec") && a("dos") && !a("lom") && !a("abd"))
+  if (a("pec") && a("dos") && !a("lom") && !a("abd") && (!E || E.lom.recupere))
     out.push({ id: "gainage", titre: tr("+ Lombaires."), texte: tr("Les tirages les sollicitent un peu, mais un exercice direct pour le bas du dos protège mieux ta colonne sur les tirages et les développés."), ajouter: ["lom"] });
-  if (a("qua") && !a("isc"))
+  if (a("qua") && !a("isc") && pret("isc"))
     out.push({ id: "ischios", titre: tr("+ Fessiers et ischios."), texte: tr("L'arrière de la cuisse équilibre les quadriceps et protège tes genoux."), ajouter: ["isc"] });
-  else if (a("isc") && !a("qua"))
+  else if (a("isc") && !a("qua") && pret("qua"))
     out.push({ id: "quadris", titre: tr("+ Quadriceps."), texte: tr("Équilibre l'avant et l'arrière de la cuisse."), ajouter: ["qua"] });
-  if ((a("pec") || a("epa")) && !a("dos") && (E?.dos.semaine ?? 0) < 4)
+  if ((a("pec") || a("epa")) && !a("dos") && pret("dos") && (E?.dos.semaine ?? 0) < 4)
     out.push({ id: "tirage", titre: tr("+ Dos."), texte: tr("Pas de dos cette semaine : un tirage équilibre la poussée, pour des épaules solides et une bonne posture."), ajouter: ["dos"] });
-  else if (a("dos") && !a("pec") && !a("epa") && (E ? E.pec.semaine + E.epa.semaine : 0) < 4)
+  else if (a("dos") && !a("pec") && !a("epa") && pret("pec") && (E ? E.pec.semaine + E.epa.semaine : 0) < 4)
     out.push({ id: "poussee", titre: tr("+ Pectoraux."), texte: tr("Pas de poussée cette semaine : un développé garde l'équilibre du haut du corps."), ajouter: ["pec"] });
   return out;
 }
