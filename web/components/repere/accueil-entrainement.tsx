@@ -7,7 +7,8 @@ import { loc, tp, tr } from "@/lib/i18n";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { BellIcon, CheckIcon, FlameIcon, ListBulletsIcon, PencilSimpleIcon, PersonSimpleRunIcon, PlayIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
+import { BellIcon, CheckIcon, FlameIcon, ListBulletsIcon, PencilSimpleIcon, PersonSimpleRunIcon, PlayIcon, PlusIcon, SparkleIcon, UserCircleIcon, CaretRightIcon } from "@phosphor-icons/react";
+import { useAccueil } from "./accueil-premier";
 import { useEnCours } from "./seance-en-cours";
 import { feuilleDuJour, initiales, nomPrevu, sousTitre, useLancer, type Feuille } from "./agenda";
 import { decaler, lundiDe } from "@/lib/logic/historique";
@@ -182,9 +183,23 @@ export function CarteDuJour({ auj, setF }: { auj: string; setF: (f: Feuille) => 
   if (!(etat.HIST || []).length) {
     const m = musclesRecommandes(recoDuJour([], auj, etat.A.recoSans || [], etat.A.regularite, effortsEndurance(etat.SORTIES, etat.CARDIO, etat.A.avant))) ?? [];
     return (
-      <Hero ph={photo("Barbell_Deadlift_0")} tag={<><SparkleIcon className="size-3.5" weight="fill" />{tr("Pour commencer")}</>} titre={tr("Ta première séance")}
-        sous={tr("Un full body conseillé par Oxa, avec ton matériel. Tu ajustes tout ensuite.")}
-        principal={{ label: tr("Créer ma première séance"), onClick: () => router.push(`/entrainement/assistant${m.length ? `?m=${m.join(",")}` : ""}` as Route, AVANT) }} />
+      <>
+        <Hero ph={photo("Barbell_Deadlift_0")} tag={<><SparkleIcon className="size-3.5" weight="fill" />{tr("Pour commencer")}</>} titre={tr("Ta première séance")}
+          sous={tr("Conseillée par Oxa selon ta récupération, avec ton matériel.")}
+          principal={{ label: tr("Créer ma première séance"), onClick: () => router.push(`/entrainement/assistant${m.length ? `?m=${m.join(",")}` : ""}` as Route, AVANT) }} />
+        {/* questionnaire d'accueil passé : on peut y revenir tant qu'il n'est pas terminé */}
+        {!etat.A.accueil && (
+          <button onClick={() => { tactile(6); useAccueil.setState({ ouvert: true }); }}
+            className="mt-2 flex w-full items-center gap-3 rounded-2xl bg-plate-soft px-3.5 py-3 text-left active:scale-[.99]">
+            <UserCircleIcon className="size-6 shrink-0 text-plate-ink dark:text-plate" weight="fill" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-[14.5px] font-semibold">{tr("Complète ton profil sportif")}</span>
+              <span className="block text-[12.5px] text-muted-foreground">{tr("1 min pour des séances à ta mesure")}</span>
+            </span>
+            <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" />
+          </button>
+        )}
+      </>
     );
   }
   return null;

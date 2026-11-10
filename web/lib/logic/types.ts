@@ -86,6 +86,8 @@ export type Reponses = {
   avant?: { d: string; m: string[] };
   /* accueil (profil sportif + 48 h) terminé */
   accueil?: boolean;
+  /* accueil refermé avec « Plus tard » : il ne s'ouvre plus tout seul (carte « Complète ton profil sportif ») */
+  accueilPasse?: boolean;
   /** « Oxa te propose » masqué sur l'accueil : pour un jour (sa date) ou tout le temps (Profil le réactive). */
   recoMasquee?: string;
   recoOff?: boolean;

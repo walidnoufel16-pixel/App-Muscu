@@ -66,11 +66,14 @@ export function Visite() {
   /* première ouverture d'un compte qui n'a encore rien fait : la visite démarre d'elle-même */
   useEffect(() => {
     if (!pret || !pseudo || !neuf || bilan || etape !== null || mini || ancienne) return;
-    if (!RACINE.test(chemin) || lu(CLE)) return;
-    /* sans Oxa Plan : l'accueil (profil sportif, dernières 48 h, première séance) à la place de la visite */
+    if (!RACINE.test(chemin)) return;
+    /* sans Oxa Plan : l'accueil (profil sportif, dernières 48 h, première séance) à la place de la visite ;
+       noté sur le compte (un nouveau profil sur le même téléphone l'a aussi), pas sur l'appareil */
+    if (!prog && (A.accueil || A.accueilPasse)) return;
+    if (prog && lu(CLE)) return;
     const t = setTimeout(() => (prog ? useVisite.setState({ etape: 0 }) : useAccueil.setState({ ouvert: true })), 700);
     return () => clearTimeout(t);
-  }, [pret, pseudo, neuf, bilan, etape, mini, chemin, ancienne, prog]);
+  }, [pret, pseudo, neuf, bilan, etape, mini, chemin, ancienne, prog, A.accueil, A.accueilPasse]);
 
   /* Oxa Plan ouvert plus tard : une bulle sur sa tuile, une fois, tant que le programme n'est pas construit */
   useEffect(() => {

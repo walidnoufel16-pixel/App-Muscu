@@ -31,7 +31,13 @@ export function AccueilPremier({ onFin }: { onFin: (etape: number) => void }) {
   const ouvert = useAccueil((s) => s.ouvert);
   /* 0 bienvenue ; 1 à 9 le profil ; 10 les 48 h ; 11 la fin */
   const [etape, setEtape] = useState(0);
-  const fermer = () => { onFin(etape); useAccueil.setState({ ouvert: false }); };
+  const muter = useRepere((s) => s.muter);
+  const fermer = () => {
+    onFin(etape);
+    /* pas terminé : il ne se rouvre plus tout seul, la carte d'Entraînement y ramène */
+    muter((E) => { if (!E.A.accueil) E.A.accueilPasse = true; });
+    useAccueil.setState({ ouvert: false });
+  };
   return (
     <Dialog open={ouvert} onOpenChange={(o) => !o && fermer()}>
       <DialogContent showCloseButton={false}

@@ -82,6 +82,27 @@ async function bulles(pg, prefixe) {
   await ctx.close();
 }
 
+/* 1 bis. un nouveau profil sur un téléphone qui a déjà vu la visite : l'accueil s'ouvre quand même ;
+   « Plus tard » le referme pour de bon, la carte « Complète ton profil sportif » y ramène */
+{
+  const [ctx, pg] = await contexte(neuf, { "repere.visite": "1" });
+  await pg.goto(U + "/entrainement/");
+  const dlg = pg.getByRole("dialog");
+  await dlg.getByText("Commencer · 1 min").waitFor({ timeout: 8000 });
+  ok(true, "nouveau profil, visite déjà vue sur l'appareil : l'accueil s'ouvre");
+  await dlg.getByRole("button", { name: "Plus tard" }).click();
+  const carte = pg.getByRole("button", { name: /Complète ton profil sportif/ });
+  await carte.waitFor();
+  await cap(pg, "plus-tard-carte");
+  await pg.reload();
+  await pg.waitForTimeout(2500);
+  ok(await pg.getByText("Commencer · 1 min").count() === 0, "« Plus tard » : ne se rouvre plus tout seul");
+  await carte.click();
+  await dlg.getByText("Commencer · 1 min").waitFor();
+  ok(true, "la carte « Complète ton profil sportif » rouvre l'accueil");
+  await ctx.close();
+}
+
 /* 2. avec Oxa Plan */
 {
   const [ctx, pg] = await contexte(neuf, { "repere.programme": "1" });
