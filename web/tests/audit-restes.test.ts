@@ -77,3 +77,19 @@ describe("S4 : construction", () => {
     }
   });
 });
+
+describe("audit final", () => {
+  it("F4 : pas de soulevé de terre sumo à la barre pour un débutant", async () => {
+    const { chargeLombaires } = await import("@/lib/logic/assistant");
+    expect(chargeLombaires("sdts")).toBe(true);
+    for (let k = 0; k < 30; k++) expect(construireSeance(["isc", "qua"], 45, 0, SEL, hasardDe("s" + k), () => false, 1).map((e) => e.id)).not.toContain("sdts");
+  });
+  it("F2 : une seule valeur par défaut pour le rythme (objectifHebdo)", async () => {
+    const { objectifHebdo } = await import("@/lib/logic/motivation");
+    const { recoPour } = await import("@/lib/logic/agenda");
+    expect(objectifHebdo(A({}))).toBe(2);
+    /* profil sans rythme : 2 séances → full body */
+    const r = recoPour({ A: A({ regularite: 2 }), HIST: [], SEANCES: [], LOG: {} } as never, "2026-11-10", "2026-11-10");
+    expect(r.propositions[0].id).toBe("full");
+  });
+});

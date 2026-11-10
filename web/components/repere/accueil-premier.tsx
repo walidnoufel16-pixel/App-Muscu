@@ -212,7 +212,7 @@ function Fin({ fermer }: { fermer: () => void }) {
             <h2 className="mt-1.5 text-[21px] leading-tight font-extrabold">{tr("Repos aujourd'hui")}</h2>
             <p className="mt-1 text-[13.5px] leading-snug opacity-85">{r.pause ?? tr("Tes muscles récupèrent : c'est pendant le repos qu'ils se construisent.")}{r.demain && <> {tr("Demain : {s}.", { s: r.demain.nom.toLowerCase() })}</>}</p>
             <div className="mt-3.5 flex gap-2">
-              <button onClick={() => aller("/entrainement/assistant?type=cardio")} className="h-11 flex-1 rounded-full bg-white text-[14.5px] font-semibold text-[#0a0a0c] active:scale-[.98]">{tr("Cardio doux")}</button>
+              <button onClick={() => aller("/entrainement/assistant?type=cardio&format=endurance")} className="h-11 flex-1 rounded-full bg-white text-[14.5px] font-semibold text-[#0a0a0c] active:scale-[.98]">{tr("Cardio doux")}</button>
               {r.demain && <button onClick={() => aller(`/entrainement/assistant?jour=${decaler(auj, 1)}&m=${r.demain!.muscles.join(",")}`)} className="h-11 flex-1 rounded-full border-[1.5px] border-black/30 text-[14px] font-semibold active:scale-[.98]">{tr("Programmer demain")}</button>}
             </div>
           </>

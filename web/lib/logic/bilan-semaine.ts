@@ -3,6 +3,7 @@
    niveau, records de la semaine, et un seul conseil (le grand muscle le moins travaillé). */
 import { decaler, lundiDe, records, seriesParMuscle, type LigneHist, type Record_ } from "./historique";
 import { cibleNiveau } from "./recommandation";
+import { objectifHebdo } from "./motivation";
 import type { Reponses } from "./types";
 
 export const GRANDS_MUSCLES = ["pec", "dos", "epa", "qua", "isc", "bic", "tri"] as const;
@@ -24,7 +25,7 @@ export function bilanSemaine(H: LigneHist[], A: Reponses, auj: string, objProt?:
   const lignes = H.filter((l) => l.d >= lundi && l.d <= dimanche);
   if (!lignes.length) return null;
   const seances = new Set(lignes.map((l) => l.d + "|" + l.s)).size;
-  const objectif = typeof A.objHebdo === "number" && A.objHebdo > 0 ? A.objHebdo : 3;
+  const objectif = objectifHebdo(A);
   const s = seriesParMuscle(H, lundi, dimanche);
   const parMuscle = GRANDS_MUSCLES.map((k) => ({ k, n: Math.round((s[k] || 0) * 10) / 10 }));
   const cible = cibleNiveau(A.regularite == null ? undefined : A.regularite <= 1 ? 1 : A.regularite);

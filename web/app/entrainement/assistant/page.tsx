@@ -69,7 +69,9 @@ function Assistant() {
   /* venu du street workout (onglet Sur mesure) : le matériel du street seulement, pas de séance combinée */
   const street = useSearchParams().get("street") === "1";
   const [type, setType] = useState<"muscu" | "cardio" | "mixte" | "exercices" | "course">(typeUrl === "cardio" || typeUrl === "mixte" || typeUrl === "exercices" || typeUrl === "course" ? typeUrl : "muscu");
-  const [choix, setChoix] = useState<ChoixCardio>(() => { const n = niveauDe(A.regularite); return { f: "fractionne", m: "tapis", n, r: reglagesDe("fractionne", n) }; });
+  /* « Cardio doux » (jour de repos) : l'endurance douce, pas un fractionné */
+  const formatUrl = useSearchParams().get("format") === "endurance" ? "endurance" : "fractionne";
+  const [choix, setChoix] = useState<ChoixCardio>(() => { const n = niveauDe(A.regularite); return { f: formatUrl, m: "tapis", n, r: reglagesDe(formatUrl, n) }; });
   const [nomCardio, setNomCardio] = useState("");
   /* Enregistrer la séance cardio ; avec `demarrer`, son minuteur s'ouvre aussitôt (à la place de l'assistant). */
   const creerCardio = (demarrer = false) => {

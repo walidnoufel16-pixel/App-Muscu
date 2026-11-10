@@ -8,6 +8,7 @@ import { okDe } from "./core";
 import { EX } from "@/lib/data/exercices";
 import { PAT2MUSC } from "@/lib/data/referentiels";
 import { effortsEndurance, recoDuJour } from "./recommandation";
+import { objectifHebdo } from "./motivation";
 import type { LigneHist } from "./historique";
 import type { Etat } from "./types";
 
@@ -185,5 +186,5 @@ export function recoPour(E: Etat & { AGENDA?: Prevu[] }, d: string, auj = jourDe
     }
   }
   return recoDuJour([...(E.HIST || []), ...prevus], d, E.A.recoSans || [], E.A.regularite, effortsEndurance(E.SORTIES, E.CARDIO, E.A.avant),
-    { hebdo: typeof E.A.objHebdo === "number" ? E.A.objHebdo : undefined, jours });
+    { hebdo: objectifHebdo(E.A), jours });
 }

@@ -101,7 +101,7 @@ export function Recommandation({ onAppliquer, className, jour }: { onAppliquer?:
           </p>
           {r.type === "repos" && (
             <div className="mt-3.5 flex gap-2">
-              <button onClick={() => router.push("/entrainement/assistant?type=cardio" as Route, AVANT)} className="flex h-11 flex-1 items-center justify-center rounded-full bg-plate text-[14.5px] font-semibold text-plate-foreground active:scale-[.98]">
+              <button onClick={() => router.push("/entrainement/assistant?type=cardio&format=endurance" as Route, AVANT)} className="flex h-11 flex-1 items-center justify-center rounded-full bg-plate text-[14.5px] font-semibold text-plate-foreground active:scale-[.98]">
                 {tr("Cardio doux")}
               </button>
               {(r.autres?.[0] ?? r.demain) && (

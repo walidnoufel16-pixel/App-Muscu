@@ -22,6 +22,7 @@ import { seancePour } from "@/lib/logic/generer-seance";
 import { dureeEstimee } from "@/lib/logic/assistant";
 import { avecSalle, selDeclare } from "@/lib/logic/core";
 import { useBrouillon } from "@/lib/brouillon";
+import { useProgrammeActif } from "@/lib/fonctionnalites";
 import { recoPour } from "@/lib/logic/agenda";
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
@@ -156,6 +157,7 @@ export function CarteDuJour({ auj, setF }: { auj: string; setF: (f: Feuille) => 
   const router = useRouter();
   const lancer = useLancer();
   const enCours = useEnCours();
+  const prog = useProgrammeActif();
   const j = useMemo(() => joursAgenda(etat, auj, auj, 1)[0], [etat, auj]);
 
   /* une séance commencée et pas encore terminée */
@@ -215,7 +217,9 @@ export function CarteDuJour({ auj, setF }: { auj: string; setF: (f: Feuille) => 
       </>
     );
   }
-  /* rien de prévu ni de fait aujourd'hui : la séance du jour d'Oxa (ou le repos que le rythme impose) */
+  /* rien de prévu ni de fait aujourd'hui : la séance du jour d'Oxa (ou le repos que le rythme impose) ;
+     pas pendant un programme Oxa Plan, qui a sa propre séance du jour (sa tuile) */
+  if (prog && (etat.PLAN || etat.FINI)) return null;
   return <CarteReco auj={auj} />;
 }
 
@@ -254,7 +258,7 @@ function CarteReco({ auj }: { auj: string }) {
   return (
     <Hero ph={PHOTO_CARDIO} tag={<><MoonIcon className="size-3.5" weight="fill" />{tr("Repos aujourd'hui")}</>} titre={tr("Récupère")} long
       sous={(r.pause ?? tr("Tes muscles récupèrent encore de tes dernières séances.")) + (r.demain ? " " + tr("Demain : {s}.", { s: r.demain.nom.toLowerCase() }) : "")}
-      principal={{ label: tr("Cardio doux"), onClick: () => router.push("/entrainement/assistant?type=cardio" as Route, AVANT) }}
+      principal={{ label: tr("Cardio doux"), onClick: () => router.push("/entrainement/assistant?type=cardio&format=endurance" as Route, AVANT) }}
       second={quandMeme ? { label: tr("Séance quand même"), texte: true, onClick: () => voir(quandMeme) } : undefined}
       pied={pied} />
   );
