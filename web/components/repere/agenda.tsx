@@ -16,18 +16,17 @@ import { MiniCorps } from "./corps-muscles";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { Segmente } from "./segmente";
 import {
-  deplacer, HEURES_JOUR, HEURES_VEILLE, joursAgenda, nomCourt, prochainsJours, programmer, retirer,
+  deplacer, HEURES_JOUR, HEURES_VEILLE, joursAgenda, nomCourt, prochainsJours, programmer, recoPour, retirer,
   type JourAgenda, type Prevu, type QuoiPrevu, type Rappel,
 } from "@/lib/logic/agenda";
 import { decaler, jourDe } from "@/lib/logic/historique";
 import { dureeTotale } from "@/lib/logic/combinee";
 import { avecSalle, kLibre, musclesDe, nb, propositionLibre, selDeclare, variationDe } from "@/lib/logic/core";
-import { chargeLombaires, construireSeance, dureeEstimee, hasardDe, musclesPrioritaires } from "@/lib/logic/assistant";
-import { zonesActives, zonesDe } from "@/lib/logic/forme";
-import { prioNoms } from "@/lib/logic/questionnaire";
+import { dureeEstimee } from "@/lib/logic/assistant";
+import { seancePour } from "@/lib/logic/generer-seance";
 import { Vignette } from "./exercice-carte";
 import { genererPlan, semaineDe, vdotActuel } from "@/lib/logic/course";
-import { musclesRecommandes, effortsEndurance, etatGroupes, recoDuJour } from "@/lib/logic/recommandation";
+import { musclesRecommandes } from "@/lib/logic/recommandation";
 import { activerRappels, etatRappels } from "@/lib/rappels";
 import { useRepere } from "@/lib/store";
 import { useBrouillon } from "@/lib/brouillon";
@@ -63,7 +62,7 @@ export function useLancer() {
     if (q.t === "course") { router.push(`/entrainement/course?s=${q.cle}` as Route, AVANT); return; }
     if (q.t === "plan") { muter((x) => { x.day = q.day; }); router.push("/entrainement/seance", AVANT); return; }
     /* proposition d'Oxa : l'assistant s'ouvre avec ses muscles ; sans muscles, ceux conseillés ce jour-là */
-    const m = q.t === "reco" && q.m?.length ? q.m : musclesRecommandes(recoDuJour(E.HIST || [], jourDe(Date.now()), E.A.recoSans || [], E.A.regularite, effortsEndurance(E.SORTIES, E.CARDIO)));
+    const m = q.t === "reco" && q.m?.length ? q.m : musclesRecommandes(recoPour(E, jourDe(Date.now())));
     router.push((m ? `/entrainement/assistant?m=${m.join(",")}` : "/entrainement/assistant?type=cardio") as Route, AVANT);
   };
 }
@@ -121,8 +120,10 @@ function FeuilleNouvelle({ d: d0, auj, setF }: { d: string; auj: string; setF: (
     { icone: <DownloadSimpleIcon className="size-[18px]" weight="bold" />, titre: tr("Importer"), sous: tr("Avec un code"), onClick: () => { setF(null); setTimeout(() => useMenu.setState({ importer: true }), 350); } },
   ];
   /* les propositions d'Oxa pour ce jour-là */
-  const reco = useMemo(() => recoDuJour(etat.HIST || [], d, etat.A.recoSans || [], etat.A.regularite, effortsEndurance(etat.SORTIES, etat.CARDIO)), [etat, d]);
-  const propositions: Choix[] = reco.propositions.slice(0, 3).map((p) => ({ quoi: { t: "reco", m: p.muscles }, nom: p.nom, sous: p.raison, icone: <MiniCorps groupes={p.muscles} femme={femme} /> }));
+  const reco = useMemo(() => recoPour(etat, d, auj), [etat, d, auj]);
+  /* repos pour le rythme : les séances qui iraient quand même, sans « Conseillée » */
+  const quandMeme = !reco.propositions.length && !!reco.autres?.length;
+  const propositions: Choix[] = (reco.propositions.length ? reco.propositions : reco.autres || []).slice(0, 3).map((p) => ({ quoi: { t: "reco", m: p.muscles }, nom: p.nom, sous: p.raison, icone: <MiniCorps groupes={p.muscles} femme={femme} /> }));
   const groupes = useMemo(() => seancesDuJour(etat, d, auj), [etat, d, auj]);
   const ajouter = (c: Choix) => {
     tactile(12);
@@ -182,12 +183,13 @@ function FeuilleNouvelle({ d: d0, auj, setF }: { d: string; auj: string; setF: (
       <section className="mt-4">
         <h3 className="eyebrow mb-0.5 flex items-center gap-1.5 px-1"><SparkleIcon className="size-3.5 text-plate" weight="fill" />{tr("Oxa choisit pour toi")}</h3>
         <p className="mb-1.5 px-1 text-[12.5px] text-muted-foreground">
-          {propositions.length
+          {reco.pause ? reco.pause + (quandMeme ? " " + tr("Ou, si tu y tiens :") : "")
+            : propositions.length
             ? d === auj ? tr("Les muscles prêts aujourd'hui, d'après ta récupération.") : tr("Les muscles prêts ce jour-là, d'après ta récupération.")
             : reco.type === "fait" ? tr("Tu t'es déjà entraîné ce jour-là : laisse récupérer.") : tr("Tes muscles récupèrent ce jour-là : repos ou cardio léger.")}
         </p>
         <div className="flex flex-col gap-1.5">
-          {propositions.map((c, k) => ligne(c, k === 0, true))}
+          {propositions.map((c, k) => ligne(c, k === 0 && !quandMeme, true))}
           {futur && (
             <button onClick={() => ajouter({ quoi: { t: "reco" }, nom: tr("Choix d'Oxa"), icone: null })}
               className="rounded-2xl border-[1.5px] border-dashed border-plate/50 px-3 py-2.5 text-center active:scale-[.99]">
@@ -231,10 +233,7 @@ function Apercu({ c, d, auj, retour, ajouter, setF }: { c: Choix; d: string; auj
   const [genere] = useState<SeanceLibre | null>(() => {
     if (q.t !== "reco") return null;
     const duree = typeof A.duree === "number" && [30, 45, 60].includes(A.duree) ? A.duree : 45, obj = A.objectif ?? 0;
-    const sel = avecSalle(selDeclare(A), A), zones = zonesActives(A), H = etat.HIST || [];
-    const habitudes = new Set(H.slice(-12).flatMap((l) => Object.keys(l.ex)));
-    const lombaires = !etatGroupes(H, d, effortsEndurance(etat.SORTIES, etat.CARDIO)).lom.recupere;
-    const ex = construireSeance(m, duree, obj, sel, hasardDe(`${d}|${m.join(",")}|${duree}|${obj}|${sel.join(",")}`), (o) => zonesDe(o, zones).length > 0 || (lombaires && chargeLombaires(o)), A.regularite, { prio: musclesPrioritaires(prioNoms(A)), habitudes, dense: duree === 30 });
+    const ex = seancePour(etat, m, duree, obj, avecSalle(selDeclare(A), A), d);
     return { nom: c.nom, ex, obj, gen: { m: [...m], d: duree, obj } };
   });
   const S = q.t === "libre" ? etat.SEANCES[i] ?? null : genere;
@@ -247,7 +246,7 @@ function Apercu({ c, d, auj, retour, ajouter, setF }: { c: Choix; d: string; auj
     /* proposition d'Oxa : enregistrée dans Mes séances, puis programmée ce jour-là */
     tactile(12);
     const rappel = futur ? (A.rappelAgenda === undefined ? { veille: true, h: 20 } : A.rappelAgenda) : null;
-    muter((E) => { E.SEANCES.push(structuredClone(S)); E.AGENDA ??= []; programmer(E.AGENDA, { d, nom: S.nom, quoi: { t: "libre", i: E.SEANCES.length - 1 }, ...(rappel ? { rappel } : {}) }); });
+    muter((E) => { E.SEANCES.push({ ...structuredClone(S), auto: true }); E.AGENDA ??= []; programmer(E.AGENDA, { d, nom: S.nom, quoi: { t: "libre", i: E.SEANCES.length - 1 }, ...(rappel ? { rappel } : {}) }); });
     toast.success(futur ? tr("Programmée : {nom}", { nom: S.nom }) : tr("Ajoutée à aujourd'hui : {nom}", { nom: S.nom }), { description: maj(jourLong(d)) + (rappel ? " · " + texteRappel(rappel) : "") });
     setF(null);
   };
@@ -411,7 +410,7 @@ function FeuilleJour({ d, auj, j, setF }: { d: string; auj: string; j: JourAgend
             )}
             {l && (
               <button onClick={async () => {
-                if (!(await confirmer({ titre: tr("Retirer « {nom} » de ton historique ?", { nom: l.nom }), texte: tr("Ses séries de ce jour-là disparaissent de Progrès, des records et des charges proposées. La séance reste dans Mes séances."), ok: tr("Retirer"), danger: true }))) return;
+                if (!(await confirmer({ titre: tr("Retirer « {nom} » de ton historique ?", { nom: l.nom }), texte: /^L\|\d+$/.test(l.s) && etat.SEANCES[+l.s.slice(2)]?.auto ? tr("Ses séries de ce jour-là disparaissent de Progrès, des records et des charges proposées.") : tr("Ses séries de ce jour-là disparaissent de Progrès, des records et des charges proposées. La séance reste dans Mes séances."), ok: tr("Retirer"), danger: true }))) return;
                 muter((E) => retirerDeHistorique(E, l.d, l.s)); toast(tr("Séance retirée de ton historique")); setF(null);
               }} className="mt-3 px-1 text-[14px] font-semibold text-destructive">{tr("Retirer de mon historique")}</button>
             )}
@@ -500,7 +499,7 @@ type Choix = { quoi: QuoiPrevu; nom: string; sous?: string; icone: React.ReactNo
 /** Les séances qu'on peut mettre un jour donné : mes séances, Oxa Run de la semaine, cardio. */
 function seancesDuJour(etat: Etat, d: string, auj: string): { titre: string; l: Choix[] }[] {
   const o: { titre: string; l: Choix[] }[] = [];
-  const libres = etat.SEANCES.map((s, i) => ({ s, i })).filter(({ s }) => s.ex.length);
+  const libres = etat.SEANCES.map((s, i) => ({ s, i })).filter(({ s }) => s.ex.length && !s.auto);
   if (libres.length) o.push({ titre: tr("Mes séances"), l: libres.map(({ s, i }) => ({ quoi: { t: "libre", i }, nom: s.nom, sous: musclesDe(s.ex.map((e) => e.id)).slice(0, 3).join(", "), icone: <BarbellIcon className="size-5" /> })) });
   const c = etat.COURSE;
   if (c && d >= c.debut && d <= c.date) {

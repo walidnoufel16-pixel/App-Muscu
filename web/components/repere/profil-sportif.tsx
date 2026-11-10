@@ -97,7 +97,7 @@ function Compteur({ label, v, unite, pas, min, max, onChange }: { label: string;
 }
 
 /* ---------------- Profil › Mon profil sportif ---------------- */
-type Ligne = "sexe" | "age" | "corps" | "objectif" | "niveau" | "rythme" | "prio" | "sport";
+export type Ligne = "sexe" | "age" | "corps" | "objectif" | "niveau" | "rythme" | "prio" | "sport";
 type LigneProfil = { k: Ligne; icone: React.ReactNode; fond: string; n: string; v: string | null };
 
 function GroupeLignes({ l, ouvrir }: { l: LigneProfil[]; ouvrir: (k: Ligne) => void }) {
@@ -117,9 +117,7 @@ function GroupeLignes({ l, ouvrir }: { l: LigneProfil[]; ouvrir: (k: Ligne) => v
 
 export function ProfilSportif() {
   const A = useRepere((s) => s.etat.A);
-  const muter = useRepere((s) => s.muter);
   const [ouv, setOuv] = useState<Ligne | null>(null);
-  const maj = (f: (A: Reponses) => void) => muter((E) => f(E.A));
   const p = A.profil || {}, kg = poidsDe(A);
   const G = groupes(A), prio = (A.prio || []).filter((i) => i < G.length);
   const sports = (A.sport || []).filter((i) => i > 0 && SPORTS[i]);
@@ -149,17 +147,36 @@ export function ProfilSportif() {
       <Drawer open={!!ouv} onOpenChange={(o) => !o && setOuv(null)}>
         <DrawerContent className="max-h-[92dvh]">
           <div className="overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),20px)]">
-            {ouv === "sexe" && <>
+            {ouv && <EditeurProfil k={ouv} />}
+            <button onClick={() => setOuv(null)} className="mt-5 h-12 w-full rounded-full bg-plate text-[15.5px] font-semibold text-plate-foreground active:scale-[.98]">{tr("Enregistrer")}</button>
+          </div>
+        </DrawerContent>
+      </Drawer>
+    </section>
+  );
+}
+
+/** Une question du profil sportif (feuille de Profil, accueil d'un nouveau compte). */
+export function EditeurProfil({ k }: { k: Ligne }) {
+  const A = useRepere((s) => s.etat.A);
+  const muter = useRepere((s) => s.muter);
+  const maj = (f: (A: Reponses) => void) => muter((E) => f(E.A));
+  const p = A.profil || {}, kg = poidsDe(A);
+  const G = groupes(A), prio = (A.prio || []).filter((i) => i < G.length);
+  const sports = (A.sport || []).filter((i) => i > 0 && SPORTS[i]);
+  return (
+    <>
+            {k === "sexe" && <>
               <DrawerTitle className="mt-2 px-1 text-[22px] font-extrabold">{tr("Sexe")}</DrawerTitle>
               <DrawerDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">{tr("Sert au calcul de ta dépense d'énergie, au schéma du corps et à la répartition du volume.")}</DrawerDescription>
               <Choix l={SEXES()} v={A.sexe} onChange={(v) => maj((a) => { a.sexe = v; })} />
             </>}
-            {ouv === "age" && <>
+            {k === "age" && <>
               <DrawerTitle className="mt-2 px-1 text-[22px] font-extrabold">{tr("Âge")}</DrawerTitle>
               <DrawerDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">{tr("Sert au calcul de ta dépense d'énergie et de tes besoins en protéines.")}</DrawerDescription>
               <Compteur label={tr("Âge")} v={p["Âge"] ?? 30} unite={tr("ans")} pas={1} min={12} max={99} onChange={(v) => maj((a) => { a.profil = { ...(a.profil || {}), "Âge": v }; })} />
             </>}
-            {ouv === "corps" && <>
+            {k === "corps" && <>
               <DrawerTitle className="mt-2 px-1 text-[22px] font-extrabold">{tr("Taille et poids")}</DrawerTitle>
               <DrawerDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">{tr("Ton poids s'ajoute aussi à ta courbe dans Progrès.")}</DrawerDescription>
               <Compteur label={tr("Taille")} v={p["Taille"] ?? (A.sexe === 1 ? 165 : 177)} unite="cm" pas={1} min={120} max={230} onChange={(v) => maj((a) => { a.profil = { ...(a.profil || {}), Taille: v }; })} />
@@ -169,17 +186,17 @@ export function ProfilSportif() {
                 a.poids = [...l, [j, v]].slice(-120);
               })} />
             </>}
-            {ouv === "objectif" && <>
+            {k === "objectif" && <>
               <DrawerTitle className="mt-2 px-1 text-[22px] font-extrabold">{tr("Ton objectif")}</DrawerTitle>
               <DrawerDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">{tr("Un seul. Il règle les répétitions, le repos et tes besoins en protéines.")}</DrawerDescription>
               <Choix l={OBJECTIFS()} v={A.objectif} onChange={(v) => maj((a) => { a.objectif = v; })} />
             </>}
-            {ouv === "niveau" && <>
+            {k === "niveau" && <>
               <DrawerTitle className="mt-2 px-1 text-[22px] font-extrabold">{tr("Ton niveau")}</DrawerTitle>
               <DrawerDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">{tr("Sur les six derniers mois. C'est ce qui règle le volume que ton corps encaisse aujourd'hui.")}</DrawerDescription>
               <Choix l={NIVEAUX()} v={niveauDe(A)} onChange={(v) => maj((a) => { a.regularite = v; })} />
             </>}
-            {ouv === "rythme" && <>
+            {k === "rythme" && <>
               <DrawerTitle className="mt-2 px-1 text-[22px] font-extrabold">{tr("Ton rythme")}</DrawerTitle>
               <DrawerDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">{tr("Ton objectif de séances par semaine (il compte pour ta série) et la durée habituelle d'une séance.")}</DrawerDescription>
               <div className="mt-3 px-1 text-[13px] font-bold">{tr("Séances par semaine")}</div>
@@ -187,23 +204,19 @@ export function ProfilSportif() {
               <div className="mt-4 px-1 text-[13px] font-bold">{tr("Durée d'une séance")}</div>
               <Pastilles l={DUREES_H.map((v) => ({ v, n: tr("{n} min", { n: v }) }))} actif={(v) => ((A.duree as number) ?? 45) === v} onToggle={(v) => maj((a) => { a.duree = v; })} />
             </>}
-            {ouv === "prio" && <>
+            {k === "prio" && <>
               <DrawerTitle className="mt-2 px-1 text-[22px] font-extrabold">{tr("Muscles prioritaires")}</DrawerTitle>
               <DrawerDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">{tr("Deux au maximum, sinon plus rien n'est prioritaire.")}</DrawerDescription>
               <Pastilles l={G.map((g, i) => ({ v: i, n: tr(g) }))} actif={(v) => prio.includes(v)}
                 onToggle={(v) => maj((a) => { const l = (a.prio || []).filter((i) => i < G.length); a.prio = l.includes(v) ? l.filter((i) => i !== v) : [...l, v].slice(-2); })} />
             </>}
-            {ouv === "sport" && <>
+            {k === "sport" && <>
               <DrawerTitle className="mt-2 px-1 text-[22px] font-extrabold">{tr("Autres sports")}</DrawerTitle>
               <DrawerDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">{tr("Trois au maximum. Ce qu'ils coûtent à ton corps (jambes, souffle, épaules) allège le volume concerné.")}</DrawerDescription>
               <Pastilles l={[{ v: 0, n: tr("Aucun") }, ...SPORTS.map((s, i) => ({ v: i, n: s.n })).slice(1)]} actif={(v) => (v === 0 ? !!A.sport && !sports.length : sports.includes(v))}
                 onToggle={(v) => maj((a) => { if (v === 0) { a.sport = [0]; return; } const l = (a.sport || []).filter((i) => i > 0); a.sport = l.includes(v) ? (l.length > 1 ? l.filter((i) => i !== v) : [0]) : [...l, v].slice(-3); })} />
             </>}
-            <button onClick={() => setOuv(null)} className="mt-5 h-12 w-full rounded-full bg-plate text-[15.5px] font-semibold text-plate-foreground active:scale-[.98]">{tr("Enregistrer")}</button>
-          </div>
-        </DrawerContent>
-      </Drawer>
-    </section>
+    </>
   );
 }
 

@@ -3,9 +3,9 @@
 import { describe, expect, it } from "vitest";
 import fx from "./fixtures/parite.json";
 import {
-  curId, dispoDeclare, espacementDe, key, musclesDe, resumeDe, rpeOf, secondesDe, suggere, titreSeance, week, wkDone, wkFull, ctxPlan,
+  curId, dispoDeclare, espacementDe, key, musclesDe, resumeDe, rpeOf, secondesDe, suggere, titreSeance, week, wkDone, wkFull, ctxPlan, departProfil,
 } from "@/lib/logic/core";
-import { construireSeance, dureeEstimee, objCollation } from "@/lib/logic/assistant";
+import { objCollation } from "@/lib/logic/assistant";
 import { EX } from "@/lib/data/exercices";
 import type { Etat } from "@/lib/logic/types";
 
@@ -13,7 +13,6 @@ import type { Etat } from "@/lib/logic/types";
    barre de traction : on compare sur la même bibliothèque, barre de traction disponible. */
 for (const o of Object.keys(EX)) if (EX[o].horsIA) delete EX[o];
 
-const lcg = (s: number) => () => ((s = (s * 1103515245 + 12345) % 2147483648) / 2147483648);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const F = fx as any;
 
@@ -58,20 +57,22 @@ describe.each(PROFILS)("profil %i", (_i, p) => {
       if (w !== 0) continue; // Oxa Plan v2 : voir plus haut
       const c = ctxPlan({ ...E, wk: w, day: 0 }, i, W)!;
       if (!dispoDeclare(E.A, P.ctx[k].id)) { expect(E.LOG[w + "|0|" + i]?.ex ? c.id === E.LOG[w + "|0|" + i].ex : dispoDeclare(E.A, c.id), k).toBe(true); continue; }
-      expect(JSON.parse(JSON.stringify(c)), k).toEqual(P.ctx[k]);
+      /* Correction volontaire (audit S1) : la première fois, sans historique, l'ancien code partait de la
+         charge par défaut de l'exercice, la même pour tout le monde ; c'est désormais celle du profil. */
+      const ref = P.ctx[k], x = EX[c.id];
+      if (x?.ch !== "aucune" && ref.base.v === x?.d && !ref.why) {
+        expect(c.base.v, k).toBe(departProfil(E.A, x, ref.base.reps));
+        expect(JSON.parse(JSON.stringify({ ...c, base: { ...c.base, v: ref.base.v }, why: undefined })), k).toEqual(ref);
+        continue;
+      }
+      expect(JSON.parse(JSON.stringify(c)), k).toEqual(ref);
     }
   });
 });
 
-describe("assistant", () => {
-  it.each(F.assistant.map((c: unknown, i: number) => [i, c]) as [number, unknown][])("cas %i : même séance à hasard égal", (_i, c) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const C = c as any;
-    const ex = construireSeance(C.m, C.d, C.o, [...C.sel, "bt"], lcg(C.seed));
-    expect(ex).toEqual(C.ex);
-    expect(dureeEstimee(ex)).toBe(C.duree);
-  });
-});
+/* L'assistant ne reproduit plus l'ancienne app : la construction des séances a été refaite (cases
+   par fonction, prescription selon le rôle, durée réelle ; docs/audit/bilan-2026-11-10.md, S4 et S5).
+   Ses règles sont vérifiées dans tests/seances.test.ts. */
 
 describe("divers", () => {
   it("muscles", () => F.divers.muscles.forEach(([id, r]: [string, string[]]) => expect(musclesDe([id])).toEqual(r)));

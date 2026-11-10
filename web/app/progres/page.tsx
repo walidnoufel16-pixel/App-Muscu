@@ -411,7 +411,7 @@ function DetailJour({ jour, onClose, H, C }: { jour: string | null; onClose: () 
   const muter = useRepere((s) => s.muter);
   /* une séance validée par erreur : retirée de l'historique (records, séries et badges suivent) */
   const retirer = async (l: LigneHist) => {
-    if (!(await confirmer({ titre: tr("Retirer « {nom} » de ton historique ?", { nom: l.nom }), texte: tr("Ses séries de ce jour-là disparaissent de Progrès, des records et des charges proposées. La séance reste dans Mes séances."), ok: tr("Retirer"), danger: true }))) return;
+    if (!(await confirmer({ titre: tr("Retirer « {nom} » de ton historique ?", { nom: l.nom }), texte: /^L\|\d+$/.test(l.s) && SEANCES[+l.s.slice(2)]?.auto ? tr("Ses séries de ce jour-là disparaissent de Progrès, des records et des charges proposées.") : tr("Ses séries de ce jour-là disparaissent de Progrès, des records et des charges proposées. La séance reste dans Mes séances."), ok: tr("Retirer"), danger: true }))) return;
     muter((E) => retirerDeHistorique(E, l.d, l.s));
     toast(tr("Séance retirée de ton historique"));
     if (lignes.length <= 1 && !cardio.length) onClose();

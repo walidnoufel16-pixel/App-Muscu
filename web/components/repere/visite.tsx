@@ -64,11 +64,12 @@ export function Visite() {
 
   /* première ouverture d'un compte qui n'a encore rien fait : la visite démarre d'elle-même */
   useEffect(() => {
-    if (!pret || !pseudo || !neuf || bilan || etape !== null || mini || ancienne) return;
+    /* sans Oxa Plan : le questionnaire d'accueil passe avant l'app (AppShell, accueil-premier.tsx) */
+    if (!pret || !pseudo || !neuf || !prog || bilan || etape !== null || mini || ancienne) return;
     if (!RACINE.test(chemin) || lu(CLE)) return;
     const t = setTimeout(() => useVisite.setState({ etape: 0 }), 700);
     return () => clearTimeout(t);
-  }, [pret, pseudo, neuf, bilan, etape, mini, chemin, ancienne]);
+  }, [pret, pseudo, neuf, bilan, etape, mini, chemin, ancienne, prog]);
 
   /* Oxa Plan ouvert plus tard : une bulle sur sa tuile, une fois, tant que le programme n'est pas construit */
   useEffect(() => {

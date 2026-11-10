@@ -8,7 +8,7 @@
      intense avant les jambes ;
    - réglages : répétitions et repos selon l'objectif, trop de séries sur un exercice.
    Chaque avis peut porter une action que `appliquerAvis` exécute sur le brouillon. */
-import { langue, tr } from "@/lib/i18n";
+import { langue, tp, tr } from "@/lib/i18n";
 import { EX } from "@/lib/data/exercices";
 import { OBJS, PAT2MUSC } from "@/lib/data/referentiels";
 import { estSoin } from "@/lib/data/soin";
@@ -16,11 +16,11 @@ import type { BlocCardio, ExLibre, Reponses } from "./types";
 import { exoFiltre, secondesDe } from "./core";
 import { exParDefaut, prescription } from "./assistant";
 import { dureeTotale, ordre, partiesDe, ranger, recomposer } from "./combinee";
-import { etatGroupes, nomGroupe, phrase, type Groupe } from "./recommandation";
+import { etatGroupes, nombre, nomGroupe, phrase, type Endurance, type Groupe } from "./recommandation";
 import type { LigneHist } from "./historique";
 import { zonesDe } from "./forme";
 
-type Brouillon = { ex: ExLibre[]; blocs?: BlocCardio[]; obj?: number; gen?: { m: string[] }; avisIgnores?: string[] };
+type Brouillon = { ex: ExLibre[]; blocs?: BlocCardio[]; obj?: number; gen?: { m: string[] }; avisIgnores?: string[]; idx?: number | null };
 
 export type ActionAvis =
   | { t: "retirer"; id: string }
@@ -34,7 +34,8 @@ export type ActionAvis =
 export type Famille = "corps" | "volume" | "equilibre" | "ordre" | "reglages";
 export type Avis = { id: string; f: Famille; titre: string; texte: string; bouton?: string; action?: ActionAvis };
 
-export type ContexteAvis = { A: Reponses; H?: LigneHist[]; sel: string[]; zones?: number[]; auj: string };
+/** `efforts` : course, cardio et séance déclarée à l'accueil (effortsEndurance), pour la récupération. */
+export type ContexteAvis = { A: Reponses; H?: LigneHist[]; sel: string[]; zones?: number[]; auj: string; efforts?: Endurance[] };
 
 const PETITS = new Set(["bic", "tri", "epa", "mol", "abd", "avb", "tra", "add", "lom"]);
 const nom = (id: string) => EX[id]?.n ?? id;
@@ -76,14 +77,15 @@ export function avisSeance(L: Brouillon, c: ContexteAvis): Avis[] {
   const de = (g: string) => ex.filter((e) => groupe(e.id) === g);
 
   /* ---------- corps ---------- */
-  if (c.H?.length) {
-    const E = etatGroupes(c.H, c.auj);
-    const recup = (Object.keys(E) as Groupe[]).filter((g) => (prin[g] || 0) >= 3 && !E[g].recupere && E[g].dernier);
+  if (c.H?.length || c.efforts?.length) {
+    const E = etatGroupes(c.H || [], c.auj, c.efforts);
+    const recup = (Object.keys(E) as Groupe[]).filter((g) => (prin[g] || 0) >= 3 && !E[g].recupere);
     if (recup.length) {
-      const j = Math.min(...recup.map((g) => E[g].jours));
+      const avec = recup.filter((g) => E[g].dernier), j = avec.length ? Math.min(...avec.map((g) => E[g].jours)) : -1;
       const quand = j === 0 ? tr("aujourd'hui") : j === 1 ? tr("hier") : tr("il y a {n} jours", { n: j });
-      out.push({ id: "recup", f: "corps", titre: tr("{a} récupèrent encore.", { a: phrase(recup.map(nomGroupe)) }),
-        texte: tr("Travaillés {q} : allège-les aujourd'hui, ou garde-les pour une prochaine séance.", { q: quand }) });
+      out.push({ id: "recup", f: "corps", titre: tp(nombre(recup), "{a} récupère encore.", "{a} récupèrent encore.", { a: phrase(recup.map(nomGroupe)) }),
+        texte: j < 0 ? tp(nombre(recup), "Course, cardio ou séance d'avant Oxa : allège-le, ou garde-le pour une prochaine séance.", "Course, cardio ou séance d'avant Oxa : allège-les, ou garde-les pour une prochaine séance.")
+          : tr("Travaillés {q} : allège-les, ou garde-les pour une prochaine séance.", { q: quand }) });
     }
   }
   for (const e of ex) {
@@ -213,33 +215,42 @@ export function avisSeance(L: Brouillon, c: ContexteAvis): Avis[] {
       bouton: tr("Garder 4 séries"), action: { t: "regler", r: lourds.map((e) => ({ id: e.id, s: 4 })) } });
 
   /* refusés au choix des muscles (« Non merci ») : on n'y revient pas */
-  return out.filter((a) => !L.avisIgnores?.includes(a.id));
+  /* séance construite par Oxa, sur les muscles choisis : l'équilibre de la semaine est déjà pensé par la
+     recommandation (rotation, volume) ; proposer d'y ajouter d'autres muscles se contredirait. Dès qu'un
+     exercice d'un autre muscle y entre, les conseils d'équilibre reviennent. */
+  /* (seulement tant qu'elle n'est pas enregistrée : une séance réutilisée plus tard retrouve les conseils
+     de la semaine en cours) */
+  const oxa = !!L.gen && L.idx == null && ex.every((e) => { const g = groupe(e.id); return !g || L.gen!.m.includes(g); });
+  return out.filter((a) => !L.avisIgnores?.includes(a.id) && !(oxa && a.f === "equilibre"));
 }
 
 /** Suggestion au moment du choix des muscles (Créer une séance pour moi). Mêmes identifiants que
     les avis du composeur : refusée ici, elle n'y revient pas. */
 export type Suggestion = { id: string; titre: string; texte: string; ajouter?: string[]; alerte?: boolean };
-export function avisMuscles(m: string[], c: { H?: LigneHist[]; auj: string }): Suggestion[] {
+export function avisMuscles(m: string[], c: { H?: LigneHist[]; auj: string; efforts?: Endurance[] }): Suggestion[] {
   if (!m.length) return [];
   const a = (k: string) => m.includes(k), out: Suggestion[] = [];
-  const E = c.H?.length ? etatGroupes(c.H, c.auj) : null;
+  /* efforts : course, cardio et séance déclarée à l'accueil (dernières 48 h) */
+  const E = c.H?.length || c.efforts?.length ? etatGroupes(c.H || [], c.auj, c.efforts) : null;
+  /* jamais proposer d'ajouter un muscle qui récupère encore */
+  const pret = (g: Groupe) => !E || E[g].recupere;
   if (E) {
-    const recup = (Object.keys(E) as Groupe[]).filter((g) => a(g) && E[g].dernier && !E[g].recupere);
+    const recup = (Object.keys(E) as Groupe[]).filter((g) => a(g) && !E[g].recupere);
     if (recup.length) {
-      const j = Math.min(...recup.map((g) => E[g].jours));
-      const quand = j === 0 ? tr("de la séance d'aujourd'hui") : j === 1 ? tr("de la séance d'hier") : tr("de ta séance d'il y a {n} jours", { n: j });
-      out.push({ id: "recup", alerte: true, titre: tr("{a} récupèrent {q}.", { a: phrase(recup.map(nomGroupe)), q: quand }), texte: tr("Allège-les aujourd'hui, ou garde-les pour plus tard.") });
+      const avec = recup.filter((g) => E[g].dernier), j = avec.length ? Math.min(...avec.map((g) => E[g].jours)) : -1;
+      const quand = j < 0 ? tr("encore") : j === 0 ? tr("de la séance d'aujourd'hui") : j === 1 ? tr("de la séance d'hier") : tr("de ta séance d'il y a {n} jours", { n: j });
+      out.push({ id: "recup", alerte: true, titre: tp(nombre(recup), "{a} récupère {q}.", "{a} récupèrent {q}.", { a: phrase(recup.map(nomGroupe)), q: quand }), texte: tr("Allège-les aujourd'hui, ou garde-les pour plus tard.") });
     }
   }
-  if (a("pec") && a("dos") && !a("lom") && !a("abd"))
+  if (a("pec") && a("dos") && !a("lom") && !a("abd") && (!E || E.lom.recupere))
     out.push({ id: "gainage", titre: tr("+ Lombaires."), texte: tr("Les tirages les sollicitent un peu, mais un exercice direct pour le bas du dos protège mieux ta colonne sur les tirages et les développés."), ajouter: ["lom"] });
-  if (a("qua") && !a("isc"))
+  if (a("qua") && !a("isc") && pret("isc"))
     out.push({ id: "ischios", titre: tr("+ Fessiers et ischios."), texte: tr("L'arrière de la cuisse équilibre les quadriceps et protège tes genoux."), ajouter: ["isc"] });
-  else if (a("isc") && !a("qua"))
+  else if (a("isc") && !a("qua") && pret("qua"))
     out.push({ id: "quadris", titre: tr("+ Quadriceps."), texte: tr("Équilibre l'avant et l'arrière de la cuisse."), ajouter: ["qua"] });
-  if ((a("pec") || a("epa")) && !a("dos") && (E?.dos.semaine ?? 0) < 4)
+  if ((a("pec") || a("epa")) && !a("dos") && pret("dos") && (E?.dos.semaine ?? 0) < 4)
     out.push({ id: "tirage", titre: tr("+ Dos."), texte: tr("Pas de dos cette semaine : un tirage équilibre la poussée, pour des épaules solides et une bonne posture."), ajouter: ["dos"] });
-  else if (a("dos") && !a("pec") && !a("epa") && (E ? E.pec.semaine + E.epa.semaine : 0) < 4)
+  else if (a("dos") && !a("pec") && !a("epa") && pret("pec") && (E ? E.pec.semaine + E.epa.semaine : 0) < 4)
     out.push({ id: "poussee", titre: tr("+ Pectoraux."), texte: tr("Pas de poussée cette semaine : un développé garde l'équilibre du haut du corps."), ajouter: ["pec"] });
   return out;
 }

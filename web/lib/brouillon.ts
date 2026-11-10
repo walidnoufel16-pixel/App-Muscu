@@ -7,7 +7,7 @@ import type { SeanceLibre } from "@/lib/logic/types";
 
 /* agenda : modification lancée depuis « Mon agenda » (jour et séance programmée concernés) */
 /* pour : le jour à venir où la séance créée sera programmée (menu du jour, ?jour=) */
-export type Brouillon = SeanceLibre & { idx: number | null; agenda?: { d: string; id?: string }; pour?: string };
+export type Brouillon = SeanceLibre & { idx: number | null; agenda?: { d: string; id?: string }; pour?: string; garder?: boolean };
 
 type B = {
   libre: Brouillon | null;

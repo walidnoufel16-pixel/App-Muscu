@@ -5,7 +5,7 @@
 import { pluriel, tr } from "@/lib/i18n";
 import { Fragment, Suspense, useMemo, useState, ViewTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { BowlFoodIcon, ChartLineUpIcon, CheckIcon, FlameIcon, HeartbeatIcon, InfoIcon, PencilSimpleIcon, PlayIcon, PlusIcon } from "@phosphor-icons/react";
+import { BookmarkSimpleIcon, BowlFoodIcon, ChartLineUpIcon, CheckIcon, FlameIcon, HeartbeatIcon, InfoIcon, PencilSimpleIcon, PlayIcon, PlusIcon } from "@phosphor-icons/react";
 import { FeuilleAjout } from "@/components/repere/ajout-exercice";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
@@ -34,6 +34,7 @@ import { useRepere } from "@/lib/store";
 import { AVANT, parOnglet } from "@/lib/nav";
 import { useBrouillon } from "@/lib/brouillon";
 import { tactile } from "@/lib/repos";
+import { toast } from "sonner";
 import { enchainer } from "@/lib/enchainement";
 import { ajouterAuSuivi } from "@/lib/suivi";
 import { confirmer } from "@/components/repere/confirmer";
@@ -306,7 +307,11 @@ function SeanceLibre({ i }: { i: number }) {
       titre={S.nom}
       faits={faits} total={cles.length + blocs.length}
       sect={sect} setSect={setSect}
-      actions={<Button variant="ghost" size="sm" className="text-[15px] text-plate-ink" onClick={modifier}><PencilSimpleIcon className="size-4" />{tr("Modifier")}</Button>}
+      actions={<>
+        {/* séance d'Oxa pas encore gardée : un geste pour la mettre dans « Mes séances » */}
+        {S.auto && <Button variant="ghost" size="sm" className="text-[15px] text-plate-ink" onClick={() => { tactile(8); muter((E) => { delete E.SEANCES[i].auto; }); toast.success(tr("Gardée dans Mes séances")); }}><BookmarkSimpleIcon className="size-4" />{tr("Garder")}</Button>}
+        <Button variant="ghost" size="sm" className="text-[15px] text-plate-ink" onClick={modifier}><PencilSimpleIcon className="size-4" />{tr("Modifier")}</Button>
+      </>}
       entete={
         <>
           <ViewTransition name={`vignettes-${i}`} share="morph" default="none">

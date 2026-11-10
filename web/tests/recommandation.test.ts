@@ -17,7 +17,7 @@ const jambes = (d: string) => seance(d, { sq: 4, pr: 4, rm: 3, mol: 3 });
 
 describe("recommander", () => {
   it("pecs/triceps lundi + dos/biceps mardi → mercredi jambes ou épaules/abdos, jamais pecs ni dos", () => {
-    const r = recommander([push(LUN), pull(MAR)], MER)!;
+    const r = recommander([push(LUN), pull(MAR)], MER, [], undefined, [], { hebdo: 5 })!;
     expect(r.type).toBe("seance");
     expect(["jambes", "epaabd"]).toContain(r.propositions[0].id);
     for (const p of r.propositions) {
@@ -29,7 +29,7 @@ describe("recommander", () => {
   });
 
   it("des jambes travaillées la veille sont écartées", () => {
-    const r = recommander([jambes(MAR)], MER)!;
+    const r = recommander([jambes(MAR)], MER, [], undefined, [], { hebdo: 5 })!;
     for (const p of r.propositions) for (const g of ["qua", "isc", "mol"]) expect(p.muscles).not.toContain(g);
   });
 
@@ -53,7 +53,7 @@ describe("recommander", () => {
   });
 
   it("une séance déjà faite aujourd'hui → « fait », avec une idée pour demain", () => {
-    const r = recommander([push(MER)], MER)!;
+    const r = recommander([push(MER)], MER, [], undefined, [], { hebdo: 5 })!;
     expect(r.type).toBe("fait");
     expect(r.demain).toBeDefined();
     expect(r.demain!.muscles).not.toContain("pec");
@@ -155,5 +155,37 @@ describe("assistant : lombaires en récupération", () => {
     const ex = construireSeance(["isc"], 60, 0, ["m0", "m1", "m2", "m3", "bt"], () => 0.5, chargeLombaires);
     expect(ex.length).toBeGreaterThan(0);
     expect(ex.some((e) => chargeLombaires(e.id))).toBe(false);
+  });
+});
+
+describe("séance déclarée à l'accueil (dernières 48 h)", () => {
+  it("les muscles déclarés récupèrent sans séance dans l'historique", async () => {
+    const { effortsEndurance: ef } = await import("@/lib/logic/recommandation");
+    /* hier pecs, triceps et dos : aujourd'hui ils récupèrent, la proposition les évite */
+    const efforts = ef([], [], { d: MAR, m: ["pec", "tri", "dos"] });
+    const E = etatGroupes([], MER, efforts);
+    expect(E.pec.recupere).toBe(false);
+    expect(E.dos.recupere).toBe(false);
+    expect(E.qua.recupere).toBe(true);
+    const r = recoDuJour([], MER, [], undefined, efforts);
+    expect(r.propositions[0].muscles).not.toContain("pec");
+    expect(r.propositions[0].muscles).not.toContain("tri");
+    /* avant-hier : pecs prêts, le dos (3 jours) récupère encore */
+    const E2 = etatGroupes([], MER, ef([], [], { d: LUN, m: ["pec", "dos"] }));
+    expect(E2.pec.recupere).toBe(true);
+    expect(E2.dos.recupere).toBe(false);
+    expect(ef([], [], { d: MAR, m: [] })).toEqual([]);
+  });
+});
+
+describe("zones écartées : les jambes séparées", () => {
+  it("quadriceps, ischios-fessiers et mollets s'écartent un par un ; l'ancienne « jambes » se déplie", async () => {
+    const { basculerZone, ecartesDe } = await import("@/lib/logic/recommandation");
+    expect(ecartesDe(["jambes", "pec"])).toEqual(["qua", "isc", "mol", "pec"]);
+    expect(basculerZone(["jambes"], "mol")).toEqual(["qua", "isc"]);
+    expect(basculerZone([], "isc")).toEqual(["isc"]);
+    const r = recoDuJour([], MER, ["qua", "isc"]);
+    expect(r.propositions[0].muscles).not.toContain("qua");
+    expect(r.propositions[0].muscles).not.toContain("isc");
   });
 });
