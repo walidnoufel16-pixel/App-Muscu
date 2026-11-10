@@ -53,6 +53,10 @@ export function effortsDeclares(av?: Avant | null): Endurance[] {
   return [1, 2, 3].map((jours) => ({ d: av.d, jours, muscles: m.filter((g) => delai(g) === jours) })).filter((e) => e.muscles.length);
 }
 
+/** Accord du verbe : « Dos récupère », mais « Pecs récupèrent », « Épaules récupèrent » : tous les
+    noms de muscles sont au pluriel, sauf le dos. Renvoie 1 (singulier) ou 2 (pluriel), pour tp(). */
+export const nombre = (g: string[]) => (g.length === 1 && g[0] === "dos" ? 1 : 2);
+
 /** Un effort d'endurance qui fatigue des muscles : `jours` de récupération à partir du jour `d`. */
 export type Endurance = { d: string; jours: number; muscles: MuscleRecup[] };
 const JAMBES: MuscleRecup[] = ["qua", "isc", "mol"];
@@ -216,7 +220,7 @@ function candidats(E: Record<Groupe, EtatGroupe>, ecartes: Set<Groupe>, mode: Mo
       : jusqua === depuis ? tr("Au repos depuis {n} jours.", { n: depuis })
       : tr("Au repos depuis {n} jours et plus.", { n: depuis });
     const sans = retires.filter((x) => !E[x].recupere);
-    res.push({ p: { id: m.id, nom: m.nom(), muscles: g, raison: sans.length ? tp(sans.length, "{a} récupère : retiré de ta séance.", "{a} récupèrent : retirés de ta séance.", { a: phrase(sans.map(nomGroupe)) }) : raison }, score });
+    res.push({ p: { id: m.id, nom: m.nom(), muscles: g, raison: sans.length ? tp(nombre(sans), "{a} récupère : retiré de ta séance.", "{a} récupèrent : retirés de ta séance.", { a: phrase(sans.map(nomGroupe)) }) : raison }, score });
   }
   return res.sort((a, b) => b.score - a.score).map((x) => x.p);
 }
@@ -234,7 +238,7 @@ export function recommander(H: LigneHist[], auj: string, ecartes: ZoneEcartable[
   const recuperent = GROUPES.filter((g) => !E[g].recupere && !exclus.has(g));
   /* (sauf si la raison dit déjà qu'ils sont retirés de la séance) */
   const ajouterRecup = (p: Proposition) => recuperent.length && !recuperent.some((g) => p.raison.includes(nomGroupe(g)))
-    ? { ...p, raison: p.raison + " " + tp(Math.min(3, recuperent.length), "{a} récupère.", "{a} récupèrent.", { a: phrase(recuperent.slice(0, 3).map(nomGroupe)) }) }
+    ? { ...p, raison: p.raison + " " + tp(nombre(recuperent.slice(0, 3)), "{a} récupère.", "{a} récupèrent.", { a: phrase(recuperent.slice(0, 3).map(nomGroupe)) }) }
     : p;
   /* demain : rien à proposer si demain est aussi un jour de repos pour le rythme (aujourd'hui compte
      comme un jour d'entraînement si une séance y est faite) */

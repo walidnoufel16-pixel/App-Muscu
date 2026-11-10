@@ -175,7 +175,8 @@ export function recoPour(E: Etat & { AGENDA?: Prevu[] }, d: string, auj = jourDe
     /* pour le rythme, seuls les jours de musculation comptent : la course et le cardio fatiguent les
        jambes (effortsEndurance), mais un footing ou le « cardio doux » conseillé un jour de repos ne
        doivent pas bloquer la séance du lendemain */
-    if (j.fait.some((f) => f.famille === "muscu") || futurs.some((p) => familleDe(p.quoi) === "muscu")) jours.push(j.d);
+    const soin = (s?: string) => !!s && /^L\|\d+$/.test(s) && !!E.SEANCES[+s.slice(2)]?.soin;
+    if (j.fait.some((f) => f.famille === "muscu" && !soin(f.s)) || futurs.some((p) => familleDe(p.quoi) === "muscu" && !(p.quoi.t === "libre" && E.SEANCES[p.quoi.i]?.soin))) jours.push(j.d);
     for (const p of futurs) {
       const ex: LigneHist["ex"] = {};
       if (p.quoi.t === "libre") for (const e of E.SEANCES[p.quoi.i]?.ex || []) ex[e.id] = [0, 0, 0, e.r, e.s];

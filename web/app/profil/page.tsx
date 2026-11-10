@@ -73,7 +73,8 @@ function Profil() {
   const effacer = async () => {
     const quoi: string[] = [];
     if (etat.FINI || etat.PLAN) quoi.push(tr("ton cycle de huit semaines et tes réponses"));
-    if (etat.SEANCES.length) quoi.push(tr("{length} séance{a} composée{a1}", { length: etat.SEANCES.length, a: pluriel(etat.SEANCES.length) ? "s" : "", a1: pluriel(etat.SEANCES.length) ? "s" : "" }));
+    const gardees = etat.SEANCES.filter((x) => !x.auto).length;
+    if (gardees) quoi.push(tr("{length} séance{a} composée{a1}", { length: gardees, a: pluriel(gardees) ? "s" : "", a1: pluriel(gardees) ? "s" : "" }));
     if (Object.keys(etat.LOG).length) quoi.push(tr("toutes tes charges enregistrées"));
     if (adresse) quoi.push(tr("le rattachement de ") + adresse);
     if (!quoi.length) quoi.push(tr("le peu qui est enregistré"));

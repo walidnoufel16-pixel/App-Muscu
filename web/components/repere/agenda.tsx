@@ -410,7 +410,7 @@ function FeuilleJour({ d, auj, j, setF }: { d: string; auj: string; j: JourAgend
             )}
             {l && (
               <button onClick={async () => {
-                if (!(await confirmer({ titre: tr("Retirer « {nom} » de ton historique ?", { nom: l.nom }), texte: tr("Ses séries de ce jour-là disparaissent de Progrès, des records et des charges proposées. La séance reste dans Mes séances."), ok: tr("Retirer"), danger: true }))) return;
+                if (!(await confirmer({ titre: tr("Retirer « {nom} » de ton historique ?", { nom: l.nom }), texte: /^L\|\d+$/.test(l.s) && etat.SEANCES[+l.s.slice(2)]?.auto ? tr("Ses séries de ce jour-là disparaissent de Progrès, des records et des charges proposées.") : tr("Ses séries de ce jour-là disparaissent de Progrès, des records et des charges proposées. La séance reste dans Mes séances."), ok: tr("Retirer"), danger: true }))) return;
                 muter((E) => retirerDeHistorique(E, l.d, l.s)); toast(tr("Séance retirée de ton historique")); setF(null);
               }} className="mt-3 px-1 text-[14px] font-semibold text-destructive">{tr("Retirer de mon historique")}</button>
             )}

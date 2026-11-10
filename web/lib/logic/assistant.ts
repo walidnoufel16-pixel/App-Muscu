@@ -107,7 +107,8 @@ export function construireSeance(muscles: string[], duree: number, obj: number, 
      (exercices street compris), sinon ceux qui le travaillent aussi (tractions supination pour les biceps) */
   const secours = (k: string) => {
     const pats = MUSC.find((g) => g.k === k)?.pats || [];
-    const ok = (x: string) => exoFiltre(x, sel) && !pris.has(x) && !EX[x].soin && !JAMAIS.has(x) && EX[x].ch !== "dist";
+    /* les pompes en appui vertical (en équilibre sur les mains) : un exercice de confirmé */
+    const ok = (x: string) => exoFiltre(x, sel) && !pris.has(x) && !EX[x].soin && !JAMAIS.has(x) && EX[x].ch !== "dist" && (x !== "pv3" || (niveau != null && niveau >= 3));
     const l = Object.keys(EX).filter((x) => pats.includes(EX[x].pat) && ok(x)), l2 = l.length ? l : Object.keys(EX).filter((x) => pats.includes(EX[x].pat2 || "") && ok(x));
     const surs = l2.filter((x) => !evite(x));
     return surs.length ? surs : l2;

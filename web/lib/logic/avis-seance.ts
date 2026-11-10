@@ -16,7 +16,7 @@ import type { BlocCardio, ExLibre, Reponses } from "./types";
 import { exoFiltre, secondesDe } from "./core";
 import { exParDefaut, prescription } from "./assistant";
 import { dureeTotale, ordre, partiesDe, ranger, recomposer } from "./combinee";
-import { etatGroupes, nomGroupe, phrase, type Endurance, type Groupe } from "./recommandation";
+import { etatGroupes, nombre, nomGroupe, phrase, type Endurance, type Groupe } from "./recommandation";
 import type { LigneHist } from "./historique";
 import { zonesDe } from "./forme";
 
@@ -83,8 +83,8 @@ export function avisSeance(L: Brouillon, c: ContexteAvis): Avis[] {
     if (recup.length) {
       const avec = recup.filter((g) => E[g].dernier), j = avec.length ? Math.min(...avec.map((g) => E[g].jours)) : -1;
       const quand = j === 0 ? tr("aujourd'hui") : j === 1 ? tr("hier") : tr("il y a {n} jours", { n: j });
-      out.push({ id: "recup", f: "corps", titre: tp(recup.length, "{a} récupère encore.", "{a} récupèrent encore.", { a: phrase(recup.map(nomGroupe)) }),
-        texte: j < 0 ? tr("Course, cardio ou séance d'avant Oxa : allège, ou garde ce muscle pour une prochaine séance.")
+      out.push({ id: "recup", f: "corps", titre: tp(nombre(recup), "{a} récupère encore.", "{a} récupèrent encore.", { a: phrase(recup.map(nomGroupe)) }),
+        texte: j < 0 ? tp(nombre(recup), "Course, cardio ou séance d'avant Oxa : allège-le, ou garde-le pour une prochaine séance.", "Course, cardio ou séance d'avant Oxa : allège-les, ou garde-les pour une prochaine séance.")
           : tr("Travaillés {q} : allège-les, ou garde-les pour une prochaine séance.", { q: quand }) });
     }
   }
@@ -239,7 +239,7 @@ export function avisMuscles(m: string[], c: { H?: LigneHist[]; auj: string; effo
     if (recup.length) {
       const avec = recup.filter((g) => E[g].dernier), j = avec.length ? Math.min(...avec.map((g) => E[g].jours)) : -1;
       const quand = j < 0 ? tr("encore") : j === 0 ? tr("de la séance d'aujourd'hui") : j === 1 ? tr("de la séance d'hier") : tr("de ta séance d'il y a {n} jours", { n: j });
-      out.push({ id: "recup", alerte: true, titre: tp(recup.length, "{a} récupère {q}.", "{a} récupèrent {q}.", { a: phrase(recup.map(nomGroupe)), q: quand }), texte: tr("Allège-les aujourd'hui, ou garde-les pour plus tard.") });
+      out.push({ id: "recup", alerte: true, titre: tp(nombre(recup), "{a} récupère {q}.", "{a} récupèrent {q}.", { a: phrase(recup.map(nomGroupe)), q: quand }), texte: tr("Allège-les aujourd'hui, ou garde-les pour plus tard.") });
     }
   }
   if (a("pec") && a("dos") && !a("lom") && !a("abd") && (!E || E.lom.recupere))

@@ -64,7 +64,7 @@ describe("full body débutant", () => {
     const r = recoDuJour([], "2026-11-10", [], 1, effortsEndurance([], [], { d: "2026-11-09", m: ["pec", "tri"] }), { hebdo: 3 });
     expect(r.propositions[0].id).toBe("full");
     expect(r.propositions[0].muscles).not.toContain("pec");
-    expect(r.propositions[0].raison).toBe("Pecs récupère : retiré de ta séance.");
+    expect(r.propositions[0].raison).toBe("Pecs récupèrent : retirés de ta séance.");
   });
 });
 
@@ -108,5 +108,20 @@ describe("régressions du contre-audit", () => {
     const r = recoDuJour([], "2026-11-07", [], 1, [], { hebdo: 3, jours: ["2026-11-02", "2026-11-04", "2026-11-06"] });
     expect(r.type).toBe("repos");
     expect(r.demain).toBeUndefined();
+  });
+});
+
+describe("contre-audit n°2", () => {
+  it("accord : « Dos récupère », « Pecs récupèrent »", async () => {
+    const { nombre } = await import("@/lib/logic/recommandation");
+    expect(nombre(["dos"])).toBe(1);
+    expect(nombre(["pec"])).toBe(2);
+    expect(nombre(["dos", "bic"])).toBe(2);
+  });
+  it("pas de pompes en appui vertical pour un débutant ni un régulier, même au poids du corps", () => {
+    for (const niv of [1, 2]) for (let k = 0; k < 40; k++) {
+      const ex = construireSeance(["epa", "pec"], 45, 0, ["m3"], hasardDe("p" + k), () => false, niv);
+      expect(ex.map((e) => e.id)).not.toContain("pv3");
+    }
   });
 });

@@ -17,7 +17,7 @@ import { AVANT } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 import { decaler, jourDe } from "@/lib/logic/historique";
-import { effortsEndurance, etatGroupes, GROUPES, nomMuscle, nomZone, phrase, ZONES_ECARTABLES, basculerZone, ecartesDe, type MuscleRecup } from "@/lib/logic/recommandation";
+import { effortsEndurance, etatGroupes, GROUPES, nomMuscle, nomZone, phrase, ZONES_ECARTABLES, nombre, basculerZone, ecartesDe, type MuscleRecup } from "@/lib/logic/recommandation";
 import { recoPour } from "@/lib/logic/agenda";
 import { EditeurProfil, profilMinimal, type Ligne } from "./profil-sportif";
 import { MonMateriel } from "./mon-materiel";
@@ -183,7 +183,7 @@ function Fin({ fermer }: { fermer: () => void }) {
   const p = r.type === "seance" ? r.propositions[0] : undefined;
   const aller = (url: string) => { tactile(10); fermer(); router.push(url as Route, AVANT); };
   const raison = recup.length
-    ? tp(recup.length, "{m} récupère encore. Construite avec ton matériel.", "{m} récupèrent encore. Construite avec ton matériel.", { m: phrase(recup.map(nom)) })
+    ? tp(nombre(recup), "{m} récupère encore. Construite avec ton matériel.", "{m} récupèrent encore. Construite avec ton matériel.", { m: phrase(recup.map(nom)) })
     : tr("Construite avec ton matériel, à ton niveau.");
   return (
     <>

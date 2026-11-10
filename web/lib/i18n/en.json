@@ -2975,7 +2975,6 @@
   "{m} récupère encore. Construite avec ton matériel.": "{m} still recovering. Built with your equipment.",
   "Ma recommandation pour {j}": "My suggestion for {j}",
   "{a} récupère encore.": "{a} still recovering.",
-  "Course, cardio ou séance d'avant Oxa : allège, ou garde ce muscle pour une prochaine séance.": "Running, cardio or a session before Oxa: go lighter, or save this muscle for another session.",
   "Travaillés {q} : allège-les, ou garde-les pour une prochaine séance.": "Worked {q}: go lighter, or save them for another session.",
   "{a} récupère {q}.": "{a} recovering {q}.",
   "Pecs, épaules et triceps": "Chest, shoulders and triceps",
@@ -2983,5 +2982,8 @@
   "Tes {n} séances de muscu de la semaine sont faites : récupère.": "Your {n} strength sessions for the week are done: recover.",
   "Pas travaillés ces 7 derniers jours.": "Not trained in the last 7 days.",
   "{a} récupère : retiré de ta séance.": "{a} recovering: removed from your session.",
-  "{a} récupère.": "{a} recovering."
+  "{a} récupère.": "{a} recovering.",
+  "Course, cardio ou séance d'avant Oxa : allège-le, ou garde-le pour une prochaine séance.": "Running, cardio or a session before Oxa: go lighter, or save it for another session.",
+  "Course, cardio ou séance d'avant Oxa : allège-les, ou garde-les pour une prochaine séance.": "Running, cardio or a session before Oxa: go lighter, or save them for another session.",
+  "Ses séries de ce jour-là disparaissent de Progrès, des records et des charges proposées.": "Its sets from that day disappear from Progress, records and suggested loads."
 }

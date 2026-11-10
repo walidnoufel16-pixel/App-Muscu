@@ -124,7 +124,8 @@ export default function PageComposer() {
     /* modifiée depuis « Mon agenda » : la séance elle-même, ou une variante pour ce jour-là seulement */
     const ag = L.agenda;
     /* une séance existante, modifiée avant d'être ajoutée à un jour (aperçu de l'agenda) : même question */
-    const variante = (!!ag || !!L.pour) && L.idx != null && (await confirmer({
+    /* (une séance d'Oxa pas gardée : on la modifie elle-même, une variante n'aurait pas de sens) */
+    const variante = (!!ag || !!L.pour) && L.idx != null && !L.auto && (await confirmer({
       titre: tr("Pour ce jour, ou pour de bon ?"),
       texte: tr("Une variante garde « {nom} » telle qu'elle est et programme la version modifiée ce jour-là.", { nom: etat.SEANCES[L.idx]?.nom ?? nom }),
       ok: tr("Une variante pour ce jour"), non: tr("Modifier ma séance"),
@@ -263,7 +264,9 @@ export default function PageComposer() {
       />
       <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
         {/* séance d'Oxa : « Mes séances » seulement si on le décide */}
-        {L.gen && (L.pour ? L.idx == null || !!L.auto : L.idx == null) && (
+        {/* (« Enregistrer » tout court vaut « garder » : la case n'apparaît qu'avec « Enregistrer pour … » ou
+            sur une séance d'Oxa pas encore gardée) */}
+        {((L.pour && L.gen && L.idx == null) || (L.idx != null && !!L.auto)) && (
           <label className="mb-2 flex items-center gap-2.5 rounded-2xl bg-card px-3.5 py-2.5 text-[14px] font-medium shadow-sm">
             <input type="checkbox" checked={!!L.garder} onChange={(e) => majLibre((l) => { l.garder = e.target.checked; })} className="size-[18px] accent-[var(--plate)]" />
             {tr("Garder aussi dans Mes séances")}

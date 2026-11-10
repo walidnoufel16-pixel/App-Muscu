@@ -39,7 +39,7 @@ function Contenu() {
   const sensibles = useZonesASoigner();
   const prog = useProgrammeActif();
   const plan = useRepere((s) => s.etat.FINI || !!s.etat.PLAN);
-  const aDesSeances = useRepere((s) => !!s.etat.SEANCES.length || !!s.etat.SEANCES_CARDIO?.length);
+  const aDesSeances = useRepere((s) => s.etat.SEANCES.some((x) => !x.auto) || !!s.etat.SEANCES_CARDIO?.length);
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);
   const ouvrir = (id: string) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") });
 

@@ -68,7 +68,7 @@ export function MesSeances() {
     setPartage({ nom: estCardio ? cardio[i].nom : etat.SEANCES[i].nom, code: r.code });
   };
 
-  const vide = !etat.SEANCES.length && !cardio.length;
+  const vide = !etat.SEANCES.some((x) => !x.auto) && !cardio.length;
   /* Ligne d'une séance de musculation ou combinée (index dans SEANCES). */
   const ligneMuscu = (i: number) => {
     const s = etat.SEANCES[i];
