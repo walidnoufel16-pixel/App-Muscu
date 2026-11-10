@@ -1,14 +1,11 @@
 "use client";
 
 import { CalculePour, MiseEnRoute, profilMinimal } from "@/components/repere/profil-sportif";
-import { prioNoms } from "@/lib/logic/questionnaire";
 import { tr } from "@/lib/i18n";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { toast } from "sonner";
-import { jourCourt, jourLong, maj } from "@/components/repere/agenda";
-import { programmerNouvelle } from "@/lib/logic/agenda";
 import { Input } from "@/components/ui/input";
 import { ReglagesCardio, type ChoixCardio } from "@/components/repere/reglages-cardio";
 import { QuestionnaireCourse } from "@/components/repere/course";
@@ -26,9 +23,9 @@ import { BibliothequeMuscles } from "@/components/repere/bibliotheque-muscles";
 import { dire } from "@/components/repere/confirmer";
 import { DUREES, FULLBODY, MUSC, OBJS, PAT2MUSC } from "@/lib/data/referentiels";
 import { avecSalle, selDeclare } from "@/lib/logic/core";
-import { chargeLombaires, construireSeance, hasardDe, musclesPrioritaires, nomSeance } from "@/lib/logic/assistant";
-import { zonesActives, zonesDe } from "@/lib/logic/forme";
-import { effortsEndurance, etatGroupes } from "@/lib/logic/recommandation";
+import { hasardDe, nomSeance } from "@/lib/logic/assistant";
+import { seancePour } from "@/lib/logic/generer-seance";
+import { effortsEndurance } from "@/lib/logic/recommandation";
 import { useRepere } from "@/lib/store";
 import { ARRIERE, AVANT, remplacement, revenirA } from "@/lib/nav";
 import { Retour } from "@/components/repere/retour";
@@ -72,7 +69,9 @@ function Assistant() {
   /* venu du street workout (onglet Sur mesure) : le matériel du street seulement, pas de séance combinée */
   const street = useSearchParams().get("street") === "1";
   const [type, setType] = useState<"muscu" | "cardio" | "mixte" | "exercices" | "course">(typeUrl === "cardio" || typeUrl === "mixte" || typeUrl === "exercices" || typeUrl === "course" ? typeUrl : "muscu");
-  const [choix, setChoix] = useState<ChoixCardio>(() => { const n = niveauDe(A.regularite); return { f: "fractionne", m: "tapis", n, r: reglagesDe("fractionne", n) }; });
+  /* « Cardio doux » (jour de repos) : l'endurance douce, pas un fractionné */
+  const formatUrl = useSearchParams().get("format") === "endurance" ? "endurance" : "fractionne";
+  const [choix, setChoix] = useState<ChoixCardio>(() => { const n = niveauDe(A.regularite); return { f: formatUrl, m: "tapis", n, r: reglagesDe(formatUrl, n) }; });
   const [nomCardio, setNomCardio] = useState("");
   /* Enregistrer la séance cardio ; avec `demarrer`, son minuteur s'ouvre aussitôt (à la place de l'assistant). */
   const creerCardio = (demarrer = false) => {
@@ -84,7 +83,8 @@ function Assistant() {
     revenirA("/entrainement/rubrique", () => router.replace(lienRubrique("libre"), ARRIERE));
   };
   const { sel: selB, setSel, setLibre } = useBrouillon();
-  const sel = street ? (selB ?? MATERIEL_STREET).filter((t) => OUTILS_STREET.includes(t)) : avecSalle(selB ?? [], A);
+  /* le matériel déclaré dans le profil, pré-coché ; on l'adapte sur place si besoin */
+  const sel = street ? (selB ?? MATERIEL_STREET).filter((t) => OUTILS_STREET.includes(t)) : avecSalle(selB ?? selDeclare(A), A);
   /* muscles touchés sur le corps d'Entraînement : déjà cochés */
   const mUrl = useSearchParams().get("m");
   /* ouvert depuis le menu d'un jour à venir : la séance créée y sera programmée */
@@ -106,32 +106,25 @@ function Assistant() {
   const [auj] = useState(() => jourDe(Date.now()));
   const pour = jourUrl && /^\d{4}-\d{2}-\d{2}$/.test(jourUrl) && jourUrl > auj ? jourUrl : null;
   const [refus, setRefus] = useState<string[]>([]);
-  const suggestion = street ? undefined : avisMuscles(m, { H, auj }).find((x) => !refus.includes(x.id));
+  const efforts = useRepere((s) => s.etat.SORTIES), cardios = useRepere((s) => s.etat.CARDIO), avant = useRepere((s) => s.etat.A.avant);
+  const suggestion = street ? undefined : avisMuscles(m, { H, auj, efforts: effortsEndurance(efforts, cardios, avant) }).find((x) => !refus.includes(x.id));
   const budget = Math.round((DUREES.find((x) => x[0] === d) || DUREES[1])[1] / 3);
   const peut = m.length > 0 && obj != null && sel.some((t) => !t.startsWith("x:"));
 
   const creer = (commencer = false) => {
     if (obj == null) return;
-    const zones = zonesActives(A);
-    const etat = useRepere.getState().etat, H = etat.HIST || [], habitudes = new Set(H.slice(-12).flatMap((l) => Object.keys(l.ex)));
-    /* lombaires en récupération (muscu, ce jour-là) : pas de soulevé de terre lourd */
-    const lombaires = !etatGroupes(H, pour ?? auj, effortsEndurance(etat.SORTIES, etat.CARDIO)).lom.recupere;
-    const ex = construireSeance(m, d, obj, sel, hasardDe(`${auj}|${m.join(",")}|${d}|${obj}|${sel.join(",")}`), (o) => zonesDe(o, zones).length > 0 || (lombaires && chargeLombaires(o)), A.regularite, { prio: musclesPrioritaires(prioNoms(A)), habitudes, dense: d === 30 });
+    const etat = useRepere.getState().etat;
+    const ex = seancePour(etat, m, d, obj, sel, pour ?? auj, hasardDe(`${auj}|${m.join(",")}|${d}|${obj}|${sel.join(",")}`));
     if (!ex.length) { dire(tr("Pas d'exercice disponible"), tr("Aucun exercice ne correspond à ces muscles avec le matériel coché. Ajoute du matériel ou choisis d'autres muscles.")); return; }
     /* combinée : le bloc cardio arrive à la fin, sans échauffement ; il se déplace ensuite dans le composeur */
     const blocs = type === "mixte" ? [{ ...nouveauBloc(ex.length, choix.f, choix.m, choix.n), r: { ...choix.r, echauf: 0 } }] : undefined;
     const seance = { nom: nomSeance(m) + (blocs ? tr(" + cardio") : ""), ex, obj, gen: { m: [...m], d, obj }, ...(blocs ? { blocs } : {}), ...(refus.length ? { avisIgnores: [...refus] } : {}) };
-    /* « Créer pour jeudi 12 » : enregistrée dans Mes séances et programmée ce jour-là */
-    if (commencer && pour) {
-      muter((E) => { E.SEANCES.push(seance); programmerNouvelle(E, pour, E.SEANCES.length - 1); });
-      toast.success(tr("Programmée : {nom}", { nom: seance.nom }), { description: maj(jourLong(pour)) });
-      router.replace("/entrainement" as Route, ARRIERE);
-      return;
-    }
-    /* « Créer et commencer » : enregistrée dans Mes séances et lancée tout de suite */
-    if (commencer) {
+    /* « Créer et commencer » : enregistrée dans Mes séances et lancée tout de suite ; pour un jour à
+       venir, jamais sans l'avoir vue : le composeur la montre, « Enregistrer pour … » la programme */
+    if (commencer && !pour) {
       const i = useRepere.getState().etat.SEANCES.length;
-      muter((E) => { E.SEANCES.push(seance); });
+      /* lancée tout de suite : pas dans « Mes séances » sauf si on la garde (bouton de la séance) */
+      muter((E) => { E.SEANCES.push({ ...seance, auto: true }); });
       preparer(); remplacement();
       router.replace(`/entrainement/seance?l=${i}` as Route, AVANT);
       return;
@@ -189,7 +182,7 @@ function Assistant() {
       {/* de la place sous le dernier bloc : le bouton fixe « Créer ma séance » ne cache rien */}
       <div className="flex flex-col gap-6 px-4 pb-36">
         {!street && <CalculePour duree={d} objectif={obj} />}
-        {type === "muscu" && !street && !mUrl && <Recommandation onAppliquer={setM} />}
+        {type === "muscu" && !street && !mUrl && <Recommandation onAppliquer={setM} jour={pour ?? undefined} />}
         <section>
           <div className="mb-2 flex items-baseline justify-between px-1">
             <span className="eyebrow">{tr("Muscles{a}", { a: m.length ? ` · ${m.length}` : "" })}</span>
@@ -304,14 +297,20 @@ function Assistant() {
       {/* un voile sous les boutons fixes : le contenu qui défile ne se lit pas à travers (boutons grisés compris) */}
       <div aria-hidden className="pointer-events-none fixed inset-x-0 bottom-0 z-20 h-[calc(max(env(safe-area-inset-bottom),14px)+80px)] bg-gradient-to-t from-background from-60% to-transparent" />
       <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
-        <div className="flex gap-2">
-          <Button variant="outline" size="xl" className="flex-1 bg-background disabled:opacity-100 disabled:text-muted-foreground" disabled={!peut} onClick={() => creer()}>
-            {tr("Ajuster")}
+        {pour ? (
+          <Button variant="plate" size="xl" className="w-full disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 disabled:shadow-none" disabled={!peut} onClick={() => creer()}>
+            {tr("Voir la séance")}
           </Button>
-          <Button variant="plate" size="xl" className="flex-[1.6] disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 disabled:shadow-none" disabled={!peut} onClick={() => creer(true)}>
-            {pour ? tr("Créer pour {j}", { j: jourCourt(pour) }) : tr("Créer et commencer")}
-          </Button>
-        </div>
+        ) : (
+          <div className="flex gap-2">
+            <Button variant="outline" size="xl" className="flex-1 bg-background disabled:opacity-100 disabled:text-muted-foreground" disabled={!peut} onClick={() => creer()}>
+              {tr("Ajuster")}
+            </Button>
+            <Button variant="plate" size="xl" className="flex-[1.6] disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 disabled:shadow-none" disabled={!peut} onClick={() => creer(true)}>
+              {tr("Créer et commencer")}
+            </Button>
+          </div>
+        )}
       </div>
       </>
       )}

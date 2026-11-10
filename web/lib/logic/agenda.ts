@@ -5,6 +5,11 @@
    dont la règle est la même : supabase/functions/rappels/logique.ts). */
 import { decaler, ECART_SEANCE, jourDe, lundiDe } from "./historique";
 import { okDe } from "./core";
+import { EX } from "@/lib/data/exercices";
+import { PAT2MUSC } from "@/lib/data/referentiels";
+import { effortsEndurance, recoDuJour } from "./recommandation";
+import { objectifHebdo } from "./motivation";
+import type { LigneHist } from "./historique";
 import type { Etat } from "./types";
 
 export type QuoiPrevu =
@@ -154,3 +159,32 @@ export const nomCourt = (nom: string) => {
 
 export const HEURES_VEILLE = [18, 19, 20, 21, 22];
 export const HEURES_JOUR = [6, 7, 8, 12, 17, 18];
+
+/* ---------------- la recommandation d'un jour, agenda compris ----------------
+   Les séances déjà programmées avant ce jour (à partir d'aujourd'hui) comptent comme faites :
+   leurs muscles récupèrent et remplissent la semaine, et le jour compte pour le rythme. Ainsi,
+   programmer la semaine avec « Oxa choisit pour toi » fait tourner les séances. */
+const REPRESENTANT: Record<string, string> = {};
+for (const id in EX) { const p = PAT2MUSC[EX[id].pat]; if (p && !REPRESENTANT[p] && !EX[id].pat2 && EX[id].ch === "kg") REPRESENTANT[p] = id; }
+
+export function recoPour(E: Etat & { AGENDA?: Prevu[] }, d: string, auj = jourDe(Date.now())) {
+  const debut = [lundiDe(d), decaler(d, -2), auj].sort()[0];
+  const n = Math.max(0, Math.round((new Date(d + "T12:00").getTime() - new Date(debut + "T12:00").getTime()) / 864e5));
+  const J = joursAgenda(E, debut, auj, n), jours: string[] = [], prevus: LigneHist[] = [];
+  for (const j of J) {
+    const futurs = j.d >= auj ? j.prevus : [];
+    /* pour le rythme, seuls les jours de musculation comptent : la course et le cardio fatiguent les
+       jambes (effortsEndurance), mais un footing ou le « cardio doux » conseillé un jour de repos ne
+       doivent pas bloquer la séance du lendemain */
+    const soin = (s?: string) => !!s && /^L\|\d+$/.test(s) && !!E.SEANCES[+s.slice(2)]?.soin;
+    if (j.fait.some((f) => f.famille === "muscu" && !soin(f.s)) || futurs.some((p) => familleDe(p.quoi) === "muscu" && !(p.quoi.t === "libre" && E.SEANCES[p.quoi.i]?.soin))) jours.push(j.d);
+    for (const p of futurs) {
+      const ex: LigneHist["ex"] = {};
+      if (p.quoi.t === "libre") for (const e of E.SEANCES[p.quoi.i]?.ex || []) ex[e.id] = [0, 0, 0, e.r, e.s];
+      else if (p.quoi.t === "reco") for (const g of p.quoi.m || []) if (REPRESENTANT[g]) ex[REPRESENTANT[g]] = [0, 0, 0, 10, 4];
+      if (Object.keys(ex).length) prevus.push({ d: j.d, s: "prevu|" + p.id, nom: p.nom, vol: 0, ser: 0, ex });
+    }
+  }
+  return recoDuJour([...(E.HIST || []), ...prevus], d, E.A.recoSans || [], E.A.regularite, effortsEndurance(E.SORTIES, E.CARDIO, E.A.avant),
+    { hebdo: objectifHebdo(E.A), jours });
+}

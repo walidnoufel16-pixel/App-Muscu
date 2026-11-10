@@ -10,7 +10,7 @@ import { PlusIcon } from "@phosphor-icons/react";
 import { EnTete } from "@/components/repere/en-tete";
 import { Reprise } from "@/components/repere/motivation";
 import { FeuillesAgenda, type Feuille } from "@/components/repere/agenda";
-import { AVenir, CarteDuJour, SemaineAnneaux } from "@/components/repere/accueil-entrainement";
+import { AVenir, CarteDuJour, prochainLibre, SemaineAnneaux } from "@/components/repere/accueil-entrainement";
 import { FeuilleImport } from "@/components/repere/mes-seances";
 import { ProgrammeBientot } from "@/components/repere/bientot";
 import { Mosaique, type Rubrique } from "@/components/repere/rubriques";
@@ -47,7 +47,7 @@ export default function PageEntrainement() {
         actions={
           <>
             <AvatarProfil />
-            <button aria-label={tr("Nouvelle séance")} onClick={() => { tactile(8); setF({ m: "nouvelle", d: auj }); }}
+            <button aria-label={tr("Nouvelle séance")} onClick={() => { tactile(8); setF({ m: "nouvelle", d: prochainLibre(etat, auj) }); }}
               className="ml-1 grid size-9 place-items-center rounded-full bg-plate text-plate-foreground active:scale-95">
               <PlusIcon className="size-5" weight="bold" />
             </button>

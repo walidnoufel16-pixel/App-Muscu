@@ -1,4 +1,4 @@
-/* Visite guidée : sans Oxa Plan (5 bulles, mise en route, première séance), avec Oxa Plan
+/* Accueil sans Oxa Plan (profil sportif, dernières 48 h, première séance), visite avec Oxa Plan
    (6 bulles dont la tuile du programme, « Construisons ton programme »), et la mini-visite quand
    Oxa Plan s'ouvre pour un compte qui a déjà vu la visite. CAPTURES=dossier pour garder des captures. */
 import { chromium } from "@playwright/test";
@@ -35,25 +35,75 @@ async function bulles(pg, prefixe) {
   return vus;
 }
 
-/* 1. sans Oxa Plan */
+/* 1. sans Oxa Plan : l'accueil (profil sportif une question par écran, dernières 48 h, première séance) */
 {
   const [ctx, pg] = await contexte(neuf);
   await pg.goto(U + "/entrainement/");
-  await pg.getByText("Faire la visite · 30 s").waitFor({ timeout: 8000 });
-  ok(await pg.getByText("Ta séance du jour, prête en un geste").count() === 1, "bienvenue : axe séance du jour");
-  ok(await pg.getByText("Il calcule tes séances et tes repas").count() === 1, "bienvenue : axe profil");
+  const dlg = pg.getByRole("dialog");
+  await dlg.getByText("Commencer · 1 min").waitFor({ timeout: 8000 });
+  ok(await dlg.getByText("Bienvenue sur Oxa, Walid").count() === 1 && await dlg.getByText("Tes dernières 48 h").count() === 1, "accueil : bienvenue, 3 étapes");
+  ok(await pg.getByText("Créer ma première séance").count() === 0 && await pg.getByText("Repas", { exact: true }).count() === 0, "l'app n'est pas visible derrière le questionnaire");
   await cap(pg, "sans-bienvenue");
-  await pg.getByText("Faire la visite · 30 s").click();
-  await pg.waitForTimeout(900);
-  const vus = await bulles(pg, "sans");
-  ok(JSON.stringify(vus) === JSON.stringify(["Tes séances", "Tes repas", "Tes progrès", "Ton profil sportif", "Tes réglages"]), "5 bulles sans Oxa Plan : " + vus.join(", "));
-  await pg.getByText("3 questions pour des séances à ta mesure").waitFor({ timeout: 4000 }).catch(() => {});
-  ok(await pg.getByText("3 questions pour des séances à ta mesure").count() === 1, "profil vide : mise en route");
-  await cap(pg, "sans-mise-en-route");
-  await pg.getByRole("button", { name: "Plus tard" }).click();
-  await pg.getByText("Ta première séance ?").waitFor({ timeout: 4000 }).catch(() => {});
-  ok(await pg.getByText("Ta première séance ?").count() === 1, "puis « Ta première séance ? »");
+  await dlg.getByText("Commencer · 1 min").click();
+  const suivant = () => dlg.getByRole("button", { name: "Suivant" }).click();
+  await dlg.getByText("1 / 9 · Profil sportif").waitFor();
+  await dlg.getByRole("button", { name: "Homme" }).click(); await suivant();
+  await dlg.getByText("2 / 9 · Profil sportif").waitFor(); await suivant();
+  await dlg.getByText("3 / 9 · Profil sportif").waitFor(); await suivant();
+  await dlg.getByText("4 / 9 · Profil sportif").waitFor();
+  ok(await dlg.getByRole("button", { name: "Suivant" }).isDisabled(), "objectif obligatoire");
+  await dlg.getByRole("button", { name: /Prendre du muscle/ }).click();
+  await cap(pg, "sans-objectif");
+  await suivant();
+  await dlg.getByRole("button", { name: /^Régulier/ }).click(); await suivant();
+  await dlg.getByRole("button", { name: "3", exact: true }).click(); await suivant();
+  await dlg.getByText("Ton matériel").waitFor(); await cap(pg, "sans-materiel"); await suivant();
+  await suivant(); // muscles prioritaires
+  await suivant(); // autres sports
+  await dlg.getByText("Tu t'es entraîné ces dernières 48 h ?").waitFor();
+  await dlg.getByRole("radio", { name: "Hier", exact: true }).click();
+  ok(await dlg.getByRole("button", { name: "Terminer" }).isDisabled(), "hier : il faut au moins un muscle");
+  await dlg.getByRole("button", { name: "Pecs", exact: true }).click();
+  await dlg.getByRole("button", { name: "Triceps", exact: true }).click();
+  await cap(pg, "sans-48h");
+  await dlg.getByRole("button", { name: "Terminer" }).click();
+  await dlg.getByText("Aujourd'hui, tes muscles").waitFor();
+  const puces = await dlg.locator("span.rounded-full").allTextContents();
+  ok(puces.includes("Pecs · récupère") && puces.includes("Dos · prêt"), "fin : pecs récupèrent, dos prêt");
+  const seance = await dlg.locator("section h2").textContent();
+  ok(!/pecs|triceps/i.test(seance), "première séance sans les muscles qui récupèrent : " + seance);
+  await dlg.getByRole("button", { name: "Dos", exact: true }).last().click();
+  await pg.waitForTimeout(300);
+  const autre = await dlg.locator("section h2").textContent();
+  ok(!/dos/i.test(autre), "Dos écarté : la proposition change → " + autre);
   await cap(pg, "sans-fin");
+  const e = await pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")));
+  ok(e.A.objectif === 0 && e.A.regularite === 2 && e.A.objHebdo === 3 && e.A.sexe === 0 && e.A.profil?.["Âge"] == null && !(e.A.poids || []).length && e.A.accueil && e.A.miseEnRoute, "profil enregistré, rien d'inventé (âge, pesée)");
+  ok(e.A.avant?.m?.join() === "pec,tri" && !e.HIST.length, "48 h : muscles déclarés, aucune fausse séance");
+  await dlg.getByRole("button", { name: "Voir la séance" }).click();
+  await pg.waitForURL(/assistant\/?\?m=/);
+  ok(!/pec|tri/.test(pg.url().split("m=")[1]) && await pg.getByText("3 questions pour des séances à ta mesure").count() === 0, "Voir la séance → assistant, sans les 3 questions");
+  await ctx.close();
+}
+
+/* 1 bis. un nouveau profil sur un téléphone qui a déjà vu la visite : l'accueil s'ouvre quand même ;
+   « Plus tard » le referme pour de bon, la carte « Complète ton profil sportif » y ramène */
+{
+  const [ctx, pg] = await contexte(neuf, { "repere.visite": "1" });
+  await pg.goto(U + "/entrainement/");
+  const dlg = pg.getByRole("dialog");
+  await dlg.getByText("Commencer · 1 min").waitFor({ timeout: 8000 });
+  ok(true, "nouveau profil, visite déjà vue sur l'appareil : l'accueil s'ouvre");
+  await dlg.getByRole("button", { name: "Plus tard" }).click();
+  const carte = pg.getByRole("button", { name: /Complète ton profil sportif/ });
+  await carte.waitFor();
+  await cap(pg, "plus-tard-carte");
+  await pg.reload();
+  await pg.waitForTimeout(2500);
+  ok(await pg.getByText("Commencer · 1 min").count() === 0, "« Plus tard » : ne se rouvre plus tout seul");
+  await carte.click();
+  await dlg.getByText("Commencer · 1 min").waitFor();
+  ok(true, "la carte « Complète ton profil sportif » rouvre l'accueil");
   await ctx.close();
 }
 

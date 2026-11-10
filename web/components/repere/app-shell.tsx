@@ -18,6 +18,9 @@ import { SurveillantBadges } from "./motivation";
 import { LogoDisque } from "./logo";
 import { FeuilleAvis } from "./avis-feuille";
 import { Visite } from "./visite";
+import { AccueilPremier, useAccueil } from "./accueil-premier";
+import { useProgrammeActif } from "@/lib/fonctionnalites";
+import { noter as mesurer } from "@/lib/mesure";
 import { usePile, useSens } from "@/lib/nav";
 import { suivreHistorique } from "@/lib/suivi";
 import { suivreDefis } from "@/lib/defis";
@@ -37,6 +40,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const demarrer = useRepere((s) => s.demarrer);
   const chemin = usePathname().replace(/(.)\/$/, "$1");
   const sens = useSens((s) => s.sens);
+  const accueilOuvert = useAccueil((s) => s.ouvert);
+  const prog = useProgrammeActif();
+  /* compte encore vierge, accueil ni fait ni remis à plus tard (état du compte connu : synchronisé ou local) */
+  const doitAccueil = useRepere((s) => !!s.pseudo && !(s.etat.HIST || []).length && !s.etat.SEANCES.length
+    && !s.etat.A.accueil && !s.etat.A.accueilPasse && (s.session !== "ouverte" || s.sync !== null)) && !prog;
 
   useEffect(() => {
     noterSource(); suivreHistorique(); suivreDefis(); demarrer(); demarrerMesure();
@@ -70,6 +78,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
 
   const onglets = !SANS_ONGLETS.includes(chemin);
+  /* nouveau compte (sans Oxa Plan) : le questionnaire d'accueil avant même de voir l'app */
+  if (onglets && (accueilOuvert || doitAccueil))
+    return (
+      <div className="mx-auto min-h-dvh w-full max-w-[480px]">
+        <AccueilPremier onFin={(e) => mesurer("visite_finie", { etape: e, accueil: true })} />
+        <Confirmateur />
+      </div>
+    );
   return (
     <div className="mx-auto min-h-dvh w-full max-w-[480px]">
       <main className={onglets ? "pb-[calc(env(safe-area-inset-bottom)+96px)]" : ""}>

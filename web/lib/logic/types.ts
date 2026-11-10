@@ -44,6 +44,9 @@ export type SeanceLibre = {
   obj?: number;
   colObj?: number;
   gen?: { m: string[]; d: number; obj: number };
+  /* construite par Oxa et programmée ou lancée sans que l'utilisateur ait choisi de la garder : hors de
+     « Mes séances » (elle reste jouable depuis l'agenda) jusqu'à « Garder dans Mes séances » */
+  auto?: boolean;
   /* avis refusés au choix des muscles (« Non merci ») : le composeur ne les repropose pas */
   avisIgnores?: string[];
   /* Blocs cardio d'une séance combinée, placés librement entre les exercices. */
@@ -81,7 +84,13 @@ export type Reponses = {
   /** Dernier rappel choisi en programmant une séance (proposé par défaut la fois suivante). */
   rappelAgenda?: { veille: boolean; h: number } | null;
   /** Zones que « Ma recommandation du jour » ne propose plus (lib/logic/recommandation.ts). */
-  recoSans?: ("pec" | "dos" | "epa" | "bras" | "abd" | "jambes")[];
+  recoSans?: ("pec" | "dos" | "epa" | "bras" | "abd" | "qua" | "isc" | "mol" | "jambes")[];
+  /* accueil : séance faite juste avant d'installer Oxa (jour, muscles), pour la récupération */
+  avant?: { d: string; m: string[] };
+  /* accueil (profil sportif + 48 h) terminé */
+  accueil?: boolean;
+  /* accueil refermé avec « Plus tard » : il ne s'ouvre plus tout seul (carte « Complète ton profil sportif ») */
+  accueilPasse?: boolean;
   /** « Oxa te propose » masqué sur l'accueil : pour un jour (sa date) ou tout le temps (Profil le réactive). */
   recoMasquee?: string;
   recoOff?: boolean;

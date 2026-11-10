@@ -12,7 +12,7 @@ const jour = (d) => `${d.getFullYear()}-${deux(d.getMonth() + 1)}-${deux(d.getDa
 const il = (n) => { const d = new Date(); d.setHours(12); d.setDate(d.getDate() - n); return jour(d); };
 const H = [{ d: il(1), s: "L|0", nom: "Push", vol: 1000, ser: 10, ex: { dc: [70, 1000, 60, 8, 4], dh: [30, 500, 60, 10, 3], tri: [20, 300, 60, 10, 3] } }];
 const SEANCES = [{ nom: "Push", ex: [{ id: "dc", s: 4, r: 8, p: "2 min" }, { id: "dh", s: 3, r: 10, p: "90 s" }] }];
-const base = { A: { objectif: 0, materiel: 0, acc: [] }, LOG: {}, SWAP: {}, SWAPP: {}, PLAN: null, SEANCES, wk: 0, day: 0, FINI: false, HIST: H, ts: Date.now() };
+const base = { A: { objectif: 0, materiel: 0, acc: [], objHebdo: 5 }, LOG: {}, SWAP: {}, SWAPP: {}, PLAN: null, SEANCES, wk: 0, day: 0, FINI: false, HIST: H, ts: Date.now() };
 const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 const ok = (c, m) => { console.log(c ? "OK  " : "ÉCHEC", m); if (!c) process.exitCode = 1; };
 const cap = async (pg, n) => { if (process.env.CAPTURES) await pg.screenshot({ path: `${process.env.CAPTURES}/${n}.png` }); };
@@ -74,7 +74,8 @@ await cap(pg, "apercu-oxa");
 await dlg.getByRole("button", { name: /^Ajouter le / }).click();
 await pg.waitForTimeout(600);
 e = await etat(pg);
-ok(e.SEANCES.length === 2 && e.AGENDA?.some((p) => p.d === il(-1) && p.quoi.t === "libre" && p.quoi.i === 1), "proposition d'Oxa vue puis programmée demain : enregistrée dans Mes séances");
+ok(e.SEANCES.length === 2 && e.AGENDA?.some((p) => p.d === il(-1) && p.quoi.t === "libre" && p.quoi.i === 1), "proposition d'Oxa vue puis programmée demain");
+ok(e.SEANCES[1].auto === true, "… sans entrer dans « Mes séances » (pas choisi de la garder)");
 
 // voir, modifier puis ajouter : le composeur l'enregistre pour ce jour-là
 await pg.getByRole("button", { name: /Programmer/ }).first().click();
@@ -84,6 +85,7 @@ await dlg.getByRole("button", { name: "Modifier" }).click();
 await pg.waitForURL(/composer/);
 const enr = pg.getByRole("button", { name: /^Enregistrer pour / });
 await enr.waitFor();
+ok(await pg.getByText("Garder aussi dans Mes séances").isVisible(), "composeur : la case « Garder aussi dans Mes séances »");
 await cap(pg, "composer-pour");
 await enr.click();
 await pg.waitForURL(/\/entrainement\/?$/);
@@ -96,15 +98,22 @@ await pg.goto(U + `/entrainement/assistant/?jour=${dans3}&m=dos`);
 /* profil vide : les 3 questions de mise en route s'ouvrent d'abord */
 const plusTard = pg.getByRole("button", { name: "Plus tard" });
 if (await plusTard.waitFor({ timeout: 3000 }).then(() => true, () => false)) await plusTard.click();
-const bt = pg.getByRole("button", { name: /^Créer pour / });
+const bt = pg.getByRole("button", { name: "Voir la séance" });
 await bt.waitFor();
-ok(true, "assistant pour un jour à venir : « " + (await bt.textContent()) + " »");
+ok(!(await pg.getByRole("button", { name: /^Créer pour / }).count()), "assistant pour un jour à venir : « Voir la séance », plus de programmation à l'aveugle");
 if (await bt.isDisabled()) for (const m of ["Haltères", "Barre", "Machines", "Poids du corps"]) await pg.getByRole("button", { name: m, exact: true }).first().click().catch(() => {});
 await cap(pg, "assistant");
 await bt.click();
+await pg.waitForURL(/composer/);
+e = await etat(pg);
+ok(e.SEANCES.length === 3, "Voir la séance → l'aperçu (composeur), rien d'enregistré encore");
+const enr2 = pg.getByRole("button", { name: /^Enregistrer pour / });
+await enr2.waitFor();
+await cap(pg, "assistant-apercu");
+await enr2.click();
 await pg.waitForURL(/\/entrainement\/?$/);
 e = await etat(pg);
-ok(e.SEANCES.length === 4 && e.AGENDA.some((p) => p.d === dans3 && p.quoi.t === "libre" && p.quoi.i === 3), "Créer pour … → séance créée et programmée ce jour-là");
+ok(e.SEANCES.length === 4 && e.AGENDA.some((p) => p.d === dans3 && p.quoi.t === "libre" && p.quoi.i === 3), "Enregistrer pour … → séance créée et programmée ce jour-là");
 ok(!errs.length, "aucune erreur JS " + errs.join(" | "));
 
 // un compte qui n'a jamais fait de séance : la carte « Ta première séance », vers l'assistant pré-coché

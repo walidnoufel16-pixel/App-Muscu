@@ -8,19 +8,25 @@ import { CheckIcon, MinusIcon, PlusIcon } from "@phosphor-icons/react";
 import { appliquerAvis, avisSeance, type ActionAvis } from "@/lib/logic/avis-seance";
 import { jourDe } from "@/lib/logic/historique";
 import { zonesActives } from "@/lib/logic/forme";
+import { effortsEndurance } from "@/lib/logic/recommandation";
 import type { SeanceLibre } from "@/lib/logic/types";
 import { useRepere } from "@/lib/store";
 import { useBrouillon } from "@/lib/brouillon";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 
-export function AvisSeance({ L, sel }: { L: SeanceLibre; sel: string[] }) {
+export function AvisSeance({ L, sel }: { L: SeanceLibre & { pour?: string; idx?: number | null }; sel: string[] }) {
   const A = useRepere((s) => s.etat.A), H = useRepere((s) => s.etat.HIST);
+  const S = useRepere((s) => s.etat.SORTIES), C = useRepere((s) => s.etat.CARDIO);
   const majLibre = useBrouillon((s) => s.majLibre);
-  const [auj] = useState(() => jourDe(Date.now()));
+  /* une séance préparée pour un jour à venir se juge ce jour-là (récupération) */
+  const [aujReel] = useState(() => jourDe(Date.now()));
+  const auj = L.pour ?? aujReel;
+  /* course, cardio et séance déclarée à l'accueil (dernières 48 h) comptent dans la récupération */
+  const efforts = useMemo(() => effortsEndurance(S, C, A.avant), [S, C, A.avant]);
   const [ignores, setIgnores] = useState<string[]>([]);
   const [tout, setTout] = useState(false);
-  const liste = useMemo(() => avisSeance(L, { A, H, sel, zones: zonesActives(A), auj }).filter((a) => !ignores.includes(a.id)), [L, A, H, sel, auj, ignores]);
+  const liste = useMemo(() => avisSeance(L, { A, H, sel, zones: zonesActives(A), auj, efforts }).filter((a) => !ignores.includes(a.id)), [L, A, H, sel, auj, efforts, ignores]);
   if (!liste.length) return null;
   const vus = tout ? liste : liste.slice(0, 2);
 

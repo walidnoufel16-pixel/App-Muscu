@@ -34,7 +34,8 @@ export function MesSeances() {
   const { etat, muter, partager, partagerCardio } = useRepere();
   const cardio = etat.SEANCES_CARDIO || [];
   /* index des séances libres, rangées en deux groupes : musculation seule, ou avec des blocs cardio */
-  const libre = (i: number) => !etat.SEANCES[i].soin && !etat.SEANCES[i].street;
+  /* les séances d'Oxa non gardées (programmées ou lancées sans choisir de les garder) n'y figurent pas */
+  const libre = (i: number) => !etat.SEANCES[i].soin && !etat.SEANCES[i].street && !etat.SEANCES[i].auto;
   const muscu = etat.SEANCES.map((_, i) => i).filter((i) => libre(i) && !estCombinee(etat.SEANCES[i]));
   const combinees = etat.SEANCES.map((_, i) => i).filter((i) => libre(i) && estCombinee(etat.SEANCES[i]));
   /* programmes street workout ajoutés depuis Exercices › Street */
@@ -67,7 +68,7 @@ export function MesSeances() {
     setPartage({ nom: estCardio ? cardio[i].nom : etat.SEANCES[i].nom, code: r.code });
   };
 
-  const vide = !etat.SEANCES.length && !cardio.length;
+  const vide = !etat.SEANCES.some((x) => !x.auto) && !cardio.length;
   /* Ligne d'une séance de musculation ou combinée (index dans SEANCES). */
   const ligneMuscu = (i: number) => {
     const s = etat.SEANCES[i];
