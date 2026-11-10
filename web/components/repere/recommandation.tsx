@@ -31,9 +31,11 @@ export function Recommandation({ onAppliquer, className }: { onAppliquer?: (m: s
   const [auj] = useState(() => jourDe(Date.now()));
   const [i, setI] = useState(0);
   const [reglage, setReglage] = useState(false);
+  /* « Ignorer » : le bloc disparaît jusqu'à la prochaine ouverture de l'écran */
+  const [ignore, setIgnore] = useState(false);
   const S = useRepere((s) => s.etat.SORTIES), C = useRepere((s) => s.etat.CARDIO);
   const r = useMemo(() => recommander(H || [], auj, ecartes || [], niveau, effortsEndurance(S, C)), [H, auj, ecartes, niveau, S, C]);
-  if (!r) return null;
+  if (!r || ignore) return null;
 
   const basculer = (z: ZoneEcartable) => {
     tactile(6);
@@ -81,6 +83,9 @@ export function Recommandation({ onAppliquer, className }: { onAppliquer?: (m: s
                 {tr("Autre idée")}
               </button>
             )}
+            <button onClick={() => { tactile(5); setIgnore(true); }} className="h-11 rounded-full border-[1.5px] border-black/30 px-4 text-[14px] font-semibold active:scale-[.98]">
+              {tr("Ignorer")}
+            </button>
           </div>
         </>
       ) : (
