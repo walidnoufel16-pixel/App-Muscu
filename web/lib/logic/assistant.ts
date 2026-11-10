@@ -5,7 +5,7 @@ import { tr } from "@/lib/i18n";
 import { EX } from "@/lib/data/exercices";
 import { MUSC, ZPATS } from "@/lib/data/referentiels";
 import { exoFiltre, secondesDe } from "./core";
-import type { ExLibre, Reponses, SeanceLibre } from "./types";
+import type { ExLibre, Reponses, RoleEx, SeanceLibre } from "./types";
 
 type Hasard = () => number;
 const tirer = <T,>(l: T[], rnd: Hasard) => l[Math.floor(rnd() * l.length)];
@@ -68,6 +68,7 @@ const JAMAIS = new Set(["pp", "elf", "elfp", "mclimb", "kbtgu", "kbwm", "trpush"
 const genere = (o: string) => !!EX[o] && !EX[o].horsIA && !EX[o].soin && !JAMAIS.has(o) && EX[o].ch !== "dist";
 
 type Role = "principal" | "accessoire" | "isolation" | "tronc";
+const RO: Record<Role, RoleEx> = { principal: "b", accessoire: "c", isolation: "i", tronc: "g" };
 /* Répétitions et repos selon l'objectif (muscle, force, s'affiner, forme) et le rôle (NSCA). */
 const REPS: Record<Exclude<Role, "tronc">, number[]> = { principal: [8, 5, 10, 10], accessoire: [10, 6, 12, 12], isolation: [12, 10, 15, 12] };
 const REPOS: Record<Exclude<Role, "tronc">, string[]> = { principal: ["2 min 30", "3 min", "90 s", "2 min"], accessoire: ["90 s", "2 min", "75 s", "90 s"], isolation: ["60 s", "90 s", "45 s", "60 s"] };
@@ -172,7 +173,7 @@ export function construireSeance(muscles: string[], duree: number, obj: number, 
   for (const role of ["principal", "accessoire"] as Role[])
     for (const e of res) if (e.role === role && e.s < (niveau != null && niveau <= 1 ? 3 : 5)) { e.s++; if (!tient()) e.s--; }
   const rang = (e: (typeof res)[number]) => (e.role === "tronc" ? 3 : e.role === "principal" ? 0 : e.role === "accessoire" ? 1 : 2);
-  return res.map((e, i) => ({ e, i })).sort((a, b) => rang(a.e) - rang(b.e) || a.i - b.i).map(({ e }) => ({ id: e.id, s: e.s, r: e.r, p: e.p }));
+  return res.map((e, i) => ({ e, i })).sort((a, b) => rang(a.e) - rang(b.e) || a.i - b.i).map(({ e }) => ({ id: e.id, s: e.s, r: e.r, p: e.p, ro: RO[e.role] }));
 }
 
 /** Charge lourdement le bas du dos (soulevés de terre, good mornings, rowing T-bar, rack pull) : écarté

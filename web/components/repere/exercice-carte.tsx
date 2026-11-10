@@ -1,11 +1,13 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
+import { useState } from "react";
 import { ArrowsLeftRightIcon, BarbellIcon, CaretDownIcon, CheckIcon, CrosshairIcon, InfoIcon, ArrowUpIcon, ArrowDownIcon } from "@phosphor-icons/react";
 import { EX } from "@/lib/data/exercices";
 import { musclesDe, nb, okDe, resumeDe } from "@/lib/logic/core";
 import { EtiquetteZone } from "./forme";
-import type { Journal } from "@/lib/logic/types";
+import { EtiquetteRole, PourquoiRole } from "./role-exercice";
+import type { Journal, RoleEx } from "@/lib/logic/types";
 import { useCelebrer } from "@/lib/celebrer";
 import { cn } from "@/lib/utils";
 
@@ -68,9 +70,11 @@ export function EtatCarte({ L, id, n }: { L?: Journal; id: string; n: number }) 
 
 /* Carte d'exercice repliable, commune au plan et aux séances libres. */
 export function ExerciceCarte({
-  ancre, num, id, prescr, repos, rpe, role, badge, variation = 0, L, n, ouvert, onToggle, onFiche, onRemplacer, onTout, children,
+  ancre, num, id, prescr, repos, rpe, role, ro, badge, variation = 0, L, n, ouvert, onToggle, onFiche, onRemplacer, onTout, children,
 }: {
   ancre: string; num: number; id: string; prescr: string; repos: string; rpe?: number; role?: number; badge?: string;
+  /** séance construite par Oxa : base, complément, isolation ou gainage (l'ordre expliqué) */
+  ro?: RoleEx;
   /** charge proposée moins celle de la dernière fois (kg) : « ↑ 2,5 kg » ou « ↓ allégé » ; rien si elle ne bouge pas */
   variation?: number;
   L?: Journal; n: number; ouvert: boolean;
@@ -79,6 +83,7 @@ export function ExerciceCarte({
 }) {
   const x = EX[id], fait = !!L?.done, mus = musclesDe([id]);
   const celebre = useCelebrer((s) => s.fini === ancre);
+  const [vuRole, setVuRole] = useState(false);
   return (
     <div
       id={"ex-" + ancre}
@@ -100,6 +105,7 @@ export function ExerciceCarte({
           <span className="flex items-center gap-2">
             <span className="truncate text-[16px] leading-tight font-semibold tracking-[-0.01em]">{x.n}</span>
             {badge && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10.5px] font-medium text-muted-foreground">{badge}</span>}
+            <EtiquetteRole ro={ro} ouvert={vuRole} onToggle={() => setVuRole(!vuRole)} />
             <EtiquetteZone id={id} />
           </span>
           {mus.length > 0 && (
@@ -121,6 +127,7 @@ export function ExerciceCarte({
         <CaretDownIcon className={cn("size-5 shrink-0 text-muted-foreground transition-transform duration-200", ouvert && "rotate-180")} />
         </button>
       </div>
+      {vuRole && <PourquoiRole ro={ro} onFermer={() => setVuRole(false)} className="mx-3 mb-3 -mt-1" />}
 
       {ouvert && (
         <div className="animate-in fade-in-0 slide-in-from-top-1 duration-200">

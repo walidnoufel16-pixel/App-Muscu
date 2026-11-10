@@ -290,7 +290,7 @@ function SeanceLibre({ i }: { i: number }) {
     return (
       <ExerciceCarte
         key={c.k} ancre={c.k}
-        num={j + 1} id={e.id} prescr={prescr} repos={e.p} rpe={r} variation={L ? 0 : variationDe(c)} L={L} n={e.s} ouvert={ouvert === c.k}
+        num={j + 1} id={e.id} prescr={prescr} repos={e.p} rpe={r} ro={e.ro} variation={L ? 0 : variationDe(c)} L={L} n={e.s} ouvert={ouvert === c.k}
         onToggle={() => { tactile(5); setOuvert(ouvert === c.k ? null : c.k); }}
         onFiche={() => setFiche({ id: e.id, idx: -1, pres: [e.s, e.r, e.p], libelle: tr("séance libre"), rpe: r || undefined })}
         onTout={() => { tactile(12); muter((E) => act.toutCocher(E, c)); if (!L?.done && useRepere.getState().etat.LOG[c.k]?.done) fini(); }}
