@@ -5,7 +5,7 @@ import fx from "./fixtures/parite.json";
 import {
   curId, dispoDeclare, espacementDe, key, musclesDe, resumeDe, rpeOf, secondesDe, suggere, titreSeance, week, wkDone, wkFull, ctxPlan,
 } from "@/lib/logic/core";
-import { construireSeance, dureeEstimee, objCollation } from "@/lib/logic/assistant";
+import { objCollation } from "@/lib/logic/assistant";
 import { EX } from "@/lib/data/exercices";
 import type { Etat } from "@/lib/logic/types";
 
@@ -13,7 +13,6 @@ import type { Etat } from "@/lib/logic/types";
    barre de traction : on compare sur la même bibliothèque, barre de traction disponible. */
 for (const o of Object.keys(EX)) if (EX[o].horsIA) delete EX[o];
 
-const lcg = (s: number) => () => ((s = (s * 1103515245 + 12345) % 2147483648) / 2147483648);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const F = fx as any;
 
@@ -63,15 +62,9 @@ describe.each(PROFILS)("profil %i", (_i, p) => {
   });
 });
 
-describe("assistant", () => {
-  it.each(F.assistant.map((c: unknown, i: number) => [i, c]) as [number, unknown][])("cas %i : même séance à hasard égal", (_i, c) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const C = c as any;
-    const ex = construireSeance(C.m, C.d, C.o, [...C.sel, "bt"], lcg(C.seed));
-    expect(ex).toEqual(C.ex);
-    expect(dureeEstimee(ex)).toBe(C.duree);
-  });
-});
+/* L'assistant ne reproduit plus l'ancienne app : la construction des séances a été refaite (cases
+   par fonction, prescription selon le rôle, durée réelle ; docs/audit/bilan-2026-11-10.md, S4 et S5).
+   Ses règles sont vérifiées dans tests/seances.test.ts. */
 
 describe("divers", () => {
   it("muscles", () => F.divers.muscles.forEach(([id, r]: [string, string[]]) => expect(musclesDe([id])).toEqual(r)));

@@ -35,7 +35,9 @@ describe("rythme hebdomadaire", () => {
     expect(s.n).toBeLessThanOrEqual(12);
     expect(new Set(s.modeles)).toEqual(new Set(["full"]));
     for (let i = 1; i < s.fait.length; i++) expect(s.fait[i]).not.toBe(decaler(s.fait[i - 1], 1));
-    expect(s.maxSemaine).toBeLessThanOrEqual(1.5 * cibleNiveau(1));
+    /* 3 full body de 3 séries par grand muscle, plus le travail indirect compté à moitié (le squat
+       pour les fessiers, le développé pour les triceps) : 9 à 14 séries par semaine */
+    expect(s.maxSemaine).toBeLessThanOrEqual(2 * cibleNiveau(1));
   });
   it("régulier à 3 séances : full body, haut et bas du corps", () => {
     const s = simuler(2, 3);

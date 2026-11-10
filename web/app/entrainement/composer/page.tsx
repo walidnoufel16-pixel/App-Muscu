@@ -17,8 +17,9 @@ import { confirmer } from "@/components/repere/confirmer";
 import { EX } from "@/lib/data/exercices";
 import { OBJS, PAS_REPOS } from "@/lib/data/referentiels";
 import { exoFiltre, kLibre, musclesDe, nb, nomPat, propositionLibre, selDeclare, avecSalle, variationDe } from "@/lib/logic/core";
-import { construireSeance, exParDefaut } from "@/lib/logic/assistant";
-import { zonesActives, zonesDe } from "@/lib/logic/forme";
+import { exParDefaut } from "@/lib/logic/assistant";
+import { seancePour } from "@/lib/logic/generer-seance";
+import { jourDe } from "@/lib/logic/historique";
 import * as act from "@/lib/logic/actions";
 import type { BlocCardio, ExLibre } from "@/lib/logic/types";
 import { deplacer as deplacerElement, deplacerPartie, dureeTotale as dureeSeance, minutesBloc, nouveauBloc, ranger, sections, type Partie } from "@/lib/logic/combinee";
@@ -200,7 +201,7 @@ export default function PageComposer() {
         {L.gen && (
           <div className="flex items-center gap-3 rounded-[20px] bg-plate-soft p-3.5">
             <p className="flex-1 text-[13.5px] leading-snug">{tr("Proposition de départ : réordonne, remplace ou ajoute ce que tu veux.")}</p>
-            <Button variant="outline" size="sm" className="rounded-full bg-card" onClick={() => { tactile(10); majLibre((l) => { const zones = zonesActives(etat.A), ex = construireSeance(l.gen!.m, l.gen!.d, l.gen!.obj, sel, Math.random, (o) => zonesDe(o, zones).length > 0); if (ex.length) { l.ex = ex; rangerLibre(l); } }); setOuv(null); }}>
+            <Button variant="outline" size="sm" className="rounded-full bg-card" onClick={() => { tactile(10); majLibre((l) => { const ex = seancePour(etat, l.gen!.m, l.gen!.d, l.gen!.obj, sel, l.pour ?? jourDe(Date.now()), Math.random); if (ex.length) { l.ex = ex; rangerLibre(l); } }); setOuv(null); }}>
               <ArrowsClockwiseIcon />{tr("Autre")}
             </Button>
           </div>

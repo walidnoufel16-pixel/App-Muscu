@@ -22,12 +22,11 @@ import {
 import { decaler, jourDe } from "@/lib/logic/historique";
 import { dureeTotale } from "@/lib/logic/combinee";
 import { avecSalle, kLibre, musclesDe, nb, propositionLibre, selDeclare, variationDe } from "@/lib/logic/core";
-import { chargeLombaires, construireSeance, dureeEstimee, hasardDe, musclesPrioritaires } from "@/lib/logic/assistant";
-import { zonesActives, zonesDe } from "@/lib/logic/forme";
-import { prioNoms } from "@/lib/logic/questionnaire";
+import { dureeEstimee } from "@/lib/logic/assistant";
+import { seancePour } from "@/lib/logic/generer-seance";
 import { Vignette } from "./exercice-carte";
 import { genererPlan, semaineDe, vdotActuel } from "@/lib/logic/course";
-import { musclesRecommandes, effortsEndurance, etatGroupes } from "@/lib/logic/recommandation";
+import { musclesRecommandes } from "@/lib/logic/recommandation";
 import { activerRappels, etatRappels } from "@/lib/rappels";
 import { useRepere } from "@/lib/store";
 import { useBrouillon } from "@/lib/brouillon";
@@ -234,10 +233,7 @@ function Apercu({ c, d, auj, retour, ajouter, setF }: { c: Choix; d: string; auj
   const [genere] = useState<SeanceLibre | null>(() => {
     if (q.t !== "reco") return null;
     const duree = typeof A.duree === "number" && [30, 45, 60].includes(A.duree) ? A.duree : 45, obj = A.objectif ?? 0;
-    const sel = avecSalle(selDeclare(A), A), zones = zonesActives(A), H = etat.HIST || [];
-    const habitudes = new Set(H.slice(-12).flatMap((l) => Object.keys(l.ex)));
-    const lombaires = !etatGroupes(H, d, effortsEndurance(etat.SORTIES, etat.CARDIO, etat.A.avant)).lom.recupere;
-    const ex = construireSeance(m, duree, obj, sel, hasardDe(`${d}|${m.join(",")}|${duree}|${obj}|${sel.join(",")}`), (o) => zonesDe(o, zones).length > 0 || (lombaires && chargeLombaires(o)), A.regularite, { prio: musclesPrioritaires(prioNoms(A)), habitudes, dense: duree === 30 });
+    const ex = seancePour(etat, m, duree, obj, avecSalle(selDeclare(A), A), d);
     return { nom: c.nom, ex, obj, gen: { m: [...m], d: duree, obj } };
   });
   const S = q.t === "libre" ? etat.SEANCES[i] ?? null : genere;

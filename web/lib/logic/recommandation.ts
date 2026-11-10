@@ -194,7 +194,8 @@ function propositions(E: Record<Groupe, EtatGroupe>, ecartes: Set<Groupe>, mode:
 function candidats(E: Record<Groupe, EtatGroupe>, ecartes: Set<Groupe>, mode: Mode = "split"): Proposition[] {
   const res: { p: Proposition; score: number }[] = [];
   /* au-delà d'une fois et demie le volume de la semaine visé, un muscle n'est plus proposé */
-  const plein = (x: Groupe) => E[x].semaine >= 1.5 * CIBLE;
+  /* (en split, une séance apporte 8 à 10 séries au muscle : on s'arrête plus tôt pour ne pas déborder) */
+  const plein = (x: Groupe) => E[x].semaine >= (mode === "split" ? 0.9 : 1.5) * CIBLE;
   for (const m of MODELES) {
     if (!MODELES_MODE[mode].includes(m.id)) continue;
     let g = m.g.filter((x) => !ecartes.has(x));
