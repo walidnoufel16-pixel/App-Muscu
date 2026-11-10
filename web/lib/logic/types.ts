@@ -81,7 +81,7 @@ export type Reponses = {
   /** Dernier rappel choisi en programmant une séance (proposé par défaut la fois suivante). */
   rappelAgenda?: { veille: boolean; h: number } | null;
   /** Zones que « Ma recommandation du jour » ne propose plus (lib/logic/recommandation.ts). */
-  recoSans?: ("pec" | "dos" | "epa" | "bras" | "abd" | "jambes")[];
+  recoSans?: ("pec" | "dos" | "epa" | "bras" | "abd" | "qua" | "isc" | "mol" | "jambes")[];
   /* accueil : séance faite juste avant d'installer Oxa (jour, muscles), pour la récupération */
   avant?: { d: string; m: string[] };
   /* accueil (profil sportif + 48 h) terminé */

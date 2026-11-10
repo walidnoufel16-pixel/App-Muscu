@@ -17,7 +17,7 @@ import { AVANT } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 import { decaler, jourDe } from "@/lib/logic/historique";
-import { effortsEndurance, etatGroupes, GROUPES, nomMuscle, nomZone, phrase, recoDuJour, ZONES_ECARTABLES, type MuscleRecup } from "@/lib/logic/recommandation";
+import { effortsEndurance, etatGroupes, GROUPES, nomMuscle, nomZone, phrase, recoDuJour, ZONES_ECARTABLES, basculerZone, ecartesDe, type MuscleRecup } from "@/lib/logic/recommandation";
 import { EditeurProfil, profilMinimal, type Ligne } from "./profil-sportif";
 import { MonMateriel } from "./mon-materiel";
 
@@ -225,9 +225,9 @@ function Fin({ fermer }: { fermer: () => void }) {
       <div className="mt-4 px-1 text-[13px] font-bold">{tr("Des muscles à ne pas travailler ?")}</div>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {ZONES_ECARTABLES.map((z) => {
-          const on = !!etat.A.recoSans?.includes(z);
+          const on = ecartesDe(etat.A.recoSans).includes(z);
           return (
-            <button key={z} aria-pressed={on} onClick={() => { tactile(5); muter((E) => { const l = E.A.recoSans || []; E.A.recoSans = on ? l.filter((x) => x !== z) : [...l, z]; }); }}
+            <button key={z} aria-pressed={on} onClick={() => { tactile(5); muter((E) => { E.A.recoSans = basculerZone(E.A.recoSans, z); }); }}
               className={cn("flex h-9 items-center gap-1 rounded-full border-[1.5px] px-3.5 text-[14px] font-semibold", on ? "border-foreground bg-foreground text-background line-through decoration-2" : "border-border")}>
               {nomZone(z)}
             </button>

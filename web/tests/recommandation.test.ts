@@ -177,3 +177,15 @@ describe("séance déclarée à l'accueil (dernières 48 h)", () => {
     expect(ef([], [], { d: MAR, m: [] })).toEqual([]);
   });
 });
+
+describe("zones écartées : les jambes séparées", () => {
+  it("quadriceps, ischios-fessiers et mollets s'écartent un par un ; l'ancienne « jambes » se déplie", async () => {
+    const { basculerZone, ecartesDe } = await import("@/lib/logic/recommandation");
+    expect(ecartesDe(["jambes", "pec"])).toEqual(["qua", "isc", "mol", "pec"]);
+    expect(basculerZone(["jambes"], "mol")).toEqual(["qua", "isc"]);
+    expect(basculerZone([], "isc")).toEqual(["isc"]);
+    const r = recoDuJour([], MER, ["qua", "isc"]);
+    expect(r.propositions[0].muscles).not.toContain("qua");
+    expect(r.propositions[0].muscles).not.toContain("isc");
+  });
+});

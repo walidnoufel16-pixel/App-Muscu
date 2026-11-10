@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { ArrowRightIcon, CheckIcon } from "@phosphor-icons/react";
 import { dateDe, decaler, jourDe } from "@/lib/logic/historique";
-import { lister, nomGroupe, phrase, nomZone, effortsEndurance, recommander, ZONES_ECARTABLES, type ZoneEcartable } from "@/lib/logic/recommandation";
+import { lister, nomGroupe, phrase, nomZone, effortsEndurance, recommander, ZONES_ECARTABLES, basculerZone, ecartesDe, type ZoneEcartable } from "@/lib/logic/recommandation";
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
@@ -41,8 +41,7 @@ export function Recommandation({ onAppliquer, className }: { onAppliquer?: (m: s
     tactile(6);
     setI(0);
     muter((E) => {
-      const l = E.A.recoSans || [];
-      E.A.recoSans = l.includes(z) ? l.filter((x) => x !== z) : [...l, z];
+      E.A.recoSans = basculerZone(E.A.recoSans, z);
     });
   };
   const ouvrir = (m: string[]) => {
@@ -113,7 +112,7 @@ export function Recommandation({ onAppliquer, className }: { onAppliquer?: (m: s
       )}
 
       <button onClick={() => setReglage((x) => !x)} className={cn("mt-3 text-[12.5px] font-semibold underline-offset-2 hover:underline", plein ? "opacity-75" : "text-muted-foreground")}>
-        {nbEcartes ? tr("Écartés : {a}", { a: lister((ecartes || []).map(nomZone)).toLowerCase() }) : tr("Écarter un groupe")}
+        {nbEcartes ? tr("Écartés : {a}", { a: lister(ecartesDe(ecartes).map(nomZone)).toLowerCase() }) : tr("Écarter un groupe")}
       </button>
       {reglage && (
         <div className="mt-2">
@@ -122,7 +121,7 @@ export function Recommandation({ onAppliquer, className }: { onAppliquer?: (m: s
           </p>
           <div className="flex flex-wrap gap-1.5">
             {ZONES_ECARTABLES.map((z) => {
-              const on = !!ecartes?.includes(z);
+              const on = ecartesDe(ecartes).includes(z);
               return (
                 <button key={z} onClick={() => basculer(z)} aria-pressed={on}
                   className={cn("flex h-8 items-center gap-1 rounded-full px-3 text-[13px] font-semibold active:scale-[.97]",

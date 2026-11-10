@@ -26,10 +26,15 @@ export type MuscleRecup = (typeof MUSCLES_RECUP)[number];
 const SUIVIS = new Set<string>(MUSCLES_RECUP);
 
 /** Ce qu'on peut écarter des recommandations (Profil ou carte) : des zones, plus parlantes que les muscles. */
-export type ZoneEcartable = "pec" | "dos" | "epa" | "bras" | "abd" | "jambes";
-export const ZONES_ECARTABLES: ZoneEcartable[] = ["jambes", "pec", "dos", "epa", "bras", "abd"];
-const GROUPES_ZONE: Record<ZoneEcartable, Groupe[]> = { pec: ["pec"], dos: ["dos"], epa: ["epa"], bras: ["bic", "tri"], abd: ["abd"], jambes: ["qua", "isc", "mol"] };
-export const nomZone = (z: ZoneEcartable) => ({ pec: tr("Pectoraux"), dos: tr("Dos"), epa: tr("Épaules"), bras: tr("Bras"), abd: tr("Abdos"), jambes: tr("Jambes") })[z];
+/* « jambes » : ancienne zone (quadriceps, ischios et mollets ensemble), encore lue dans les comptes */
+export type ZoneEcartable = "pec" | "dos" | "epa" | "bras" | "abd" | "qua" | "isc" | "mol" | "jambes";
+export const ZONES_ECARTABLES: ZoneEcartable[] = ["pec", "dos", "epa", "bras", "abd", "qua", "isc", "mol"];
+const GROUPES_ZONE: Record<ZoneEcartable, Groupe[]> = { pec: ["pec"], dos: ["dos"], epa: ["epa"], bras: ["bic", "tri"], abd: ["abd"], qua: ["qua"], isc: ["isc"], mol: ["mol"], jambes: ["qua", "isc", "mol"] };
+export const nomZone = (z: ZoneEcartable) => ({ pec: tr("Pectoraux"), dos: tr("Dos"), epa: tr("Épaules"), bras: tr("Bras"), abd: tr("Abdos"), qua: tr("Quadriceps"), isc: tr("Ischios et fessiers"), mol: tr("Mollets"), jambes: tr("Jambes") })[z];
+/** Les zones écartées, l'ancienne « jambes » dépliée en quadriceps, ischios-fessiers et mollets. */
+export const ecartesDe = (l: ZoneEcartable[] = []): ZoneEcartable[] => [...new Set(l.flatMap((z): ZoneEcartable[] => (z === "jambes" ? ["qua", "isc", "mol"] : [z])))];
+/** Écarter une zone, ou la remettre. */
+export const basculerZone = (l: ZoneEcartable[] = [], z: ZoneEcartable) => { const e = ecartesDe(l); return e.includes(z) ? e.filter((x) => x !== z) : [...e, z]; };
 
 export const nomGroupe = (g: Groupe) => ({
   pec: tr("Pecs"), dos: tr("Dos"), epa: tr("Épaules"), bic: tr("Biceps"), tri: tr("Triceps"), qua: tr("Quadriceps"), isc: tr("Ischios"), mol: tr("Mollets"), abd: tr("Abdos"),
