@@ -17,7 +17,7 @@ import { AVANT } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 import { decaler, jourDe } from "@/lib/logic/historique";
-import { effortsEndurance, etatGroupes, GROUPES, nomMuscle, phrase, recoDuJour, type MuscleRecup } from "@/lib/logic/recommandation";
+import { effortsEndurance, etatGroupes, GROUPES, nomMuscle, nomZone, phrase, recoDuJour, ZONES_ECARTABLES, type MuscleRecup } from "@/lib/logic/recommandation";
 import { EditeurProfil, profilMinimal, type Ligne } from "./profil-sportif";
 import { MonMateriel } from "./mon-materiel";
 
@@ -176,6 +176,7 @@ function Avant48({ suivant, retour }: { suivant: () => void; retour: () => void 
 
 function Fin({ fermer }: { fermer: () => void }) {
   const etat = useRepere((s) => s.etat);
+  const muter = useRepere((s) => s.muter);
   const router = useRouter();
   const [auj] = useState(() => jourDe(Date.now()));
   const efforts = useMemo(() => effortsEndurance(etat.SORTIES, etat.CARDIO, etat.A.avant), [etat]);
@@ -220,7 +221,20 @@ function Fin({ fermer }: { fermer: () => void }) {
           </>
         )}
       </section>
-      <button onClick={() => aller("/entrainement/assistant")} className="mt-2 h-12 w-full rounded-2xl bg-card text-[15px] font-semibold active:scale-[.99]">{tr("Je choisis mes muscles")}</button>
+      {/* des muscles qu'on ne veut pas travailler : la proposition change tout de suite (aussi dans Profil) */}
+      <div className="mt-4 px-1 text-[13px] font-bold">{tr("Des muscles à ne pas travailler ?")}</div>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {ZONES_ECARTABLES.map((z) => {
+          const on = !!etat.A.recoSans?.includes(z);
+          return (
+            <button key={z} aria-pressed={on} onClick={() => { tactile(5); muter((E) => { const l = E.A.recoSans || []; E.A.recoSans = on ? l.filter((x) => x !== z) : [...l, z]; }); }}
+              className={cn("flex h-9 items-center gap-1 rounded-full border-[1.5px] px-3.5 text-[14px] font-semibold", on ? "border-foreground bg-foreground text-background line-through decoration-2" : "border-border")}>
+              {nomZone(z)}
+            </button>
+          );
+        })}
+      </div>
+      <button onClick={() => aller("/entrainement/assistant")} className="mt-4 h-12 w-full rounded-2xl bg-card text-[15px] font-semibold active:scale-[.99]">{tr("Je choisis mes muscles")}</button>
       <button onClick={() => { tactile(5); fermer(); }} className="mt-auto py-3 text-[14px] font-medium text-muted-foreground">{tr("Plus tard")}</button>
     </>
   );

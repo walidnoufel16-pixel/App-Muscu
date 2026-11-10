@@ -72,6 +72,10 @@ async function bulles(pg, prefixe) {
   ok(puces.includes("Pecs · récupère") && puces.includes("Dos · prêt"), "fin : pecs récupèrent, dos prêt");
   const seance = await dlg.locator("section h2").textContent();
   ok(!/pecs|triceps|full/i.test(seance), "première séance sans les muscles qui récupèrent : " + seance);
+  await dlg.getByRole("button", { name: "Dos", exact: true }).last().click();
+  await pg.waitForTimeout(300);
+  const autre = await dlg.locator("section h2").textContent();
+  ok(!/dos/i.test(autre), "Dos écarté : la proposition change → " + autre);
   await cap(pg, "sans-fin");
   const e = await pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")));
   ok(e.A.objectif === 0 && e.A.regularite === 2 && e.A.objHebdo === 3 && e.A.sexe === 0 && e.A.profil?.["Âge"] === 30 && e.A.accueil && e.A.miseEnRoute, "profil enregistré");
