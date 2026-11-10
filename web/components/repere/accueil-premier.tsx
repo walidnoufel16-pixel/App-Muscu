@@ -6,7 +6,7 @@
    la fin : muscles prêts, et une première séance qui en tient compte (ou repos). Une seule fois ;
    « Plus tard » le referme (le profil reste à compléter dans Profil). */
 import { tr } from "@/lib/i18n";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { create } from "zustand";
@@ -28,7 +28,8 @@ const QUESTIONS: (Ligne | "materiel")[] = ["sexe", "age", "corps", "objectif", "
 const MUSCLES: MuscleRecup[] = [...GROUPES, "tra", "lom"];
 
 export function AccueilPremier({ onFin }: { onFin: (etape: number) => void }) {
-  const ouvert = useAccueil((s) => s.ouvert);
+  /* monté par AppShell à la place de l'app : ouvert jusqu'à « Plus tard » ou la fin */
+  useEffect(() => { useAccueil.setState({ ouvert: true }); }, []);
   /* 0 bienvenue ; 1 à 9 le profil ; 10 les 48 h ; 11 la fin */
   const [etape, setEtape] = useState(0);
   const muter = useRepere((s) => s.muter);
@@ -39,9 +40,9 @@ export function AccueilPremier({ onFin }: { onFin: (etape: number) => void }) {
     useAccueil.setState({ ouvert: false });
   };
   return (
-    <Dialog open={ouvert} onOpenChange={(o) => !o && fermer()}>
+    <Dialog open onOpenChange={(o) => !o && fermer()}>
       <DialogContent showCloseButton={false}
-        className="flex h-dvh max-h-dvh w-screen max-w-none flex-col gap-0 rounded-none border-0 bg-background p-0 sm:max-w-none">
+        className="flex h-dvh data-[state=open]:animate-none max-h-dvh w-screen max-w-none flex-col gap-0 rounded-none border-0 bg-background p-0 sm:max-w-none">
         <div className="mx-auto flex w-full max-w-[480px] flex-1 flex-col overflow-y-auto overscroll-contain px-5 pt-[max(env(safe-area-inset-top),20px)] pb-[max(env(safe-area-inset-bottom),16px)]">
           {etape === 0 && <Bienvenue suivant={() => setEtape(1)} plusTard={fermer} />}
           {etape >= 1 && etape <= QUESTIONS.length && <Question i={etape} suivant={() => setEtape(etape + 1)} retour={() => setEtape(etape - 1)} />}

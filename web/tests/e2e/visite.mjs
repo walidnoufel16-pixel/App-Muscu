@@ -42,6 +42,7 @@ async function bulles(pg, prefixe) {
   const dlg = pg.getByRole("dialog");
   await dlg.getByText("Commencer · 1 min").waitFor({ timeout: 8000 });
   ok(await dlg.getByText("Bienvenue sur Oxa, Walid").count() === 1 && await dlg.getByText("Tes dernières 48 h").count() === 1, "accueil : bienvenue, 3 étapes");
+  ok(await pg.getByText("Créer ma première séance").count() === 0 && await pg.getByText("Repas", { exact: true }).count() === 0, "l'app n'est pas visible derrière le questionnaire");
   await cap(pg, "sans-bienvenue");
   await dlg.getByText("Commencer · 1 min").click();
   const suivant = () => dlg.getByRole("button", { name: "Suivant" }).click();
@@ -78,7 +79,6 @@ async function bulles(pg, prefixe) {
   await dlg.getByRole("button", { name: "Voir la séance" }).click();
   await pg.waitForURL(/assistant\/?\?m=/);
   ok(!/pec|tri/.test(pg.url().split("m=")[1]) && await pg.getByText("3 questions pour des séances à ta mesure").count() === 0, "Voir la séance → assistant, sans les 3 questions");
-  ok(await pg.evaluate(() => !!localStorage.getItem("repere.visite")), "accueil noté comme vu");
   await ctx.close();
 }
 

@@ -24,7 +24,6 @@ import { AVANT } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 import { lienRubrique } from "./rubriques";
 import { MiseEnRoute, profilMinimal } from "./profil-sportif";
-import { AccueilPremier, useAccueil } from "./accueil-premier";
 
 const CLE = "repere.visite", CLE_PLAN = "repere.visite.plan";
 /** Étape en cours : null = fermée ; 0 bienvenue ; 1 à n bulles ; n + 1 la fin. */
@@ -65,15 +64,12 @@ export function Visite() {
 
   /* première ouverture d'un compte qui n'a encore rien fait : la visite démarre d'elle-même */
   useEffect(() => {
-    if (!pret || !pseudo || !neuf || bilan || etape !== null || mini || ancienne) return;
-    if (!RACINE.test(chemin)) return;
-    /* sans Oxa Plan : l'accueil (profil sportif, dernières 48 h, première séance) à la place de la visite ;
-       noté sur le compte (un nouveau profil sur le même téléphone l'a aussi), pas sur l'appareil */
-    if (!prog && (A.accueil || A.accueilPasse)) return;
-    if (prog && lu(CLE)) return;
-    const t = setTimeout(() => (prog ? useVisite.setState({ etape: 0 }) : useAccueil.setState({ ouvert: true })), 700);
+    /* sans Oxa Plan : le questionnaire d'accueil passe avant l'app (AppShell, accueil-premier.tsx) */
+    if (!pret || !pseudo || !neuf || !prog || bilan || etape !== null || mini || ancienne) return;
+    if (!RACINE.test(chemin) || lu(CLE)) return;
+    const t = setTimeout(() => useVisite.setState({ etape: 0 }), 700);
     return () => clearTimeout(t);
-  }, [pret, pseudo, neuf, bilan, etape, mini, chemin, ancienne, prog, A.accueil, A.accueilPasse]);
+  }, [pret, pseudo, neuf, bilan, etape, mini, chemin, ancienne, prog]);
 
   /* Oxa Plan ouvert plus tard : une bulle sur sa tuile, une fois, tant que le programme n'est pas construit */
   useEffect(() => {
@@ -125,7 +121,6 @@ export function Visite() {
         </DrawerContent>
       </Drawer>
 
-      <AccueilPremier onFin={(e) => { mesurer("visite_finie", { etape: e, accueil: true }); noter(CLE); if (prog) noter(CLE_PLAN); }} />
       {etape !== null && etape >= 1 && etape <= n && <Bulle key={etape} b={bulles[etape - 1]} i={etape} total={n} onSuivant={suivant} onPasser={finir} />}
       {mini && etape === null && <Bulle b={MINI} i={1} total={1} onSuivant={() => { finMini(); router.push(lienRubrique("programme"), AVANT); }} onPasser={finMini} onAbsent={() => useVisite.setState({ mini: false })} bouton={tr("Découvrir")} passer={tr("Plus tard")} />}
 
