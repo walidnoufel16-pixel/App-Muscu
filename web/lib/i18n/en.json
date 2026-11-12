@@ -3000,5 +3000,12 @@
   "En fin de séance : les abdos et le bas du dos tiennent ton corps pendant les autres exercices, on ne les fatigue pas avant.": "At the end: your abs and lower back keep you stable during the other lifts, so we don't tire them first.",
   "{n} : pourquoi à cette place": "{n}: why it's here",
   "Pourquoi {v} kg ?": "Why {v} kg?",
-  "Pourquoi cette proposition ?": "Why this suggestion?"
+  "Pourquoi cette proposition ?": "Why this suggestion?",
+  "Ta séance de muscu de la semaine est déjà faite ou prévue : ce jour-là, récupère.": "Your strength workout this week is already done or planned: rest that day.",
+  "Tes {n} séances de muscu de la semaine sont déjà faites ou prévues : ce jour-là, récupère.": "Your {n} strength workouts this week are already done or planned: rest that day.",
+  "Séance la veille : pour débuter, un jour de repos entre deux full body.": "Workout the day before: as a beginner, take a rest day between two full-body sessions.",
+  "Séance la veille : à {n} séances par semaine, un jour de repos entre deux séances.": "Workout the day before: at {n} workouts a week, take a rest day between two sessions.",
+  "Séance déjà prévue {j}": "Workout already planned {j}",
+  "Repos {j}": "Rest {j}",
+  "Le lendemain : {s}.": "The day after: {s}."
 }

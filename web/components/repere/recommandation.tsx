@@ -93,11 +93,11 @@ export function Recommandation({ onAppliquer, className, jour }: { onAppliquer?:
       ) : (
         <>
           <h2 className="mt-3 text-[21px] leading-tight font-extrabold tracking-[-0.01em]">
-            {r.type === "fait" ? tr("Séance faite aujourd'hui") : r.pause ? tr("Repos aujourd'hui") : tr("Repos ou cardio léger")}
+            {d !== auj ? (r.type === "fait" ? tr("Séance déjà prévue {j}", { j: jourCourt(d) }) : r.pause ? tr("Repos {j}", { j: jourCourt(d) }) : tr("Repos ou cardio léger")) : r.type === "fait" ? tr("Séance faite aujourd'hui") : r.pause ? tr("Repos aujourd'hui") : tr("Repos ou cardio léger")}
           </h2>
           <p className="mt-1 text-[13.5px] leading-snug text-muted-foreground">
             {r.type === "fait" ? tr("Ton corps récupère : c'est pendant le repos que les muscles se construisent.") : r.pause ?? tr("Tes muscles récupèrent encore de tes dernières séances : c'est pendant le repos qu'ils se construisent.")}
-            {r.demain && <> {tr("Demain : {s}.", { s: r.demain.nom.toLowerCase() })}</>}
+            {r.demain && <> {d !== auj ? tr("Le lendemain : {s}.", { s: r.demain.nom.toLowerCase() }) : tr("Demain : {s}.", { s: r.demain.nom.toLowerCase() })}</>}
           </p>
           {r.type === "repos" && (
             <div className="mt-3.5 flex gap-2">
@@ -115,7 +115,7 @@ export function Recommandation({ onAppliquer, className, jour }: { onAppliquer?:
       )}
 
       <button onClick={() => setReglage((x) => !x)} className={cn("mt-3 text-[12.5px] font-semibold underline-offset-2 hover:underline", plein ? "opacity-75" : "text-muted-foreground")}>
-        {nbEcartes ? tr("Écartés : {a}", { a: lister(ecartesDe(ecartes).map(nomZone)).toLowerCase() }) : tr("Écarter un groupe")}
+        {nbEcartes ? tr("Écartés : {a}", { a: ecartesDe(ecartes).map(nomZone).join(", ").toLowerCase() }) : tr("Écarter un groupe")}
       </button>
       {reglage && (
         <div className="mt-2">

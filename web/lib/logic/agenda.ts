@@ -186,5 +186,5 @@ export function recoPour(E: Etat & { AGENDA?: Prevu[] }, d: string, auj = jourDe
     }
   }
   return recoDuJour([...(E.HIST || []), ...prevus], d, E.A.recoSans || [], E.A.regularite, effortsEndurance(E.SORTIES, E.CARDIO, E.A.avant),
-    { hebdo: objectifHebdo(E.A), jours });
+    { hebdo: objectifHebdo(E.A), jours, futur: d > auj });
 }
