@@ -9,6 +9,7 @@ import { EX } from "@/lib/data/exercices";
 import { PAT2MUSC } from "@/lib/data/referentiels";
 import { effortsEndurance, recoDuJour } from "./recommandation";
 import { objectifHebdo } from "./motivation";
+import { genererPlan } from "./course";
 import type { LigneHist } from "./historique";
 import type { Etat } from "./types";
 
@@ -167,6 +168,16 @@ export const HEURES_JOUR = [6, 7, 8, 12, 17, 18];
 const REPRESENTANT: Record<string, string> = {};
 for (const id in EX) { const p = PAT2MUSC[EX[id].pat]; if (p && !REPRESENTANT[p] && !EX[id].pat2 && EX[id].ch === "kg") REPRESENTANT[p] = id; }
 
+const DURES = new Set(["longue", "seuil", "vma", "allure", "hyrox", "course"]);
+/** Une sortie exigeante du plan de course est-elle programmée ce jour-là dans l'agenda ? */
+export function courseDureLe(E: Etat & { AGENDA?: Prevu[] }, d: string, auj: string) {
+  if (!E.COURSE) return false;
+  const p = (joursAgenda(E, d, auj, 1)[0]?.prevus || []).find((x) => x.quoi.t === "course");
+  if (!p || p.quoi.t !== "course") return false;
+  const [k, j] = p.quoi.cle.split("|").map(Number);
+  try { return DURES.has(genererPlan(E.COURSE)[k]?.seances[j]?.type ?? ""); } catch { return false; }
+}
+
 export function recoPour(E: Etat & { AGENDA?: Prevu[] }, d: string, auj = jourDe(Date.now())) {
   const debut = [lundiDe(d), decaler(d, -2), auj].sort()[0];
   const n = Math.max(0, Math.round((new Date(d + "T12:00").getTime() - new Date(debut + "T12:00").getTime()) / 864e5));
@@ -185,6 +196,10 @@ export function recoPour(E: Etat & { AGENDA?: Prevu[] }, d: string, auj = jourDe
       if (Object.keys(ex).length) prevus.push({ d: j.d, s: "prevu|" + p.id, nom: p.nom, vol: 0, ser: 0, ex });
     }
   }
-  return recoDuJour([...(E.HIST || []), ...prevus], d, E.A.recoSans || [], E.A.regularite, effortsEndurance(E.SORTIES, E.CARDIO, E.A.avant),
+  /* course et musculation sur un seul calendrier : la veille d'une sortie longue, d'une séance de qualité
+     ou d'un Hyrox programmés, pas de jambes (elles doivent arriver fraîches) */
+  const ecartes: NonNullable<Parameters<typeof recoDuJour>[2]> = [...(E.A.recoSans || [])];
+  if (courseDureLe(E, decaler(d, 1), auj) && !ecartes.includes("jambes")) ecartes.push("jambes");
+  return recoDuJour([...(E.HIST || []), ...prevus], d, ecartes, E.A.regularite, effortsEndurance(E.SORTIES, E.CARDIO, E.A.avant),
     { hebdo: objectifHebdo(E.A), jours, futur: d > auj });
 }

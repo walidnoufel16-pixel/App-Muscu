@@ -90,7 +90,7 @@ export function SemaineAnneaux({ auj, setF }: { auj: string; setF: (f: Feuille) 
       <div className="mb-1.5 flex items-center justify-between gap-2 px-1 text-[13px]">
         <span className="flex items-center gap-1.5 font-semibold">
           <FlameIcon className={cn("size-4", S.semaines ? "text-[#ff7a1a]" : "text-muted-foreground")} weight={S.semaines ? "fill" : "regular"} />
-          {S.semaines ? tr("{a} d'affilée", { a: tp(S.semaines, "{n} semaine", "{n} semaines") }) : tr("Lance ta série cette semaine")}
+          {S.semaines ? tr("{a} d'affilée", { a: tp(S.semaines, "{n} semaine", "{n} semaines") }) : tr("Lance ta régularité cette semaine")}
         </span>
         <span className="shrink-0 text-muted-foreground">{tr("{c} sur {o} cette semaine", { c: S.cetteSemaine, o: S.objectif })}</span>
       </div>

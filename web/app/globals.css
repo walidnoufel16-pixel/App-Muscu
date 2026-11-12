@@ -259,23 +259,24 @@ body.repas-recettes { --fond-repas: #ffe6d8; }
 }
 ::view-transition-old(.nav-forward) {
   --glisse: -60px;
-  animation: 150ms ease-in both vt-fondu reverse, 400ms cubic-bezier(.3, 0, 0, 1) both vt-glisse reverse;
+  animation: 120ms ease-in both vt-fondu reverse, 260ms cubic-bezier(.3, 0, 0, 1) both vt-glisse reverse;
 }
 ::view-transition-new(.nav-forward) {
   --glisse: 60px;
-  animation: 210ms ease-out 150ms both vt-fondu, 400ms cubic-bezier(.3, 0, 0, 1) both vt-glisse;
+  animation: 180ms ease-out 60ms both vt-fondu, 260ms cubic-bezier(.3, 0, 0, 1) both vt-glisse;
 }
 ::view-transition-old(.nav-back) {
   --glisse: 60px;
-  animation: 150ms ease-in both vt-fondu reverse, 400ms cubic-bezier(.3, 0, 0, 1) both vt-glisse reverse;
+  animation: 120ms ease-in both vt-fondu reverse, 260ms cubic-bezier(.3, 0, 0, 1) both vt-glisse reverse;
 }
 ::view-transition-new(.nav-back) {
   --glisse: -60px;
-  animation: 210ms ease-out 150ms both vt-fondu, 400ms cubic-bezier(.3, 0, 0, 1) both vt-glisse;
+  animation: 180ms ease-out 60ms both vt-fondu, 260ms cubic-bezier(.3, 0, 0, 1) both vt-glisse;
 }
+/* fondu sans flou : animer filter sur une capture pleine page saccade sur un téléphone d'entrée de gamme */
 @keyframes vt-fondu {
-  from { opacity: 0; filter: blur(3px); }
-  to { opacity: 1; filter: blur(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 @keyframes vt-glisse {
   from { translate: var(--glisse); }

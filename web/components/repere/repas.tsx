@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import type { Moment, Recette } from "@/lib/data/recettes";
 import {
-  ALLERGIES, alimentsParRayon, allergenesDe, chercherAliments, CULTES, EMOJIS_RAYON, estPerso, MATERIELS, nouvelAliment, macros, mains, nomAliment, nomRecette, NOM_CRENEAU, portion, prefsDe, protManquantes, quantite, regimeDe, REGIMES, TEMPS, type Besoins,
+  ALLERGIES, alimentsParRayon, allergenesDe, chercherAliments, CULTES, EMOJIS_RAYON, estPerso, MATERIELS, nouvelAliment, macros, mains, glucManquants, SEC, nomAliment, nomRecette, NOM_CRENEAU, portion, prefsDe, protManquantes, quantite, regimeDe, REGIMES, TEMPS, type Besoins,
 } from "@/lib/logic/repas";
 import type { AlimentPerso, CreneauRepas, PrefsRepas } from "@/lib/logic/types";
 import { emojiDe, RAYONS } from "@/lib/data/aliments";
@@ -352,6 +352,11 @@ function Fiche({ r, b, c, kcal, pers0 }: { r: Recette; b: Besoins; c?: CreneauRe
         <Macro v={m.p} n={tr("protéines")} accent />
         {kcal ? <><Macro v={m.g} n={tr("glucides")} /><Macro v={m.l} n={tr("lipides")} /><Macro v={m.kcal} n={tr("kcal")} u="" /></> : <span className="col-span-3 self-center px-2 text-left text-[12.5px] leading-snug text-muted-foreground">{tr("Pour une portion à ta mesure (×{f} la recette de base).", { f: String(f).replace(".", EN() ? "." : ",") })}</span>}
       </div>
+      {glucManquants(r, b, c) > 0 && (
+        <p className="mt-2 rounded-xl bg-plate-soft px-3 py-2 text-[13px] leading-snug text-plate-ink dark:text-plate">
+          {tr("Journée d'endurance : ajoute environ {g} g de glucides à ce repas, par exemple un bol de riz, deux tranches de pain ou une banane.", { g: glucManquants(r, b, c) })}
+        </p>
+      )}
       {protManquantes(r, b, c) > 0 && (
         <p className="mt-2 rounded-xl bg-plate-soft px-3 py-2 text-[13px] leading-snug text-plate-ink dark:text-plate">
           {tr("Pour tenir ton objectif à ce repas, ajoute environ {g} g de protéines : un skyr, deux œufs ou un verre de lait.", { g: protManquantes(r, b, c) })}
@@ -369,7 +374,7 @@ function Fiche({ r, b, c, kcal, pers0 }: { r: Recette; b: Besoins; c?: CreneauRe
         {r.ing.map(([id, g]) => (
           <li key={id} className="flex items-baseline justify-between gap-3 border-t border-border/60 px-4 py-2.5 text-[14.5px] first:border-t-0">
             <span><span aria-hidden className="mr-2">{emojiDe(id)}</span>{nomAliment(id)}</span>
-            <span className="num shrink-0 font-semibold">{quantite(id, g * (f + pers - 1))}</span>
+            <span className="num shrink-0 font-semibold">{quantite(id, g * (f + pers - 1))}{SEC.has(id) && <span className="font-sans text-[12px] font-normal text-muted-foreground"> {tr("(sec)")}</span>}</span>
           </li>
         ))}
       </ul>

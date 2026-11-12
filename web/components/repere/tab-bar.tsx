@@ -49,7 +49,7 @@ export function TabBar() {
       style={{ viewTransitionName: "onglets" }}
       className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[480px] px-3 pb-[max(env(safe-area-inset-bottom),10px)]"
     >
-      <div className="relative grid grid-cols-3 rounded-[22px] border border-border/70 bg-card/80 p-1.5 shadow-[0_8px_30px_-12px_rgba(0,0,0,.25)] backdrop-blur-xl backdrop-saturate-150">
+      <div className="relative grid grid-cols-3 rounded-[22px] border border-border/70 bg-card/92 p-1.5 dark:bg-card/88 shadow-[0_8px_30px_-12px_rgba(0,0,0,.25)] backdrop-blur-xl backdrop-saturate-150">
         {/* pastille de sélection : une seule, elle glisse d'un onglet à l'autre avec un léger rebond */}
         <span
           aria-hidden
@@ -70,7 +70,7 @@ export function TabBar() {
               onClick={(e) => toucher(e, href, actif)}
               aria-current={actif ? "page" : undefined}
               className={cn(
-                "relative flex flex-col items-center gap-1 rounded-2xl py-2 text-[10.5px] font-medium transition-colors",
+                "relative flex flex-col items-center gap-1 rounded-2xl py-2 text-[11.5px] font-medium transition-colors",
                 actif ? (href === "/repas" ? "theme-repas text-plate-ink" : "text-foreground") : "text-muted-foreground hover:text-foreground",
               )}
             >
