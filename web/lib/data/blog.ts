@@ -31,6 +31,46 @@ const recette = (id: string) => ({ couverture: imgRecette(id, "large")!, credit:
 /* Les articles écrits pour le blog (après les quatre guides d'origine). */
 const NOUVEAUX: Article[] = [
   {
+    slug: "marche-japonaise-methode",
+    type: "article",
+    categorie: "Course", date: "2026-11-15", couverture: "/img/grand/rubrique-run.avif",
+    titre: "Marche japonaise : la méthode 3 minutes vite, 3 minutes lent, ce qu'elle vaut vraiment",
+    description: "La marche japonaise (interval walking) cartonne sur les réseaux. D'où elle vient, ce que montre l'étude japonaise d'origine, comment la faire et à qui elle convient.",
+    intro: "Sur TikTok et Instagram, la « marche japonaise » est partout cet automne : 30 minutes de marche, en alternant 3 minutes vite et 3 minutes lentement. Pas de salle, pas de matériel, et des promesses parfois gonflées. Derrière la tendance, il y a pourtant une vraie méthode, étudiée au Japon depuis les années 2000. Voici ce qu'elle apporte vraiment, et comment l'intégrer à ta semaine.",
+    blocs: [
+      { h: "D'où vient la marche japonaise", p: ["Son vrai nom est l'« interval walking training » (marche par intervalles). Elle a été mise au point par le professeur Hiroshi Nose et son équipe de l'université de Shinshu, à Matsumoto, pour aider des personnes d'âge moyen et des seniors à progresser sans courir. Le principe tient en une phrase : 3 minutes de marche rapide, 3 minutes de marche tranquille, 5 fois de suite."] },
+      { h: "Ce que dit l'étude d'origine", p: ["En 2007, l'équipe de Shinshu a publié dans la revue Mayo Clinic Proceedings une étude sur environ 250 personnes de 63 ans en moyenne, réparties en trois groupes pendant 5 mois : pas d'entraînement, marche continue à allure modérée, ou marche par intervalles, au moins 4 jours par semaine.", "Le groupe « intervalles » a gagné nettement plus que le groupe « marche continue » : plus de force dans les cuisses (de l'ordre de 10 à 15 %), une meilleure capacité d'endurance (autour de 10 %) et une tension artérielle qui a davantage baissé. La marche continue, à volume comparable, n'a presque rien changé à ces mesures.", "Ce que l'étude ne dit pas : qu'elle fait « fondre » le ventre ou qu'elle remplace la musculation. Les participants étaient surtout des seniors peu entraînés. Chez quelqu'un qui court déjà ou fait du fractionné, l'effet sera bien plus modeste."] },
+      {
+        h: "Comment la faire",
+        tableau: [
+          { titre: "La séance type · 30 minutes", lignes: ["3 min de marche rapide : tu respires fort, tu peux dire quelques mots mais pas tenir une conversation", "3 min de marche tranquille : tu récupères, tu peux parler normalement", "À répéter 5 fois", "Ajoute 3 à 5 minutes de marche lente avant et après"] },
+          { titre: "La fréquence", lignes: ["Dans l'étude : au moins 4 jours par semaine", "Pour débuter : 2 ou 3 séances, puis augmente quand c'est facile", "L'hiver, elle se fait aussi sur un tapis de course : vitesse rapide ou inclinaison 5 à 8 % pour les phases vives"] },
+        ],
+      },
+      {
+        h: "Les erreurs qui la rendent inutile",
+        liste: [
+          "Marcher « un peu plus vite » : la phase rapide doit vraiment essouffler, sinon c'est une promenade.",
+          "Raccourcir les récupérations : 3 minutes tranquilles, c'est ce qui permet de repartir vite à chaque tour.",
+          "Allonger le pas pour aller plus vite : fais plutôt des pas plus rapides et balance les bras.",
+          "N'en faire qu'une fois de temps en temps : l'effet vient de la régularité, plusieurs fois par semaine.",
+        ],
+      },
+      {
+        h: "À qui elle convient",
+        liste: [
+          "Tu reprends le sport, tu as du poids à perdre ou des articulations fragiles : c'est un excellent point de départ, avant de courir.",
+          "Tu fais de la musculation : c'est un cardio doux qui ne fatigue presque pas les jambes, idéal les jours sans séance.",
+          "Tu cours déjà : utilise-la comme récupération active, pas comme entraînement principal.",
+          "Problème cardiaque, tension mal contrôlée ou douleurs à l'effort : demande l'avis de ton médecin avant de commencer.",
+        ],
+      },
+      { h: "Et la musculation dans tout ça ?", p: ["La marche par intervalles ne remplace pas le renforcement musculaire. L'Organisation mondiale de la santé recommande les deux : au moins 150 minutes d'activité d'endurance modérée par semaine, et du renforcement des grands muscles au moins 2 jours par semaine. Quatre séances de marche japonaise et deux séances de musculation, tu coches tout."] },
+    ],
+    cta: "Lance une marche japonaise guidée dans Oxa : Fractionné, 3 min d'effort, 3 min de récupération, 5 tours, avec un signal à chaque changement",
+    lien: "/entrainement/assistant/?type=cardio&format=fractionne&src=blog-marche-japonaise",
+  },
+  {
     slug: "winter-arc-programme-8-semaines",
     type: "article",
     categorie: "Muscu", date: "2026-11-08", couverture: imgExGrand("sq", 0),

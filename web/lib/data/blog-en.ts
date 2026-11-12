@@ -15,6 +15,43 @@ const found = PROGRAMMES_STREET.find((p) => p.niv === "debutant")!;
 const pull = FAMILLES_STREET.find((f) => f.k === "tirage")!.ex;
 
 export const BLOG_EN: Record<string, Texte> = {
+  "marche-japonaise-methode": {
+    slug: "japanese-walking-method",
+    titre: "Japanese walking: the 3 minutes fast, 3 minutes slow method, and what it's really worth",
+    description: "Japanese walking (interval walking training) is all over social media. Where it comes from, what the original Japanese study shows, how to do it and who it suits.",
+    intro: "On TikTok and Instagram, “Japanese walking” is everywhere this autumn: 30 minutes of walking, alternating 3 minutes fast and 3 minutes slow. No gym, no equipment, and some inflated promises. Behind the trend, though, there's a real method that has been studied in Japan since the 2000s. Here's what it actually does, and how to fit it into your week.",
+    blocs: [
+      { h: "Where Japanese walking comes from", p: ["Its real name is interval walking training. It was developed by Professor Hiroshi Nose and his team at Shinshu University in Matsumoto to help middle-aged and older people get fitter without running. The idea fits in one sentence: 3 minutes of brisk walking, 3 minutes of easy walking, 5 times in a row."] },
+      { h: "What the original study found", p: ["In 2007 the Shinshu team published a study in Mayo Clinic Proceedings on about 250 people with an average age of 63, split into three groups for 5 months: no training, continuous walking at a moderate pace, or interval walking, at least 4 days a week.", "The interval group gained clearly more than the continuous-walking group: more thigh strength (roughly 10 to 15%), better aerobic fitness (around 10%) and a bigger drop in blood pressure. Continuous walking, at a similar volume, barely moved those numbers.", "What the study doesn't say: that it melts belly fat or replaces strength training. The participants were mostly untrained older adults. If you already run or do intervals, the effect will be much smaller."] },
+      {
+        h: "How to do it",
+        tableau: [
+          { titre: "The standard session · 30 minutes", lignes: ["3 min brisk walking: you breathe hard and can say a few words, but not hold a conversation", "3 min easy walking: you recover and can talk normally", "Repeat 5 times", "Add 3 to 5 minutes of slow walking before and after"] },
+          { titre: "How often", lignes: ["In the study: at least 4 days a week", "To start: 2 or 3 sessions, then add more when it feels easy", "In winter it works on a treadmill too: fast speed or a 5 to 8% incline for the brisk phases"] },
+        ],
+      },
+      {
+        h: "Mistakes that make it pointless",
+        liste: [
+          "Walking “a bit faster”: the brisk phase should really get you breathing hard, otherwise it's just a stroll.",
+          "Cutting the recoveries short: 3 easy minutes is what lets you go fast again each round.",
+          "Taking longer strides to speed up: take quicker steps and swing your arms instead.",
+          "Only doing it now and then: the benefit comes from doing it several times a week.",
+        ],
+      },
+      {
+        h: "Who it suits",
+        liste: [
+          "You're getting back into exercise, have weight to lose or sensitive joints: it's a great starting point before running.",
+          "You lift weights: it's gentle cardio that barely tires your legs, ideal on rest days.",
+          "You already run: use it as active recovery, not as your main training.",
+          "Heart condition, poorly controlled blood pressure or pain during exercise: ask your doctor before you start.",
+        ],
+      },
+      { h: "What about strength training?", p: ["Interval walking doesn't replace strength training. The World Health Organization recommends both: at least 150 minutes of moderate aerobic activity a week, and muscle-strengthening work on at least 2 days a week. Four Japanese walking sessions and two strength sessions and you've ticked every box."] },
+    ],
+    cta: "Start a guided Japanese walk in Oxa: Intervals, 3 min effort, 3 min recovery, 5 rounds, with a signal at every change",
+  },
   "winter-arc-programme-8-semaines": {
     slug: "winter-arc-8-week-plan",
     titre: "Winter Arc: an 8-week plan to start January already in shape (without burning out)",
