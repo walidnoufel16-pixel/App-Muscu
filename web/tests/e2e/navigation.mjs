@@ -63,7 +63,7 @@ ok(true, "enregistrer une modification ramène à la séance");
 
 // fiche chargée à part
 ok(fiches === 0, "fiches.json pas chargé avant d'ouvrir une fiche");
-await pg.locator("button").filter({ hasText: /Développé couché/ }).first().click();
+{ const l = pg.locator("button[aria-expanded]").filter({ hasText: /Développé couché/ }).first(); if ((await l.getAttribute("aria-expanded")) !== "true") await l.click(); } // l'exercice en cours s'ouvre tout seul
 await pg.getByRole("button", { name: "Fiche", exact: true }).click();
 await pg.getByText("Exécution").waitFor({ timeout: 5000 });
 ok(fiches === 1, "fiches.json chargé à l'ouverture de la fiche");
@@ -108,7 +108,7 @@ for (const [de, vers] of [["/seances/seance/?i=0", /\/entrainement\/seance\/\?l=
 await pg.goto(U + "/entrainement/seance/?l=0");
 await pg.waitForTimeout(1000);
 if (await pg.getByRole("button", { name: "Passer" }).isVisible().catch(() => false)) await pg.getByRole("button", { name: "Passer" }).click();
-await pg.locator('[id="ex-L|0|0"] button[aria-expanded]').first().click();
+{ const l = pg.locator('[id="ex-L|0|0"] button[aria-expanded]').first(); if ((await l.getAttribute("aria-expanded")) !== "true") await l.click(); }
 await pg.getByRole("button", { name: /^Valider la série/ }).first().click();
 await pg.waitForTimeout(300);
 await pg.getByRole("button", { name: "Ajouter un exercice" }).click();

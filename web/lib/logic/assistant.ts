@@ -63,7 +63,12 @@ const CASES: Record<string, string[][]> = {
    machine guidée quand le matériel le permet (un 5RM au goblet squat n'a pas de sens) */
 const FORCE: Record<string, string[]> = { qua: ["sq", "sqf", "pr", "hack", "smith"], isc: ["sdt", "trap", "rm", "ht", "sdts"], pec: ["dc", "dcsm", "chpm", "dci"], dos: ["tr", "trs", "tp", "tpsu"], epa: ["dm", "dmm", "dmsm"] };
 /* exercices au poids du corps exigeants : peu de répétitions, pas 12 */
-const DURS = new Set(["pv3", "dip", "dipt", "pompe", "roue", "nord", "rj", "mol1"]);
+const DURS = new Set(["pv3", "dip", "dipt", "pompe", "pompl", "pompk", "roue", "nord", "rj", "mol1"]);
+/* régulier et confirmé, tout objectif : le mouvement principal des jambes se charge vraiment (barre,
+   presse, machine guidée) quand le matériel le permet ; le goblet squat reste pour le débutant */
+const LOURD: Record<string, string[]> = { qua: ["sq", "sqf", "pr", "hack", "smith"], isc: ["rm", "sdt", "trap", "ht"] };
+/* débutant au poids du corps : la variante d'entrée (Oxa Street, Fondations) plutôt que la plus dure */
+const ENTREE: Record<string, string[]> = { pec: ["pompi", "pomp"], qua: ["splsq", "fepc", "sqpc"] };
 const JAMAIS = new Set(["pp", "elf", "elfp", "mclimb", "kbtgu", "kbwm", "trpush", "trpull", "kbsw", "kbthr", "abd"]);
 const genere = (o: string) => !!EX[o] && !EX[o].horsIA && !EX[o].soin && !JAMAIS.has(o) && EX[o].ch !== "dist";
 
@@ -83,7 +88,9 @@ function prescrire(id: string, role: Role, obj: number, niveau: number | undefin
   if (debut && role !== "isolation") { r = Math.max(r, obj === 1 ? 8 : 10); p = role === "principal" ? tr("2 min") : tr("90 s"); }
   const s = role === "principal" ? (debut ? 3 : conf || obj === 1 ? 4 : 3) : debut ? 2 : 3;
   if (x.ch === "temps") r = obj === 1 ? 30 : 45;
-  else if (x.ch === "aucune") r = DURS.has(id) ? Math.min(Math.max(r, 6), 8) : Math.max(r, 12);
+  /* au poids du corps : peu de répétitions sur les exercices durs ; 8 à 10 pour un débutant (arrêter à
+     deux répétitions de l'échec), 12 et plus ensuite */
+  else if (x.ch === "aucune") r = DURS.has(id) ? Math.min(Math.max(r, 6), 8) : debut ? 10 : Math.max(r, 12);
   /* tractions, dips (au poids du corps, lestés pour un confirmé) : peu de répétitions avant de savoir faire */
   else if (x.ch === "lest") r = debut ? 5 : conf && !DURS.has(id) ? r : Math.min(r, 8);
   if (dense && role === "isolation") p = tr("45 s");
@@ -112,6 +119,12 @@ export function construireSeance(muscles: string[], duree: number, obj: number, 
     const ids = CASES[k] ? CASES[k][c] || [] : Object.keys(EX).filter((x) => MUSC.find((g) => g.k === k)?.pats.includes(EX[x].pat));
     let l = ids.filter((x) => genere(x) && exoFiltre(x, sel) && !pris.has(x));
     if (c === 0 && obj === 1 && niveau != null && niveau >= 2 && FORCE[k]) { const f = l.filter((x) => FORCE[k].includes(x)); if (f.length) l = f; }
+    else if (c === 0 && niveau != null && niveau >= 2 && LOURD[k]) { const f = l.filter((x) => LOURD[k].includes(x)); if (f.length) l = f; }
+    if (niveau != null && niveau <= 1) {
+      const facile = l.filter((x) => !DURS.has(x));
+      if (facile.length) l = facile;
+      if (c === 0 && ENTREE[k]) { const e = l.filter((x) => ENTREE[k].includes(x)); if (e.length && l.every((x) => EX[x].ch === "aucune")) l = e; }
+    }
     const surs = l.filter((x) => !evite(x));
     return surs.length ? surs : l;
   };
@@ -123,7 +136,9 @@ export function construireSeance(muscles: string[], duree: number, obj: number, 
     const ok = (x: string) => exoFiltre(x, sel) && !pris.has(x) && !EX[x].soin && !JAMAIS.has(x) && EX[x].ch !== "dist" && (x !== "pv3" || (niveau != null && niveau >= 3));
     const l = Object.keys(EX).filter((x) => pats.includes(EX[x].pat) && ok(x)), l2 = l.length ? l : Object.keys(EX).filter((x) => pats.includes(EX[x].pat2 || "") && ok(x));
     const surs = l2.filter((x) => !evite(x));
-    return surs.length ? surs : l2;
+    const res2 = surs.length ? surs : l2;
+    /* débutant : pas d'exercice dur en secours (les épaules travaillent déjà sur les pompes) */
+    return niveau != null && niveau <= 1 ? res2.filter((x) => !DURS.has(x)) : res2;
   };
   /* parmi les candidats : un exercice déjà fait (une base stable), sinon un qui se charge, sinon un autre */
   const choisir = (l: string[]) => {
@@ -155,12 +170,20 @@ export function construireSeance(muscles: string[], duree: number, obj: number, 
   for (const g of ordre) { let ok = false; for (let c = 0; c < (CASES[g.k]?.length || 1) && !ok; c++) ok = ajouter(g, c); if (!ok) ajouter(g, -1); }
   /* haut du corps ou full body (régulier et confirmé) : deux tirages (vertical et horizontal) avant une
      deuxième poussée, pour l'équilibre des épaules ; la durée se règle ensuite sur le nombre de séries */
-  const dos = G.find((g) => g.k === "dos");
-  if (dos && G.some((g) => g.k === "pec") && niveau != null && niveau >= 2 && res.filter((e) => e.k === "dos").length === 1) ajouter(dos, 1);
-  /* trop long : 2 séries sur l'isolation et le tronc, puis partout sauf le principal, puis partout */
-  for (const garde of [(e: (typeof res)[number]) => e.role === "principal" || e.role === "accessoire", (e: (typeof res)[number]) => e.role === "principal", () => false])
-    /* en partant de la fin : les petits muscles et l'isolation d'abord, le mouvement principal en dernier */
+  /* trop long : 2 séries sur l'isolation et le tronc, puis partout sauf le principal, puis sur le principal
+     des petits muscles ; celui des grands muscles (pecs, dos, jambes) en tout dernier recours */
+  type E = (typeof res)[number];
+  const GRANDS = ["pec", "dos", "qua", "isc"];
+  for (const garde of [(e: E) => e.role === "principal" || e.role === "accessoire", (e: E) => e.role === "principal", (e: E) => e.role === "principal" && GRANDS.includes(e.k), () => false])
+    /* en partant de la fin : les petits muscles et l'isolation d'abord */
     for (const e of [...res].reverse()) if (!tient() && !garde(e) && e.s > 2) e.s = 2;
+  /* le second tirage ne vient qu'ensuite, et seulement s'il reste du temps : il ne prend plus de
+     séries au développé */
+  const dos = G.find((g) => g.k === "dos");
+  if (dos && G.some((g) => g.k === "pec") && niveau != null && niveau >= 2 && res.filter((e) => e.k === "dos").length === 1 && ajouter(dos, 1) && !tient()) {
+    const t = res[res.length - 1]; t.s = 2;
+    if (!tient()) { pris.delete(t.id); res.pop(); }
+  }
   /* 2. les cases suivantes, tour par tour (grands muscles d'abord), tant que la durée le permet */
   for (let c = 1; c < 3; c++)
     for (const g of ordre) {
@@ -170,8 +193,10 @@ export function construireSeance(muscles: string[], duree: number, obj: number, 
     }
   /* 3. du temps en trop : une série de plus aux mouvements principaux, puis aux accessoires (5 au plus,
      3 pour un débutant : ACSM, 1 à 3 séries) */
+  /* un accessoire ne dépasse jamais le principal du même muscle */
+  const plafond = (e: E) => Math.min(niveau != null && niveau <= 1 ? 3 : 5, e.role === "accessoire" ? (res.find((p) => p.k === e.k && p.role === "principal")?.s ?? 5) : 5);
   for (const role of ["principal", "accessoire"] as Role[])
-    for (const e of res) if (e.role === role && e.s < (niveau != null && niveau <= 1 ? 3 : 5)) { e.s++; if (!tient()) e.s--; }
+    for (const e of res) if (e.role === role && e.s < plafond(e)) { e.s++; if (!tient()) e.s--; }
   const rang = (e: (typeof res)[number]) => (e.role === "tronc" ? 3 : e.role === "principal" ? 0 : e.role === "accessoire" ? 1 : 2);
   return res.map((e, i) => ({ e, i })).sort((a, b) => rang(a.e) - rang(b.e) || a.i - b.i).map(({ e }) => ({ id: e.id, s: e.s, r: e.r, p: e.p, ro: RO[e.role] }));
 }

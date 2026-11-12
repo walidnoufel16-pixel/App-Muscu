@@ -21,7 +21,7 @@ import { musclesRecommandes, type Proposition } from "@/lib/logic/recommandation
 import { seancePour } from "@/lib/logic/generer-seance";
 import { dureeEstimee } from "@/lib/logic/assistant";
 import { avecSalle, selDeclare } from "@/lib/logic/core";
-import { useBrouillon } from "@/lib/brouillon";
+import { preparerApercu, useBrouillon } from "@/lib/brouillon";
 import { useProgrammeActif } from "@/lib/fonctionnalites";
 import { recoPour } from "@/lib/logic/agenda";
 import { useRepere } from "@/lib/store";
@@ -196,12 +196,13 @@ export function CarteDuJour({ auj, setF }: { auj: string; setF: (f: Feuille) => 
   /* aucune séance jamais faite : un seul chemin guidé vers la première (full body conseillé, déjà
      coché dans l'assistant). La carte disparaît dès la première séance validée. */
   if (!(etat.HIST || []).length) {
-    const m = musclesRecommandes(recoPour(etat, auj)) ?? [];
+    const r0 = recoPour(etat, auj), q0 = r0.propositions[0] ?? r0.autres?.[0] ?? r0.demain;
+    const m = musclesRecommandes(r0) ?? [];
     return (
       <>
         <Hero ph={photo("Barbell_Deadlift_0")} tag={<><SparkleIcon className="size-3.5" weight="fill" />{tr("Pour commencer")}</>} titre={tr("Ta première séance")}
           sous={tr("Conseillée par Oxa selon ta récupération, avec ton matériel.")}
-          principal={{ label: tr("Créer ma première séance"), onClick: () => router.push(`/entrainement/assistant${m.length ? `?m=${m.join(",")}` : ""}` as Route, AVANT) }} />
+          principal={{ label: tr("Voir ma première séance"), onClick: () => router.push((preparerApercu(etat, m, q0?.nom ?? tr("Ta première séance"), auj) ? "/entrainement/composer" : `/entrainement/assistant${m.length ? `?m=${m.join(",")}` : ""}`) as Route, AVANT) }} />
         {/* questionnaire d'accueil passé : on peut y revenir tant qu'il n'est pas terminé */}
         {!etat.A.accueil && (
           <button onClick={() => { tactile(6); useAccueil.setState({ ouvert: true }); }}

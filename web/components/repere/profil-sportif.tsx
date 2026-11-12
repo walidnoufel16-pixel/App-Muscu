@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { CalendarDotsIcon, CaretRightIcon, CrosshairIcon, GaugeIcon, GenderIntersexIcon, MinusIcon, PersonSimpleRunIcon, PlusIcon, RulerIcon, CakeIcon, StarIcon, GearSixIcon } from "@phosphor-icons/react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
-import { SPORTS } from "@/lib/data/referentiels";
+import { BLESN, SPORTS } from "@/lib/data/referentiels";
 import { groupes } from "@/lib/logic/core";
 import { jourDe } from "@/lib/logic/historique";
 import { poidsDe } from "@/lib/logic/nutrition";
@@ -97,7 +97,7 @@ function Compteur({ label, v, unite, pas, min, max, onChange }: { label: string;
 }
 
 /* ---------------- Profil › Mon profil sportif ---------------- */
-export type Ligne = "sexe" | "age" | "corps" | "objectif" | "niveau" | "rythme" | "prio" | "sport";
+export type Ligne = "sexe" | "age" | "corps" | "objectif" | "niveau" | "rythme" | "gene" | "prio" | "sport";
 type LigneProfil = { k: Ligne; icone: React.ReactNode; fond: string; n: string; v: string | null };
 
 function GroupeLignes({ l, ouvrir }: { l: LigneProfil[]; ouvrir: (k: Ligne) => void }) {
@@ -204,6 +204,13 @@ export function EditeurProfil({ k }: { k: Ligne }) {
               <div className="mt-4 px-1 text-[13px] font-bold">{tr("Durée d'une séance")}</div>
               <Pastilles l={DUREES_H.map((v) => ({ v, n: tr("{n} min", { n: v }) }))} actif={(v) => ((A.duree as number) ?? 45) === v} onToggle={(v) => maj((a) => { a.duree = v; })} />
             </>}
+            {k === "gene" && <>
+              <DrawerTitle className="mt-2 px-1 text-[22px] font-extrabold">{tr("Une zone à ménager ?")}</DrawerTitle>
+              <DrawerDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">{tr("Une gêne ou une ancienne blessure : Oxa évite les mouvements qui la chargent. Une vraie douleur se montre à un médecin.")}</DrawerDescription>
+              <Pastilles l={[{ v: -1, n: tr("Rien") }, ...BLESN.slice(0, 4).map((z, i) => ({ v: i, n: majuscule(tr(z)) }))]}
+                actif={(v) => (v === -1 ? !!A.blessure && !(A.blessure || []).length : (A.blessure || []).includes(v))}
+                onToggle={(v) => maj((a) => { if (v === -1) { a.blessure = []; return; } const l = (a.blessure || []).filter((i) => i < 4); a.blessure = l.includes(v) ? l.filter((i) => i !== v) : [...l, v].sort(); })} />
+            </>}
             {k === "prio" && <>
               <DrawerTitle className="mt-2 px-1 text-[22px] font-extrabold">{tr("Muscles prioritaires")}</DrawerTitle>
               <DrawerDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">{tr("Deux au maximum, sinon plus rien n'est prioritaire.")}</DrawerDescription>
@@ -212,7 +219,7 @@ export function EditeurProfil({ k }: { k: Ligne }) {
             </>}
             {k === "sport" && <>
               <DrawerTitle className="mt-2 px-1 text-[22px] font-extrabold">{tr("Autres sports")}</DrawerTitle>
-              <DrawerDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">{tr("Trois au maximum. Ce qu'ils coûtent à ton corps (jambes, souffle, épaules) allège le volume concerné.")}</DrawerDescription>
+              <DrawerDescription className="mt-0.5 px-1 text-[13.5px] text-muted-foreground">{tr("Trois au maximum. Ils comptent dans tes besoins en énergie et dans Oxa Plan, qui allège le volume concerné.")}</DrawerDescription>
               <Pastilles l={[{ v: 0, n: tr("Aucun") }, ...SPORTS.map((s, i) => ({ v: i, n: s.n })).slice(1)]} actif={(v) => (v === 0 ? !!A.sport && !sports.length : sports.includes(v))}
                 onToggle={(v) => maj((a) => { if (v === 0) { a.sport = [0]; return; } const l = (a.sport || []).filter((i) => i > 0); a.sport = l.includes(v) ? (l.length > 1 ? l.filter((i) => i !== v) : [0]) : [...l, v].slice(-3); })} />
             </>}

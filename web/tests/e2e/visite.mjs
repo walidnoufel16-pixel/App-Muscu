@@ -42,15 +42,15 @@ async function bulles(pg, prefixe) {
   const dlg = pg.getByRole("dialog");
   await dlg.getByText("Commencer · 1 min").waitFor({ timeout: 8000 });
   ok(await dlg.getByText("Bienvenue sur Oxa, Walid").count() === 1 && await dlg.getByText("Tes dernières 48 h").count() === 1, "accueil : bienvenue, 3 étapes");
-  ok(await pg.getByText("Créer ma première séance").count() === 0 && await pg.getByText("Repas", { exact: true }).count() === 0, "l'app n'est pas visible derrière le questionnaire");
+  ok(await pg.getByText("Voir ma première séance").count() === 0 && await pg.getByText("Repas", { exact: true }).count() === 0, "l'app n'est pas visible derrière le questionnaire");
   await cap(pg, "sans-bienvenue");
   await dlg.getByText("Commencer · 1 min").click();
   const suivant = () => dlg.getByRole("button", { name: "Suivant" }).click();
-  await dlg.getByText("1 / 9 · Profil sportif").waitFor();
+  await dlg.getByText("1 / 10 · Profil sportif").waitFor();
   await dlg.getByRole("button", { name: "Homme" }).click(); await suivant();
-  await dlg.getByText("2 / 9 · Profil sportif").waitFor(); await suivant();
-  await dlg.getByText("3 / 9 · Profil sportif").waitFor(); await suivant();
-  await dlg.getByText("4 / 9 · Profil sportif").waitFor();
+  await dlg.getByText("2 / 10 · Profil sportif").waitFor(); await suivant();
+  await dlg.getByText("3 / 10 · Profil sportif").waitFor(); await suivant();
+  await dlg.getByText("4 / 10 · Profil sportif").waitFor();
   ok(await dlg.getByRole("button", { name: "Suivant" }).isDisabled(), "objectif obligatoire");
   await dlg.getByRole("button", { name: /Prendre du muscle/ }).click();
   await cap(pg, "sans-objectif");
@@ -58,6 +58,7 @@ async function bulles(pg, prefixe) {
   await dlg.getByRole("button", { name: /^Régulier/ }).click(); await suivant();
   await dlg.getByRole("button", { name: "3", exact: true }).click(); await suivant();
   await dlg.getByText("Ton matériel").waitFor(); await cap(pg, "sans-materiel"); await suivant();
+  await dlg.getByText("Une zone à ménager ?").waitFor(); await suivant(); // zone à ménager (audit du 12/11)
   await suivant(); // muscles prioritaires
   await suivant(); // autres sports
   await dlg.getByText("Tu t'es entraîné ces dernières 48 h ?").waitFor();
@@ -81,8 +82,9 @@ async function bulles(pg, prefixe) {
   ok(e.A.objectif === 0 && e.A.regularite === 2 && e.A.objHebdo === 3 && e.A.sexe === 0 && e.A.profil?.["Âge"] == null && !(e.A.poids || []).length && e.A.accueil && e.A.miseEnRoute, "profil enregistré, rien d'inventé (âge, pesée)");
   ok(e.A.avant?.m?.join() === "pec,tri" && !e.HIST.length, "48 h : muscles déclarés, aucune fausse séance");
   await dlg.getByRole("button", { name: "Voir la séance" }).click();
-  await pg.waitForURL(/assistant\/?\?m=/);
-  ok(!/pec|tri/.test(pg.url().split("m=")[1]) && await pg.getByText("3 questions pour des séances à ta mesure").count() === 0, "Voir la séance → assistant, sans les 3 questions");
+  await pg.waitForURL(/\/entrainement\/composer/);
+  await pg.getByRole("button", { name: "Commencer", exact: true }).waitFor();
+  ok(await pg.getByText("3 questions pour des séances à ta mesure").count() === 0, "Voir la séance → aperçu de la séance conseillée, sans les 3 questions");
   await ctx.close();
 }
 

@@ -56,7 +56,7 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
   /* rouverte : vierge, « Précédent » rempli */
   await pg.goto(U + "/entrainement/seance?l=0");
   await pg.locator('[data-ex="dmh"]').first().waitFor({ timeout: 8000 });
-  await pg.locator('[data-ex="dmh"] button[aria-expanded]').first().click().catch(() => {});
+  { const l = pg.locator('[data-ex="dmh"] button[aria-expanded]').first(); if ((await l.getAttribute("aria-expanded")) !== "true") await l.click().catch(() => {}); }
   await pg.getByRole("button", { name: "Valider la série 1" }).first().waitFor();
   ok(await pg.getByRole("button", { name: /^Décocher la série/ }).count() === 0, "séance rouverte : aucune case cochée");
   const prec = await pg.locator('[data-ex="dmh"]').innerText();
@@ -70,7 +70,7 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
   const [ctx, pg] = await contexte(etat([PUSH]));
   await pg.goto(U + "/entrainement/seance?l=0");
   await pg.locator('[data-ex="dmh"]').first().waitFor({ timeout: 8000 });
-  await pg.locator('[data-ex="dmh"] button[aria-expanded]').first().click().catch(() => {});
+  { const l = pg.locator('[data-ex="dmh"] button[aria-expanded]').first(); if ((await l.getAttribute("aria-expanded")) !== "true") await l.click().catch(() => {}); }
   await pg.getByRole("button", { name: "Valider la série 1" }).first().click();
   const carte = pg.getByRole("region", { name: "Ajouter à mon suivi" });
   await carte.waitFor();
@@ -92,7 +92,7 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
   const [ctx, pg] = await contexte(etat([PUSH]), "en");
   await pg.goto(U + "/entrainement/seance?l=0");
   await pg.locator('[data-ex="dmh"]').first().waitFor({ timeout: 8000 });
-  await pg.locator('[data-ex="dmh"] button[aria-expanded]').first().click().catch(() => {});
+  { const l = pg.locator('[data-ex="dmh"] button[aria-expanded]').first(); if ((await l.getAttribute("aria-expanded")) !== "true") await l.click().catch(() => {}); }
   await pg.getByRole("button", { name: /^Complete set 1|^Validate set 1|set 1/ }).first().click();
   const carte = pg.getByRole("region", { name: "Add to my log" });
   await carte.waitFor({ timeout: 8000 });
