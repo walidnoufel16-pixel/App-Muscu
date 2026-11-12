@@ -174,7 +174,8 @@ export type Recommandation = {
 };
 /** Rythme déclaré (Profil, séances par semaine) et jours d'entraînement (muscu, course, cardio,
     séances déjà programmées), le jour même exclu. */
-export type Rythme = { hebdo?: number; jours?: string[] };
+/* futur : le jour regardé est après aujourd'hui (agenda) ; les séances qui le précèdent peuvent n'être que prévues */
+export type Rythme = { hebdo?: number; jours?: string[]; futur?: boolean };
 
 /* Repos imposé par le rythme : séances de la semaine (lundi → dimanche, comme les anneaux) déjà
    faites ; à 3 séances par semaine ou moins, jamais deux jours d'affilée ; à 4, jamais trois. */
@@ -183,10 +184,12 @@ function pauseDe(auj: string, o: Rythme, niveau?: number): string | undefined {
      48 h entre deux séances sur les mêmes muscles, et un débutant fait du full body) */
   const debut = niveau != null && niveau <= 1, h = Math.min(o.hebdo ?? 3, debut ? 4 : 7), J = new Set((o.jours || []).filter((j) => j < auj));
   const lundi = lundiDe(auj), n = [...J].filter((j) => j >= lundi).length;
-  if (n >= h) return tp(h, "Ta séance de muscu de la semaine est faite : récupère.", "Tes {n} séances de muscu de la semaine sont faites : récupère.");
+  if (n >= h) return o.futur
+    ? tp(h, "Ta séance de muscu de la semaine est déjà faite ou prévue : ce jour-là, récupère.", "Tes {n} séances de muscu de la semaine sont déjà faites ou prévues : ce jour-là, récupère.")
+    : tp(h, "Ta séance de muscu de la semaine est faite : récupère.", "Tes {n} séances de muscu de la semaine sont faites : récupère.");
   const hier = J.has(decaler(auj, -1)), avant = J.has(decaler(auj, -2));
-  if (debut && hier && h > 3) return tr("Entraîné hier : pour débuter, un jour de repos entre deux full body.");
-  if (h <= 3 && hier) return tr("Entraîné hier : à {n} séances par semaine, un jour de repos entre deux séances.", { n: h });
+  if (debut && hier && h > 3) return o.futur ? tr("Séance la veille : pour débuter, un jour de repos entre deux full body.") : tr("Entraîné hier : pour débuter, un jour de repos entre deux full body.");
+  if (h <= 3 && hier) return o.futur ? tr("Séance la veille : à {n} séances par semaine, un jour de repos entre deux séances.", { n: h }) : tr("Entraîné hier : à {n} séances par semaine, un jour de repos entre deux séances.", { n: h });
   if (h === 4 && hier && avant) return tr("Deux jours d'affilée : un jour de repos avant la suivante.");
 }
 
