@@ -341,7 +341,7 @@ RESPECT DU PROFIL :
 
 LA SYNTHÈSE :
 Tu n'as AUCUN historique d'entraînement, seulement les déclarations de la personne. N'invente jamais de chiffre sur son passé : ni séries actuelles, ni durée de plateau, ni progrès constatés.
-"choix" contient TROIS décisions structurantes prises pour CE profil, chacune avec sa raison, en citant ses réponses. Deuxième personne, présent, sans jargon. Chaque texte fait 2 à 3 phrases maximum.
+"choix" contient TROIS décisions structurantes prises pour CE profil, chacune avec sa raison, en citant ses réponses, mais sans jamais écrire son âge, sa taille, son poids ni ses charges (ces textes sont partagés entre profils identiques). Deuxième personne, présent, sans jargon. Chaque texte fait 2 à 3 phrases maximum.
 
 Ta réponse commence par une accolade ouvrante et se termine par une accolade fermante. Aucune phrase avant ni après, aucune balise de code.
 Clés : t=titre, i=intro, c=choix, x=texte, f=focus, ex=exercices, id, s=séries, r=répétitions, p=repos, o=rôle.
@@ -377,6 +377,18 @@ async function utilisateur(req: Request): Promise<string | null> {
     return typeof u?.id === "string" ? u.id : null;
   } catch { return null; }
 }
+const SB_ANON = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+/* programme_autorise() s'exécute avec le jeton de l'utilisateur : auth.uid() est le sien. */
+async function programmeAutorise(req: Request): Promise<boolean> {
+  if (!SB_URL || !SB_ANON) return false;
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/programme_autorise`, {
+      method: "POST", body: "{}",
+      headers: { apikey: SB_ANON, Authorization: req.headers.get("Authorization") ?? "", "Content-Type": "application/json" },
+    });
+    return r.ok && (await r.json()) === true;
+  } catch { return false; }
+}
 async function consommerQuota(uid: string): Promise<boolean> {
   const r = await fetch(`${SB_URL}/rest/v1/rpc/consommer_quota`, {
     method: "POST", headers: enTetes,
@@ -400,7 +412,7 @@ async function empreinte(texte: string) {
   return [...new Uint8Array(h)].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 40);
 }
 
-const VERSION_BIBLIOTHEQUE = 6;   // 2 : bibliothèque complète (100 exercices) · 3 : 133 exercices · 4 : 231 exercices · 5 : préférences de matériel imposées · 6 : Oxa Plan v2 (programmes types, volume corrigé)
+const VERSION_BIBLIOTHEQUE = 7;   // 7 : plus aucun chiffre personnel (âge, poids, charges) dans les textes mis en cache · 2 : bibliothèque complète (100 exercices) · 3 : 133 exercices · 4 : 231 exercices · 5 : préférences de matériel imposées · 6 : Oxa Plan v2 (programmes types, volume corrigé)
 
 /* Seules les réponses qui changent réellement le programme entrent dans la signature. */
 async function signature(A: any) {
@@ -486,6 +498,43 @@ function profil(A: any) {
   return p.join("\n");
 }
 
+/* Les textes du plan sont mis en cache et resservis à d'autres profils identiques :
+   aucun âge, taille, poids ni charge ne doit y rester (données proches de la santé). */
+const CHIFFRE_PERSO = /\b\d+(?:[.,]\d+)?\s*(?:kg|kilos?|ans|years?(?:\s+old)?|cm|lbs?)\b/gi;
+function sansChiffresPerso(t: unknown): string {
+  return typeof t === "string" ? t.replace(CHIFFRE_PERSO, "").replace(/\s{2,}/g, " ").replace(/\s+([,.;:])/g, "$1").trim() : (t as string);
+}
+
+/* Entrées : seules les valeurs que l'app envoie réellement passent, avec une taille bornée.
+   Tout le reste est retiré avant de construire le prompt (et la signature du cache). */
+const GROUPES_OK = new Set(Object.keys(GRP2PAT));
+function nettoyer(A: any): any {
+  const ent = (v: unknown, max: number) => (Number.isInteger(v) && (v as number) >= 0 && (v as number) <= max ? v : undefined);
+  const groupes = (v: unknown) => (Array.isArray(v) ? v : []).filter((g) => typeof g === "string" && GROUPES_OK.has(g)).slice(0, 7);
+  const texte = (v: unknown, max: number) =>
+    typeof v === "string" ? v.replace(/[\u0000-\u001f<>{}`"\\]/g, " ").replace(/\s+/g, " ").trim().slice(0, max) || undefined : undefined;
+  const prefs: Record<string, number[]> = {};
+  if (A?.prefs && typeof A.prefs === "object")
+    for (const [g, v] of Object.entries(A.prefs))
+      if (GROUPES_OK.has(g) && Array.isArray(v)) prefs[g] = (v as unknown[]).filter((c) => Number.isInteger(c) && (c as number) in CATS) as number[];
+  const profilBrut = A?.profil && typeof A.profil === "object" ? A.profil : {};
+  const profil: Record<string, number> = {};
+  for (const k of ["Âge", "Taille", "Poids"]) if (typeof profilBrut[k] === "number" && Number.isFinite(profilBrut[k])) profil[k] = profilBrut[k];
+  const charges: Record<string, number> = {};
+  if (A?.charges && typeof A.charges === "object")
+    for (const [k, v] of Object.entries(A.charges)) if (CHARGES_CONNUES.has(k) && typeof v === "number") charges[k] = v;
+  return {
+    objectif: ent(A?.objectif, 3), regularite: ent(A?.regularite, 3), socle: ent(A?.socle, 2), axe: ent(A?.axe, 2),
+    materiel: ent(A?.materiel, 3), sexe: ent(A?.sexe, 2), sportFreq: ent(A?.sportFreq, 2),
+    acc: accDe(A),
+    blessure: (Array.isArray(A?.blessure) ? A.blessure : []).filter((i: unknown) => Number.isInteger(i) && BLESS[i as number]).slice(0, 4),
+    exclus: groupes(A?.exclus), prioNoms: groupes(A?.prioNoms), prefs, profil, charges,
+    sportNom: texte(A?.sportNom, 160), actuelNom: texte(A?.actuelNom, 40),
+    langue: A?.langue === "en" ? "en" : undefined,
+    forcer: A?.forcer === true || undefined, cacheSeul: A?.cacheSeul === true || undefined,
+  };
+}
+
 /* Garde-fou : tout ce qui sort de la bibliothèque ou des bornes est corrigé ici. */
 function valider(plan: any, A: any): any {
   const en = A.langue === "en";
@@ -539,7 +588,7 @@ function valider(plan: any, A: any): any {
     });
     if (x.length < 2) return null;      // une séance d'un seul exercice n'a pas de sens
     return { titre: coupe(s.t || s.titre || (en ? "Workout" : "Séance"), 40),
-             focus: coupe(s.f || s.focus, 120), exercices: x };
+             focus: sansChiffresPerso(coupe(s.f || s.focus, 120)), exercices: x };
   };
   /* Tolérance : mieux vaut un cycle légèrement incomplet que le repli sur les règles.
      On n'abandonne que s'il reste moins de deux séances exploitables.            */
@@ -561,7 +610,7 @@ function valider(plan: any, A: any): any {
   ];
   const c = (plan?.plan?.c || plan?.plan?.choix || []).slice(0, 3).map((x: any) => ({
     titre: coupe(x?.t || x?.titre, 90),
-    texte: coupe(x?.x || x?.texte, 420),
+    texte: sansChiffresPerso(coupe(x?.x || x?.texte, 420)),
   })).filter((x: any) => x.titre && x.texte);
   let k = 0;
   while (c.length < 3) c.push(DEF[k++]);
@@ -610,7 +659,7 @@ function valider(plan: any, A: any): any {
   return { ok: true,
     plan: {
       titre: coupe(plan?.plan?.t || plan?.plan?.titre || (en ? "Your plan" : "Ton plan"), 40),
-      intro: coupe(plan?.plan?.i || plan?.plan?.intro, 340),
+      intro: sansChiffresPerso(coupe(plan?.plan?.i || plan?.plan?.intro, 340)),
       choix: c,
     },
     seances, bonus: bonus ?? undefined,
@@ -628,10 +677,18 @@ Deno.serve(async (req) => {
   if (!uid) return rep({ erreur: "Connexion requise." }, 401);
 
   const cle = Deno.env.get("ANTHROPIC_API_KEY");
-  if (!cle) return rep({ erreur: "Le secret ANTHROPIC_API_KEY n'est pas défini dans le projet Supabase." }, 500);
+  if (!cle) { console.error("ANTHROPIC_API_KEY absente"); return rep({ erreur: "Génération momentanément indisponible." }, 500); }
+
+  /* Le programme sur 8 semaines n'est ouvert qu'aux comptes autorisés : vérifié ici,
+     pas seulement dans l'app (sinon n'importe quel compte appellerait l'IA payante). */
+  if (!(await programmeAutorise(req))) return rep({ erreur: "Le programme n'est pas encore ouvert pour ce compte." }, 403);
 
   let A: any;
-  try { A = await req.json(); } catch { return rep({ erreur: "Requête illisible." }, 400); }
+  try {
+    const brut = await req.text();
+    if (brut.length > 8000) return rep({ erreur: "Requête trop longue." }, 413);
+    A = nettoyer(JSON.parse(brut));
+  } catch { return rep({ erreur: "Requête illisible." }, 400); }
 
   /* Un profil déjà rencontré est renvoyé instantanément, sans appel payant. */
   const t0 = Date.now();
@@ -661,9 +718,13 @@ Deno.serve(async (req) => {
     if (!(await consommerQuota(uid)))
       return rep({ erreur: A.langue === "en" ? `Limit of ${QUOTA_USER} generations per day reached, try again tomorrow.` : `Limite de ${QUOTA_USER} générations par jour atteinte, réessaie demain.` }, 429);
   } catch (e) {
-    return rep({ erreur: "Génération momentanément indisponible : " + (e as Error).message }, 503);
+    console.error("quota", e);
+    return rep({ erreur: "Génération momentanément indisponible." }, 503);
   }
 
+  /* Le quota n'est rendu que si AUCUN appel n'a été facturé par Anthropic : une réponse
+     reçue, même inutilisable, a coûté. Sinon un appelant pourrait boucler gratuitement. */
+  let facture = false;
   try {
     const MODELE = "claude-haiku-4-5-20251001";
     /* La réflexion interne est active par défaut sur ce modèle : elle consommait
@@ -701,7 +762,7 @@ Deno.serve(async (req) => {
       const t1 = Date.now();
       try {
         const essai = await appel(am, refl, plaf);
-        if (essai.ok) { r = essai; amorce = am; journal.push(`${nom} : ok en ${Date.now() - t1} ms`); break; }
+        if (essai.ok) { r = essai; amorce = am; facture = true; journal.push(`${nom} : ok en ${Date.now() - t1} ms`); break; }
         journal.push(`${nom} : ${essai.status} — ${(await essai.text()).slice(0, 160)}`);
       } catch (e) {
         journal.push(`${nom} : interrompu après ${Date.now() - t1} ms (${(e as Error).name})`);
@@ -710,8 +771,8 @@ Deno.serve(async (req) => {
     if (!r) {
       await rendreQuota(uid);
       const cleRefusee = journal.some((l) => l.includes(": 401 "));
-      return rep({ erreur: cleRefusee ? "Clé API Anthropic invalide ou expirée : génération momentanément indisponible."
-                                      : "Anthropic n'a pas répondu.", diagnostic: { modele: MODELE, tentatives: journal } }, 502);
+      console.error("Anthropic", journal);
+      return rep({ erreur: cleRefusee ? "Génération momentanément indisponible." : "Le service de génération n'a pas répondu." }, 502);
     }
     const d = await r.json();
     const blocs = Array.isArray(d.content) ? d.content : [];
@@ -721,34 +782,29 @@ Deno.serve(async (req) => {
 
     const i = txt.indexOf("{"), j = txt.lastIndexOf("}");
     if (i < 0 || j <= i) {
-      await rendreQuota(uid);
-      return rep({ erreur: "Aucun JSON dans la réponse du modèle.", diagnostic: {
-        modele: d.model ?? null, amorcage: amorce, reflexion: (d.usage?.output_tokens_details?.thinking_tokens ?? 0), stop_reason: d.stop_reason ?? null, blocs: blocs.map((b: any) => b?.type),
-        longueur: txt.length, debut: txt.slice(0, 400), fin: txt.slice(-200), usage: d.usage ?? null } }, 502);
+      console.error("sans JSON", { modele: d.model, stop: d.stop_reason, debut: txt.slice(0, 400), usage: d.usage });
+      return rep({ erreur: "Aucun JSON dans la réponse du modèle.", diagnostic: { stop_reason: d.stop_reason ?? null } }, 502);
     }
     let obj: any;
     try { obj = JSON.parse(txt.slice(i, j + 1)); }
     catch (err) {
-      await rendreQuota(uid);
-      return rep({ erreur: "JSON invalide, réponse probablement tronquée.", diagnostic: {
-        stop_reason: d.stop_reason ?? null, detail: String(err).slice(0, 200),
-        reflexion: (d.usage?.output_tokens_details?.thinking_tokens ?? 0),
-        longueur: txt.length, fin: txt.slice(-300), usage: d.usage ?? null } }, 502);
+      console.error("JSON invalide", { detail: String(err).slice(0, 200), fin: txt.slice(-300), usage: d.usage });
+      return rep({ erreur: "JSON invalide, réponse probablement tronquée.", diagnostic: { stop_reason: d.stop_reason ?? null } }, 502);
     }
     const v = valider(obj, A);
     void journal;
     if (!v?.ok) {
-      await rendreQuota(uid);
       return rep({ erreur: "Programme refusé par la validation.", diagnostic: {
         raison: v?.echec ?? "inconnue", exercices_refuses: (v?.refus ?? []).slice(0, 12),
         cles_recues: Object.keys(obj || {}), stop_reason: d.stop_reason ?? null } }, 502);
     }
     const { ok: _ok, ...plan } = v;
     await ecrireCache(sigCache, plan);
-    return rep({ plan, usage: d.usage ?? null, cache: false, cache_dispo: cacheOK,
+    return rep({ plan, cache: false, cache_dispo: cacheOK,
                  ms: Date.now() - t0, tentatives: journal, signature: sig });
   } catch (e) {
-    await rendreQuota(uid);
-    return rep({ erreur: "Génération impossible : " + (e as Error).message }, 500);
+    if (!facture) await rendreQuota(uid);
+    console.error("génération", e);
+    return rep({ erreur: "Génération impossible." }, 500);
   }
 });

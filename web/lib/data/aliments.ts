@@ -4,6 +4,9 @@
    [id, nom, nom anglais, rayon, kcal, protéines, glucides, lipides, marques, unité?]
    Marques : a = d'origine animale (non vegan), v = viande, p = poisson ou fruits de mer,
    l = lait / lactose, g = gluten, o = œuf, c = fruits à coque, r = arachide,
+   s = soja, e = sésame, u = moutarde, y = céleri (les 14 allergènes du règlement INCO,
+   hors lupin, mollusques et sulfites, absents de la base). Les produits composés (pâte de
+   curry, bouillon) sont marqués par prudence d'après les compositions les plus courantes,
    h = porc (ni halal ni casher), k = fruits de mer (pas casher),
    b = de base (sel, huile, épices… : supposé dans tous les placards, jamais sur la liste).
    Unité : [nom, nom anglais, grammes] pour ce qui se compte (œufs, bananes, tranches…). */
@@ -32,9 +35,9 @@ const L: Ligne[] = [
   ["sardines", "Sardines à l'huile", "Sardines in oil", "prot", 210, 25, 0, 12, "ap", ["boîte", "can", 95]],
   ["oeuf", "Œufs", "Eggs", "prot", 140, 12.5, 0.7, 10, "ao", ["œuf", "egg", 50]],
   ["blanc_oeuf", "Blancs d'œufs", "Egg whites", "prot", 47, 10.5, 0.7, 0.2, "ao"],
-  ["tofu", "Tofu ferme", "Firm tofu", "prot", 130, 13, 2, 8, ""],
-  ["tempeh", "Tempeh", "Tempeh", "prot", 190, 19, 9, 10, ""],
-  ["tofu_fume", "Tofu fumé", "Smoked tofu", "prot", 150, 16, 2, 9, ""],
+  ["tofu", "Tofu ferme", "Firm tofu", "prot", 130, 13, 2, 8, "s"],
+  ["tempeh", "Tempeh", "Tempeh", "prot", 190, 19, 9, 10, "s"],
+  ["tofu_fume", "Tofu fumé", "Smoked tofu", "prot", 150, 16, 2, 9, "s"],
 
   /* produits laitiers et alternatives */
   ["skyr", "Skyr nature", "Plain skyr", "lait", 63, 11, 4, 0.2, "al"],
@@ -42,7 +45,7 @@ const L: Ligne[] = [
   ["yaourt_grec", "Yaourt grec", "Greek yogurt", "lait", 120, 6, 4, 9, "al"],
   ["yaourt", "Yaourt nature", "Plain yogurt", "lait", 61, 4.3, 5.5, 1.5, "al", ["pot", "pot", 125]],
   ["lait", "Lait demi-écrémé", "Semi-skimmed milk", "lait", 46, 3.3, 4.8, 1.6, "al"],
-  ["lait_soja", "Boisson au soja", "Soy drink", "lait", 40, 3.5, 1.5, 2, ""],
+  ["lait_soja", "Boisson au soja", "Soy drink", "lait", 40, 3.5, 1.5, 2, "s"],
   ["cottage", "Cottage cheese", "Cottage cheese", "lait", 98, 11, 3, 4.3, "al"],
   ["mozza", "Mozzarella", "Mozzarella", "lait", 240, 18, 1, 18, "al", ["boule", "ball", 125]],
   ["feta", "Feta", "Feta", "lait", 260, 14, 1, 21, "al"],
@@ -50,7 +53,7 @@ const L: Ligne[] = [
   ["parmesan", "Parmesan", "Parmesan", "lait", 400, 33, 0, 29, "al"],
   ["ricotta", "Ricotta", "Ricotta", "lait", 140, 10, 3, 10, "al"],
   ["whey", "Protéine en poudre (whey)", "Whey protein powder", "lait", 380, 78, 8, 5, "al", ["dose", "scoop", 30]],
-  ["proteine_vege", "Protéine végétale en poudre", "Plant protein powder", "lait", 370, 75, 6, 6, "", ["dose", "scoop", 30]],
+  ["proteine_vege", "Protéine végétale en poudre", "Plant protein powder", "lait", 370, 75, 6, 6, "s", ["dose", "scoop", 30]],
   ["beurre", "Beurre", "Butter", "lait", 740, 0.7, 0.7, 82, "al"],
   ["creme", "Crème fraîche légère", "Light crème fraîche", "lait", 160, 3, 4, 15, "al"],
 
@@ -122,18 +125,18 @@ const L: Ligne[] = [
   ["cacao", "Cacao non sucré", "Unsweetened cocoa", "epi", 380, 20, 15, 20, ""],
   ["lait_coco", "Lait de coco léger", "Light coconut milk", "epi", 120, 1, 2.5, 11, ""],
   ["passata", "Coulis de tomate", "Tomato passata", "epi", 30, 1.5, 5, 0.2, ""],
-  ["houmous", "Houmous", "Hummus", "epi", 300, 7.5, 13, 24, ""],
+  ["houmous", "Houmous", "Hummus", "epi", 300, 7.5, 13, 24, "e"],
   ["pesto", "Pesto", "Pesto", "epi", 450, 5, 6, 45, "alc"],
-  ["sauce_soja", "Sauce soja", "Soy sauce", "base", 60, 8, 6, 0, "bg"],
-  ["curry_pate", "Pâte de curry", "Curry paste", "epi", 120, 2, 12, 7, ""],
+  ["sauce_soja", "Sauce soja", "Soy sauce", "base", 60, 8, 6, 0, "bgs"],
+  ["curry_pate", "Pâte de curry", "Curry paste", "epi", 120, 2, 12, 7, "apk"],
 
   /* de base : supposé dans tous les placards */
   ["huile", "Huile d'olive", "Olive oil", "base", 900, 0, 0, 100, "b"],
   ["epices", "Épices (paprika, cumin, curry…)", "Spices (paprika, cumin, curry…)", "base", 300, 12, 40, 10, "b"],
   ["sel_poivre", "Sel et poivre", "Salt and pepper", "base", 0, 0, 0, 0, "b"],
-  ["moutarde", "Moutarde", "Mustard", "base", 150, 7, 5, 11, "b"],
+  ["moutarde", "Moutarde", "Mustard", "base", 150, 7, 5, 11, "bu"],
   ["vinaigre", "Vinaigre balsamique", "Balsamic vinegar", "base", 100, 0.5, 17, 0, "b"],
-  ["bouillon", "Bouillon cube", "Stock cube", "base", 250, 10, 20, 15, "b"],
+  ["bouillon", "Bouillon cube de légumes", "Vegetable stock cube", "base", 250, 10, 20, 15, "bgy"],
   ["cannelle", "Cannelle", "Cinnamon", "base", 250, 4, 50, 1.2, "b"],
   ["levure", "Levure chimique", "Baking powder", "base", 100, 0, 25, 0, "b"],
   ["vanille", "Vanille", "Vanilla", "base", 290, 0, 13, 0, "b"],

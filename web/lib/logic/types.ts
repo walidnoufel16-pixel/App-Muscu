@@ -113,7 +113,7 @@ export type Reponses = {
 };
 
 /* Partie Repas. Régime : 0 omnivore · 1 pescétarien · 2 végétarien · 3 vegan.
-   Allergies : marques des aliments (l lactose, g gluten, o œuf, c fruits à coque, r arachide, p poisson).
+   Allergies : marques des aliments (l lactose, g gluten, o œuf, c fruits à coque, r arachide, p poisson, s soja, e sésame, u moutarde, y céleri).
    Temps : 0 ≤ 15 min · 1 ≤ 30 min · 2 sans limite. */
 export type PrefsRepas = {
   fait?: boolean;

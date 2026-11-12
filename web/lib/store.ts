@@ -128,7 +128,8 @@ type Store = {
   pousser: () => Promise<void>;
   tirer: () => Promise<void>;
   setUser: (u: User | null) => void;
-  toutEffacer: () => Promise<void>;
+  /** false si le serveur n'a pas confirmé la suppression : rien n'est alors effacé ici. */
+  toutEffacer: () => Promise<boolean>;
   changerDeCompte: () => Promise<void>;
   partager: (i: number) => Promise<{ code?: string; erreur?: string; avertissement?: string }>;
   partagerCardio: (i: number) => Promise<{ code?: string; erreur?: string }>;
@@ -144,7 +145,7 @@ async function publier(nom: string, ex: unknown[]): Promise<{ code?: string; err
   const ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let err: string | undefined;
   for (let essai = 0; essai < 4; essai++) {
-    const x = Array.from({ length: 5 }, () => ALPHA[Math.floor(Math.random() * ALPHA.length)]).join("");
+    const x = Array.from(crypto.getRandomValues(new Uint32Array(5)), (n) => ALPHA[n % ALPHA.length]).join("");
     const { error } = await c.from("seances_partagees").insert({ code: x, nom: nom.slice(0, 60), auteur: u.id, ex });
     if (!error) return { code: x };
     err = error.message;
@@ -293,23 +294,30 @@ export const useRepere = create<Store>((set, get) => ({
   /* Tout effacer : ici comme sur le serveur, compte compris. */
   async toutEffacer() {
     const c = await sb(), u = get().user;
-    try {
-      if (c && u) {
-        await c.from("etats").delete().eq("user_id", u.id);
+    if (c && u) {
+      /* Le compte n'est déclaré effacé que si le serveur l'a confirmé : sinon l'utilisateur
+         croirait ses données supprimées alors qu'elles restent (droit à l'effacement). */
+      try {
+        await (await import("@/lib/rappels")).couperRappels().catch(() => {});
         const { data } = await c.auth.getSession();
-        if (data.session)
-          await fetch(SB_URL.replace(/\/$/, "") + "/functions/v1/oublier", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: "Bearer " + data.session.access_token, apikey: SB_KEY },
-            body: "{}",
-          });
-        await c.auth.signOut();
-      }
+        if (!data.session) return false;
+        const r = await fetch(SB_URL.replace(/\/$/, "") + "/functions/v1/oublier", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: "Bearer " + data.session.access_token, apikey: SB_KEY },
+          body: "{}",
+        });
+        if (!r.ok) return false;
+      } catch { return false; }
+      try { await c.auth.signOut(); } catch {}
+    }
+    try {
+      [SKEY, PKEY, BKEY, "repere.cycle.v1", "repere.appareil", "repere.mesure.file", "repere.programme.acces", "repere.programme"].forEach((k) => localStorage.removeItem(k));
     } catch {}
-    try { localStorage.removeItem(SKEY); localStorage.removeItem(PKEY); localStorage.removeItem(BKEY); localStorage.removeItem("repere.cycle.v1"); } catch {}
+    try { await caches.delete("repere-photos"); } catch {}
     // Rechargement complet voulu : repartir d'un état vierge.
     // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     location.href = "/";
+    return true;
   },
 
   /* Changer de compte : dernière synchronisation, déconnexion, puis le
@@ -320,6 +328,8 @@ export const useRepere = create<Store>((set, get) => ({
     const c = await sb();
     if (get().user) {
       await get().pousser();
+      /* les rappels de ce compte ne doivent plus arriver sur ce téléphone */
+      try { await (await import("@/lib/rappels")).couperRappels(); } catch {}
       try { await c?.auth.signOut(); } catch {}
     }
     try { localStorage.removeItem(SKEY); localStorage.removeItem(PKEY); localStorage.removeItem(BKEY); localStorage.removeItem("repere.cycle.v1"); } catch {}

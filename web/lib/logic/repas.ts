@@ -6,7 +6,7 @@
 import { langue, tr } from "@/lib/i18n";
 import { ALIM, emojiDe, PERSO_EMOJI, RAYONS, type Rayon } from "@/lib/data/aliments";
 import { RECETTES, type Moment, type Recette } from "@/lib/data/recettes";
-import { objectifProteines, poidsDe } from "./nutrition";
+import { objectifProteines, poidsDe, poidsReference } from "./nutrition";
 import type { AlimentPerso, ArticleLibre, CreneauRepas, Etat, PrefsRepas, Reponses, SemaineRepas } from "./types";
 
 export const R: Record<string, Recette> = Object.fromEntries(RECETTES.map((r) => [r.id, r]));
@@ -25,7 +25,7 @@ export const avecEmoji = (id: string) => `${emojiDe(id)} ${nomAliment(id)}`;
 /* ---------------- préférences ---------------- */
 export const REGIMES = [tr("Omnivore"), tr("Pescétarien"), tr("Végétarien"), tr("Vegan")];
 export const CULTES = [tr("Aucun"), tr("Halal"), tr("Casher")];
-export const ALLERGIES: [string, string][] = [["l", tr("Lactose")], ["g", tr("Gluten")], ["o", tr("Œufs")], ["c", tr("Fruits à coque")], ["r", tr("Arachide")], ["p", tr("Poisson et fruits de mer")]];
+export const ALLERGIES: [string, string][] = [["l", tr("Lactose")], ["g", tr("Gluten")], ["o", tr("Œufs")], ["c", tr("Fruits à coque")], ["r", tr("Arachide")], ["p", tr("Poisson et fruits de mer")], ["s", tr("Soja")], ["e", tr("Sésame")], ["u", tr("Moutarde")], ["y", tr("Céleri")]];
 export const TEMPS = [tr("15 min max"), tr("30 min max"), tr("Pas de limite")];
 export const MATERIELS: [string, string][] = [["plaques", tr("Plaques")], ["four", tr("Four")], ["micro", tr("Micro-ondes")], ["mixeur", tr("Mixeur")]];
 export function prefsDe(A: Reponses): PrefsRepas {
@@ -149,8 +149,20 @@ export function besoins(E: Etat, seance: boolean): Besoins {
   const napRepos = Math.min(1.55, 1.3 + 0.03 * rythme);
   const fait = depenseSeances(E, kg);
   const seanceKcal = seance ? Math.max(fait.kcal, 4 * kg * (((A.duree as number) ?? 45) / 60)) : fait.kcal;
-  const objectif = [1.1, 1.05, 0.85, 1][A.objectif ?? 3] ?? 1, adj = ajustementPoids(A);
-  const masseMaigre = kg * (sexe === 1 ? 0.72 : 0.82);
+  /* Garde-fous : pas de déficit avant 18 ans (croissance) ni sous un IMC de 18,5 (risque de
+     carence et de troubles alimentaires). On reste alors au maintien et on le dit. */
+  const imc = kg / (cm / 100) ** 2, prudence = age < 18 || imc < 18.5;
+  const obj = A.objectif ?? 3, sansDeficit = prudence && obj === 2;
+  const objectif = sansDeficit ? 1 : ([1.1, 1.05, 0.85, 1][obj] ?? 1);
+  const adjBrut = ajustementPoids(A);
+  const adj = prudence
+    ? { kcal: Math.max(0, adjBrut.kcal), texte: sansDeficit ? tr("Pas de déficit proposé ici : avant 18 ans ou avec un poids déjà bas, perdre du poids se décide avec un médecin ou un diététicien. Les repas visent ton maintien.") : adjBrut.kcal > 0 ? adjBrut.texte : undefined }
+    : adjBrut;
+  /* Masse grasse estimée par l'IMC (Deurenberg, 1991), bornée : la masse maigre d'une
+     personne en surpoids n'est plus surestimée, donc le plancher ne crée plus de surplus. */
+  const h = sexe === 0 ? 1 : sexe === 1 ? 0 : 0.5;
+  const gras = Math.min(0.5, Math.max(0.08, (1.2 * imc + 0.23 * Math.max(age, 18) - 10.8 * h - 5.4) / 100));
+  const masseMaigre = kg * (1 - gras);
   const kcal = Math.max(base * 1.1, 30 * masseMaigre + seanceKcal, (base * napRepos + seanceKcal) * objectif + adj.kcal);
   const p = objectifProteines(A), gMin = (fait.endurance >= 60 ? 5 : seance ? 3 : 2) * kg;
   let l = Math.max(0.8 * kg, (0.27 * kcal) / 9), g = (kcal - p * 4 - l * 9) / 4;
@@ -158,7 +170,7 @@ export function besoins(E: Etat, seance: boolean): Besoins {
   const r5 = (x: number) => Math.round(x / 5) * 5, total = Math.max(kcal, p * 4 + r5(l) * 9 + r5(g) * 4);
   /* eau : 35 ml/kg, plus 0,5 l par heure de sport */
   const minutes = (seance ? Math.max(((A.duree as number) ?? 45), 0) : 0) + fait.endurance;
-  const eau = Math.round((35 * kg + (minutes / 60) * 500) / 100) * 100;
+  const eau = Math.round((35 * poidsReference(A, kg) + (minutes / 60) * 500) / 100) * 100;
   return { kcal: Math.round(total / 10) * 10, p, g: r5(g), l: r5(l), seance, eau, ...(adj.texte ? { ajustement: adj.texte } : {}) };
 }
 

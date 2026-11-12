@@ -27,6 +27,7 @@ Deno.serve(async (req) => {
 
   const auth = req.headers.get("Authorization") ?? "";
   if (!auth.startsWith("Bearer ")) return rep({ erreur: "Connexion requise." }, 401);
+  if (!SB_ANON) { console.error("SUPABASE_ANON_KEY absente"); return rep({ erreur: "Configuration serveur incomplète." }, 500); }
   let cible: unknown;
   try { cible = (await req.json())?.user; } catch { return rep({ erreur: "Requête illisible." }, 400); }
   if (typeof cible !== "string" || !UUID.test(cible)) return rep({ erreur: "Compte invalide." }, 400);
@@ -34,7 +35,7 @@ Deno.serve(async (req) => {
   /* Le contrôle se fait avec l'identité de l'appelant, jamais avec la clé de service. */
   const v = await fetch(`${SB_URL}/rest/v1/rpc/admin_verifier_suppression`, {
     method: "POST",
-    headers: { apikey: SB_ANON || SB_SRV, Authorization: auth, "Content-Type": "application/json" },
+    headers: { apikey: SB_ANON, Authorization: auth, "Content-Type": "application/json" },
     body: JSON.stringify({ p_user: cible }),
   });
   const verif = await v.json().catch(() => null);
@@ -48,7 +49,7 @@ Deno.serve(async (req) => {
     method: "DELETE",
     headers: { apikey: SB_SRV, Authorization: `Bearer ${SB_SRV}` },
   });
-  if (!r.ok) return rep({ erreur: "Suppression impossible.", detail: (await r.text()).slice(0, 200) }, 502);
+  if (!r.ok) { console.error("suppression", r.status, (await r.text()).slice(0, 200)); return rep({ erreur: "Suppression impossible." }, 502); }
   await r.text();
 
   const j = await fetch(`${SB_URL}/rest/v1/admin_journal`, {

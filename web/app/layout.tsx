@@ -55,13 +55,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
       className={`${GeistSans.variable} ${GeistMono.variable} ${chiffres.variable} h-full`}
     >
-      <head>
-        {/* Secours : si la politique de sécurité du site bloque les polices
-            auto-hébergées, les mêmes polices viennent de Google Fonts. */}
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Geist:wght@400..800&display=swap" />
-      </head>
+      {/* Plus de feuille Google Fonts : elle bloquait le premier affichage sur un réseau faible
+          (jusqu'à 4 s d'écran blanc) et envoyait l'IP de chaque visiteur à Google. Les polices
+          sont servies par l'app elle-même (geist, next/font/local) : la CSP doit autoriser font-src 'self'. */}
       <body className="min-h-full">
         <ThemeProvider>
           <AppShell>{children}</AppShell>

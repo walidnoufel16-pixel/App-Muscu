@@ -58,7 +58,9 @@ chaque déploiement invalide l'ancien cache et les utilisateurs reçoivent la no
 
 | Chemin | En-tête | Valeur |
 |---|---|---|
-| `/*` | `Content-Security-Policy` | `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://images.unsplash.com; connect-src 'self' https://iyjiwfzrmyvcnmzwlgxe.supabase.co; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'` |
+| `/*` | `Content-Security-Policy` | `default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://images.unsplash.com; connect-src 'self' https://iyjiwfzrmyvcnmzwlgxe.supabase.co https://world.openfoodfacts.org https://wger.de https://images.unsplash.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'` |
+| `/*` | `Strict-Transport-Security` | `max-age=63072000; includeSubDomains` |
+| `/*` | `Permissions-Policy` | `camera=(self), microphone=(), geolocation=(self)` |
 | `/*` | `X-Content-Type-Options` | `nosniff` |
 | `/*` | `Referrer-Policy` | `strict-origin-when-cross-origin` |
 | `/` | `Cache-Control` | `no-cache` |
@@ -69,8 +71,11 @@ chaque déploiement invalide l'ancien cache et les utilisateurs reçoivent la no
 `img-src` autorise `images.unsplash.com` : les photos Unsplash des machines de « Ma salle »
 s'affichent depuis leurs serveurs, comme l'exigent leurs règles (sans cette entrée, l'icône prend leur place).
 
-La politique `connect-src` n'autorise que le projet Supabase de production : en cas d'injection,
-le navigateur refuse d'envoyer des données ailleurs. À adapter si `SUPABASE_URL` change.
+La politique `connect-src` n'autorise que le projet Supabase de production et les trois services
+que l'app appelle vraiment (Open Food Facts et wger pour les produits, Unsplash pour les photos gardées
+hors ligne) : en cas d'injection, le navigateur refuse d'envoyer des données ailleurs. À adapter si
+`SUPABASE_URL` change. `'wasm-unsafe-eval'` sert au lecteur de code-barres (zxing, WebAssembly).
+Plus aucune police n'est chargée chez Google : `font-src 'self'` suffit.
 
 ### Backend : ponctuel (Supabase)
 

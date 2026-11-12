@@ -4,7 +4,7 @@
    Le programme sur 8 semaines est en pause : l'admin l'ouvre compte par compte
    (migration 20261019090000_acces_programme.sql, fiche admin). La réponse du serveur
    est gardée sur le téléphone pour fonctionner hors ligne, liée au compte.
-   `localStorage["repere.programme"] = "1"` le rallume aussi (tests, démonstration). */
+   `localStorage["repere.programme"] = "1"` rallume l'écran (tests, démonstration) ; le serveur garde le dernier mot. */
 import { useEffect } from "react";
 import { create } from "zustand";
 import { sb } from "@/lib/supabase";
@@ -12,6 +12,8 @@ import { useRepere } from "@/lib/store";
 
 const CLE = "repere.programme.acces";
 const lire = (): { id?: string; ok: boolean } => { try { return JSON.parse(localStorage.getItem(CLE) || "") || { ok: false }; } catch { return { ok: false }; } };
+/* Le forçage n'ouvre que l'écran (tests, démonstration) : la génération du programme, elle, est
+   refusée par le serveur aux comptes non autorisés (generer vérifie programme_autorise()). */
 const force = () => { try { return localStorage.getItem("repere.programme") === "1"; } catch { return false; } };
 
 export const useAccesProgramme = create<{ id?: string; ok: boolean }>(() => lire());

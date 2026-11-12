@@ -3007,5 +3007,11 @@
   "Séance la veille : à {n} séances par semaine, un jour de repos entre deux séances.": "Workout the day before: at {n} workouts a week, take a rest day between two sessions.",
   "Séance déjà prévue {j}": "Workout already planned {j}",
   "Repos {j}": "Rest {j}",
-  "Le lendemain : {s}.": "The day after: {s}."
+  "Le lendemain : {s}.": "The day after: {s}.",
+  "La suppression n'a pas pu être confirmée par le serveur : rien n'a été effacé. Vérifie ta connexion et réessaie.": "The server could not confirm the deletion: nothing was erased. Check your connection and try again.",
+  "Soja": "Soy",
+  "Sésame": "Sesame",
+  "Moutarde": "Mustard",
+  "Céleri": "Celery",
+  "Pas de déficit proposé ici : avant 18 ans ou avec un poids déjà bas, perdre du poids se décide avec un médecin ou un diététicien. Les repas visent ton maintien.": "No deficit here: under 18, or with an already low weight, losing weight is a decision to make with a doctor or dietitian. Your meals aim at maintenance."
 }
