@@ -20,7 +20,7 @@ import { CarteSport } from "@/components/repere/carte-sport";
 import { EX } from "@/lib/data/exercices";
 import { AXES } from "@/lib/data/referentiels";
 import {
-  alternativesDe, baseRPE, ctxLibre, ctxPlan, journalActif, variationDe, kLibre, curId, espacementDe, key, musclesDe, nomPat, noRPE, okDe, rirTxt, rpeOf, sportsChoisis, titreSeance, week,
+  alternativesDe, baseRPE, ctxLibre, ctxPlan, journalActif, variationDe, kLibre, curId, nb, espacementDe, key, musclesDe, nomPat, noRPE, okDe, rirTxt, rpeOf, sportsChoisis, titreSeance, week,
 } from "@/lib/logic/core";
 import { exParDefaut, objCollation } from "@/lib/logic/assistant";
 import * as act from "@/lib/logic/actions";
@@ -103,6 +103,14 @@ function Muscles({ ids }: { ids: string[] }) {
   );
 }
 
+/* Ce qu'annonce la carte : les mêmes répétitions que la première ligne du tableau (tant que rien
+   n'est noté), et la charge proposée, pour ne pas avoir à déplier chaque exercice. */
+function prescription(x: { ch: string; cote?: unknown }, series: number | string, reps: number | string, kg?: number) {
+  if (x.ch === "temps") return `${series} × ${reps}s${x.cote ? tr(" / côté") : ""}`;
+  if (x.ch === "dist") return `${series} × ${reps}m`;
+  return `${series} × ${reps}${x.ch === "kg" && kg && +kg > 0 ? ` · ${nb(+kg)} kg` : ""}`;
+}
+
 /* ---------------- séance du plan ---------------- */
 function SeancePlan() {
   const router = useRouter();
@@ -110,7 +118,8 @@ function SeancePlan() {
   const muter = useRepere((s) => s.muter);
   const premiere = usePremiereVisite();
   const [sect, setSect] = useState<Partie>(1);
-  const [ouvert, setOuvert] = useState<string | null>(null);
+  /* undefined : pas encore de choix, l'exercice en cours s'ouvre tout seul (aussi au retour après une mise en veille) */
+  const [ouvertChoisi, setOuvert] = useState<string | null | undefined>(undefined);
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);
   const [remp, setRemp] = useState<number | null>(null);
   const [reperes, setReperes] = useState(false);
@@ -123,6 +132,7 @@ function SeancePlan() {
   const ids = (S.x || []).map((e, i) => curId(etat, wk, day, i, e[0], W));
   const cles = (S.x || []).map((_, j) => key(wk, day, j));
   const faits = cles.filter((k) => etat.LOG[k]?.done).length;
+  const ouvert = ouvertChoisi === undefined ? (cles.find((k) => !etat.LOG[k]?.done) ?? null) : ouvertChoisi;
 
   const ouvrirFiche = (i: number) => {
     const e = S.x![i], id = ids[i], alts = alternativesDe(etat.A, id);
@@ -162,7 +172,7 @@ function SeancePlan() {
               {(S.x || []).map((e, i) => {
                 const c = ctxPlan(etat, i, W)!, x = EX[c.id], k = c.k, L: Journal | undefined = journalActif(etat.LOG[k]);
                 const r = noRPE(c.id) ? 0 : rpeOf(etat.A, wk, c.id, e[4]);
-                const prescr = x.ch === "temps" ? `${e[1]} × ${e[2]}s${x.cote ? tr(" / côté") : ""}` : x.ch === "dist" ? `${e[1]} × ${e[2]}m` : `${e[1]} × ${e[2]}`;
+                const prescr = prescription(x, e[1], L ? e[2] : (c.base?.reps || e[2]), L ? undefined : c.base?.v);
                 const badge = etat.SWAP[k] ? "aujourd'hui" : etat.SWAPP[day + "|" + i] ? tr("remplacé") : undefined;
                 const fini = () => enchainer({ k, cles, titre: titreSeance(S.t), setOuvert });
                 return (
@@ -244,7 +254,8 @@ function SeanceLibre({ i }: { i: number }) {
   const setLibre = useBrouillon((s) => s.setLibre);
   const premiere = usePremiereVisite();
   const [sect, setSect] = useState<Partie>(1);
-  const [ouvert, setOuvert] = useState<string | null>(null);
+  /* undefined : pas encore de choix, l'exercice en cours s'ouvre tout seul (aussi au retour après une mise en veille) */
+  const [ouvertChoisi, setOuvert] = useState<string | null | undefined>(undefined);
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);
   const [ajout, setAjout] = useState(false);
   const [maintenant] = useState(() => Date.now());
@@ -252,6 +263,7 @@ function SeanceLibre({ i }: { i: number }) {
   if (!S) return <Introuvable />;
 
   const cles = S.ex.map((_, m) => ctxLibre(etat, i, m)?.k).filter((q): q is string => !!q);
+  const ouvert = ouvertChoisi === undefined ? (cles.find((k, m) => !(etat.LOG[k]?.ex === S.ex[m]?.id && etat.LOG[k]?.done)) ?? null) : ouvertChoisi;
   /* un bloc cardio est fait s'il a été joué aujourd'hui */
   const blocFait = (id: string) => (etat.CARDIO || []).some((h) => h.ref === id && new Date(h.ts).toDateString() === new Date(maintenant).toDateString());
   const blocs = S.blocs || [];
@@ -286,7 +298,7 @@ function SeanceLibre({ i }: { i: number }) {
     /* un journal laissé là par un autre exercice n'est pas le sien */
     const x = EX[e.id], L = etat.LOG[c.k]?.ex === e.id ? journalActif(etat.LOG[c.k]) : undefined, r = noRPE(e.id) ? 0 : 8;
     const fini = () => enchainer({ k: c.k, cles, titre: S.nom, setOuvert });
-    const prescr = x.ch === "temps" ? `${e.s} × ${e.r}s${x.cote ? tr(" / côté") : ""}` : x.ch === "dist" ? `${e.s} × ${e.r}m` : `${e.s} × ${e.r}`;
+    const prescr = prescription(x, e.s, L ? e.r : (c.base?.reps || e.r), L ? undefined : c.base?.v);
     return (
       <ExerciceCarte
         key={c.k} ancre={c.k}

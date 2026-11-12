@@ -14,6 +14,7 @@ import { CaretLeftIcon } from "@phosphor-icons/react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
+import { preparerApercu } from "@/lib/brouillon";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 import { decaler, jourDe } from "@/lib/logic/historique";
@@ -24,7 +25,7 @@ import { MonMateriel } from "./mon-materiel";
 
 export const useAccueil = create<{ ouvert: boolean }>(() => ({ ouvert: false }));
 
-const QUESTIONS: (Ligne | "materiel")[] = ["sexe", "age", "corps", "objectif", "niveau", "rythme", "materiel", "prio", "sport"];
+const QUESTIONS: (Ligne | "materiel")[] = ["sexe", "age", "corps", "objectif", "niveau", "rythme", "materiel", "gene", "prio", "sport"];
 /* les muscles qu'on peut déclarer (ceux que suit la récupération, sans avant-bras ni adducteurs) */
 const MUSCLES: MuscleRecup[] = [...GROUPES, "tra", "lom"];
 /* les fessiers ne sont pas suivis à part : ils comptent avec les ischios (hip thrust, pont, soulevé roumain) */
@@ -59,7 +60,7 @@ export function AccueilPremier({ onFin }: { onFin: (etape: number) => void }) {
 
 const Progression = ({ i }: { i: number }) => (
   <div className="mb-4 flex gap-1" aria-hidden>
-    {Array.from({ length: QUESTIONS.length + 1 }, (_, k) => <i key={k} className={cn("h-1 flex-1 rounded-full", k < i ? "bg-plate" : "bg-muted")} />)}
+    {Array.from({ length: QUESTIONS.length }, (_, k) => <i key={k} className={cn("h-1 flex-1 rounded-full", k < i ? "bg-plate" : "bg-muted")} />)}
   </div>
 );
 
@@ -75,7 +76,7 @@ function Bas({ ok = true, libelle, onOk, second, onSecond }: { ok?: boolean; lib
 function Bienvenue({ suivant, plusTard }: { suivant: () => void; plusTard: () => void }) {
   const pseudo = useRepere((s) => s.pseudo);
   const etapes = [
-    [tr("Ton profil sportif"), tr("9 questions · 1 min")],
+    [tr("Ton profil sportif"), tr("{n} questions · 1 min", { n: QUESTIONS.length })],
     [tr("Tes dernières 48 h"), tr("pour savoir quels muscles sont prêts")],
     [tr("Ta première séance"), tr("ou du repos, selon ta récupération")],
   ];
@@ -205,7 +206,7 @@ function Fin({ fermer }: { fermer: () => void }) {
           <>
             <h2 className="mt-1.5 text-[21px] leading-tight font-extrabold">{p.nom}</h2>
             <p className="mt-1 text-[13.5px] leading-snug opacity-85">{raison}</p>
-            <button onClick={() => aller(`/entrainement/assistant?m=${p.muscles.join(",")}`)} className="mt-3.5 h-11 w-full rounded-full bg-white text-[14.5px] font-semibold text-[#0a0a0c] active:scale-[.98]">{tr("Voir la séance")}</button>
+            <button onClick={() => aller(preparerApercu(etat, p.muscles, p.nom, auj) ? "/entrainement/composer" : `/entrainement/assistant?m=${p.muscles.join(",")}`)} className="mt-3.5 h-11 w-full rounded-full bg-white text-[14.5px] font-semibold text-[#0a0a0c] active:scale-[.98]">{tr("Voir la séance")}</button>
           </>
         ) : (
           <>

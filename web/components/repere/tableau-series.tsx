@@ -47,7 +47,7 @@ function Champ({ valeur, onValide, label, mode, depuis }: { valeur: string; onVa
       onChange={(e) => setT(e.target.value)}
       onBlur={() => { if (t !== valeur) onValide(t); }}
       onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
-      className="num h-10 w-full min-w-0 rounded-[10px] bg-muted text-center text-[19px] font-semibold outline-none transition-colors focus:bg-background focus:ring-2 focus:ring-plate"
+      className="num h-11 w-full min-w-0 rounded-[10px] border border-champ-bord bg-champ text-center text-[19px] font-semibold outline-none transition-colors focus:border-plate focus:bg-background focus:ring-2 focus:ring-plate"
     />
   );
 }
@@ -106,8 +106,8 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
   const why = L ? L.why : c.why, done = !!L?.done;
   const temps = x.ch === "temps";
   const cols = dbl || avecLest
-    ? (temps ? "grid-cols-[22px_minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,1fr)_40px_40px]" : "grid-cols-[22px_minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,1fr)_40px]")
-    : (temps ? "grid-cols-[22px_minmax(0,1.25fr)_minmax(0,1.4fr)_40px_40px]" : "grid-cols-[22px_minmax(0,1.25fr)_minmax(0,1.4fr)_40px]");
+    ? (temps ? "grid-cols-[22px_minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,1fr)_44px_44px]" : "grid-cols-[22px_minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,1fr)_44px]")
+    : (temps ? "grid-cols-[22px_minmax(0,1.25fr)_minmax(0,1.4fr)_44px_44px]" : "grid-cols-[22px_minmax(0,1.25fr)_minmax(0,1.4fr)_44px]");
   /* fin du chrono : le temps tenu est inscrit dans la série, qui est validée */
   const finChrono = (n: number, s: Serie, e: number) => {
     const tenu = tempsTenu(s.v, e, !!x.cote);
@@ -120,13 +120,13 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
     <div className="px-3 pb-3">
       <ConseilZone id={c.id} />
       {why && (
-        <Pourquoi titre={x.ch === "kg" && !L ? tr("Pourquoi {v} kg ?", { v: nb(c.base.v) }) : tr("Pourquoi cette proposition ?")} className="mx-1 mb-2">{why}</Pourquoi>
+        <Pourquoi titre={x.ch === "kg" && (!L || +(S[0]?.v ?? 0) === +c.base.v) ? tr("Pourquoi {v} kg ?", { v: nb(c.base.v) }) : tr("Pourquoi cette proposition ?")} className="mx-1 mb-2">{why}</Pourquoi>
       )}
       {/* ton max sur l'exercice, quand il dépasse ce que montre « Précédent » */}
       {c.max && (
         <p className="mx-1 mb-2 inline-flex items-center gap-1.5 rounded-full bg-plate-soft px-3 py-1 text-[13px] font-semibold text-plate-ink dark:text-plate">
           <TrophyIcon className="size-4 shrink-0" weight="fill" />
-          {tr("Ton max : {a}", { a: fmtMax(c.id, c.max) })}
+          {tr("Ton record : {a}", { a: fmtMax(c.id, c.max) })}
           <span className="font-medium text-muted-foreground">· {tr("le {d}", { d: new Date(c.max.d + "T12:00").toLocaleDateString(loc(), { day: "numeric", month: "short" }).replace(".", "") })}</span>
         </p>
       )}
@@ -138,14 +138,16 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
         {temps && <span />}
         <span />
       </div>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         {S.map((s, n) => {
           const ok = !!L && okDe(L, s), record = ok && records.includes(n);
+          /* la série à faire : la première qui n'est pas cochée, cerclée pour qu'on la trouve d'un coup d'œil */
+          const prochaine = !done && n === S.findIndex((t) => !(L && okDe(L, t)));
           return (
-            <div key={n} className={cn("relative isolate grid items-center gap-x-2 overflow-hidden rounded-xl px-1 py-1", cols)}>
+            <div key={n} aria-current={prochaine ? "step" : undefined} className={cn("relative isolate grid items-center gap-x-2 overflow-hidden rounded-xl px-1 py-1", cols, prochaine && "bg-plate-soft/50 ring-2 ring-plate/60")}>
               {/* fond jaune : il se remplit de gauche à droite quand on valide */}
               {ok && <span aria-hidden className={cn("absolute inset-0 -z-10 origin-left bg-plate-soft", vient === n && "animate-[remplir_.42s_cubic-bezier(.2,.8,.2,1)]")} />}
-              <span className={cn("num text-center text-[15px] font-bold transition-colors", ok ? "text-foreground" : "text-muted-foreground")}>{n + 1}</span>
+              <span className={cn("num text-center text-[15px] font-bold transition-colors", ok || prochaine ? "text-foreground" : "text-muted-foreground")}>{n + 1}</span>
               {record ? (
                 <span className="inline-flex w-fit animate-[pop_.5s_cubic-bezier(.3,1.6,.5,1)] items-center rounded-full bg-plate px-2 py-0.5 text-[11px] font-bold tracking-wide text-plate-foreground uppercase">
                   {tr("Record")}
@@ -160,7 +162,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
                 <button
                   onClick={() => { preparer(); setChrono({ n, s: { ...s, v: +s.v > 0 ? +s.v : 30 }, course: departCourse() }); }}
                   aria-label={tr("Lancer le chrono de la série {a}", { a: n + 1 })}
-                  className="grid size-10 place-items-center rounded-full bg-plate-soft text-plate-ink active:scale-90"
+                  className="grid size-11 place-items-center rounded-full bg-plate-soft text-plate-ink active:scale-90"
                 >
                   <PlayIcon className="size-[17px]" weight="fill" />
                 </button>
@@ -171,7 +173,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
                 aria-label={tr("{a} la série {a1}", { a: ok ? tr("Décocher") : tr("Valider"), a1: n + 1 })}
                 aria-pressed={ok}
                 className={cn(
-                  "grid size-10 place-items-center rounded-full border-2 transition-[background-color,border-color,color] duration-200 active:scale-90",
+                  "grid size-11 place-items-center rounded-full border-2 transition-[background-color,border-color,color] duration-200 active:scale-90",
                   ok ? "border-plate bg-plate text-plate-foreground" : "border-border text-transparent hover:text-muted-foreground",
                   vient === n && "animate-[pop_.45s_cubic-bezier(.3,1.6,.5,1)]",
                 )}

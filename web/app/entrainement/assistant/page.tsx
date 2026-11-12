@@ -251,7 +251,7 @@ function Assistant() {
               </div>
             </div>
           )}
-          {m.length > budget && (
+          {m.length > budget && !(mUrl && [...m].sort().join() === mUrl.split(",").sort().join()) && (
             <p className="mt-1 px-1 text-[12.5px] leading-snug text-muted-foreground">{tr("Beaucoup de muscles pour {d} minutes : un exercice par muscle, avec moins de séries sur les petits groupes. Tu pourras ajuster ensuite.", { d })}</p>
           )}
         </section>

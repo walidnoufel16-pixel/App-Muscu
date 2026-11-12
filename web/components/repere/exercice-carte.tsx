@@ -102,18 +102,14 @@ export function ExerciceCarte({
         </button>
         <button onClick={onToggle} aria-expanded={ouvert} className="flex min-w-0 flex-1 items-center gap-3.5 text-left">
         <span className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="flex items-center gap-2">
-            <span className="truncate text-[16px] leading-tight font-semibold tracking-[-0.01em]">{x.n}</span>
+          {/* le nom d'abord, en entier (deux lignes au plus) ; les étiquettes passent sur la ligne des muscles */}
+          <span className="line-clamp-2 text-[16px] leading-tight font-semibold tracking-[-0.01em]">{x.n}</span>
+          <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12.5px] font-medium text-muted-foreground">
+            {mus.length > 0 && <><CrosshairIcon className="size-3.5 shrink-0 text-plate-ink" /><span className="min-w-0 truncate">{mus.join(" · ")}</span></>}
             {badge && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10.5px] font-medium text-muted-foreground">{badge}</span>}
             <EtiquetteRole ro={ro} ouvert={vuRole} onToggle={() => setVuRole(!vuRole)} />
             <EtiquetteZone id={id} />
           </span>
-          {mus.length > 0 && (
-            <span className="flex items-center gap-1.5 truncate text-[12.5px] font-medium text-muted-foreground">
-              <CrosshairIcon className="size-3.5 shrink-0 text-plate-ink" />
-              {mus.join(" · ")}
-            </span>
-          )}
           {L && (L.done || L.series?.some((s) => s.ok)) ? (
             <EtatCarte L={L} id={id} n={n} />
           ) : (
@@ -142,13 +138,9 @@ export function ExerciceCarte({
             <span>{tr("Repos")}{" "}<b className="font-semibold text-foreground">{repos}</b></span>
           </div>
           {children}
-          <div className="grid grid-cols-3 border-t border-border/70">
+          <div className={cn("grid border-t border-border/70", onRemplacer ? "grid-cols-3" : "grid-cols-2")}>
             <OutilBtn onClick={onFiche} icone={<InfoIcon className="size-5" />} label={tr("Fiche")} />
-            {onRemplacer ? (
-              <OutilBtn onClick={onRemplacer} icone={<ArrowsLeftRightIcon className="size-5" />} label={tr("Remplacer")} />
-            ) : (
-              <span />
-            )}
+            {onRemplacer && <OutilBtn onClick={onRemplacer} icone={<ArrowsLeftRightIcon className="size-5" />} label={tr("Remplacer")} />}
             <OutilBtn onClick={onTout} icone={<CheckIcon className="size-5" weight="bold" />} label={fait ? tr("Tout décocher") : tr("Tout valider")} accent />
           </div>
         </div>

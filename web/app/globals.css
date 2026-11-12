@@ -30,7 +30,7 @@
   --muted-foreground: #6b6b75;
   --accent: #ececef;
   --accent-foreground: #0a0a0c;
-  --destructive: #e5484d;
+  --destructive: #d13438;          /* 4,9:1 avec du blanc (bouton « Tout effacer ») */
   --border: #e2e2e6;
   --input: #d7d7dd;
   --ring: #9c9ca6;
@@ -54,6 +54,10 @@
   --rpe7: #2f9e5f;
   --rpe8: #e0a400;
   --rpe9: #e5484d;
+  /* champ de saisie, case vide, sélection : des jetons à part, lisibles sur une carte */
+  --champ: #ececef;
+  --champ-bord: #c9c9d0;
+  --vide: #e4e4e9;
 }
 
 .dark {
@@ -86,6 +90,9 @@
   --feu-ink: #5eead4;
   --feu-soft: color-mix(in oklab, var(--feu) 18%, transparent);
   --success: var(--feu);
+  --champ: #2a2a31;
+  --champ-bord: #4a4a54;
+  --vide: #2a2a31;
 }
 
 /* Oxa Meal : un autre module de l'app, tout en orange. Le fond, les cartes et les bordures
@@ -160,6 +167,9 @@ body.repas-recettes { --fond-repas: #ffe6d8; }
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
+  --color-champ: var(--champ);
+  --color-champ-bord: var(--champ-bord);
+  --color-vide: var(--vide);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
