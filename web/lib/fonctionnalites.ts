@@ -4,7 +4,7 @@
    Le programme sur 8 semaines est en pause : l'admin l'ouvre compte par compte
    (migration 20261019090000_acces_programme.sql, fiche admin). La réponse du serveur
    est gardée sur le téléphone pour fonctionner hors ligne, liée au compte.
-   `localStorage["repere.programme"] = "1"` le rallume aussi (tests, démonstration). */
+   `localStorage["repere.programme"] = "1"` le rallume aussi, en dev et sur l'app test seulement. */
 import { useEffect } from "react";
 import { create } from "zustand";
 import { sb } from "@/lib/supabase";
@@ -12,7 +12,9 @@ import { useRepere } from "@/lib/store";
 
 const CLE = "repere.programme.acces";
 const lire = (): { id?: string; ok: boolean } => { try { return JSON.parse(localStorage.getItem(CLE) || "") || { ok: false }; } catch { return { ok: false }; } };
-const force = () => { try { return localStorage.getItem("repere.programme") === "1"; } catch { return false; } };
+/* Le forçage ne sert qu'aux tests : il est ignoré dans la vraie app (et le serveur vérifie de toute façon). */
+const FORCAGE_PERMIS = process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_APP_TEST === "1";
+const force = () => { if (!FORCAGE_PERMIS) return false; try { return localStorage.getItem("repere.programme") === "1"; } catch { return false; } };
 
 export const useAccesProgramme = create<{ id?: string; ok: boolean }>(() => lire());
 

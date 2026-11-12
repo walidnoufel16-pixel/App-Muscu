@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
     method: "DELETE",
     headers: { apikey: SB_SRV, Authorization: `Bearer ${SB_SRV}` },
   });
-  if (!r.ok) return rep({ erreur: "Suppression impossible.", detail: (await r.text()).slice(0, 200) }, 502);
+  if (!r.ok) { console.error("suppression", r.status, (await r.text()).slice(0, 200)); return rep({ erreur: "Suppression impossible." }, 502); }
   await r.text();
   return rep({ ok: true });
 });

@@ -47,10 +47,20 @@ async function envoyer(l: Pick<Ligne, "endpoint" | "abonnement">, message: { tit
   }
 }
 
+/* comparaison en temps constant (la clé du cron ne fuit pas par le temps de réponse) */
+function egal(a: string, b: string) {
+  const x = new TextEncoder().encode(a), y = new TextEncoder().encode(b);
+  let d = x.length ^ y.length;
+  for (let i = 0; i < Math.max(x.length, y.length); i++) d |= (x[i] ?? 0) ^ (y[i] ?? 0);
+  return d === 0;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return rep({ erreur: "Méthode non autorisée." }, 405);
   if (!SB_URL || !SB_SRV) return rep({ erreur: "Configuration serveur incomplète." }, 500);
+  /* ni clé du cron ni jeton : refusé avant de lire le Vault */
+  if (!req.headers.get("x-cle") && !(req.headers.get("Authorization") ?? "").startsWith("Bearer ")) return rep({ erreur: "Connexion requise." }, 401);
 
   let cles = await rpc("rappels_cles") as Record<string, string> | null;
   /* premier passage : les clés VAPID sont tirées ici et rangées dans le Vault */
@@ -66,7 +76,7 @@ Deno.serve(async (req) => {
   /* --- appel du cron --- */
   const cle = req.headers.get("x-cle");
   if (cle) {
-    if (cle !== cles.rappels_cle) return rep({ erreur: "Clé invalide." }, 401);
+    if (!egal(cle, cles.rappels_cle)) return rep({ erreur: "Clé invalide." }, 401);
     const auj = paris(Date.now()), heure = heureParis(), lignes = await rpc("rappels_a_traiter") as Ligne[];
     let envoyes = 0, agenda = 0;
     /* toutes les heures : les rappels des séances programmées dans « Mon agenda » */
@@ -100,8 +110,10 @@ Deno.serve(async (req) => {
   if (!u.ok) { await u.text(); return rep({ erreur: "Connexion requise." }, 401); }
   const { id } = await u.json();
   if (typeof id !== "string") return rep({ erreur: "Connexion requise." }, 401);
-  const r = await fetch(`${SB_URL}/rest/v1/rappels?user_id=eq.${id}&select=endpoint,abonnement,langue`, { headers: srv });
-  const miens = (await r.json()) as Ligne[];
+  /* l'essai ne part que vers l'appareil inscrit le plus récemment, et au plus une fois par minute */
+  const r = await fetch(`${SB_URL}/rest/v1/rappels?user_id=eq.${id}&select=endpoint,abonnement,langue,envoye&order=cree.desc&limit=1`, { headers: srv });
+  const miens = (await r.json()) as (Ligne & { envoye: string | null })[];
+  if (miens[0]?.envoye && Date.now() - Date.parse(miens[0].envoye) < 60_000) return rep({ ok: true, envoyes: 0, attente: true });
   let envoyes = 0;
   for (const l of miens) {
     const en = l.langue === "en";
@@ -109,7 +121,10 @@ Deno.serve(async (req) => {
       titre: en ? "Reminders are on" : "Rappels activés",
       corps: en ? "We'll give you a nudge after a few days without a workout." : "On te fera signe après quelques jours sans séance.",
       url: "/entrainement/", tag: "essai",
-    })) envoyes++;
+    })) {
+      envoyes++;
+      await table(`endpoint=eq.${encodeURIComponent(l.endpoint)}`, { method: "PATCH", body: JSON.stringify({ envoye: new Date().toISOString() }) });
+    }
   }
   return rep({ ok: true, envoyes });
 });

@@ -1,5 +1,7 @@
 "use client";
 
+import { toast } from "sonner";
+
 import { ProfilSportif } from "@/components/repere/profil-sportif";
 import { langue, LANGUES, pluriel, tr } from "@/lib/i18n";
 import { ReglageCycle, useCycleCharge } from "@/components/repere/cycle";
@@ -78,8 +80,8 @@ function Profil() {
     if (Object.keys(etat.LOG).length) quoi.push(tr("toutes tes charges enregistrées"));
     if (adresse) quoi.push(tr("le rattachement de ") + adresse);
     if (!quoi.length) quoi.push(tr("le peu qui est enregistré"));
-    if (await confirmer({ titre: tr("Tout effacer ?"), texte: tr("Ce qui disparaît :\n· ") + quoi.join("\n· ") + tr("\n\nIci comme sur le serveur, et c'est définitif."), ok: tr("Tout effacer"), danger: true }))
-      await toutEffacer();
+    if (await confirmer({ titre: tr("Tout effacer ?"), texte: tr("Ce qui disparaît :\n· ") + quoi.join("\n· ") + tr("\n\nIci comme sur le serveur, et c'est définitif."), ok: tr("Tout effacer"), danger: true }) && !(await toutEffacer()))
+      toast.error(tr("La suppression n'a pas pu être confirmée par le serveur : rien n'a été effacé. Vérifie ta connexion et réessaie."));
   };
 
   /* Quitter ce compte sans rien perdre ; un compte sans adresse, lui, serait perdu. */

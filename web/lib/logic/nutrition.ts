@@ -4,7 +4,7 @@ import { tr } from "@/lib/i18n";
 import type { Reponses } from "./types";
 
 /* g de protéines par kg, selon l'objectif (0 muscle · 1 force · 2 s'affiner · 3 forme), dans la
-   fourchette des recommandations pour le sportif (ISSN : 1,6 à 2,2 g/kg) : plus haut en sèche, pour
+   fourchette des recommandations pour le sportif (ISSN 2017 : 1,4 à 2,0 g/kg ; méta-analyse de Morton 2018 : jusqu'à 2,2) : plus haut en sèche, pour
    garder le muscle. +0,2 g/kg après 50 ans (le muscle répond moins bien aux protéines). */
 const FACTEUR = [2, 1.8, 2.2, 1.6];
 
@@ -27,7 +27,9 @@ export function objectifProteines(A: Reponses): number {
   if (typeof A.protObj === "number") return A.protObj;
   const p = poidsDe(A);
   if (!p) return 120;
-  const f = (FACTEUR[A.objectif ?? 3] ?? 1.6) + ((A.profil?.["Âge"] ?? 0) >= 50 ? 0.2 : 0);
+  const age = A.profil?.["Âge"] ?? 30;
+  /* avant 18 ans : 1,6 g/kg au plus, quel que soit l'objectif (pas de régime hyperprotéiné) */
+  const f = age < 18 ? Math.min(1.6, FACTEUR[A.objectif ?? 3] ?? 1.6) : (FACTEUR[A.objectif ?? 3] ?? 1.6) + (age >= 50 ? 0.2 : 0);
   return Math.round((poidsReference(A, p) * f) / 5) * 5;
 }
 

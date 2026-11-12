@@ -151,9 +151,9 @@ export const RECETTES: Recette[] = [
   },
   {
     id: "curry-pois-chiches", n: "Curry de pois chiches et épinards", en: "Chickpea and spinach curry", m: "repas", min: 25, t: ["batch", "budget"], mat: ["plaques"],
-    ing: [["pois_chiches", 200], ["epinards", 100], ["lait_coco", 80], ["passata", 100], ["oignon", 50], ["curry_pate", 15], ["riz_complet", 60], ["tofu", 80]],
-    e: ["Fais revenir l'oignon avec la pâte de curry 3 minutes.", "Ajoute les pois chiches, le tofu en dés, le coulis et le lait de coco ; laisse mijoter 12 minutes.", "Ajoute les épinards à la fin, juste le temps qu'ils tombent.", "Sers avec le riz complet."],
-    ee: ["Fry the onion with the curry paste for 3 minutes.", "Add the chickpeas, diced tofu, passata and coconut milk; simmer for 12 minutes.", "Stir in the spinach at the end until wilted.", "Serve with brown rice."],
+    ing: [["pois_chiches", 200], ["epinards", 100], ["lait_coco", 80], ["passata", 100], ["oignon", 50], ["epices", 5], ["gingembre", 5], ["riz_complet", 60], ["tofu", 80]],
+    e: ["Fais revenir l'oignon avec les épices (curry en poudre) et le gingembre râpé 3 minutes.", "Ajoute les pois chiches, le tofu en dés, le coulis et le lait de coco ; laisse mijoter 12 minutes.", "Ajoute les épinards à la fin, juste le temps qu'ils tombent.", "Sers avec le riz complet."],
+    ee: ["Fry the onion with the spices (curry powder) and grated ginger for 3 minutes.", "Add the chickpeas, diced tofu, passata and coconut milk; simmer for 12 minutes.", "Stir in the spinach at the end until wilted.", "Serve with brown rice."],
     note: "Un plat vegan complet : le tofu complète les protéines des pois chiches.", noteEn: "A complete vegan dish: tofu boosts the chickpea protein.",
   },
   {

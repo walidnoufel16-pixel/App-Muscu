@@ -1,0 +1,16 @@
+# Mises à jour automatiques (une PR par semaine au plus par écosystème) :
+# dépendances de l'app et actions de la CI, épinglées par SHA.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      dev:
+        dependency-type: development
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
