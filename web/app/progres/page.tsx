@@ -155,7 +155,9 @@ function Ecart({ v, avant }: { v: number; avant: number }) {
 }
 
 function CetteSemaine({ H, C, auj }: { H: LigneHist[]; C: NonNullable<ReturnType<typeof useRepere.getState>["etat"]["CARDIO"]>; auj: string }) {
-  const [a, b] = semaines(H, C, 2, auj);
+  /* la semaine en cours se compare à la semaine passée au même jour (un jeudi n'affiche plus « −75 % ») */
+  const b = semaines(H, C, 1, auj)[0], ilya7 = decaler(auj, -7);
+  const a = semaines(H.filter((l) => l.d <= ilya7), C.filter((c) => jourDe(c.ts) <= ilya7), 1, ilya7)[0];
   /* les séances de la semaine sont dans la carte de régularité juste au-dessus */
   const cases = [
     { n: tr(pluriel(b.ser) ? "séries" : "série"), v: b.ser, a: a.ser, f: (x: number) => String(x) },
@@ -241,7 +243,12 @@ function Muscles({ H, auj }: { H: LigneHist[]; auj: string }) {
 const PRINCIPAUX = ["pec", "dos", "epa", "bic", "tri", "qua", "isc", "mol", "abd"];
 
 function Records({ H, onChoisir }: { H: LigneHist[]; onChoisir: (id: string) => void }) {
-  const R = useMemo(() => records(H), [H]);
+  /* un seul record par exercice, le meilleur, du plus récent au plus ancien (plus de Squat, Couché, Squat, Couché…) */
+  const R = useMemo(() => {
+    const m = new Map<string, ReturnType<typeof records>[number]>();
+    for (const r of records(H)) { const p = m.get(r.id); if (!p || r.rm > p.rm || (r.rm === p.rm && r.d > p.d)) m.set(r.id, r); }
+    return [...m.values()].sort((x, y) => y.d.localeCompare(x.d));
+  }, [H]);
   const [tout, setTout] = useState(false);
   if (!R.length) return null;
   const vus = tout ? R.slice(0, 40) : R.slice(0, 5);
@@ -263,7 +270,7 @@ function Records({ H, onChoisir }: { H: LigneHist[]; onChoisir: (id: string) => 
                   {court(r.d)} · {x?.ch === "kg" ? `${nb(r.max)} kg × ${r.reps}` : x?.ch === "aucune" || x?.ch === "lest" ? (r.max ? `+${nb(r.max)} kg × ${r.reps}` : `${r.reps} reps`) : x?.ch === "temps" ? `${r.max} s` : `${nb(r.max)} m`}
                 </span>
               </span>
-              {x?.ch === "kg" && r.rm > 0 && <span className="num text-right text-[17px] font-bold">{nb(Math.round(r.rm))}<span className="block text-[10px] font-medium text-muted-foreground">{tr("1RM est.")}</span></span>}
+              {x?.ch === "kg" && r.rm > 0 && <span className="num text-right text-[17px] font-bold">{nb(Math.round(r.rm * 10) / 10)}<span className="block text-[10px] font-medium text-muted-foreground">{tr("1RM est.")}</span></span>}
             </button>
           );
         })}

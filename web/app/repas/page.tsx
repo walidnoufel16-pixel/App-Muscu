@@ -50,7 +50,8 @@ function Repas() {
   const changerVue = (v: VueRepas) => { tactile(4); useVueRepas.setState({ vue: v }); remplacement(); router.replace(`/repas?v=${v}` as Route); };
   const [auj] = useState(() => jourDe(Date.now()));
   /* jour de séance : déjà entraîné aujourd'hui, sinon au choix */
-  const actif = (etat.HIST || []).some((l) => l.d === auj) || (etat.CARDIO || []).some((c) => jourDe(c.ts) === auj);
+  /* une sortie de course compte aussi (sinon « Jour de repos » s'affichait un jour de 10 km) */
+  const actif = (etat.HIST || []).some((l) => l.d === auj) || (etat.CARDIO || []).some((c) => jourDe(c.ts) === auj) || ((etat.SORTIES || []) as { d?: string }[]).some((s) => s.d === auj);
   const [seance, setSeance] = useState(actif);
   const b = besoins(etat, seance);
   const kcal = !!p.kcal;
@@ -296,6 +297,11 @@ function Semaine({ p, b, kcal, ouvrir }: { p: PrefsRepas; b: Besoins; kcal: bool
             <ArrowsClockwiseIcon className="size-3.5" weight="bold" />{tr("Autre semaine")}
           </button>
         </div>
+      )}
+      {joursPlanifies.length === 0 && (
+        <p className="mt-3 rounded-[18px] bg-card px-4 py-3 text-[14px] leading-snug text-muted-foreground">
+          {tr("Aucune recette ne correspond à tes réglages (temps, matériel, régime, allergies) : élargis-en un dans « Paramétrer » ou dans tes préférences.")}
+        </p>
       )}
       {joursPlanifies.map((j) => {
         const du = cases.filter((k) => k.jour === j), ouvert = ouverts.includes(j);

@@ -61,7 +61,7 @@ export function CarteRegularite({ lien = false, reglable = false, tuile = false 
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-[16px] leading-tight font-semibold">
-          {S.semaines ? tr("{a} d'affilée", { a: tp(S.semaines, "{n} semaine", "{n} semaines") }) : tr("Lance ta série cette semaine")}
+          {S.semaines ? tr("{a} d'affilée", { a: tp(S.semaines, "{n} semaine", "{n} semaines") }) : tr("Lance ta régularité cette semaine")}
         </span>
         <span className="mt-1 flex items-center gap-1" aria-label={tr("{cetteSemaine} séance(s) sur {objectif} cette semaine", { cetteSemaine: S.cetteSemaine, objectif: S.objectif })}>
           {Array.from({ length: Math.max(S.objectif, Math.min(S.cetteSemaine, 7)) }, (_, i) => (

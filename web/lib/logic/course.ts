@@ -25,6 +25,7 @@ export type PlanCourse = {
   cree: string;
   cat?: "h" | "f"; // Hyrox : catégorie Open hommes ou femmes (charges des ateliers)
   salle?: boolean; // Hyrox : accès aux machines (SkiErg, traîneau, rameur), sinon les remplaçants
+  marche?: boolean; // ne court pas encore 30 min d'affilée : course-marche les premières semaines
 };
 /** Une sortie faite : `s` = « semaine|séance » si elle correspond à une séance du plan. */
 export type Sortie = { d: string; km: number; sec: number; rpe: number; douleur?: boolean; s?: string; course?: boolean };
@@ -180,7 +181,10 @@ export function genererPlan(p: PlanCourse, V = vdotDe(p)): SemaineCourse[] {
   const N = Math.max(1, Math.round((dateDe(lundiDe(p.date)).getTime() - dateDe(p.debut).getTime()) / (7 * 864e5)) + 1);
   const T = Math.min(N - 1, p.obj === "marathon" && N < 14 ? 2 : P.affutage); // semaines d'affûtage, semaine de course comprise
   const B = Math.max(1, N - T); // semaines de construction
-  const debut = P.long[deb ? 0 : 1], pic = P.pic[deb ? 0 : 1];
+  /* sortie longue plafonnée en temps (2 h 30 pour un débutant, 3 h sinon : au-delà, la fatigue
+     coûte plus qu'elle ne rapporte ; Daniels, Pfitzinger) */
+  const capKm = Math.floor(((deb ? 150 : 180) * 60) / A.facile);
+  const debut = Math.min(P.long[deb ? 0 : 1], capKm), pic = Math.min(P.pic[deb ? 0 : 1], capKm);
   const raceAllure = allureCourse(p.obj, A);
   const hyrox = p.obj === "hyrox";
 
@@ -215,7 +219,23 @@ export function genererPlan(p: PlanCourse, V = vdotDe(p)): SemaineCourse[] {
     long = Math.round(long * coef * 2) / 2;
     /* en affûtage, les footings suivent le pic (×0,8) et non la sortie longue raccourcie : le volume baisse sans s'effondrer */
     const footMin = arr5(Math.min(deb ? 45 : 60, Math.max(25, ((aff ? pic2 * 0.8 : long) * 0.45 * A.facile) / 60)) * (aff ? 0.8 : 1) * coef);
-    const footing = (n = 1): SeanceCourse => ({
+    /* course-marche (« je ne cours pas encore 30 min ») : 1 min de course / 1 min de marche, puis la part
+       de course monte chaque semaine ; course continue à partir de la 7e semaine */
+    const RATIO = [60, 90, 120, 180, 240, 360];
+    const marche = !!p.marche && k < RATIO.length;
+    const courseMarche = (minutes: number, titre: string): SeanceCourse => {
+      const run = RATIO[k], walk = 60, n = Math.max(4, Math.round((minutes * 60) / (run + walk)));
+      const P2: Phase[] = [ph("echauf", 300, tr("Marche rapide"), tr("5 min de marche rapide pour te mettre en route."))];
+      for (let t = 1; t <= n; t++) {
+        P2.push(ph("effort", run, tr("Course très facile"), tr("Cours tout doucement : tu dois pouvoir parler."), t, n, tr("Course")));
+        if (t < n) P2.push(ph("recup", walk, tr("Marche"), tr("Marche d'un bon pas, le souffle revient."), t, n));
+      }
+      P2.push(ph("calme", 300, tr("Marche"), tr("5 min de marche pour finir.")));
+      const min = Math.round(dureeTotale(P2) / 60);
+      return { type: "footing", titre, min, allure: A.facile, phases: P2,
+        detail: tr("{n} × {a} de course très facile, {b} de marche entre chaque. La part de course monte chaque semaine : course continue dès la 7e semaine.", { n, a: run >= 60 ? tr("{m} min", { m: String(run / 60).replace(".", ",") }) : `${run} s`, b: "1 min" }) };
+    };
+    const footing = (n = 1): SeanceCourse => marche ? courseMarche(Math.min(30, footMin), n > 1 ? tr("Course-marche de récupération") : tr("Course-marche")) : ({
       type: "footing", titre: n > 1 ? tr("Footing de récupération") : tr("Footing"), min: n > 1 ? arr5(footMin * 0.8) : footMin, allure: A.facile,
       detail: tr("{a} min en endurance, entre {a1} /km. Tu dois pouvoir parler en phrases ; un jour de fatigue, plus lent, c'est très bien.", { a: n > 1 ? arr5(footMin * 0.8) : footMin, a1: plageFacile(A) }),
       phases: [ph("continu", (n > 1 ? arr5(footMin * 0.8) : footMin) * 60, allureTxt(A.facile), tr("Allure facile : tu peux parler en phrases."))],
@@ -254,12 +274,24 @@ export function genererPlan(p: PlanCourse, V = vdotDe(p)): SemaineCourse[] {
 
     const q = (deuxieme: boolean): SeanceCourse => {
       const prog = B > 1 ? Math.min(1, k / (B - 1)) : 1, fort = coef < 1 || allegee;
+      /* course-marche : pas encore de séance de qualité, d'abord tenir 30 min */
+      if (marche && phase !== "course") return footing();
       if (hyrox && !deuxieme && phase !== "course") return ateliers();
       if (phase === "course") {
         const ph2 = fractionne(3, 60, 120, raceAllure, tr("Rappel d'allure"), 900, 300);
         return { type: "allure", titre: tr("Rappel d'allure"), min: 26, allure: raceAllure, phases: ph2, detail: tr("Footing de 15 min, puis 3 × 1 min à ton allure de course ({a}). Rien de plus : tu gardes tes forces.", { a: allureTxt(raceAllure) }) };
       }
       /* première semaine allégée : test 5 km, qui recale les allures (vdotActuel) */
+      if (!deuxieme && !hyrox && k === finFondation && deb) {
+        /* débutant : pas de 5 km à fond, mais 30 min à allure régulière ; la distance parcourue recale les allures */
+        const P2: Phase[] = [
+          ph("echauf", 600, tr("Footing facile"), tr("Footing tranquille pour te mettre en route.")),
+          { ...ph("effort", 1800, tr("Régulier, soutenu"), tr("30 min à une allure que tu peux tenir jusqu'au bout, sans finir épuisé."), 1, 1, tr("Test 30 min")), libre: tr("Arrivée") },
+          ph("calme", 300, tr("Marche"), tr("Marche puis trottine très lentement.")),
+        ];
+        return { type: "allure", titre: tr("Test 30 min"), min: 45, allure: A.facile, phases: P2, test: true,
+          detail: tr("10 min d'échauffement, puis 30 min à allure régulière et soutenue. Note ensuite la distance et le temps du test seul : Oxa recale tes allures sur ta forme du moment.") };
+      }
       if (!deuxieme && !hyrox && k === finFondation) {
         const prevu = tempsPrevu(V, 5);
         const P2: Phase[] = [
@@ -318,6 +350,7 @@ export function genererPlan(p: PlanCourse, V = vdotDe(p)): SemaineCourse[] {
     };
 
     const longue = (): SeanceCourse => {
+      if (marche) return courseMarche(Math.min(40, Math.round((long * A.facile) / 60)), tr("Sortie longue en course-marche"));
       const avecAllure = p.obj === "marathon" && phase === "specifique" && !allegee;
       const kmAllure = avecAllure ? Math.round(long * 0.3) : 0;
       const min = Math.round((long * A.facile) / 60);
@@ -461,7 +494,7 @@ export function avertissement(obj: ObjectifCourse, ref: PlanCourse["ref"], semai
 }
 
 /* ---------------- modification d'un plan en cours ---------------- */
-export type ReglagesPlan = Pick<PlanCourse, "obj" | "date" | "debut" | "jours" | "renfo" | "ref" | "cat" | "salle">;
+export type ReglagesPlan = Pick<PlanCourse, "obj" | "date" | "debut" | "jours" | "renfo" | "ref" | "cat" | "salle" | "marche">;
 /** Nouveaux réglages d'un plan en cours : pauses, allègements et date de création sont gardés.
     `decalage` : semaines à ajouter aux numéros de semaine (sorties, allègements) quand le début bouge,
     pour qu'une semaine du calendrier garde ses séances faites. */
@@ -471,6 +504,7 @@ export function modifierPlan(a: PlanCourse, r: ReglagesPlan): { plan: PlanCourse
   for (const [k, v] of Object.entries(a.ajust)) if (+k + decalage >= 0) ajust[+k + decalage] = v;
   const plan: PlanCourse = { ...a, ...r, ajust, pauses: a.pauses, cree: a.cree };
   if (r.obj !== "hyrox") { delete plan.cat; delete plan.salle; }
+  if (!plan.marche) delete plan.marche;
   return { plan, decalage };
 }
 /** Clé « semaine|séance » d'une sortie après décalage du plan (null : la semaine n'existe plus). */

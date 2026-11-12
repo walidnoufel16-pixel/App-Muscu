@@ -92,7 +92,7 @@ const PART: Record<CreneauRepas, [number, number]> = { matin: [0.25, 0.25], deje
 export const part = (c: CreneauRepas, seance: boolean) => PART[c][seance ? 1 : 0];
 export const creneauDe = (m: Moment): CreneauRepas => (m === "matin" ? "matin" : m === "collation" ? "collation" : "dejeuner");
 
-export type Besoins = { kcal: number; p: number; g: number; l: number; seance: boolean; ajustement?: string; eau?: number };
+export type Besoins = { kcal: number; p: number; g: number; l: number; seance: boolean; ajustement?: string; eau?: number; seche?: boolean };
 /** Jours d'activité des 7 derniers jours (musculation, cardio, course). */
 export function joursActifs(E: Etat, auj = Date.now()) {
   const jours = new Set<string>();
@@ -115,14 +115,19 @@ export function depenseSeances(E: Etat, kg: number, jour = iso(Date.now())) {
 }
 
 /* ---------------- ajustement au poids ----------------
-   Tendance sur les 21 derniers jours (au moins 10 jours d'écart) : en sèche on vise −0,5 à −1 % du
-   poids par semaine, en prise de muscle +0,1 à +0,5 % ; en dehors, ±150 kcal. */
+   Tendance sur les 21 derniers jours, par régression linéaire sur au moins 4 pesées étalées sur
+   10 jours ou plus : un litre d'eau en plus un jour ne fait plus changer la cible. En sèche on vise
+   −0,5 à −1 % du poids par semaine, en prise de muscle +0,1 à +0,5 %. */
 export function ajustementPoids(A: Reponses, auj = Date.now()): { kcal: number; texte?: string } {
-  const P = ((A.poids as [string, number][]) || []).filter(([d]) => Date.parse(d) >= auj - 21 * 864e5);
-  if (P.length < 2) return { kcal: 0 };
-  const [d0, p0] = P[0], [d1, p1] = P[P.length - 1], jours = (Date.parse(d1) - Date.parse(d0)) / 864e5;
-  if (jours < 10 || !p0) return { kcal: 0 };
-  const parSemaine = ((p1 - p0) / p0) * 100 * (7 / jours);
+  const P = ((A.poids as [string, number][]) || []).filter(([d, p]) => Date.parse(d) >= auj - 21 * 864e5 && p > 0);
+  if (P.length < 4) return { kcal: 0 };
+  const t0 = Date.parse(P[0][0]), xs = P.map(([d]) => (Date.parse(d) - t0) / 864e5), ys = P.map(([, p]) => p);
+  if (xs[xs.length - 1] < 10) return { kcal: 0 };
+  const mx = xs.reduce((a, b) => a + b, 0) / xs.length, my = ys.reduce((a, b) => a + b, 0) / ys.length;
+  const vx = xs.reduce((s, x) => s + (x - mx) ** 2, 0);
+  if (!vx) return { kcal: 0 };
+  const pente = xs.reduce((s, x, i) => s + (x - mx) * (ys[i] - my), 0) / vx;
+  const parSemaine = ((pente * 7) / my) * 100;
   const fmt = (x: number) => (x > 0 ? "+" : "") + x.toFixed(1).replace(".", ",");
   if (A.objectif === 2) {
     if (parSemaine > -0.25) return { kcal: -150, texte: tr("Ton poids bouge peu ({a} % par semaine) : −150 kcal pour avancer.", { a: fmt(parSemaine) }) };
@@ -164,14 +169,19 @@ export function besoins(E: Etat, seance: boolean): Besoins {
   const gras = Math.min(0.5, Math.max(0.08, (1.2 * imc + 0.23 * Math.max(age, 18) - 10.8 * h - 5.4) / 100));
   const masseMaigre = kg * (1 - gras);
   const kcal = Math.max(base * 1.1, 30 * masseMaigre + seanceKcal, (base * napRepos + seanceKcal) * objectif + adj.kcal);
-  const p = objectifProteines(A), gMin = (fait.endurance >= 60 ? 5 : seance ? 3 : 2) * kg;
+  /* glucides : 2 g/kg au repos, 3 un jour de séance, puis selon la durée d'endurance (5 g/kg à 1 h,
+     +2 par heure en plus, 10 au plus) sans marche d'escalier à 59 / 60 minutes */
+  const hEnd = fait.endurance / 60, gkg = hEnd >= 1 ? Math.min(10, 5 + 2 * (hEnd - 1)) : seance || hEnd > 0 ? Math.max(3, 2 + 3 * hEnd) : 2;
+  const p = objectifProteines(A), gMin = gkg * kg;
+  /* lipides : jamais sous 20 % de l'énergie (ACSM 2016) */
+  const lMin = Math.max(0.6 * kg, (0.2 * kcal) / 9);
   let l = Math.max(0.8 * kg, (0.27 * kcal) / 9), g = (kcal - p * 4 - l * 9) / 4;
-  if (g < gMin) { l = Math.max(0.6 * kg, (kcal - p * 4 - gMin * 4) / 9); g = Math.max(gMin, (kcal - p * 4 - l * 9) / 4); }
+  if (g < gMin) { l = Math.max(lMin, (kcal - p * 4 - gMin * 4) / 9); g = Math.max(gMin, (kcal - p * 4 - l * 9) / 4); }
   const r5 = (x: number) => Math.round(x / 5) * 5, total = Math.max(kcal, p * 4 + r5(l) * 9 + r5(g) * 4);
   /* eau : 35 ml/kg, plus 0,5 l par heure de sport */
   const minutes = (seance ? Math.max(((A.duree as number) ?? 45), 0) : 0) + fait.endurance;
   const eau = Math.round((35 * poidsReference(A, kg) + (minutes / 60) * 500) / 100) * 100;
-  return { kcal: Math.round(total / 10) * 10, p, g: r5(g), l: r5(l), seance, eau, ...(adj.texte ? { ajustement: adj.texte } : {}) };
+  return { kcal: Math.round(total / 10) * 10, p, g: r5(g), l: r5(l), seance, eau, seche: objectif < 1, ...(adj.texte ? { ajustement: adj.texte } : {}) };
 }
 
 /** Méthode de la main pour un repas : paumes de protéines (~25 g), poings de féculents
@@ -188,8 +198,10 @@ export function portion(r: Recette, b: Besoins, c: CreneauRepas = creneauDe(r.m)
   if (r.t.includes("dessert")) return 1;
   const s = part(c, b.seance), m = macros(r);
   const fKcal = (b.kcal * s) / (m.kcal || 1), fProt = (b.p * s) / (m.p || 1);
-  const f = fKcal * m.p >= 0.9 * b.p * s ? fKcal : Math.min(fProt * 0.9, fKcal * 1.25);
-  const [mn, mx] = r.m === "collation" ? [0.75, 1.5] : [0.75, 1.75];
+  /* en sèche, la règle des protéines ne peut ajouter que 10 % d'énergie (sinon le déficit s'efface) ;
+     le reste des protéines vient du complément proposé (protManquantes) */
+  const f = fKcal * m.p >= 0.9 * b.p * s ? fKcal : Math.min(fProt * 0.9, fKcal * (b.seche ? 1.1 : 1.25));
+  const [mn, mx] = r.m === "collation" ? [0.5, 1.5] : [0.5, 2];
   return Math.min(mx, Math.max(mn, Math.round(f * 4) / 4));
 }
 
@@ -200,6 +212,16 @@ export function protManquantes(r: Recette, b: Besoins, c: CreneauRepas = creneau
   const manque = b.p * part(c, b.seance) - macros(r, portion(r, b, c)).p;
   return manque >= 8 ? Math.round(manque / 5) * 5 : 0;
 }
+
+/** Ce qui manque en glucides à un repas (jours d'endurance surtout : les recettes sont riches en
+    protéines, on n'agrandit pas toute l'assiette) : de quoi proposer un féculent en plus. */
+export function glucManquants(r: Recette, b: Besoins, c: CreneauRepas = creneauDe(r.m)) {
+  if (r.t.includes("dessert")) return 0;
+  const manque = b.g * part(c, b.seance) - macros(r, portion(r, b, c)).g;
+  return manque >= 25 ? Math.round(manque / 5) * 5 : 0;
+}
+/** Féculents pesés secs : la fiche le précise (80 g de riz sec ≈ 240 g cuit). */
+export const SEC = new Set(["riz", "riz_complet", "pates", "pates_comp", "quinoa", "semoule", "lentilles", "lentilles_corail", "nouilles_riz", "avoine"]);
 
 /* ---------------- quantités affichées ---------------- */
 const LIQUIDES = new Set(["lait", "lait_soja", "lait_coco"]);

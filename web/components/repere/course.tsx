@@ -53,6 +53,7 @@ export function QuestionnaireCourse() {
   const hyrox = obj === "hyrox";
   const [date, setDate] = useState(() => ex?.date ?? decaler(auj, 7 * 14));
   const [debutant, setDebutant] = useState(!!ex && !r0);
+  const [marche, setMarche] = useState(!!ex?.marche);
   const [refKm, setRefKm] = useState(r0?.km ?? 10);
   const [h, setH] = useState(sec0 >= 3600 ? String(Math.floor(sec0 / 3600)) : ""), [m, setM] = useState(r0 ? String(Math.floor((sec0 % 3600) / 60)) : ""), [s, setS] = useState(r0 ? String(Math.round(sec0 % 60)).padStart(2, "0") : "");
   const [jours, setJours] = useState(ex?.jours ?? 4);
@@ -75,7 +76,7 @@ export function QuestionnaireCourse() {
     tactile(10);
     muter((E) => {
       if (!E.COURSE) return;
-      const { plan, decalage } = modifierPlan(E.COURSE, { obj, date, debut: cal.debut, jours, renfo, ref, ...(hyrox ? { cat, salle } : {}) });
+      const { plan, decalage } = modifierPlan(E.COURSE, { obj, date, debut: cal.debut, jours, renfo, ref, marche: debutant && marche, ...(hyrox ? { cat, salle } : {}) });
       E.COURSE = plan;
       /* les sorties du plan suivent leur semaine du calendrier */
       if (decalage) for (const o of E.SORTIES || []) { const c = decalerCle(o.s, decalage); if (c) o.s = c; else delete o.s; }
@@ -89,7 +90,7 @@ export function QuestionnaireCourse() {
     if (ex) return enregistrer();
     if (etat.COURSE && !(await confirmer({ titre: tr("Remplacer ta préparation en cours ?"), texte: tr("Ton plan {a} sera remplacé. Tes sorties déjà notées restent dans ton historique.", { a: DISTANCES[etat.COURSE.obj].nom.toLowerCase() }), ok: tr("Remplacer") }))) return;
     tactile(10);
-    const plan: PlanCourse = { obj, date, debut: cal.debut, jours, renfo, ref, pauses: [], ajust: {}, cree: auj, ...(hyrox ? { cat, salle } : {}) };
+    const plan: PlanCourse = { obj, date, debut: cal.debut, jours, renfo, ref, ...(debutant && marche ? { marche: true } : {}), pauses: [], ajust: {}, cree: auj, ...(hyrox ? { cat, salle } : {}) };
     muter((E) => {
       E.COURSE = plan;
       /* séances de renfo (coureur ou Hyrox) : ajoutées une fois à « Mes séances » (groupe Musculation) */
@@ -146,7 +147,7 @@ export function QuestionnaireCourse() {
 
         <section>
           <div className="eyebrow mb-2 px-1">{hyrox ? tr("Ton niveau en course") : tr("Ton niveau")}</div>
-          <Segmente label={tr("Niveau")} valeur={debutant ? 1 : 0} onChange={(v) => setDebutant(v === 1)} options={[{ v: 0, n: tr("J'ai un chrono récent") }, { v: 1, n: tr("Je débute") }]} />
+          <Segmente label={tr("Niveau")} valeur={marche ? 2 : debutant ? 1 : 0} onChange={(v) => { setDebutant(v >= 1); setMarche(v === 2); }} options={[{ v: 0, n: tr("Chrono récent") }, { v: 1, n: tr("Je débute") }, { v: 2, n: tr("Pas encore 30 min") }]} />
           {!debutant ? (
             <div className="mt-3 rounded-2xl border bg-card p-3.5">
               <div className="mb-2 text-[13px] text-muted-foreground">{tr("Ton meilleur temps des 3 derniers mois, sur :")}</div>
@@ -158,7 +159,7 @@ export function QuestionnaireCourse() {
               </div>
             </div>
           ) : (
-            <p className="mt-2 px-1 text-[13px] leading-snug text-muted-foreground">{tr("Le plan part de footings courts et monte doucement. Tes allures se préciseront dès tes premières sorties.")}</p>
+            <p className="mt-2 px-1 text-[13px] leading-snug text-muted-foreground">{marche ? tr("Les premières semaines alternent course et marche (1 min / 1 min au départ) ; tu cours 30 min d'affilée vers la 7e semaine.") : tr("Le plan part de footings courts et monte doucement. Tes allures se préciseront dès tes premières sorties.")}</p>
           )}
         </section>
 
