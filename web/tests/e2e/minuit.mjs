@@ -22,7 +22,7 @@ const pg = await ctx.newPage();
 const errs = []; pg.on("pageerror", (e) => errs.push(e.message));
 await pg.clock.setFixedTime(new Date("2026-10-22T00:18:00+02:00"));
 await pg.goto(U + "/entrainement/seance?l=0");
-await pg.locator('[id="ex-L|0|2"] button[aria-expanded]').first().click();
+{ const l = pg.locator('[id="ex-L|0|2"] button[aria-expanded]').first(); await l.waitFor(); if ((await l.getAttribute("aria-expanded")) !== "true") await l.click(); }
 await pg.getByRole("button", { name: "Tout valider" }).click();
 await pg.waitForTimeout(800);
 const H = await pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")).HIST);
