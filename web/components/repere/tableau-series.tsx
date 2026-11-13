@@ -65,11 +65,71 @@ const phasesChrono = (nom: string, cible: number, cote?: boolean): Phase[] => co
   { type: "effort", titre: tr("Tiens"), duree: cible, rpe: "", consigne: nom },
 ];
 
+/* Les séries affichées : celles du journal, sinon la proposition (lest du dernier passage s'il y en avait). */
+function seriesAffichees(c: Ctx, L: Journal | undefined): Serie[] {
+  const x = EX[c.id], dbl = ["kg", "lest"].includes(x.ch);
+  const lestable = !dbl && LESTABLE.has(c.id), avecLest = lestable && (L ? !!L.lest : !!c.prev?.lest);
+  const Pp = c.prev?.series || [];
+  return L
+    ? seriesDe(structuredClone(L), c.n)
+    : Array.from({ length: c.n }, (_, n) => ({ ...c.base, lest: avecLest ? +((Pp[n] || Pp[Pp.length - 1] || ({} as Serie)).lest ?? 0) || 0 : undefined }));
+}
+
+/* Valider (ou décocher) la série n : journal, repos, record. Partagé par le tableau et la barre du bas. */
+function validerSerie(c: Ctx, n: number, s: Serie, bouton: HTMLElement, onFini?: () => void) {
+  const avant = useRepere.getState().etat.LOG, L = journalActif(avant[c.k]);
+  const fini = !!avant[c.k]?.done, rec = !(L && okDe(L, s)) && estRecord(avant, c.id, c.k, s);
+  let valide = false;
+  useRepere.getState().muter((E) => { valide = act.serOk(E, c, n); });
+  if (valide) {
+    useCelebrer.getState().marquerDebut(seanceDe(c.k));
+    useRepos.getState().lancer(secondesDe(c.repos));
+    if (rec) {
+      useCelebrer.getState().ajouterRecord(seanceDe(c.k));
+      const b = bouton.getBoundingClientRect();
+      gerbe(b.left + b.width / 2, b.top + b.height / 2);
+      try { navigator.vibrate?.([14, 60, 28]); } catch {}
+    } else tactile(12);
+  } else tactile(6);
+  if (!fini && useRepere.getState().etat.LOG[c.k]?.done) onFini?.();
+  return { valide, rec };
+}
+
+/* Mode séance : la série à faire de l'exercice ouvert, validée d'un toucher, en barre fixe en bas.
+   Elle laisse la place au minuteur de repos ; pas de barre pour un exercice tenu en durée (son
+   chrono se lance dans le tableau). */
+export function BarreSerie({ c, onFini }: { c: Ctx | null; onFini?: () => void }) {
+  const fin = useRepos((s) => s.fin), finiRepos = useRepos((s) => s.fini);
+  const brut = useRepere((s) => (c ? s.etat.LOG[c.k] : undefined));
+  if (!c || fin || finiRepos) return null;
+  const x = EX[c.id], L = journalActif(brut);
+  if (!x || x.ch === "temps" || L?.done) return null;
+  const S = seriesAffichees(c, L), n = S.findIndex((t) => !(L && okDe(L, t)));
+  if (n < 0) return null;
+  const unite = x.ch === "kg" ? " kg" : x.ch === "lest" ? tr(" kg de lest") : "";
+  const quoi = ["kg", "lest"].includes(x.ch) ? `${nb(S[n].v)}${unite} × ${S[n].reps}` : fmtSerie(x, S[n]) + (x.ch === "aucune" ? tr(" réps") : "");
+  return (
+    <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),12px)] z-30 mx-auto max-w-[480px] px-3 animate-in slide-in-from-bottom-4 fade-in-0 duration-300">
+      <div className="flex items-center gap-3 rounded-[22px] border border-border bg-foreground py-2.5 pr-2.5 pl-4 text-background shadow-[0_12px_32px_-12px_rgba(0,0,0,.45)]">
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[12px] font-medium opacity-70">{tr("Série {a}/{b}", { a: n + 1, b: S.length })} · {x.n}</div>
+          <div className="num truncate text-[22px] leading-tight font-bold">{quoi}</div>
+        </div>
+        <button
+          onClick={(e) => validerSerie(c, n, S[n], e.currentTarget, onFini)}
+          className="flex h-12 shrink-0 items-center gap-1.5 rounded-full bg-plate px-5 text-[15px] font-bold text-plate-foreground active:scale-95"
+        >
+          <CheckIcon className="size-[18px]" weight="bold" />{tr("Valider")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* Tableau des séries façon Hevy / Strong : # · précédent · valeurs · (chrono) · ✓. */
 export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: number; onReplier: () => void; onFini?: () => void }) {
   const L: Journal | undefined = journalActif(useRepere((s) => s.etat.LOG[c.k]));
   const muter = useRepere((s) => s.muter);
-  const lancer = useRepos((s) => s.lancer);
   const [depuis] = useState(() => performance.now());
   const [vient, setVient] = useState<number | null>(null); // série qui vient d'être validée
   const [records, setRecords] = useState<number[]>([]);
@@ -77,30 +137,13 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
   const boutons = useRef<Record<number, HTMLElement | null>>({});
 
   const valider = (n: number, s: Serie, bouton: HTMLElement) => {
-    const avant = useRepere.getState().etat.LOG;
-    const fini = !!avant[c.k]?.done, rec = !(L && okDe(L, s)) && estRecord(avant, c.id, c.k, s);
-    let valide = false;
-    muter((E) => { valide = act.serOk(E, c, n); });
+    const { valide, rec } = validerSerie(c, n, s, bouton, onFini);
     setVient(valide ? n : null);
     setRecords((r) => (valide && rec ? [...r, n] : r.filter((x) => x !== n)));
-    if (valide) {
-      useCelebrer.getState().marquerDebut(seanceDe(c.k));
-      lancer(secondesDe(c.repos));
-      if (rec) {
-        useCelebrer.getState().ajouterRecord(seanceDe(c.k));
-        const b = bouton.getBoundingClientRect();
-        gerbe(b.left + b.width / 2, b.top + b.height / 2);
-        try { navigator.vibrate?.([14, 60, 28]); } catch {}
-      } else tactile(12);
-    } else tactile(6);
-    if (!fini && useRepere.getState().etat.LOG[c.k]?.done) onFini?.();
   };
   const x = EX[c.id], dbl = ["kg", "lest"].includes(x.ch);
   const lestable = !dbl && LESTABLE.has(c.id), avecLest = lestable && (L ? !!L.lest : !!c.prev?.lest);
-  const Pp = c.prev?.series || [];
-  const S: Serie[] = L
-    ? seriesDe(structuredClone(L), c.n)
-    : Array.from({ length: c.n }, (_, n) => ({ ...c.base, lest: avecLest ? +((Pp[n] || Pp[Pp.length - 1] || ({} as Serie)).lest ?? 0) || 0 : undefined }));
+  const S = seriesAffichees(c, L);
   const tete = { kg: "kg", lest: "lest", aucune: tr("réps"), temps: x.cote ? tr("sec / côté") : "sec", dist: "m" }[x.ch];
   const P2 = c.prev?.series?.length ? c.prev.series : c.prev ? [{ v: maxV(c.prev), reps: c.prev.reps ?? 0 }] : [];
   const why = L ? L.why : c.why, done = !!L?.done;
