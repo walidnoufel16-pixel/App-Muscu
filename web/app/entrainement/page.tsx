@@ -1,7 +1,7 @@
 "use client";
 
 /* Entraînement : la semaine en anneaux, la séance du jour en grand,
-   ses séances enregistrées, « À venir » (et l'écran Agenda), puis les rubriques en mosaïque.
+   « À venir » (et l'écran Agenda), puis les rubriques en mosaïque (dont Mes séances).
    Programmer : toucher un jour de la semaine ou « Programmer » dans « À venir ». Oxa Plan ne
    s'ouvre que par sa rubrique. */
 import { AvatarProfil } from "@/components/repere/avatar-profil";
@@ -10,7 +10,7 @@ import { useState } from "react";
 import { EnTete } from "@/components/repere/en-tete";
 import { Reprise } from "@/components/repere/motivation";
 import { FeuillesAgenda, type Feuille } from "@/components/repere/agenda";
-import { AVenir, CarteDuJour, RangeeMesSeances, SemaineAnneaux } from "@/components/repere/accueil-entrainement";
+import { AVenir, CarteDuJour, SemaineAnneaux } from "@/components/repere/accueil-entrainement";
 import { FeuilleImport } from "@/components/repere/mes-seances";
 import { ProgrammeBientot } from "@/components/repere/bientot";
 import { Mosaique, type Rubrique } from "@/components/repere/rubriques";
@@ -49,9 +49,6 @@ export default function PageEntrainement() {
         {!debutant && <SemaineAnneaux auj={auj} setF={setF} />}
         {!debutant && <LigneRecuperation auj={auj} />}
         <CarteDuJour auj={auj} setF={setF} />
-        {/* deux chemins pour lancer une séance : la carte du jour, et ses séances juste dessous ;
-            programmer : toucher un jour de la semaine, ou « À venir » */}
-        <div className="mt-2 empty:hidden"><RangeeMesSeances /></div>
         <Reprise />
         <div className="mt-2"><AVenir auj={auj} setF={setF} /></div>
         <section className="mt-2">
