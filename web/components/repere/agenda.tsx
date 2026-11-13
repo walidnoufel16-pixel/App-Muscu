@@ -455,6 +455,22 @@ function FeuilleJour({ d, auj, j, setF }: { d: string; auj: string; j: JourAgend
 
 const nomEx = (id: string) => EX[id]?.n ?? id;
 
+/* ---------------- le jour d'une séance en création, modifiable ---------------- */
+/** « Pour lundi 16 novembre ⌄ » : touchée, la pastille déplie les jours des 3 prochaines semaines. */
+export function PastilleJour({ jour, auj, onChange, className }: { jour: string; auj: string; onChange: (d: string) => void; className?: string }) {
+  const [ouvert, setOuvert] = useState(false);
+  return (
+    <div className={className}>
+      <button onClick={() => { tactile(5); setOuvert(!ouvert); }} aria-expanded={ouvert} aria-label={tr("Changer le jour : {j}", { j: jourLong(jour) })}
+        className="inline-flex items-center gap-1.5 rounded-full bg-plate-soft px-3 py-1.5 text-[13.5px] font-semibold text-plate-ink active:scale-[.98] dark:text-plate">
+        <CalendarDotsIcon className="size-4" weight="bold" />{tr("Pour {j}", { j: maj(jourLong(jour)) })}
+        <CaretDownIcon className={cn("size-3.5 transition-transform", ouvert && "rotate-180")} weight="bold" />
+      </button>
+      {ouvert && <div className="animate-in fade-in-0 mt-2"><ChoixJour valeur={jour} auj={auj} onChange={(d) => { tactile(6); onChange(d); setOuvert(false); }} /></div>}
+    </div>
+  );
+}
+
 /* ---------------- choisir un jour (pastilles des 3 prochaines semaines) ---------------- */
 function ChoixJour({ valeur, auj, onChange }: { valeur: string; auj: string; onChange: (d: string) => void }) {
   return (
