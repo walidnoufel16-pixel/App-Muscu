@@ -1,5 +1,5 @@
 /* « Mon agenda » (lib/logic/agenda.ts) et ses rappels côté serveur (supabase/functions/rappels/logique.ts). */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeAll, afterAll, vi } from "vitest";
 import { debutGrille, deplacer, faitsParJour, joursAgenda, seancesEnCours, nomCourt, programmer, rappelsDus, remplacerLe, retirer, tombeLe, type Prevu } from "@/lib/logic/agenda";
 import { rappelsAgenda, seancePrevueBientot, rappelDu } from "../../supabase/functions/rappels/logique";
 import type { LigneHist } from "@/lib/logic/historique";
@@ -94,7 +94,11 @@ describe("rappels d'agenda", () => {
 });
 
 describe("séance en cours", () => {
-  const maintenant = Date.now(), auj = jourDe(maintenant), avant = jourDe(maintenant - 2 * 864e5);
+  /* midi, heure fixe : à 0 h 10, une séance commencée « il y a 20 minutes » tombait la veille
+     et le test échouait selon l'heure de passage de la CI */
+  const maintenant = new Date().setHours(12, 0, 0, 0), auj = jourDe(maintenant), avant = jourDe(maintenant - 2 * 864e5);
+  beforeAll(() => { vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(maintenant); });
+  afterAll(() => { vi.useRealTimers(); });
   const E = {
     HIST: [{ d: auj, s: "L|0", nom: "Push", vol: 600, ser: 2, ex: {} }, { d: avant, s: "L|0", nom: "Push", vol: 600, ser: 3, ex: {} }],
     LOG: {
