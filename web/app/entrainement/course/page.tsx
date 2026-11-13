@@ -25,6 +25,7 @@ import {
 } from "@/lib/logic/course";
 import { dureeTotale } from "@/lib/logic/cardio";
 import { decaler, jourDe } from "@/lib/logic/historique";
+import { poserPlan } from "@/lib/logic/agenda";
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
@@ -97,7 +98,7 @@ function Plan() {
   };
   const supprimer = async () => {
     if (!(await confirmer({ titre: tr("Supprimer la préparation ?"), texte: tr("Le plan disparaît ; tes sorties notées restent dans ton historique."), ok: tr("Supprimer"), danger: true }))) return;
-    muter((E) => { E.COURSE = null; });
+    muter((E) => { E.COURSE = null; poserPlan(E, auj); });
     retour();
   };
 
@@ -170,6 +171,14 @@ function Plan() {
             {!pause && <Button variant="soft" className="h-11 rounded-xl border border-border/80 bg-card" onClick={basculerPause}><PauseIcon weight="fill" />{tr("Mettre en pause")}</Button>}
             <Button variant="soft" className="col-span-2 h-11 rounded-xl border border-border/80 bg-card" onClick={() => router.push("/entrainement/assistant?type=course&modif=1" as Route, AVANT)}><SlidersHorizontalIcon />{tr("Modifier mon plan")}</Button>
           </div>
+          {/* plan créé avant le calendrier commun : ses sorties ne sont pas encore dans l'agenda */}
+          {!c.jsem?.length && J > 0 && (
+            <div className="mt-3 rounded-[20px] bg-plate-soft/60 p-4">
+              <p className="text-[14.5px] font-semibold">{tr("Mets tes sorties dans ton agenda")}</p>
+              <p className="mt-1 text-[13px] leading-snug text-muted-foreground">{tr("Choisis tes jours de course : tes sorties s'ajoutent à ton agenda, à côté de tes séances, et Oxa évite les jambes la veille d'une sortie dure.")}</p>
+              <Button variant="plate" size="sm" className="mt-3 rounded-full" onClick={() => router.push("/entrainement/assistant?type=course&modif=1" as Route, AVANT)}>{tr("Choisir mes jours")}</Button>
+            </div>
+          )}
         </section>
 
         <section>
