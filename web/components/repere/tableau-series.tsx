@@ -77,7 +77,9 @@ function seriesAffichees(c: Ctx, L: Journal | undefined): Serie[] {
 
 /* Valider (ou décocher) la série n : journal, repos, record. Partagé par le tableau et la barre du bas. */
 /* superset : `o.enchaine` (le nom du second exercice) titre le repos, `o.onValide` ouvre l'autre exercice */
-type Enchainement = { enchaine?: string; onValide?: () => void };
+/* `o.attendre` (un RPE à noter) : l'exercice tout juste terminé reste ouvert sur la question du ressenti ;
+   c'est la réponse (« Continuer ») qui passe à la suite */
+type Enchainement = { enchaine?: string; onValide?: () => void; attendre?: boolean; garder?: () => void };
 function validerSerie(c: Ctx, n: number, s: Serie, bouton: HTMLElement, onFini?: () => void, o: Enchainement = {}) {
   const avant = useRepere.getState().etat.LOG, L = journalActif(avant[c.k]);
   const fini = !!avant[c.k]?.done, rec = !(L && okDe(L, s)) && estRecord(avant, c.id, c.k, s);
@@ -93,15 +95,17 @@ function validerSerie(c: Ctx, n: number, s: Serie, bouton: HTMLElement, onFini?:
       try { navigator.vibrate?.([14, 60, 28]); } catch {}
     } else tactile(12);
   } else tactile(6);
+  const termine = !fini && !!useRepere.getState().etat.LOG[c.k]?.done;
+  if (termine && o.attendre) { o.garder?.(); return { valide, rec }; }
   if (valide) o.onValide?.();
-  if (!fini && useRepere.getState().etat.LOG[c.k]?.done) onFini?.();
+  if (termine) onFini?.();
   return { valide, rec };
 }
 
 /* Mode séance : la série à faire de l'exercice ouvert, validée d'un toucher, en barre fixe en bas.
    Elle laisse la place au minuteur de repos ; pas de barre pour un exercice tenu en durée (son
    chrono se lance dans le tableau). */
-export function BarreSerie({ c, onFini, etiquette, ...o }: { c: Ctx | null; onFini?: () => void; etiquette?: string } & Enchainement) {
+export function BarreSerie({ c, onFini, etiquette, rpe = 0, ...o }: { c: Ctx | null; onFini?: () => void; etiquette?: string; rpe?: number } & Enchainement) {
   const fin = useRepos((s) => s.fin), finiRepos = useRepos((s) => s.fini);
   const brut = useRepere((s) => (c ? s.etat.LOG[c.k] : undefined));
   if (!c || fin || finiRepos) return null;
@@ -119,7 +123,7 @@ export function BarreSerie({ c, onFini, etiquette, ...o }: { c: Ctx | null; onFi
           <div className="num truncate text-[22px] leading-tight font-bold">{quoi}</div>
         </div>
         <button
-          onClick={(e) => validerSerie(c, n, S[n], e.currentTarget, onFini, o)}
+          onClick={(e) => validerSerie(c, n, S[n], e.currentTarget, onFini, { ...o, attendre: rpe > 0 })}
           className="flex h-12 shrink-0 items-center gap-1.5 rounded-full bg-plate px-5 text-[15px] font-bold text-plate-foreground active:scale-95"
         >
           <CheckIcon className="size-[18px]" weight="bold" />{tr("Valider")}
@@ -140,7 +144,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini, ...o }: { c: Ctx; rpe
   const boutons = useRef<Record<number, HTMLElement | null>>({});
 
   const valider = (n: number, s: Serie, bouton: HTMLElement) => {
-    const { valide, rec } = validerSerie(c, n, s, bouton, onFini, o);
+    const { valide, rec } = validerSerie(c, n, s, bouton, onFini, { ...o, attendre: rpe > 0 });
     setVient(valide ? n : null);
     setRecords((r) => (valide && rec ? [...r, n] : r.filter((x) => x !== n)));
   };
@@ -268,9 +272,19 @@ export function TableauSeries({ c, rpe, onReplier, onFini, ...o }: { c: Ctx; rpe
               )}
             </>
           )}
-          <button onClick={onReplier} className="mt-2 w-full rounded-lg py-1.5 text-[13px] font-medium text-muted-foreground hover:text-foreground">
-            {tr("Replier")}
-          </button>
+          {/* la suite (exercice suivant, ou le bilan après le dernier) : quand on a répondu, ou pour passer */}
+          {onFini && rpe > 0 ? (
+            <div className="mt-2 flex gap-2">
+              <button onClick={onReplier} className="h-10 flex-1 rounded-lg text-[13px] font-medium text-muted-foreground hover:text-foreground">{tr("Replier")}</button>
+              <button onClick={() => { tactile(8); onFini(); }} className={cn("h-10 flex-[1.4] rounded-full text-[14px] font-semibold active:scale-[.98]", L?.feel != null ? "bg-plate text-plate-foreground" : "bg-background text-foreground")}>
+                {L?.feel != null ? tr("Continuer") : tr("Passer")}
+              </button>
+            </div>
+          ) : (
+            <button onClick={onReplier} className="mt-2 w-full rounded-lg py-1.5 text-[13px] font-medium text-muted-foreground hover:text-foreground">
+              {tr("Replier")}
+            </button>
+          )}
         </div>
       )}
       {chrono && createPortal(
