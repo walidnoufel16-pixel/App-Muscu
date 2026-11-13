@@ -473,7 +473,7 @@ export function PastilleJour({ jour, auj, onChange, className }: { jour: string;
 }
 
 /* ---------------- choisir un jour (pastilles des 3 prochaines semaines) ---------------- */
-function ChoixJour({ valeur, auj, onChange }: { valeur: string; auj: string; onChange: (d: string) => void }) {
+export function ChoixJour({ valeur, auj, onChange }: { valeur: string; auj: string; onChange: (d: string) => void }) {
   return (
     <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1">
       {prochainsJours(auj).map((d) => (

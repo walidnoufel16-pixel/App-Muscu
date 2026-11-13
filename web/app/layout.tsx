@@ -18,6 +18,13 @@ const chiffres = localFont({
   display: "swap",
 });
 
+/* Titres (écrans, exercices, blocs) : Barlow, la version large des chiffres ; un seul poids. */
+const titres = localFont({
+  src: [{ path: "./fonts/barlow-latin-700-normal.woff2", weight: "700" }],
+  variable: "--font-titres",
+  display: "swap",
+});
+
 /* Adresse publique : aperçus de partage (WhatsApp, Instagram…) et référencement. */
 const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "https://repere-soz5.onrender.com").trim();
 const ACCROCHE = "Quels exercices, combien de séries, quel poids : Oxa décide avec toi, et ajoute du poids quand tu es prêt. Muscu, street workout, course et Hyrox.";
@@ -53,7 +60,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="fr"
       suppressHydrationWarning
-      className={`${GeistSans.variable} ${GeistMono.variable} ${chiffres.variable} h-full`}
+      className={`${GeistSans.variable} ${GeistMono.variable} ${chiffres.variable} ${titres.variable} h-full`}
     >
       {/* Plus de feuille Google Fonts : elle bloquait le premier affichage sur un réseau faible
           (jusqu'à 4 s d'écran blanc) et envoyait l'IP de chaque visiteur à Google. Les polices

@@ -27,7 +27,7 @@
   --secondary: #e8e8ec;
   --secondary-foreground: #0a0a0c;
   --muted: #ececef;
-  --muted-foreground: #6b6b75;
+  --muted-foreground: #62626c;    /* 5,1:1 sur --muted, 6:1 sur blanc (design v2) */
   --accent: #ececef;
   --accent-foreground: #0a0a0c;
   --destructive: #d13438;          /* 4,9:1 avec du blanc (bouton « Tout effacer ») */
@@ -56,7 +56,7 @@
   --rpe9: #e5484d;
   /* champ de saisie, case vide, sélection : des jetons à part, lisibles sur une carte */
   --champ: #ececef;
-  --champ-bord: #c9c9d0;
+  --champ-bord: #8e8e98;          /* 3,2:1 sur blanc : champs et ronds de validation identifiables */
   --vide: #e4e4e9;
 }
 
@@ -72,11 +72,11 @@
   --secondary: #222228;
   --secondary-foreground: #f5f5f7;
   --muted: #1f1f25;
-  --muted-foreground: #95959f;
+  --muted-foreground: #9d9da7;
   --accent: #26262d;
   --accent-foreground: #f5f5f7;
   --destructive: #ff5c61;
-  --border: #29292f;
+  --border: #303038;
   --input: #34343c;
   --ring: #55555f;
 
@@ -91,7 +91,7 @@
   --feu-soft: color-mix(in oklab, var(--feu) 18%, transparent);
   --success: var(--feu);
   --champ: #2a2a31;
-  --champ-bord: #4a4a54;
+  --champ-bord: #6a6a74;
   --vide: #2a2a31;
 }
 
@@ -219,6 +219,12 @@ body.repas-recettes { --fond-repas: #ffe6d8; }
     font-family: var(--font-chiffres), "Barlow Condensed", var(--font-geist-sans), "Geist", sans-serif;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.01em;
+  }
+  /* titres d'écran, noms d'exercices, titres de bloc : Barlow 700, la version large des chiffres */
+  .titre {
+    font-family: var(--font-titres), "Barlow", var(--font-geist-sans), "Geist", sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.005em;
   }
   .eyebrow {
     @apply text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground;

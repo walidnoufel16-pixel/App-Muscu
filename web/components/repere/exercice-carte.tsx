@@ -89,12 +89,21 @@ export function ExerciceCarte({
       id={"ex-" + ancre}
       data-ex={id}
       className={cn(
-        "scroll-mt-3 overflow-hidden rounded-[20px] border bg-card transition-[border-color,box-shadow] duration-200",
+        "scroll-mt-3 overflow-hidden rounded-[20px] bg-card shadow-[0_1px_2px_rgb(10_10_12/0.05)] transition-[border-color,box-shadow] duration-200",
         celebre && "animate-[eclat_.9s_ease-out]",
-        fait ? "border-plate/60" : "border-border/80",
-        ouvert && "shadow-[0_10px_30px_-18px_rgba(0,0,0,.35)]",
+        /* l'exercice en cours : un cadre net (turquoise foncé, 5,5:1), sans halo */
+        ouvert && !fait ? "border-2 border-plate-ink dark:border-plate" : "border border-border/80",
       )}
     >
+      {/* fait et replié : une ligne, lisible (pas d'opacité) */}
+      {fait && !ouvert ? (
+        <button onClick={onToggle} aria-expanded={false} className="flex h-[52px] w-full items-center gap-2.5 pr-1.5 pl-2.5 text-left">
+          <span className="grid size-7 shrink-0 place-items-center rounded-full bg-plate text-plate-foreground"><CheckIcon className="size-3.5" weight="bold" /></span>
+          <span className="min-w-0 flex-1 truncate text-[15px] font-semibold">{x.n}</span>
+          <span className="num text-[16px] font-semibold text-muted-foreground">{prescr}</span>
+          <span className="grid h-11 w-9 place-items-center"><CaretDownIcon className="size-4 text-muted-foreground" /></span>
+        </button>
+      ) : (
       <div className="flex items-center gap-3.5 p-3">
         {/* la photo ouvre la fiche ; le reste de la carte déplie les séries */}
         <button onClick={onFiche} aria-label={tr("Fiche : {n}", { n: x.n })} className="shrink-0 rounded-[14px] active:scale-95">
@@ -103,7 +112,8 @@ export function ExerciceCarte({
         <button onClick={onToggle} aria-expanded={ouvert} className="flex min-w-0 flex-1 items-center gap-3.5 text-left">
         <span className="flex min-w-0 flex-1 flex-col gap-1">
           {/* le nom d'abord, en entier (deux lignes au plus) ; les étiquettes passent sur la ligne des muscles */}
-          <span className="line-clamp-2 text-[16px] leading-tight font-semibold tracking-[-0.01em]">{x.n}</span>
+          {ouvert && !fait && <span className="eyebrow text-plate-ink dark:text-plate">{tr("En cours")}</span>}
+          <span className={cn("titre line-clamp-2 leading-[1.12]", ouvert ? "text-[19px]" : "text-[17px]")}>{x.n}</span>
           <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12.5px] font-medium text-muted-foreground">
             {mus.length > 0 && <><CrosshairIcon className="size-3.5 shrink-0 text-plate-ink" /><span className="min-w-0 truncate">{mus.join(" · ")}</span></>}
             {badge && <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10.5px] font-medium text-muted-foreground">{badge}</span>}
@@ -123,6 +133,7 @@ export function ExerciceCarte({
         <CaretDownIcon className={cn("size-5 shrink-0 text-muted-foreground transition-transform duration-200", ouvert && "rotate-180")} />
         </button>
       </div>
+      )}
       {vuRole && <PourquoiRole ro={ro} onFermer={() => setVuRole(false)} className="mx-3 mb-3 -mt-1" />}
 
       {ouvert && (
