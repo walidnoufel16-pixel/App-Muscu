@@ -10,9 +10,11 @@ import { usePile } from "@/lib/nav";
 /* Grand titre façon iOS : la barre prend un fond translucide dès que la page défile,
    et le titre s'y réduit quand le grand titre sort de l'écran. */
 export function EnTete({
-  surtitre, titre, actions, gauche, children, className,
+  surtitre, titre, actions, gauche, children, className, aside,
 }: {
   surtitre?: React.ReactNode;
+  /** à droite du grand titre (anneau d'avancement d'une séance…) */
+  aside?: React.ReactNode;
   titre: React.ReactNode;
   actions?: React.ReactNode;
   gauche?: React.ReactNode;
@@ -71,10 +73,15 @@ export function EnTete({
         </div>
       </div>
       <header className={cn("px-5 pt-1 pb-3", className)}>
-        {surtitre && <div className="eyebrow mb-1">{surtitre}</div>}
-        <h1 ref={ref} className="text-[32px] leading-[1.05] font-bold tracking-[-0.02em] text-balance">
-          {titre}
-        </h1>
+        <div className="flex items-center gap-3.5">
+          <div className="min-w-0 flex-1">
+            {surtitre && <div className="eyebrow mb-1">{surtitre}</div>}
+            <h1 ref={ref} className="titre line-clamp-3 text-[32px] leading-[1.05] text-balance">
+              {titre}
+            </h1>
+          </div>
+          {aside}
+        </div>
         {children}
       </header>
     </>

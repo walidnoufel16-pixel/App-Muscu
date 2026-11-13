@@ -69,30 +69,37 @@ function Cadre({
 }) {
   return (
     <>
-      <EnTete surtitre={surtitre} titre={titre} gauche={<Retour repli="/entrainement" />} actions={actions}>
+      <EnTete surtitre={surtitre} titre={titre} gauche={<Retour repli="/entrainement" />} actions={actions} aside={total > 0 && <Anneau faits={faits} total={total} />}>
         {entete}
-        {total > 0 && (
-          <div className="mt-3 flex items-center gap-3" aria-label={tr("{faits} exercice{a} terminé{a1} sur {total}", { faits, a: pluriel(faits) ? "s" : "", a1: pluriel(faits) ? "s" : "", total })}>
-            <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-              <span className="block h-full rounded-full bg-plate transition-[width] duration-500 ease-out" style={{ width: (faits / total) * 100 + "%" }} />
-            </span>
-            <span className="num text-[14px] font-semibold text-muted-foreground">{faits} / {total}</span>
-          </div>
-        )}
       </EnTete>
       <div className="px-4 pb-3">
         {/* la séance d'abord ; l'échauffement et la collation s'ouvrent en feuille, sans quitter les exercices */}
         <div className="flex gap-2">
-          <button onClick={() => { tactile(5); setSect(0); }} className="flex h-9 items-center gap-1.5 rounded-full bg-card px-3.5 text-[13.5px] font-semibold active:scale-[.97]">
+          <button onClick={() => { tactile(5); setSect(0); }} className="flex h-10 items-center gap-1.5 rounded-full border border-border/80 bg-card px-3.5 text-[14px] font-semibold active:scale-[.97]">
             <FlameIcon className="size-4 text-plate-ink" weight="fill" />{tr("Échauffement")}
           </button>
-          <button onClick={() => { tactile(5); setSect(2); }} className="flex h-9 items-center gap-1.5 rounded-full bg-card px-3.5 text-[13.5px] font-semibold active:scale-[.97]">
+          <button onClick={() => { tactile(5); setSect(2); }} className="flex h-10 items-center gap-1.5 rounded-full border border-border/80 bg-card px-3.5 text-[14px] font-semibold active:scale-[.97]">
             <BowlFoodIcon className="size-4 text-plate-ink" weight="fill" />{tr("Collation")}
           </button>
         </div>
       </div>
       {children}
     </>
+  );
+}
+
+/* Avancement de la séance : un anneau « 1/7 », « faits » dessous. */
+function Anneau({ faits, total }: { faits: number; total: number }) {
+  const R = 22, C = 2 * Math.PI * R;
+  return (
+    <div className="flex shrink-0 flex-col items-center" role="img" aria-label={tr("{faits} exercice{a} terminé{a1} sur {total}", { faits, a: pluriel(faits) ? "s" : "", a1: pluriel(faits) ? "s" : "", total })}>
+      <svg viewBox="0 0 52 52" className="size-[52px] -rotate-90" aria-hidden>
+        <circle cx="26" cy="26" r={R} fill="none" strokeWidth="5" className="stroke-border" />
+        <circle cx="26" cy="26" r={R} fill="none" strokeWidth="5" strokeLinecap="round" className="stroke-plate transition-[stroke-dashoffset] duration-500 ease-out" strokeDasharray={C} strokeDashoffset={C * (1 - faits / total)} />
+      </svg>
+      <span className="num -mt-[37px] mb-[17px] text-[18px] font-bold">{faits}/{total}</span>
+      <span className="text-[11px] font-semibold text-muted-foreground">{tr("faits")}</span>
+    </div>
   );
 }
 

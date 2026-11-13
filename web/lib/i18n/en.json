@@ -3120,5 +3120,12 @@
   "Page blanche": "Blank page",
   "Cases guidées : Oxa prépare les cases Base, Complément, Isolation selon tes muscles. Page blanche : tu ajoutes tes exercices librement.": "Guided slots: Oxa prepares Compound, Accessory and Isolation slots for your muscles. Blank page: you add your exercises freely.",
   "Ne plus me proposer les cases": "Don't suggest slots again",
-  "Sans cases": "No slots"
+  "Sans cases": "No slots",
+  "Matériel · {n}": "Equipment · {n}",
+  "Nom": "Name",
+  "faits": "done",
+  "Ton plan de séance": "Your session plan",
+  "Compléter les {n} cases vides": "Fill the {n} empty slots",
+  "Compléter la case vide": "Fill the empty slot",
+  "Vider": "Clear"
 }

@@ -4,7 +4,7 @@ import { pluriel, tr } from "@/lib/i18n";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { ArrowDownIcon, ArrowUpIcon, ArrowsClockwiseIcon, ArrowsLeftRightIcon, CaretDownIcon, CaretRightIcon, DotsSixVerticalIcon, HeartbeatIcon, InfoIcon, MinusIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
+import { ArrowDownIcon, ArrowUpIcon, ArrowsClockwiseIcon, ArrowsLeftRightIcon, CalendarDotsIcon, CaretDownIcon, CaretRightIcon, DotsSixVerticalIcon, HeartbeatIcon, InfoIcon, MinusIcon, PlusIcon, PencilSimpleIcon, TrashIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EnTete } from "@/components/repere/en-tete";
@@ -13,16 +13,16 @@ import { EtiquetteRole, Pourquoi, PourquoiRole } from "@/components/repere/role-
 import { FicheExercice, type FicheOuverte } from "@/components/repere/fiche-exercice";
 import { Remplacer } from "@/components/repere/seance-vues";
 import { FeuilleAjout } from "@/components/repere/ajout-exercice";
-import { MaterielRepliable } from "@/components/repere/filtre-materiel";
+import { FiltreMateriel, MaterielRepliable } from "@/components/repere/filtre-materiel";
 import { confirmer } from "@/components/repere/confirmer";
 import { EX } from "@/lib/data/exercices";
-import { OBJS, PAS_REPOS } from "@/lib/data/referentiels";
+import { OBJS, PAS_REPOS, TYPES } from "@/lib/data/referentiels";
 import { exoFiltre, kLibre, musclesDe, nb, nomPat, propositionLibre, selDeclare, avecSalle, variationDe } from "@/lib/logic/core";
 import { exPourRole } from "@/lib/logic/assistant";
 import { convientA, placer, roleDe } from "@/lib/logic/roles";
 import { blocDe, candidatsCase, casesVides, gabaritPour, remplissage, ROLES_BLOCS, suggestion, trierParBloc } from "@/lib/logic/gabarit";
 import { avecSupersets, CadreSuperset, EffetObjectif, partenaire } from "@/components/repere/superset";
-import { BandeauGabarit, CaseVide, ChoixMuscles, FeuilleCase, TitreBloc } from "@/components/repere/gabarit";
+import { BandeauGabarit, CaseVide, ChoixMuscles, FeuilleCase, nomMuscle, TitreBloc } from "@/components/repere/gabarit";
 import { seancePour } from "@/lib/logic/generer-seance";
 import { jourDe } from "@/lib/logic/historique";
 import * as act from "@/lib/logic/actions";
@@ -38,7 +38,7 @@ import { preparer } from "@/lib/sons";
 import { Retour, useRetour } from "@/components/repere/retour";
 import { useBrouillon } from "@/lib/brouillon";
 import { programmerNouvelle, remplacerLe } from "@/lib/logic/agenda";
-import { jourCourt, jourLong, maj, PastilleJour } from "@/components/repere/agenda";
+import { ChoixJour, jourCourt, jourLong, maj } from "@/components/repere/agenda";
 import { toast } from "sonner";
 import { AvisSeance } from "@/components/repere/avis-seance";
 import { estPoly } from "@/lib/logic/avis-seance";
@@ -69,6 +69,7 @@ export default function PageComposer() {
   const [blocOuvert, setBlocOuvert] = useState<string | null>(null); // id du bloc cardio dont les réglages sont ouverts
   const [caseOuverte, setCaseOuverte] = useState<number | null>(null); // séance guidée : la case en cours de choix
   const [choixM, setChoixM] = useState(false); // séance guidée : muscles en cours de modification
+  const [panneau, setPanneau] = useState<null | "jour" | "obj" | "mat" | "nom">(null); // la pastille dépliée
 
   const retour = useRetour("/entrainement");
   const versEntrainement = () => revenirA("/entrainement/rubrique", () => router.replace(lienRubrique("libre"), ARRIERE));
@@ -76,6 +77,13 @@ export default function PageComposer() {
   useEffect(() => { if (!libre && !part.current) router.replace("/entrainement"); }, [libre, router]);
   if (!libre) return null;
   const L = libre;
+  const nbMat = TYPES.filter(([t]) => (selB ? selFeuille : sel).includes(t)).length;
+  const pastille = (cle: NonNullable<typeof panneau>, contenu: React.ReactNode, actif?: boolean) => (
+    <button key={cle} aria-expanded={panneau === cle} onClick={() => { tactile(5); setPanneau(panneau === cle ? null : cle); }}
+      className={cn("inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[14px] font-semibold whitespace-nowrap active:scale-[.98]", actif ? "border-transparent bg-plate-soft text-plate-ink dark:text-plate" : "border-border/80 bg-card")}>
+      {contenu}<CaretDownIcon className={cn("size-3 text-muted-foreground transition-transform", panneau === cle && "rotate-180")} weight="bold" />
+    </button>
+  );
 
   /* chaque exercice rejoint sa partie (soin & mobilité, musculation, cardio) ; une nouvelle partie se place à la suite */
   const objL = L.obj ?? etat.A.objectif ?? 0;
@@ -87,7 +95,12 @@ export default function PageComposer() {
   const vides = gab ? remplies.flatMap((j, i) => (j < 0 ? [i] : [])) : [];
   const dureeProfil = typeof etat.A.duree === "number" && [30, 45, 60].includes(etat.A.duree) ? etat.A.duree : 45;
   const preparerCases = (m: string[], d = gab?.d ?? dureeProfil) => {
-    majLibre((l) => { l.gab = gabaritPour(etat, m, d, objL, sel, l.pour ?? aujHui); rangerLibre(l); });
+    majLibre((l) => {
+      l.gab = gabaritPour(etat, m, d, objL, sel, l.pour ?? aujHui);
+      /* une séance sans nom prend celui de ses muscles (« Épaules · Dos ») */
+      if (!l.nom.trim() || l.nom === tr("Séance libre") || l.nom === l.gab.m.map(nomMuscle).join(" · ") || (gab && l.nom === gab.m.map(nomMuscle).join(" · "))) l.nom = m.map(nomMuscle).join(" · ");
+      rangerLibre(l);
+    });
     setChoixM(false);
   };
   /* un exercice pour la case i : le rôle de la case s'il y va, sinon son rôle (il rejoint son bloc) */
@@ -270,27 +283,39 @@ export default function PageComposer() {
         gauche={<Retour repli="/entrainement" />}
         actions={<Button variant="ghost" size="icon" aria-label={tr("Supprimer")} onClick={supprimer}><TrashIcon className="size-5 text-destructive" /></Button>}
       />
-      {/* le jour choisi, rappelé en haut : la séance y sera ajoutée */}
-      {/* touché, on change de jour ; les boutons du bas suivent */}
-      {L.pour && <PastilleJour className="mx-4 mb-3" jour={L.pour} auj={aujHui} onChange={(d) => majLibre((l) => { l.pour = d; })} />}
-      <div className="flex flex-col gap-5 px-4 pb-28">
-        <section>
-          <label className="eyebrow mb-1.5 block px-1" htmlFor="nom">{tr("Nom de la séance")}</label>
-          <Input id="nom" value={L.nom} onChange={(e) => majLibre((l) => { l.nom = e.target.value; })} placeholder={tr("Haut du corps, jambes, jour de bras…")} className="h-12 rounded-2xl bg-card text-[17px] font-semibold" />
-          <div className="eyebrow mt-4 mb-1.5 px-1">{tr("Objectif · facultatif")}</div>
-          <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4">
-            {OBJS.map((o, i) => (
-              <button key={o} aria-pressed={L.obj === i} onClick={() => majLibre((l) => { l.obj = l.obj === i ? undefined : i; })}
-                className={cn("h-9 shrink-0 rounded-full border px-3.5 text-[13.5px] font-medium", L.obj === i ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground")}>
-                {o}
-              </button>
-            ))}
-          </div>
-          {/* ce que change l'objectif choisi, replié */}
-          <EffetObjectif obj={L.obj} debutant={(etat.A.regularite ?? 2) <= 1} className="mt-2" />
-          {/* séance guidée qui choisit ses muscles : le matériel vient juste avant « Préparer mes cases » */}
-          {!(choixM || (L.guide && !gab && !L.ex.length && !L.blocs?.length)) && <div className="mt-4">{materiel}</div>}
-        </section>
+      {/* une ligne de pastilles (design v2) : le jour (la séance y sera ajoutée, les boutons du bas
+          suivent), l'objectif, le matériel, le nom ; chacune déplie son réglage dessous */}
+      <div className="no-scrollbar -mt-1 flex gap-2 overflow-x-auto px-4 pb-1">
+        {L.pour && pastille("jour", <><CalendarDotsIcon className="size-4" weight="bold" />{maj(jourCourt(L.pour))}</>, true)}
+        {pastille("obj", L.obj != null ? OBJS[L.obj] : tr("Objectif"))}
+        {!(choixM || (L.guide && !gab && !L.ex.length && !L.blocs?.length)) && pastille("mat", tr("Matériel · {n}", { n: nbMat }))}
+        {pastille("nom", <><PencilSimpleIcon className="size-4" />{tr("Nom")}</>)}
+      </div>
+      <div className="flex flex-col gap-5 px-4 pt-3 pb-28">
+        {panneau && (
+          <section className="animate-in fade-in-0 -mt-1">
+            {panneau === "jour" && L.pour && <ChoixJour valeur={L.pour} auj={aujHui} onChange={(d) => { tactile(6); majLibre((l) => { l.pour = d; }); setPanneau(null); }} />}
+            {panneau === "obj" && (
+              <>
+                <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4">
+                  {OBJS.map((o, i) => (
+                    <button key={o} aria-pressed={L.obj === i} onClick={() => majLibre((l) => { l.obj = l.obj === i ? undefined : i; })}
+                      className={cn("h-10 shrink-0 rounded-full border px-3.5 text-[14px] font-medium", L.obj === i ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground")}>
+                      {o}
+                    </button>
+                  ))}
+                </div>
+                {/* ce que change l'objectif choisi, replié */}
+                <EffetObjectif obj={L.obj} debutant={(etat.A.regularite ?? 2) <= 1} className="mt-2" />
+              </>
+            )}
+            {panneau === "mat" && <FiltreMateriel sel={selB ? selFeuille : sel} declare={selDeclare(etat.A)} onChange={setSel} />}
+            {panneau === "nom" && (
+              <Input id="nom" autoFocus aria-label={tr("Nom de la séance")} value={L.nom} onChange={(e) => majLibre((l) => { l.nom = e.target.value; })} onKeyDown={(e) => { if (e.key === "Enter") setPanneau(null); }}
+                placeholder={tr("Haut du corps, jambes, jour de bras…")} className="h-12 rounded-2xl bg-card text-[17px] font-semibold" />
+            )}
+          </section>
+        )}
 
         {L.gen && (
           <div className="flex items-center gap-3 rounded-[20px] bg-plate-soft p-3.5">

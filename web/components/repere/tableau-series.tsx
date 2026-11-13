@@ -47,7 +47,7 @@ function Champ({ valeur, onValide, label, mode, depuis }: { valeur: string; onVa
       onChange={(e) => setT(e.target.value)}
       onBlur={() => { if (t !== valeur) onValide(t); }}
       onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
-      className="num h-11 w-full min-w-0 rounded-[10px] border border-champ-bord bg-champ text-center text-[19px] font-semibold outline-none transition-colors focus:border-plate focus:bg-background focus:ring-2 focus:ring-plate"
+      className="num h-11 w-full min-w-0 rounded-[10px] border border-champ-bord bg-champ text-center text-[22px] font-bold outline-none transition-colors focus:border-plate focus:bg-background focus:ring-2 focus:ring-plate"
     />
   );
 }
@@ -117,14 +117,15 @@ export function BarreSerie({ c, onFini, etiquette, rpe = 0, ...o }: { c: Ctx | n
   const quoi = (["kg", "lest"].includes(x.ch) ? `${nb(S[n].v)}${unite} × ${S[n].reps}` : fmtSerie(x, S[n]) + (x.ch === "aucune" ? tr(" réps") : "")) + (x.cote ? tr(" / côté") : "");
   return (
     <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),12px)] z-30 mx-auto max-w-[480px] px-3 animate-in slide-in-from-bottom-4 fade-in-0 duration-300">
-      <div className="flex items-center gap-3 rounded-[22px] border border-border bg-foreground py-2.5 pr-2.5 pl-4 text-background shadow-[0_12px_32px_-12px_rgba(0,0,0,.45)]">
+      {/* noire en clair ; en sombre, une carte surélevée plutôt qu'un bloc blanc qui éblouit */}
+      <div className="flex items-center gap-3 rounded-[24px] border border-transparent bg-[#0a0a0c] py-2.5 pr-2.5 pl-[18px] text-[#f5f5f7] shadow-[0_14px_30px_-12px_rgba(0,0,0,.5)] dark:border-border dark:bg-[#26262d]">
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[12px] font-medium opacity-70">{etiquette && `${etiquette} · `}{tr("Série {a}/{b}", { a: n + 1, b: S.length })} · {x.n}</div>
-          <div className="num truncate text-[22px] leading-tight font-bold">{quoi}</div>
+          <div className="truncate text-[12.5px] font-medium text-[#f5f5f7]/70">{etiquette && `${etiquette} · `}{tr("Série {a}/{b}", { a: n + 1, b: S.length })} · {x.n}</div>
+          <div className="num truncate text-[28px] leading-[1.05] font-bold">{quoi}</div>
         </div>
         <button
           onClick={(e) => validerSerie(c, n, S[n], e.currentTarget, onFini, { ...o, attendre: rpe > 0 })}
-          className="flex h-12 shrink-0 items-center gap-1.5 rounded-full bg-plate px-5 text-[15px] font-bold text-plate-foreground active:scale-95"
+          className="flex h-[52px] shrink-0 items-center gap-1.5 rounded-full bg-plate px-5 text-[16px] font-bold text-plate-foreground active:scale-95"
         >
           <CheckIcon className="size-[18px]" weight="bold" />{tr("Valider")}
         </button>
@@ -180,7 +181,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini, ...o }: { c: Ctx; rpe
           <span className="font-medium text-muted-foreground">· {tr("le {d}", { d: new Date(c.max.d + "T12:00").toLocaleDateString(loc(), { day: "numeric", month: "short" }).replace(".", "") })}</span>
         </p>
       )}
-      <div className={cn("grid items-center gap-x-2 px-1 pb-1.5 text-[10.5px] font-medium tracking-[0.1em] text-muted-foreground uppercase", cols)}>
+      <div className={cn("grid items-center gap-x-2 px-1 pb-1.5 text-[11px] font-semibold tracking-[0.1em] text-muted-foreground uppercase", cols)}>
         <span>#</span>
         <span>{tr("Précédent")}</span>
         <span className="text-center">{tete}</span>
@@ -194,16 +195,16 @@ export function TableauSeries({ c, rpe, onReplier, onFini, ...o }: { c: Ctx; rpe
           /* la série à faire : la première qui n'est pas cochée, cerclée pour qu'on la trouve d'un coup d'œil */
           const prochaine = !done && n === S.findIndex((t) => !(L && okDe(L, t)));
           return (
-            <div key={n} aria-current={prochaine ? "step" : undefined} className={cn("relative isolate grid items-center gap-x-2 overflow-hidden rounded-xl px-1 py-1", cols, prochaine && "bg-plate-soft/50 ring-2 ring-plate/60")}>
+            <div key={n} aria-current={prochaine ? "step" : undefined} className={cn("relative isolate grid items-center gap-x-2 overflow-hidden rounded-xl px-1 py-1", cols)}>
               {/* fond jaune : il se remplit de gauche à droite quand on valide */}
               {ok && <span aria-hidden className={cn("absolute inset-0 -z-10 origin-left bg-plate-soft", vient === n && "animate-[remplir_.42s_cubic-bezier(.2,.8,.2,1)]")} />}
-              <span className={cn("num text-center text-[15px] font-bold transition-colors", ok || prochaine ? "text-foreground" : "text-muted-foreground")}>{n + 1}</span>
+              <span className={cn("num text-center text-[18px] font-bold transition-colors", prochaine ? "text-plate-ink dark:text-plate" : "text-foreground")}>{n + 1}</span>
               {record ? (
                 <span className="inline-flex w-fit animate-[pop_.5s_cubic-bezier(.3,1.6,.5,1)] items-center rounded-full bg-plate px-2 py-0.5 text-[11px] font-bold tracking-wide text-plate-foreground uppercase">
                   {tr("Record")}
                 </span>
               ) : (
-                <span className="truncate text-[13px] text-muted-foreground">{fmtSerie(x, P2[n] || P2[P2.length - 1])}</span>
+                <span className="num truncate text-[16px] font-semibold text-muted-foreground">{fmtSerie(x, P2[n] || P2[P2.length - 1])}</span>
               )}
               <Champ depuis={depuis} key={"v" + s.v} valeur={nb(s.v)} mode="decimal" label={tr("{tete} série {a}", { tete, a: n + 1 })} onValide={(v) => muter((E) => act.serVal(E, c, n, "v", v))} />
               {dbl && <Champ depuis={depuis} key={"r" + s.reps} valeur={String(s.reps)} mode="numeric" label={tr("répétitions série {a}", { a: n + 1 })} onValide={(v) => muter((E) => act.serVal(E, c, n, "reps", v))} />}
@@ -224,7 +225,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini, ...o }: { c: Ctx; rpe
                 aria-pressed={ok}
                 className={cn(
                   "grid size-11 place-items-center rounded-full border-2 transition-[background-color,border-color,color] duration-200 active:scale-90",
-                  ok ? "border-plate bg-plate text-plate-foreground" : "border-border text-transparent hover:text-muted-foreground",
+                  ok ? "border-plate bg-plate text-plate-foreground" : prochaine ? "border-[2.5px] border-plate-ink text-transparent hover:text-plate-ink dark:border-plate" : "border-champ-bord text-transparent hover:text-muted-foreground",
                   vient === n && "animate-[pop_.45s_cubic-bezier(.3,1.6,.5,1)]",
                 )}
               >
