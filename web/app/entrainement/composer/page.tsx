@@ -280,7 +280,8 @@ export default function PageComposer() {
               </button>
             ))}
           </div>
-          <div className="mt-4">{materiel}</div>
+          {/* séance guidée qui choisit ses muscles : le matériel vient juste avant « Préparer mes cases » */}
+          {!(choixM || (L.guide && !gab && !L.ex.length && !L.blocs?.length)) && <div className="mt-4">{materiel}</div>}
         </section>
 
         {L.gen && (
@@ -295,7 +296,7 @@ export default function PageComposer() {
         {/* séance guidée : choisir ses muscles, puis les cases à remplir */}
         {(choixM || (L.guide && !gab && !L.ex.length && !L.blocs?.length)) && (
           <ChoixMuscles
-            initial={gab?.m ?? []} jour={L.pour ?? aujHui} onPreparer={(m) => preparerCases(m)}
+            initial={gab?.m ?? []} jour={L.pour ?? aujHui} onPreparer={(m) => preparerCases(m)} materiel={materiel}
             autre={choixM ? { n: tr("Annuler"), f: () => setChoixM(false) } : { n: tr("Ajouter un exercice librement"), f: () => { majLibre((l) => { l.guide = false; }); setAjout(true); } }}
           />
         )}

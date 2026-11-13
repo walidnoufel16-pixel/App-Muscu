@@ -8,7 +8,7 @@ import { tr } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { EX } from "@/lib/data/exercices";
-import { MUSC } from "@/lib/data/referentiels";
+import { MUSC, PAT2MUSC } from "@/lib/data/referentiels";
 import { avisMuscles } from "@/lib/logic/avis-seance";
 import { autresDuMuscle, candidatsCase, compte, type CaseG, type Gabarit } from "@/lib/logic/gabarit";
 import { effortsEndurance } from "@/lib/logic/recommandation";
@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { LigneExercice } from "./ligne-exercice";
 import { nomRole, pourquoiRole } from "./role-exercice";
 import { Segmente } from "./segmente";
+import { SchemaCorps } from "./schema-corps";
 
 export const nomMuscle = (k: string) => MUSC.find((g) => g.k === k)?.n ?? k;
 /* « Complément · Dos » */
@@ -31,10 +32,13 @@ const SOUS_BLOC: Record<RoleEx, () => string> = {
   g: () => tr("abdos et bas du dos, pour finir"),
 };
 
-/* « Quels muscles aujourd'hui ? » : l'état vide d'« Exercice par exercice ». */
-export function ChoixMuscles({ initial, jour, onPreparer, autre }: { initial: string[]; jour: string; onPreparer: (m: string[]) => void; autre: { n: string; f: () => void } }) {
+/* « Quels muscles aujourd'hui ? » : l'état vide d'« Exercice par exercice ». Les muscles se
+   choisissent sur le corps (comme dans l'assistant) ou en liste, puis le matériel, avant de
+   préparer les cases. */
+export function ChoixMuscles({ initial, jour, onPreparer, autre, materiel }: { initial: string[]; jour: string; onPreparer: (m: string[]) => void; autre: { n: string; f: () => void }; materiel?: React.ReactNode }) {
   const etat = useRepere((s) => s.etat);
   const [m, setM] = useState(initial);
+  const [vue, setVue] = useState<"corps" | "liste">("corps");
   const bascule = (k: string) => { tactile(6); setM((l) => (l.includes(k) ? l.filter((x) => x !== k) : [...l, k])); };
   /* un muscle qui récupère encore : on le dit, sans bloquer */
   const recup = avisMuscles(m, { H: etat.HIST, auj: jour, efforts: effortsEndurance(etat.SORTIES, etat.CARDIO, etat.A.avant) }).find((a) => a.id === "recup");
@@ -44,15 +48,28 @@ export function ChoixMuscles({ initial, jour, onPreparer, autre }: { initial: st
         <h3 className="text-[18px] font-bold">{tr("Quels muscles aujourd'hui ?")}</h3>
         <p className="mt-1 text-[13.5px] leading-snug text-muted-foreground">{tr("Oxa te prépare les cases à remplir : quoi faire en premier, quoi pour finir. Tu choisis les exercices.")}</p>
       </div>
-      <div className="flex flex-wrap gap-1.5">
-        {MUSC.map((g) => (
-          <button key={g.k} aria-pressed={m.includes(g.k)} onClick={() => bascule(g.k)}
-            className={cn("h-10 rounded-full border px-4 text-[14px] font-medium transition-colors", m.includes(g.k) ? "border-foreground bg-foreground text-background" : "border-border bg-background")}>
-            {g.n}
-          </button>
-        ))}
-      </div>
+      <Segmente label={tr("Mode de sélection")} valeur={vue} onChange={setVue} options={[{ v: "corps", n: tr("Sur le corps") }, { v: "liste", n: tr("Liste") }]} />
+      {vue === "corps" ? (
+        <SchemaCorps
+          actif={(r) => !!(r.p && PAT2MUSC[r.p])}
+          choisi={(r) => !!(r.p && m.includes(PAT2MUSC[r.p]))}
+          onToucher={(r) => r.p && bascule(PAT2MUSC[r.p])}
+          legende={tr("Touche un muscle pour le cocher")}
+        />
+      ) : (
+        <div className="flex flex-wrap gap-1.5">
+          {MUSC.map((g) => (
+            <button key={g.k} aria-pressed={m.includes(g.k)} onClick={() => bascule(g.k)}
+              className={cn("h-10 rounded-full border px-4 text-[14px] font-medium transition-colors", m.includes(g.k) ? "border-foreground bg-foreground text-background" : "border-border bg-background")}>
+              {g.n}
+            </button>
+          ))}
+        </div>
+      )}
+      <p className={cn("px-1 text-[14px] font-medium", !m.length && "text-muted-foreground")}>{m.length ? m.map(nomMuscle).join(" · ") : tr("Aucun muscle choisi pour l'instant.")}</p>
       {recup && <p className="text-[12.5px] leading-snug text-muted-foreground">{recup.titre} {recup.texte}</p>}
+      {/* le matériel, avant de préparer les cases : les suggestions en dépendent */}
+      {materiel}
       <Button variant="plate" size="lg" className="rounded-full" disabled={!m.length} onClick={() => { tactile(10); onPreparer(m); }}>{tr("Préparer mes cases")}</Button>
       <button onClick={autre.f} className="h-10 text-[14px] font-semibold text-muted-foreground">{autre.n}</button>
     </div>
