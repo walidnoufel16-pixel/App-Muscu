@@ -117,6 +117,7 @@ export const EX: Record<string, Exercice> = {
   "pat2": "fc",
   "eq": 2,
   "ch": "kg",
+  "cote": 1,
   "d": 26
  },
  "ra": {
@@ -696,6 +697,7 @@ export const EX: Record<string, Exercice> = {
   "pat": "mol",
   "eq": 3,
   "ch": "lest",
+  "cote": 1,
   "d": 0
  },
  "elp": {
@@ -851,6 +853,7 @@ export const EX: Record<string, Exercice> = {
   "pat": "fh",
   "eq": 3,
   "ch": "aucune",
+  "cote": 1,
   "d": 0
  },
  "kick": {
@@ -860,6 +863,7 @@ export const EX: Record<string, Exercice> = {
   "pat": "fh",
   "eq": 0,
   "ch": "kg",
+  "cote": 1,
   "d": 5
  },
  "pth": {
@@ -879,6 +883,7 @@ export const EX: Record<string, Exercice> = {
   "pat2": "fh",
   "eq": 2,
   "ch": "kg",
+  "cote": 1,
   "d": 12
  },
  "mont": {
@@ -889,6 +894,7 @@ export const EX: Record<string, Exercice> = {
   "pat2": "fh",
   "eq": 2,
   "ch": "kg",
+  "cote": 1,
   "d": 10
  },
  "sqpc": {
@@ -936,6 +942,7 @@ export const EX: Record<string, Exercice> = {
   "pat": "ec",
   "eq": 2,
   "ch": "kg",
+  "cote": 1,
   "d": 6
  },
  "curlp": {
@@ -1340,6 +1347,7 @@ export const EX: Record<string, Exercice> = {
   "eq": 3,
   "acc": "kb",
   "ch": "kg",
+  "cote": 1,
   "d": 12
  },
  "kbdm": {
@@ -1373,6 +1381,7 @@ export const EX: Record<string, Exercice> = {
   "eq": 3,
   "acc": "kb",
   "ch": "kg",
+  "cote": 1,
   "d": 16
  },
  "kbhp": {
@@ -1395,6 +1404,7 @@ export const EX: Record<string, Exercice> = {
   "eq": 3,
   "acc": "kb",
   "ch": "kg",
+  "cote": 1,
   "d": 8
  },
  "kbwm": {
@@ -1936,6 +1946,7 @@ export const EX: Record<string, Exercice> = {
   "pat2": "fc",
   "eq": 0,
   "ch": "kg",
+  "cote": 1,
   "d": 20
  },
  "tbtc": {
@@ -1955,6 +1966,7 @@ export const EX: Record<string, Exercice> = {
   "pat2": "fc",
   "eq": 0,
   "ch": "kg",
+  "cote": 1,
   "d": 20
  },
  "rwsu": {
@@ -2015,6 +2027,7 @@ export const EX: Record<string, Exercice> = {
   "pat2": "fc",
   "eq": 1,
   "ch": "kg",
+  "cote": 1,
   "d": 20
  },
  "sqh": {
@@ -2045,6 +2058,7 @@ export const EX: Record<string, Exercice> = {
   "pat2": "fh",
   "eq": 1,
   "ch": "kg",
+  "cote": 1,
   "d": 30
  },
  "lext1": {
@@ -2054,6 +2068,7 @@ export const EX: Record<string, Exercice> = {
   "pat": "eg",
   "eq": 0,
   "ch": "kg",
+  "cote": 1,
   "d": 15
  },
  "sql": {
@@ -2101,6 +2116,7 @@ export const EX: Record<string, Exercice> = {
   "pat": "fh",
   "eq": 3,
   "ch": "aucune",
+  "cote": 1,
   "d": 15
  },
  "addp": {
@@ -2120,6 +2136,7 @@ export const EX: Record<string, Exercice> = {
   "pat2": "fh",
   "eq": 0,
   "ch": "kg",
+  "cote": 1,
   "d": 30
  },
  "molah": {
@@ -2194,6 +2211,7 @@ export const EX: Record<string, Exercice> = {
   "pat2": "ae",
   "eq": 2,
   "ch": "kg",
+  "cote": 1,
   "d": 16
  },
  "buch": {
@@ -2631,6 +2649,7 @@ export const EX: Record<string, Exercice> = {
   "pat2": "fc",
   "eq": 3,
   "ch": "aucune",
+  "cote": 1,
   "d": 0,
   "bt": 1,
   "horsIA": 1
@@ -2654,6 +2673,7 @@ export const EX: Record<string, Exercice> = {
   "pat2": "ec",
   "eq": 3,
   "ch": "aucune",
+  "cote": 1,
   "d": 0,
   "horsIA": 1
  },
@@ -2687,6 +2707,7 @@ export const EX: Record<string, Exercice> = {
   "pat2": "fh",
   "eq": 3,
   "ch": "aucune",
+  "cote": 1,
   "d": 0,
   "horsIA": 1
  },
@@ -2836,6 +2857,7 @@ export const EX: Record<string, Exercice> = {
   "eq": 3,
   "acc": "trx",
   "ch": "aucune",
+  "cote": 1,
   "d": 0,
   "horsIA": 1
  },
@@ -2848,6 +2870,7 @@ export const EX: Record<string, Exercice> = {
   "eq": 3,
   "acc": "trx",
   "ch": "aucune",
+  "cote": 1,
   "d": 0,
   "horsIA": 1
  },
@@ -3022,6 +3045,7 @@ export const EX: Record<string, Exercice> = {
   "pat2": "fh",
   "eq": 3,
   "ch": "aucune",
+  "cote": 1,
   "d": 0,
   "horsIA": 1
  },
@@ -3033,6 +3057,7 @@ export const EX: Record<string, Exercice> = {
   "pat2": "fh",
   "eq": 3,
   "ch": "aucune",
+  "cote": 1,
   "d": 0,
   "horsIA": 1
  },
