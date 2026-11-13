@@ -305,11 +305,12 @@ export default function PageComposer() {
         {(choixM || (L.guide && !gab && !L.ex.length && !L.blocs?.length)) && (
           <ChoixMuscles
             initial={gab?.m ?? []} jour={L.pour ?? aujHui} onPreparer={(m) => preparerCases(m)} materiel={materiel}
-            autre={choixM ? { n: tr("Annuler"), f: () => setChoixM(false) } : { n: tr("Ajouter un exercice librement"), f: () => { majLibre((l) => { l.guide = false; }); setAjout(true); } }}
+            autre={choixM ? { n: tr("Annuler"), f: () => setChoixM(false) } : { n: tr("Sans cases cette fois"), f: () => { majLibre((l) => { l.guide = false; }); setAjout(true); } }}
+            jamais={choixM ? undefined : () => { muter((E) => { E.A.sansCases = true; }); majLibre((l) => { l.guide = false; }); toast(tr("Plus de cases proposées"), { description: tr("Tu peux les retrouver dans Profil › Séance exercice par exercice.") }); }}
           />
         )}
         {gab && !choixM && (
-          <BandeauGabarit g={gab} vides={vides} onModifier={() => setChoixM(true)} onDuree={(d) => preparerCases(gab.m, d)} onCompleter={completer} onVider={vider} />
+          <BandeauGabarit g={gab} vides={vides} onModifier={() => setChoixM(true)} onDuree={(d) => preparerCases(gab.m, d)} onCompleter={completer} onVider={vider} onSans={() => majLibre((l) => { delete l.gab; l.guide = false; })} />
         )}
 
         <section>

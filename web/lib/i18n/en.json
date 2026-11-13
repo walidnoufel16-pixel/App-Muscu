@@ -3111,5 +3111,14 @@
   "8 à 12 tant que tu débutes": "8 to 12 while you're starting out",
   "Ce que change « {o} »": "What “{o}” changes",
   "Les muscles et l'ordre des exercices ne changent pas.": "The muscles and the exercise order stay the same.",
-  "Enchaîne · {n}": "Next · {n}"
+  "Enchaîne · {n}": "Next · {n}",
+  "Sans cases cette fois": "No slots this time",
+  "Plus de cases proposées": "No more slots suggested",
+  "Tu peux les retrouver dans Profil › Séance exercice par exercice.": "You can turn them back on in Profile › Exercise-by-exercise workout.",
+  "Séance exercice par exercice": "Exercise-by-exercise workout",
+  "Cases guidées": "Guided slots",
+  "Page blanche": "Blank page",
+  "Cases guidées : Oxa prépare les cases Base, Complément, Isolation selon tes muscles. Page blanche : tu ajoutes tes exercices librement.": "Guided slots: Oxa prepares Compound, Accessory and Isolation slots for your muscles. Blank page: you add your exercises freely.",
+  "Ne plus me proposer les cases": "Don't suggest slots again",
+  "Sans cases": "No slots"
 }

@@ -36,7 +36,7 @@ export default function PageProfil() {
 function Profil() {
   const router = useRouter();
   const prog = useProgrammeActif();
-  const { user, pseudo, sync, etat, setUser, pousser, toutEffacer, changerDeCompte } = useRepere();
+  const { user, pseudo, sync, etat, muter, setUser, pousser, toutEffacer, changerDeCompte } = useRepere();
   const { theme, setTheme } = useTheme();
   const changerLangue = useChangerLangue();
   const cycleActif = !!useCycleCharge()?.actif;
@@ -184,6 +184,13 @@ function Profil() {
             <h3 className="eyebrow mb-2 px-1">{tr("Mon matériel")}</h3>
             <MonMateriel />
             <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{tr("Sert de point de départ dans Exercices, « Créer une séance pour moi » et le composeur.")}</p>
+          </section>
+          {/* « Exercice par exercice » : les cases guidées, ou la page blanche (un coach n'en a pas besoin) */}
+          <section id="guidee" className="scroll-mt-20">
+            <h3 className="eyebrow mb-2 px-1">{tr("Séance exercice par exercice")}</h3>
+            <Segmente label={tr("Séance exercice par exercice")} valeur={etat.A.sansCases ? "blanche" : "cases"} onChange={(v) => muter((E) => { if (v === "blanche") E.A.sansCases = true; else delete E.A.sansCases; })}
+              options={[{ v: "cases", n: tr("Cases guidées") }, { v: "blanche", n: tr("Page blanche") }]} />
+            <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{tr("Cases guidées : Oxa prépare les cases Base, Complément, Isolation selon tes muscles. Page blanche : tu ajoutes tes exercices librement.")}</p>
           </section>
           {/* le programme sur 8 semaines, seulement s'il est ouvert pour ce compte */}
           {prog && (
