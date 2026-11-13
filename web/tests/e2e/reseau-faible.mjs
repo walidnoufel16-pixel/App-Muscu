@@ -22,8 +22,8 @@ const vu = await pg.getByRole("heading", { name: "Progrès" }).first().waitFor({
 ok(vu && Date.now() - t0 < 8000, `réseau qui traîne : l'onglet Progrès s'ouvre (${Date.now() - t0} ms)`);
 /* le cas vu sur téléphone : « Programmer une séance » › « Je choisis les muscles » */
 await pg.getByRole("link", { name: /Entraînement/ }).first().click().catch(() => {});
-await pg.getByRole("button", { name: "Nouvelle séance" }).waitFor({ timeout: 10000 });
-await pg.getByRole("button", { name: "Nouvelle séance" }).click();
+await pg.getByRole("button", { name: /^Programmer( une séance)?$/ }).first().waitFor({ timeout: 10000 });
+await pg.getByRole("button", { name: /^Programmer( une séance)?$/ }).first().click();
 await pg.getByRole("dialog").getByText("Je choisis les muscles").click();
 t0 = Date.now();
 const vu3 = await pg.getByText("Créer une séance pour moi").first().waitFor({ timeout: 15000 }).then(() => true, () => false);

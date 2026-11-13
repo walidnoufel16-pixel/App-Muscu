@@ -26,13 +26,13 @@ const errs = []; pg.on("pageerror", (e) => errs.push(e.message));
 
 // l'accueil : plus de proposition
 await pg.goto(U + "/entrainement/");
-await pg.getByRole("button", { name: "Nouvelle séance" }).waitFor();
+await pg.getByRole("button", { name: /^Programmer( une séance)?$/ }).first().waitFor();
 await pg.waitForTimeout(800);
 ok(!(await pg.getByText("Oxa te propose").count()) && !(await pg.getByText("Repos ou cardio léger").count()), "accueil sans « Oxa te propose » ni « Repos ou cardio léger »");
 await cap(pg, "accueil");
 
 // le menu du jour
-await pg.getByRole("button", { name: "Nouvelle séance" }).click();
+await pg.getByRole("button", { name: /^Programmer( une séance)?$/ }).first().click();
 const dlg = pg.getByRole("dialog");
 await dlg.getByText("Je choisis les muscles").waitFor();
 ok(await dlg.getByText("Exercice par exercice").isVisible() && await dlg.getByText("Avec un code").isVisible(), "feuille : je choisis les muscles, exercice par exercice, importer");
@@ -53,7 +53,7 @@ ok(e.AGENDA?.some((p) => p.d === il(0) && p.quoi.t === "libre" && p.nom === "Pus
 await cap(pg, "prevue");
 
 // programmer un autre jour : la feuille Programmer, sur la séance choisie
-await pg.getByRole("button", { name: "Nouvelle séance" }).click();
+await pg.getByRole("button", { name: /^Programmer( une séance)?$/ }).first().click();
 await dlg.getByRole("button", { name: /^Mes séances/ }).click();
 await dlg.getByRole("button", { name: /^Push/ }).click();
 await dlg.getByRole("button", { name: "Autre jour" }).click();

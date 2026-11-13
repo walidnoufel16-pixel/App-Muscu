@@ -89,7 +89,7 @@ ok(true, "retour de la séance vers Mes séances");
 
 // + › « Je choisis les muscles » ouvre l'assistant, le retour ramène à l'accueil
 await pg.goto(U + "/entrainement/");
-await pg.getByRole("button", { name: "Nouvelle séance" }).click();
+await pg.getByRole("button", { name: /^Programmer( une séance)?$/ }).first().click();
 await pg.getByRole("dialog").getByText("Je choisis les muscles").click();
 await pg.waitForURL(/\/entrainement\/assistant\/(\?jour=[\d-]+)?$/); // le jour choisi suit (aujourd'hui compris)
 ok(await pg.getByRole("button", { name: "Entraînement" }).waitFor({ timeout: 3000 }).then(() => true, () => false), "assistant : retour libellé « Entraînement »");
