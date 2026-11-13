@@ -526,8 +526,30 @@ export function progressionLibre(
     const pas = pasExercice(x), pc = jours >= 21 ? 20 : 10, nv = auPalier(v * (1 - pc / 100), pas);
     if (nv < v) return { v: nv, reps: cible.r, t: tr("Reprise après {n} jours sans cet exercice : −{p} % pour réhabituer tes muscles.", { n: jours, p: pc }) };
   }
-  if (d.feel === 2) return { v, reps, t: tr("Même charge : la dernière fois était au-dessus de la cible.") };
-  if (x.ch === "dist") return null;
+  if (x.ch === "dist") return d.feel === 2 ? { v, reps, t: tr("Même distance : la dernière fois était au-dessus de la cible.") } : null;
+  /* le ressenti noté à la fin de l'exercice (« C'était comment pour un RPE 8 ? ») : trop dur, on
+     redescend d'un cran ; facile et toutes les séries faites, on monte d'un cran (comme Oxa Plan) */
+  if (d.feel === 2 || (d.feel === 0 && ok.length >= cible.s)) {
+    const monte = d.feel === 0;
+    if (chargee) {
+      const pas = pasExercice(x), nv = monte ? Math.round((v + pas) * 100) / 100 : auPalier(v - pas, pas);
+      if (nv !== v) return monte
+        ? { v: nv, reps: Math.min(Math.max(minReps(d, dbl), 1), fourchette(cible.r, o.obj).haut), t: tr("+{a} kg : la dernière fois, c'était facile pour l'effort visé.", { a: nb(pas) }) }
+        : { v: nv, reps, t: tr("−{a} kg : la dernière fois, c'était trop dur.", { a: nb(pas) }) };
+      if (!monte) return { v, reps, t: tr("Même charge : la dernière fois était au-dessus de la cible.") };
+    } else if (ok.length) {
+      const bas = Math.min(...ok.map((s) => (dbl ? s.reps : s.v)));
+      if (x.ch === "temps") {
+        const pas = pasDe(x);
+        return monte ? { v: bas + pas, reps, t: tr("+{a} s : la dernière fois, c'était facile.", { a: pas }) }
+          : { v: Math.max(pas, bas - pas), reps, t: tr("−{a} s : la dernière fois, c'était trop dur.", { a: pas }) };
+      }
+      if (x.ch === "lest") return monte ? { v, reps: bas + 1, t: tr("Une répétition de plus : la dernière fois, c'était facile. Ou un lest de 2,5 kg.") }
+        : { v, reps: Math.max(1, bas - 1), t: tr("Une répétition de moins : la dernière fois, c'était trop dur.") };
+      return monte ? { v: bas + 1, reps, t: tr("Une répétition de plus : la dernière fois, c'était facile.") }
+        : { v: Math.max(1, bas - 1), reps, t: tr("Une répétition de moins : la dernière fois, c'était trop dur.") };
+    }
+  }
 
   if (chargee) {
     const pas = pasExercice(x), { bas, haut } = fourchette(cible.r, o.obj), m = minReps(d, dbl), complet = ok.length >= cible.s;
