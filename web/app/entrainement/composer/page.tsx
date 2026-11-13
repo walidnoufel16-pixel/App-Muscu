@@ -470,8 +470,14 @@ function CarteCompo({
         </button>
         <button onClick={onToggle} aria-expanded={ouvert} className="flex min-w-0 flex-1 items-center gap-3 py-3 pr-3 pl-3 text-left">
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="flex min-w-0 items-center gap-2"><span className="truncate text-[16px] font-semibold tracking-[-0.01em]">{x.n}</span><EtiquetteRole ro={e.ro} ouvert={vuRole} onToggle={() => setVuRole(!vuRole)} /></span>
-            {mus.length > 0 && <span className="truncate text-[12.5px] text-muted-foreground">{mus.join(" · ")}</span>}
+            {/* le nom en entier (deux lignes au plus) ; l'étiquette passe sur la ligne des muscles */}
+            <span className="line-clamp-2 text-[16px] leading-tight font-semibold tracking-[-0.01em]">{x.n}</span>
+            {(mus.length > 0 || e.ro) && (
+              <span className="flex min-w-0 items-center gap-1.5 text-[12.5px] text-muted-foreground">
+                {mus.length > 0 && <span className="min-w-0 truncate">{mus.join(" · ")}</span>}
+                <EtiquetteRole ro={e.ro} ouvert={vuRole} onToggle={() => setVuRole(!vuRole)} />
+              </span>
+            )}
             <span className="num text-[15px] font-semibold text-foreground/80">
               {prescr}{kg != null && <> · <span className="text-foreground">{tr("{v} kg", { v: nb(kg) })}</span></>}
               {variation > 0 && <span className="ml-1.5 inline-flex items-center gap-0.5 font-sans text-[12.5px] font-semibold text-plate-ink dark:text-plate"><ArrowUpIcon className="size-3" weight="bold" />{tr("{v} kg", { v: nb(variation) })}</span>}
