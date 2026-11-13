@@ -88,6 +88,8 @@ export type Reponses = {
   exclus?: string[];
   /** Dernier rappel choisi en programmant une séance (proposé par défaut la fois suivante). */
   rappelAgenda?: { veille: boolean; h: number } | null;
+  /** « Exercice par exercice » sans les cases guidées (un coach, ou qui préfère la page blanche) ; Profil le rétablit. */
+  sansCases?: boolean;
   /** Zones que « Ma recommandation du jour » ne propose plus (lib/logic/recommandation.ts). */
   recoSans?: ("pec" | "dos" | "epa" | "bras" | "abd" | "qua" | "isc" | "mol" | "jambes")[];
   /* accueil : séance faite juste avant d'installer Oxa (jour, muscles), pour la récupération */

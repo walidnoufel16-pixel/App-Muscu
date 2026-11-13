@@ -35,7 +35,7 @@ const SOUS_BLOC: Record<RoleEx, () => string> = {
 /* « Quels muscles aujourd'hui ? » : l'état vide d'« Exercice par exercice ». Les muscles se
    choisissent sur le corps (comme dans l'assistant) ou en liste, puis le matériel, avant de
    préparer les cases. */
-export function ChoixMuscles({ initial, jour, onPreparer, autre, materiel }: { initial: string[]; jour: string; onPreparer: (m: string[]) => void; autre: { n: string; f: () => void }; materiel?: React.ReactNode }) {
+export function ChoixMuscles({ initial, jour, onPreparer, autre, jamais, materiel }: { initial: string[]; jour: string; onPreparer: (m: string[]) => void; autre: { n: string; f: () => void }; jamais?: () => void; materiel?: React.ReactNode }) {
   const etat = useRepere((s) => s.etat);
   const [m, setM] = useState(initial);
   const [vue, setVue] = useState<"corps" | "liste">("corps");
@@ -72,12 +72,14 @@ export function ChoixMuscles({ initial, jour, onPreparer, autre, materiel }: { i
       {materiel}
       <Button variant="plate" size="lg" className="rounded-full" disabled={!m.length} onClick={() => { tactile(10); onPreparer(m); }}>{tr("Préparer mes cases")}</Button>
       <button onClick={autre.f} className="h-10 text-[14px] font-semibold text-muted-foreground">{autre.n}</button>
+      {/* un coach, ou qui préfère la page blanche : plus de cases, Profil les rétablit */}
+      {jamais && <button onClick={() => { tactile(6); jamais(); }} className="-mt-2 h-9 text-[12.5px] font-medium text-muted-foreground underline underline-offset-2">{tr("Ne plus me proposer les cases")}</button>}
     </div>
   );
 }
 
 /* Bandeau : muscles, durée, combien de cases par rôle, ce qui reste à choisir. */
-export function BandeauGabarit({ g, vides, onModifier, onDuree, onCompleter, onVider }: { g: Gabarit; vides: number[]; onModifier: () => void; onDuree: (d: number) => void; onCompleter: () => void; onVider: () => void }) {
+export function BandeauGabarit({ g, vides, onModifier, onDuree, onCompleter, onVider, onSans }: { g: Gabarit; vides: number[]; onModifier: () => void; onDuree: (d: number) => void; onCompleter: () => void; onVider: () => void; onSans: () => void }) {
   const [vu, setVu] = useState(false);
   const n = compte(g.cases), parts = (["b", "c", "i", "g"] as RoleEx[]).filter((r) => n[r]).map((r) => `${n[r]} ${nomRole(r)}`);
   return (
@@ -97,6 +99,8 @@ export function BandeauGabarit({ g, vides, onModifier, onDuree, onCompleter, onV
       <div className="flex gap-2">
         {vides.length > 0 && <Button variant="plate" size="sm" className="rounded-full" onClick={onCompleter}>{tr("Compléter pour moi")}</Button>}
         {vides.length < g.cases.length && <Button variant="outline" size="sm" className="rounded-full bg-card" onClick={onVider}>{tr("Vider les cases")}</Button>}
+        {/* cette fois sans cases : les exercices choisis restent, les cases vides disparaissent */}
+        <button onClick={() => { tactile(6); onSans(); }} className="ml-auto self-center text-[12.5px] font-semibold text-muted-foreground">{tr("Sans cases")}</button>
       </div>
     </div>
   );

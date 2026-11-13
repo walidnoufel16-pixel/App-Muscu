@@ -117,7 +117,7 @@ function FeuilleNouvelle({ d: d0, auj, setF }: { d: string; auj: string; setF: (
   const aller = (url: string) => { setF(null); router.push(url as Route, AVANT); };
   const creer: { icone: React.ReactNode; accent?: boolean; titre: string; sous: string; onClick: () => void }[] = [
     { icone: <PersonSimpleIcon className="size-[18px]" weight="bold" />, accent: true, titre: tr("Je choisis les muscles"), sous: tr("Oxa construit la séance"), onClick: () => aller(`/entrainement/assistant?jour=${d}`) },
-    { icone: <PlusIcon className="size-[18px]" weight="bold" />, titre: tr("Exercice par exercice"), sous: tr("Tu choisis, Oxa te guide"), onClick: () => { setLibre({ nom: tr("Séance libre"), ex: [], idx: null, pour: d, guide: true }); aller("/entrainement/composer"); } },
+    { icone: <PlusIcon className="size-[18px]" weight="bold" />, titre: tr("Exercice par exercice"), sous: tr("Tu choisis, Oxa te guide"), onClick: () => { setLibre({ nom: tr("Séance libre"), ex: [], idx: null, pour: d, guide: !etat.A.sansCases }); aller("/entrainement/composer"); } },
     { icone: <DownloadSimpleIcon className="size-[18px]" weight="bold" />, titre: tr("Importer"), sous: tr("Avec un code"), onClick: () => { setF(null); setTimeout(() => useMenu.setState({ importer: true }), 350); } },
   ];
   /* les propositions d'Oxa pour ce jour-là */
