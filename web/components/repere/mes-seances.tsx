@@ -174,7 +174,7 @@ export function CreerSeance() {
     <>
       <div className="overflow-hidden rounded-[20px] bg-card">
         <Action accent icone={<SparkleIcon className="size-5" weight="fill" />} label={tr("Créer une séance pour moi")} onClick={() => router.push("/entrainement/assistant", AVANT)} />
-        <Action icone={<PlusIcon className="size-5" />} label={tr("Composer exercice par exercice")} onClick={() => { setLibre({ nom: tr("Séance libre"), ex: [], idx: null }); router.push("/entrainement/composer", AVANT); }} />
+        <Action icone={<PlusIcon className="size-5" />} label={tr("Composer exercice par exercice")} onClick={() => { setLibre({ nom: tr("Séance libre"), ex: [], idx: null, guide: true }); router.push("/entrainement/composer", AVANT); }} />
         <Action icone={<DownloadSimpleIcon className="size-5" />} label={tr("Importer une séance avec un code")} onClick={() => useMenu.setState({ importer: true })} />
       </div>
       <FeuilleImport />
