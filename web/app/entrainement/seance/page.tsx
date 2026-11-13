@@ -15,7 +15,7 @@ import { ExerciceCarte, Vignette } from "@/components/repere/exercice-carte";
 import { FormeDuJour } from "@/components/repere/forme";
 import { FicheExercice, type FicheOuverte } from "@/components/repere/fiche-exercice";
 import { Collation, Echauffement, Remplacer } from "@/components/repere/seance-vues";
-import { TableauSeries } from "@/components/repere/tableau-series";
+import { BarreSerie, TableauSeries } from "@/components/repere/tableau-series";
 import { CarteSport } from "@/components/repere/carte-sport";
 import { EX } from "@/lib/data/exercices";
 import { AXES } from "@/lib/data/referentiels";
@@ -192,12 +192,17 @@ function SeancePlan() {
               <p className="px-2 pt-1 text-center text-[12.5px] leading-relaxed text-muted-foreground">
                 {tr("Effort visé")}{" "}<b className="font-semibold text-foreground">{tr("RPE")}{" "}{baseRPE(wk)}</b> : {rirTxt(baseRPE(wk))}{" "}{tr("à la fin de chaque série.")}
               </p>
-              {faits < cles.length && <div className="mt-2 mb-20"><BoutonArreter s={`${wk}|${day}`} nom={titreSeance(S.t)} onArretee={() => { parOnglet(); router.replace("/entrainement"); }} /></div>}
+              {faits < cles.length && <div className="mt-2 mb-28"><BoutonArreter s={`${wk}|${day}`} nom={titreSeance(S.t)} onArretee={() => { parOnglet(); router.replace("/entrainement"); }} /></div>}
             </div>
           )}
         </>
       )}
 
+      {/* mode séance : la série à faire, validée d'un toucher en bas de l'écran */}
+      {!S.sportOnly && ouvert && (() => {
+        const i = cles.indexOf(ouvert), c = i >= 0 ? ctxPlan(etat, i, W) : null;
+        return <BarreSerie c={c ?? null} onFini={() => enchainer({ k: ouvert, cles, titre: titreSeance(S.t), setOuvert })} />;
+      })()}
       <FicheExercice fiche={fiche} onClose={() => setFiche(null)} />
       {rempOrig && (
         <Remplacer
@@ -356,8 +361,9 @@ function SeanceLibre({ i }: { i: number }) {
           <p className="px-2 pt-1 text-center text-[12.5px] text-muted-foreground">
             {tr("Effort visé")}{" "}<b className="font-semibold text-foreground">{tr("RPE 8")}</b> : {rirTxt(8)}{" "}{tr("à la fin de chaque série.")}
           </p>
+          {!entamee && <div className="h-24" aria-hidden />}
           {entamee && (
-            <section className="mt-2 mb-24 rounded-[22px] bg-card p-4 text-center" aria-label={tr("Ajouter à mon suivi")}>
+            <section className="mt-2 mb-28 rounded-[22px] bg-card p-4 text-center" aria-label={tr("Ajouter à mon suivi")}>
               <Button variant="plate" size="lg" className="w-full rounded-2xl" onClick={suivre}><ChartLineUpIcon weight="bold" />{tr("Ajouter à mon suivi")}</Button>
               <p className="mt-2 text-[12.5px] text-muted-foreground">{tr("Elle s'enregistre dans Progrès et repart à zéro pour la prochaine fois.")}</p>
               <div className="mt-2 border-t border-border/70 pt-1"><BoutonArreter s={`L|${i}`} nom={S.nom} onArretee={() => { parOnglet(); router.replace("/entrainement"); }} /></div>
@@ -369,6 +375,11 @@ function SeanceLibre({ i }: { i: number }) {
         une ouvert={ajout} onClose={() => setAjout(false)} onAjouter={ajouterExo} pris={(o) => S.ex.some((e) => e.id === o)}
         onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") })}
       />
+      {/* mode séance : la série à faire, validée d'un toucher en bas de l'écran */}
+      {ouvert && (() => {
+        const m = S.ex.findIndex((_, j) => ctxLibre(etat, i, j)?.k === ouvert), c = m >= 0 ? ctxLibre(etat, i, m) : null;
+        return <BarreSerie c={c ?? null} onFini={() => enchainer({ k: ouvert, cles, titre: S.nom, setOuvert })} />;
+      })()}
       <FicheExercice fiche={fiche} onClose={() => setFiche(null)} />
     </Cadre>
   );
