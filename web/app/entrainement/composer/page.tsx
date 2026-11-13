@@ -18,7 +18,8 @@ import { confirmer } from "@/components/repere/confirmer";
 import { EX } from "@/lib/data/exercices";
 import { OBJS, PAS_REPOS } from "@/lib/data/referentiels";
 import { exoFiltre, kLibre, musclesDe, nb, nomPat, propositionLibre, selDeclare, avecSalle, variationDe } from "@/lib/logic/core";
-import { exParDefaut } from "@/lib/logic/assistant";
+import { exPourRole } from "@/lib/logic/assistant";
+import { placer } from "@/lib/logic/roles";
 import { seancePour } from "@/lib/logic/generer-seance";
 import { jourDe } from "@/lib/logic/historique";
 import * as act from "@/lib/logic/actions";
@@ -71,7 +72,7 @@ export default function PageComposer() {
   const L = libre;
 
   /* chaque exercice rejoint sa partie (soin & mobilité, musculation, cardio) ; une nouvelle partie se place à la suite */
-  const ajouter = (o: string) => { tactile(8); majLibre((l) => { l.ex.push(exParDefaut(o)); rangerLibre(l); }); };
+  const ajouter = (o: string) => { tactile(8); majLibre((l) => { placer(l.ex, exPourRole(o, l.obj ?? etat.A.objectif ?? 0, etat.A.regularite)); rangerLibre(l); }); };
   const pris = (o: string) => L.ex.some((e) => e.id === o);
   const regl = (i: number, c: "s" | "r", d: number) => majLibre((l) => { const e = l.ex[i]; e[c] = Math.min(c === "s" ? 6 : 600, Math.max(1, e[c] + d)); });
   const reglRepos = (i: number, d: number) => majLibre((l) => { const e = l.ex[i]; let k = PAS_REPOS.indexOf(e.p); if (k < 0) k = 3; e.p = PAS_REPOS[Math.min(PAS_REPOS.length - 1, Math.max(0, k + d))]; });

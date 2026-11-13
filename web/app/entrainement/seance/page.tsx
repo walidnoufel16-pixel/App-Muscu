@@ -22,7 +22,7 @@ import { AXES } from "@/lib/data/referentiels";
 import {
   alternativesDe, baseRPE, ctxLibre, ctxPlan, journalActif, variationDe, kLibre, curId, nb, espacementDe, key, musclesDe, nomPat, noRPE, okDe, rirTxt, rpeOf, sportsChoisis, titreSeance, week,
 } from "@/lib/logic/core";
-import { exParDefaut, objCollation } from "@/lib/logic/assistant";
+import { exPourRole, objCollation } from "@/lib/logic/assistant";
 import * as act from "@/lib/logic/actions";
 import type { BlocCardio, Journal } from "@/lib/logic/types";
 import type { Route } from "next";
@@ -284,7 +284,7 @@ function SeanceLibre({ i }: { i: number }) {
   const ajouterExo = (id: string) => {
     const j = S.ex.length;
     tactile(8);
-    muter((E) => { E.SEANCES[i].ex.push(exParDefaut(id)); });
+    muter((E) => { E.SEANCES[i].ex.push(exPourRole(id, E.SEANCES[i].obj ?? E.A.objectif ?? 0, E.A.regularite)); });
     setOuvert(kLibre(i, j));
     setTimeout(() => document.getElementById("ex-" + kLibre(i, j))?.scrollIntoView({ behavior: "smooth", block: "start" }), 450);
   };

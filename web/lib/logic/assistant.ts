@@ -6,7 +6,7 @@ import { EX } from "@/lib/data/exercices";
 import { MUSC, ZPATS } from "@/lib/data/referentiels";
 import { exoFiltre, secondesDe } from "./core";
 import type { ExLibre, Reponses, RoleEx, SeanceLibre } from "./types";
-import { estPoly } from "./roles";
+import { estPoly, roleDe } from "./roles";
 
 type Hasard = () => number;
 const tirer = <T,>(l: T[], rnd: Hasard) => l[Math.floor(rnd() * l.length)];
@@ -241,6 +241,15 @@ export function exosZone(z: string, sel: string[]) {
 }
 export const patsZone = (z: string, sel: string[]) => (ZPATS[z] || []).filter((p) => exosDe(p, sel).length);
 export const sansAccent = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+/* Prescription quand on ajoute un exercice à la main : selon son rôle (Base, Complément, Isolation,
+   Gainage), l'objectif et le niveau, comme dans une séance construite par Oxa ; à défaut de rôle
+   (cardio, soin, explosif, porté), la prescription par défaut. */
+const ROLE_DE: Record<RoleEx, Role> = { b: "principal", c: "accessoire", i: "isolation", g: "tronc" };
+export function exPourRole(o: string, obj: number, niveau?: number, role: RoleEx | undefined = roleDe(o)): ExLibre {
+  if (!role || !EX[o] || EX[o].ch === "dist") return exParDefaut(o);
+  return { ...prescrire(o, ROLE_DE[role], obj, niveau), ro: role };
+}
 
 /* Prescription par défaut quand on ajoute un exercice à la main. */
 export const exParDefaut = (o: string): ExLibre => {

@@ -5,7 +5,7 @@
 import { EX } from "@/lib/data/exercices";
 import { PAT2MUSC } from "@/lib/data/referentiels";
 import { estSoin } from "@/lib/data/soin";
-import type { RoleEx } from "./types";
+import type { ExLibre, RoleEx } from "./types";
 
 /* Le second schéma ne suffit pas toujours à dire si un mouvement est polyarticulaire :
    corrections relevées par le coach sur les vraies séances générées. */
@@ -69,4 +69,24 @@ export function convientA(caseRole: RoleEx, id: string, muscle?: string) {
   if (!r) return false;
   if (caseRole === "b" || caseRole === "c") return r === "b" || r === "c";
   return r === caseRole;
+}
+
+/* Rang dans la musculation : explosifs (à faire frais), Base, Complément, Isolation, Gainage, portés. */
+function rang(x: ExLibre) {
+  if (EXPLOSIFS.has(x.id)) return 0;
+  if (PORTES.has(x.id)) return 5;
+  const r = x.ro ?? roleDe(x.id);
+  return r === "b" ? 1 : r === "c" ? 2 : r === "g" ? 4 : 3;
+}
+
+/** Place un exercice ajouté à la main dans la musculation : après ceux de même rang ou d'avant
+    (explosifs, Base, Complément, Isolation, Gainage, portés). L'utilisateur peut ensuite le déplacer.
+    Soin et cardio vont à la fin (le rangement par parties les remet à leur place). */
+export function placer(ex: ExLibre[], e: ExLibre) {
+  const muscu = (x: ExLibre) => !!EX[x.id] && !estSoin(x.id) && EX[x.id].pat !== "ca";
+  if (!muscu(e)) { ex.push(e); return; }
+  const r = rang(e);
+  const apres = ex.findLastIndex((x) => muscu(x) && rang(x) <= r);
+  const k = apres >= 0 ? apres + 1 : ex.findIndex(muscu);
+  if (k < 0) ex.push(e); else ex.splice(k, 0, e);
 }

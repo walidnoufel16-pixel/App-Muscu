@@ -2,8 +2,10 @@
    naturel par exercice, pour les séances générées, les badges et le gabarit. */
 import { describe, expect, it } from "vitest";
 import { EX } from "@/lib/data/exercices";
-import { construireSeance, hasardDe } from "@/lib/logic/assistant";
-import { convientA, estPoly, roleDe } from "@/lib/logic/roles";
+import { construireSeance, exPourRole, hasardDe } from "@/lib/logic/assistant";
+import { secondesDe } from "@/lib/logic/core";
+import type { ExLibre } from "@/lib/logic/types";
+import { convientA, estPoly, placer, roleDe } from "@/lib/logic/roles";
 
 describe("rôle des exercices", () => {
   it("les corrections du coach", () => {
@@ -44,5 +46,23 @@ describe("rôle des exercices", () => {
       for (const e of ex) if (["sdts", "rwm", "tbarp", "sql"].includes(e.id)) expect(e.ro, e.id).not.toBe("i");
     }
     expect(estPoly("sdts")).toBe(true);
+  });
+});
+
+describe("ajout à la main", () => {
+  it("prescrit selon le rôle", () => {
+    const b = exPourRole("sq", 0, 2), i = exPourRole("curlb", 0, 2);
+    expect(b.ro).toBe("b");
+    expect(i.ro).toBe("i");
+    expect(b.r).toBeLessThan(i.r);
+    expect(secondesDe(b.p)).toBeGreaterThan(secondesDe(i.p));
+  });
+  it("sans rôle : prescription par défaut", () => {
+    expect(exPourRole("ferm", 0, 2).ro).toBeUndefined();
+  });
+  it("range : explosifs, Base, Complément, Isolation, Gainage, portés", () => {
+    const ex: ExLibre[] = [exPourRole("curlb", 0), exPourRole("ferm", 0)];
+    for (const id of ["gai", "sq", "fe", "jsq", "dc"]) placer(ex, exPourRole(id, 0));
+    expect(ex.map((e) => e.id)).toEqual(["jsq", "sq", "dc", "fe", "curlb", "gai", "ferm"]);
   });
 });
