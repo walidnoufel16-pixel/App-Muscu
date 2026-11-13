@@ -6,6 +6,7 @@ import { EX } from "@/lib/data/exercices";
 import { MUSC, ZPATS } from "@/lib/data/referentiels";
 import { exoFiltre, secondesDe } from "./core";
 import type { ExLibre, Reponses, RoleEx, SeanceLibre } from "./types";
+import { estPoly } from "./roles";
 
 type Hasard = () => number;
 const tirer = <T,>(l: T[], rnd: Hasard) => l[Math.floor(rnd() * l.length)];
@@ -147,8 +148,7 @@ export function construireSeance(muscles: string[], duree: number, obj: number, 
     const kg = l.filter((x) => EX[x].ch === "kg"), c = l.filter((x) => EX[x].ch !== "aucune");
     return tirer(kg.length ? kg : c.length ? c : l, rnd);
   };
-  /* un second schéma « avant-bras », « trapèzes », « adducteurs » ou « mollets » ne fait pas un polyarticulaire (curls) */
-  const estPoly = (x: string) => !!EX[x].pat2 && !["avb", "tra", "add", "mol"].includes(EX[x].pat2!) && x !== "pull" && !["ae", "ft"].includes(EX[x].pat);
+  /* polyarticulaire ou non : estPoly (roles.ts), avec les corrections du coach */
   const ajouter = (g: (typeof G)[number], c: number) => {
     const l = c < 0 ? secours(g.k) : candidats(g.k, c);
     if (!l.length) return false;

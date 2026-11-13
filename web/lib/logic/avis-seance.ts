@@ -40,11 +40,9 @@ export type ContexteAvis = { A: Reponses; H?: LigneHist[]; sel: string[]; zones?
 const PETITS = new Set(["bic", "tri", "epa", "mol", "abd", "avb", "tra", "add", "lom"]);
 const nom = (id: string) => EX[id]?.n ?? id;
 const guill = (id: string) => (langue() === "en" ? `“${nom(id)}”` : `« ${nom(id)} »`);
-/* polyarticulaire : un second schéma qui compte (pas les avant-bras d'un curl), sauf le pull-over et le gainage */
-export const estPoly = (id: string) => {
-  const x = EX[id];
-  return !!x?.pat2 && id !== "pull" && !["ae", "ft", "lo"].includes(x.pat) && !["avb", "tra", "add", "mol"].includes(PAT2MUSC[x.pat2]);
-};
+/* polyarticulaire : une seule définition, dans roles.ts (générateur, avis, badges) */
+export { estPoly } from "./roles";
+import { estPoly } from "./roles";
 const groupe = (id: string) => PAT2MUSC[EX[id]?.pat] as string | undefined;
 const estMuscu = (id: string) => !!EX[id] && !estSoin(id) && EX[id].pat !== "ca";
 const nomG = (g: string) => (["pec", "dos", "epa", "bic", "tri", "qua", "isc", "mol", "abd"].includes(g) ? nomGroupe(g as Groupe) : ({ avb: tr("Avant-bras"), tra: tr("Trapèzes"), add: tr("Adducteurs"), lom: tr("Lombaires") } as Record<string, string>)[g] ?? g);
