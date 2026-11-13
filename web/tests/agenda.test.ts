@@ -1,5 +1,5 @@
 /* « Mon agenda » (lib/logic/agenda.ts) et ses rappels côté serveur (supabase/functions/rappels/logique.ts). */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeAll, afterAll, vi } from "vitest";
 import { debutGrille, deplacer, faitsParJour, joursAgenda, seancesEnCours, nomCourt, programmer, rappelsDus, remplacerLe, retirer, tombeLe, type Prevu } from "@/lib/logic/agenda";
 import { rappelsAgenda, seancePrevueBientot, rappelDu } from "../../supabase/functions/rappels/logique";
 import type { LigneHist } from "@/lib/logic/historique";
@@ -94,7 +94,11 @@ describe("rappels d'agenda", () => {
 });
 
 describe("séance en cours", () => {
-  const maintenant = Date.now(), auj = jourDe(maintenant), avant = jourDe(maintenant - 2 * 864e5);
+  /* midi, heure fixe : à 0 h 10, une séance commencée « il y a 20 minutes » tombait la veille
+     et le test échouait selon l'heure de passage de la CI */
+  const maintenant = new Date().setHours(12, 0, 0, 0), auj = jourDe(maintenant), avant = jourDe(maintenant - 2 * 864e5);
+  beforeAll(() => { vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(maintenant); });
+  afterAll(() => { vi.useRealTimers(); });
   const E = {
     HIST: [{ d: auj, s: "L|0", nom: "Push", vol: 600, ser: 2, ex: {} }, { d: avant, s: "L|0", nom: "Push", vol: 600, ser: 3, ex: {} }],
     LOG: {
@@ -127,11 +131,19 @@ describe("menu du jour", () => {
     expect(feuilleDuJour({ d: "2026-11-12", fait: [], prevus: [{}], manques: [] } as never, "2026-11-09")).toEqual({ m: "jour", d: "2026-11-12" });
   });
   it("une séance créée pour un jour à venir est programmée ce jour-là, avec le rappel habituel", () => {
+    const demain = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
     const E = { A: { rappelAgenda: { veille: false, h: 7 } }, SEANCES: [{ nom: "Dos", ex: [] }] } as unknown as Etat;
-    const p = programmerNouvelle(E, "2026-11-12", 0);
+    const p = programmerNouvelle(E, demain, 0);
     expect(E.AGENDA).toHaveLength(1);
-    expect(p).toMatchObject({ d: "2026-11-12", nom: "Dos", quoi: { t: "libre", i: 0 }, rappel: { veille: false, h: 7 } });
+    expect(p).toMatchObject({ d: demain, nom: "Dos", quoi: { t: "libre", i: 0 }, rappel: { veille: false, h: 7 } });
     const E2 = { A: {}, SEANCES: [{ nom: "Jambes", ex: [] }] } as unknown as Etat;
-    expect(programmerNouvelle(E2, "2026-11-12", 0).rappel).toEqual({ veille: true, h: 20 });
+    expect(programmerNouvelle(E2, demain, 0).rappel).toEqual({ veille: true, h: 20 });
+  });
+  it("une séance créée pour aujourd'hui est ajoutée à aujourd'hui, sans rappel (il serait déjà passé)", () => {
+    const auj = jourDe(Date.now());
+    const E = { A: {}, SEANCES: [{ nom: "Dos", ex: [] }] } as unknown as Etat;
+    const p = programmerNouvelle(E, auj, 0);
+    expect(p).toMatchObject({ d: auj, quoi: { t: "libre", i: 0 } });
+    expect(p.rappel).toBeUndefined();
   });
 });

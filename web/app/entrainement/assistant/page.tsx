@@ -36,6 +36,8 @@ import { cn } from "@/lib/utils";
 import { Recommandation } from "@/components/repere/recommandation";
 import { avisMuscles } from "@/lib/logic/avis-seance";
 import { jourDe } from "@/lib/logic/historique";
+import { CalendarDotsIcon } from "@phosphor-icons/react";
+import { jourCourt, jourLong, maj } from "@/components/repere/agenda";
 
 /* Ce que les exercices d'un muscle font travailler au passage (muscles secondaires des mouvements de base). */
 const INDIRECTS: Record<string, string[]> = {
@@ -104,7 +106,8 @@ function Assistant() {
   /* suggestion d'Oxa sur le choix des muscles ; « Non merci » suit la séance jusque dans le composeur */
   const H = useRepere((s) => s.etat.HIST);
   const [auj] = useState(() => jourDe(Date.now()));
-  const pour = jourUrl && /^\d{4}-\d{2}-\d{2}$/.test(jourUrl) && jourUrl > auj ? jourUrl : null;
+  /* jour choisi dans « Programmer » (aujourd'hui compris) : la séance créée y sera ajoutée */
+  const pour = jourUrl && /^\d{4}-\d{2}-\d{2}$/.test(jourUrl) && jourUrl >= auj ? jourUrl : null;
   const [refus, setRefus] = useState<string[]>([]);
   const efforts = useRepere((s) => s.etat.SORTIES), cardios = useRepere((s) => s.etat.CARDIO), avant = useRepere((s) => s.etat.A.avant);
   const suggestion = street ? undefined : avisMuscles(m, { H, auj, efforts: effortsEndurance(efforts, cardios, avant) }).find((x) => !refus.includes(x.id));
@@ -141,6 +144,11 @@ function Assistant() {
         titre={courseSeule ? (modif ? tr("Modifier mon plan") : tr("Prépare une course")) : tr("Créer une séance pour moi")}
         gauche={<Retour repli="/entrainement" />}
       >
+        {pour && (
+          <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-plate-soft px-3 py-1.5 text-[13.5px] font-semibold text-plate-ink dark:text-plate">
+            <CalendarDotsIcon className="size-4" weight="bold" />{tr("Pour {j}", { j: maj(jourLong(pour)) })}
+          </p>
+        )}
         <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
           {type === "muscu"
             ? tr("Choisis ce que tu veux travailler : Oxa construit ta séance, que tu modifies ensuite comme tu veux.")
@@ -299,7 +307,7 @@ function Assistant() {
       <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
         {pour ? (
           <Button variant="plate" size="xl" className="w-full disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 disabled:shadow-none" disabled={!peut} onClick={() => creer()}>
-            {tr("Voir la séance")}
+            {pour === auj ? tr("Voir la séance d'aujourd'hui") : tr("Voir la séance pour {j}", { j: jourCourt(pour) })}
           </Button>
         ) : (
           <div className="flex gap-2">

@@ -4,7 +4,7 @@ import { pluriel, tr } from "@/lib/i18n";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { ArrowDownIcon, ArrowUpIcon, ArrowsClockwiseIcon, ArrowsLeftRightIcon, CaretDownIcon, CaretRightIcon, DotsSixVerticalIcon, HeartbeatIcon, InfoIcon, MinusIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
+import { CalendarDotsIcon, ArrowDownIcon, ArrowUpIcon, ArrowsClockwiseIcon, ArrowsLeftRightIcon, CaretDownIcon, CaretRightIcon, DotsSixVerticalIcon, HeartbeatIcon, InfoIcon, MinusIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EnTete } from "@/components/repere/en-tete";
@@ -56,6 +56,7 @@ export default function PageComposer() {
   const materiel = <MaterielRepliable sel={selB ? selFeuille : sel} declare={selDeclare(etat.A)} onChange={setSel} />;
   const [ouv, setOuv] = useState<string | null>(null);
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);
+  const [aujHui] = useState(() => jourDe(Date.now()));
   const [remp, setRemp] = useState<number | null>(null);
   const [ajout, setAjout] = useState(false);
   const liste = useRef<HTMLDivElement>(null);
@@ -189,6 +190,12 @@ export default function PageComposer() {
         gauche={<Retour repli="/entrainement" />}
         actions={<Button variant="ghost" size="icon" aria-label={tr("Supprimer")} onClick={supprimer}><TrashIcon className="size-5 text-destructive" /></Button>}
       />
+      {/* le jour choisi, rappelé en haut : la séance y sera ajoutée */}
+      {L.pour && (
+        <p className="mx-4 mb-3 inline-flex items-center gap-1.5 self-start rounded-full bg-plate-soft px-3 py-1.5 text-[13.5px] font-semibold text-plate-ink dark:text-plate">
+          <CalendarDotsIcon className="size-4" weight="bold" />{tr("Pour {j}", { j: maj(jourLong(L.pour)) })}
+        </p>
+      )}
       <div className="flex flex-col gap-5 px-4 pb-28">
         <section>
           <label className="eyebrow mb-1.5 block px-1" htmlFor="nom">{tr("Nom de la séance")}</label>
@@ -282,8 +289,14 @@ export default function PageComposer() {
             {tr("Garder aussi dans Mes séances")}
           </label>
         )}
-        {L.pour ? (
-          <Button variant="plate" size="xl" className="w-full" disabled={!L.ex.length} onClick={() => enregistrer()}>{tr("Enregistrer pour {j}", { j: jourCourt(L.pour) })}</Button>
+        {L.pour && L.pour <= aujHui && L.idx == null ? (
+          /* pour aujourd'hui : l'ajouter à la journée, ou la commencer tout de suite (elle est ajoutée aussi) */
+          <div className="flex gap-2">
+            <Button variant="outline" size="xl" className="flex-1 bg-background" disabled={!L.ex.length} onClick={() => enregistrer()}>{tr("Ajouter à aujourd'hui")}</Button>
+            <Button variant="plate" size="xl" className="flex-[1.4]" disabled={!L.ex.length} onClick={() => enregistrer(true)}>{tr("Commencer")}</Button>
+          </div>
+        ) : L.pour ? (
+          <Button variant="plate" size="xl" className="w-full" disabled={!L.ex.length} onClick={() => enregistrer()}>{tr("Programmer pour {j}", { j: jourCourt(L.pour) })}</Button>
         ) : L.idx == null && !L.agenda ? (
           <div className="flex gap-2">
             <Button variant="outline" size="xl" className="flex-1 bg-background" disabled={!L.ex.length} onClick={() => enregistrer(false, true)}>{tr("Enregistrer")}</Button>

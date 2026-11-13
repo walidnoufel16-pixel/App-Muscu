@@ -83,14 +83,14 @@ await dlg.getByText("Oxa choisit pour toi").waitFor();
 await dlg.getByRole("button", { name: /^Conseillée/ }).click();
 await dlg.getByRole("button", { name: "Modifier" }).click();
 await pg.waitForURL(/composer/);
-const enr = pg.getByRole("button", { name: /^Enregistrer pour / });
+const enr = pg.getByRole("button", { name: /^Programmer pour / });
 await enr.waitFor();
 ok(await pg.getByText("Garder aussi dans Mes séances").isVisible(), "composeur : la case « Garder aussi dans Mes séances »");
 await cap(pg, "composer-pour");
 await enr.click();
 await pg.waitForURL(/\/entrainement\/?$/);
 e = await etat(pg);
-ok(e.SEANCES.length === 3 && e.AGENDA.some((p) => p.d === il(-1) && p.quoi.t === "libre" && p.quoi.i === 2), "Modifier → composeur → Enregistrer pour … : enregistrée et programmée");
+ok(e.SEANCES.length === 3 && e.AGENDA.some((p) => p.d === il(-1) && p.quoi.t === "libre" && p.quoi.i === 2), "Modifier → composeur → Programmer pour … : enregistrée et programmée");
 
 // l'assistant ouvert pour un jour à venir
 const dans3 = il(-3);
@@ -98,7 +98,7 @@ await pg.goto(U + `/entrainement/assistant/?jour=${dans3}&m=dos`);
 /* profil vide : les 3 questions de mise en route s'ouvrent d'abord */
 const plusTard = pg.getByRole("button", { name: "Plus tard" });
 if (await plusTard.waitFor({ timeout: 3000 }).then(() => true, () => false)) await plusTard.click();
-const bt = pg.getByRole("button", { name: "Voir la séance" });
+const bt = pg.getByRole("button", { name: /^Voir la séance/ });
 await bt.waitFor();
 ok(!(await pg.getByRole("button", { name: /^Créer pour / }).count()), "assistant pour un jour à venir : « Voir la séance », plus de programmation à l'aveugle");
 if (await bt.isDisabled()) for (const m of ["Haltères", "Barre", "Machines", "Poids du corps"]) await pg.getByRole("button", { name: m, exact: true }).first().click().catch(() => {});
@@ -107,13 +107,26 @@ await bt.click();
 await pg.waitForURL(/composer/);
 e = await etat(pg);
 ok(e.SEANCES.length === 3, "Voir la séance → l'aperçu (composeur), rien d'enregistré encore");
-const enr2 = pg.getByRole("button", { name: /^Enregistrer pour / });
+const enr2 = pg.getByRole("button", { name: /^Programmer pour / });
 await enr2.waitFor();
 await cap(pg, "assistant-apercu");
 await enr2.click();
 await pg.waitForURL(/\/entrainement\/?$/);
 e = await etat(pg);
-ok(e.SEANCES.length === 4 && e.AGENDA.some((p) => p.d === dans3 && p.quoi.t === "libre" && p.quoi.i === 3), "Enregistrer pour … → séance créée et programmée ce jour-là");
+ok(e.SEANCES.length === 4 && e.AGENDA.some((p) => p.d === dans3 && p.quoi.t === "libre" && p.quoi.i === 3), "Programmer pour … → séance créée et programmée ce jour-là");
+// le jour choisi est aujourd'hui (bug du 12/11 : la séance créée n'était ajoutée à aucun jour)
+const aujD = il(0);
+await pg.goto(U + `/entrainement/assistant/?jour=${aujD}&m=dos`);
+const bt3 = pg.getByRole("button", { name: /^Voir la séance/ });
+await bt3.waitFor();
+ok(await pg.getByText(/^Pour /).count() > 0, "le jour choisi est rappelé en haut de l'assistant");
+if (await bt3.isDisabled()) for (const m of ["Haltères", "Barre", "Machines", "Poids du corps"]) await pg.getByRole("button", { name: m, exact: true }).first().click().catch(() => {});
+await bt3.click();
+await pg.waitForURL(/composer/);
+await pg.getByRole("button", { name: "Ajouter à aujourd'hui" }).click();
+await pg.waitForURL(/\/entrainement\/?$/);
+e = await etat(pg);
+ok(e.AGENDA.some((p) => p.d === aujD && p.quoi.t === "libre" && p.quoi.i === e.SEANCES.length - 1), "Ajouter à aujourd'hui → séance ajoutée à aujourd'hui dans l'agenda");
 ok(!errs.length, "aucune erreur JS " + errs.join(" | "));
 
 // un compte qui n'a jamais fait de séance : la carte « Ta première séance », vers l'assistant pré-coché

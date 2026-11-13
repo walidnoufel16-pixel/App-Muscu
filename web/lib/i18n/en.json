@@ -3042,5 +3042,10 @@
   "30 min à une allure que tu peux tenir jusqu'au bout, sans finir épuisé.": "30 min at a pace you can hold to the end without finishing exhausted.",
   "Test 30 min": "30-min test",
   "10 min d'échauffement, puis 30 min à allure régulière et soutenue. Note ensuite la distance et le temps du test seul : Oxa recale tes allures sur ta forme du moment.": "10 min warm-up, then 30 min at a steady, sustained pace. Then log the distance and time of the test alone: Oxa resets your paces to your current form.",
-  "Sortie longue en course-marche": "Long run-walk"
+  "Sortie longue en course-marche": "Long run-walk",
+  "Pour {j}": "For {j}",
+  "Voir la séance d'aujourd'hui": "See today's workout",
+  "Voir la séance pour {j}": "See the workout for {j}",
+  "Ajouter à aujourd'hui": "Add to today",
+  "Programmer pour {j}": "Schedule for {j}"
 }
