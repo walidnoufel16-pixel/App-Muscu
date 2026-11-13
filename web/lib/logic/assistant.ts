@@ -200,6 +200,20 @@ export function construireCases(muscles: string[], duree: number, obj: number, s
       if (!ajouter(g, c)) continue;
       if (!tient()) res.pop();
     }
+  /* M'affiner (pas pour un débutant) : deux exercices de muscles opposés et de même rôle (complément
+     ou isolation) s'enchaînent sans repos, en superset ; le repos vient après le second. Le même
+     travail en moins de temps (supersets agoniste / antagoniste : Weakley et al., 2017), et le
+     temps gagné sert aux séries en plus ci-dessous. */
+  const duo = new Map<E, E>(), pris2 = (x: E) => duo.has(x) || [...duo.values()].includes(x);
+  if (obj === 2 && !(niveau != null && niveau <= 1)) {
+    const ANTAG: Record<string, string> = { pec: "dos", dos: "pec", bic: "tri", tri: "bic", qua: "isc", isc: "qua" };
+    const l = res.filter((e) => e.role === "accessoire" || e.role === "isolation");
+    for (const a of l) {
+      if (pris2(a)) continue;
+      const b = l.find((x) => x !== a && x.role === a.role && x.k === ANTAG[a.k] && !pris2(x));
+      if (b) { duo.set(a, b); a.p = tr("15 s"); }
+    }
+  }
   /* 3. du temps en trop : une série de plus aux mouvements principaux, puis aux accessoires (5 au plus,
      3 pour un débutant : ACSM, 1 à 3 séries) */
   /* un accessoire ne dépasse jamais le principal du même muscle */
@@ -207,7 +221,10 @@ export function construireCases(muscles: string[], duree: number, obj: number, s
   for (const role of ["principal", "accessoire"] as Role[])
     for (const e of res) if (e.role === role && e.s < plafond(e)) { e.s++; if (!tient()) e.s--; }
   const rang = (e: (typeof res)[number]) => (e.role === "tronc" ? 3 : e.role === "principal" ? 0 : e.role === "accessoire" ? 1 : 2);
-  return res.map((e, i) => ({ e, i })).sort((a, b) => rang(a.e) - rang(b.e) || a.i - b.i).map(({ e }) => ({ id: e.id, s: e.s, r: e.r, p: e.p, ro: RO[e.role], k: e.k }));
+  const L = res.map((e, i) => ({ e, i })).sort((a, b) => rang(a.e) - rang(b.e) || a.i - b.i).map(({ e }) => e);
+  /* les deux exercices d'un superset côte à côte */
+  for (const [a, b] of duo) { L.splice(L.indexOf(b), 1); L.splice(L.indexOf(a) + 1, 0, b); }
+  return L.map((e) => ({ id: e.id, s: e.s, r: e.r, p: e.p, ro: RO[e.role], k: e.k, ...(duo.has(e) ? { sup: 1 as const } : {}) }));
 }
 
 /** Charge lourdement le bas du dos (soulevés de terre, good mornings, rowing T-bar, rack pull) : écarté
