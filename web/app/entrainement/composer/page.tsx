@@ -19,7 +19,9 @@ import { EX } from "@/lib/data/exercices";
 import { OBJS, PAS_REPOS } from "@/lib/data/referentiels";
 import { exoFiltre, kLibre, musclesDe, nb, nomPat, propositionLibre, selDeclare, avecSalle, variationDe } from "@/lib/logic/core";
 import { exPourRole } from "@/lib/logic/assistant";
-import { placer } from "@/lib/logic/roles";
+import { convientA, placer, roleDe } from "@/lib/logic/roles";
+import { blocDe, candidatsCase, casesVides, gabaritPour, remplissage, ROLES_BLOCS, suggestion, trierParBloc } from "@/lib/logic/gabarit";
+import { BandeauGabarit, CaseVide, ChoixMuscles, FeuilleCase, TitreBloc } from "@/components/repere/gabarit";
 import { seancePour } from "@/lib/logic/generer-seance";
 import { jourDe } from "@/lib/logic/historique";
 import * as act from "@/lib/logic/actions";
@@ -44,7 +46,8 @@ import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 
 /* Range le brouillon par parties (soin & mobilité, musculation, cardio), dans leur ordre actuel. */
-const rangerLibre = (l: { ex: ExLibre[]; blocs?: BlocCardio[] }) => { const r = ranger(l); l.ex = r.ex; if (l.blocs) l.blocs = r.blocs; };
+/* En séance guidée, la musculation se range aussi par bloc (Base, Complément, Isolation, Gainage). */
+const rangerLibre = (l: { ex: ExLibre[]; blocs?: BlocCardio[]; gab?: unknown }) => { if (l.gab) trierParBloc(l.ex); const r = ranger(l); l.ex = r.ex; if (l.blocs) l.blocs = r.blocs; };
 
 export default function PageComposer() {
   const router = useRouter();
@@ -63,6 +66,8 @@ export default function PageComposer() {
   const liste = useRef<HTMLDivElement>(null);
   const [glisse, setGlisse] = useState<string | null>(null);
   const [blocOuvert, setBlocOuvert] = useState<string | null>(null); // id du bloc cardio dont les réglages sont ouverts
+  const [caseOuverte, setCaseOuverte] = useState<number | null>(null); // séance guidée : la case en cours de choix
+  const [choixM, setChoixM] = useState(false); // séance guidée : muscles en cours de modification
 
   const retour = useRetour("/entrainement");
   const versEntrainement = () => revenirA("/entrainement/rubrique", () => router.replace(lienRubrique("libre"), ARRIERE));
@@ -72,7 +77,49 @@ export default function PageComposer() {
   const L = libre;
 
   /* chaque exercice rejoint sa partie (soin & mobilité, musculation, cardio) ; une nouvelle partie se place à la suite */
-  const ajouter = (o: string) => { tactile(8); majLibre((l) => { placer(l.ex, exPourRole(o, l.obj ?? etat.A.objectif ?? 0, etat.A.regularite)); rangerLibre(l); }); };
+  const objL = L.obj ?? etat.A.objectif ?? 0;
+  const ajouter = (o: string) => { tactile(8); majLibre((l) => { placer(l.ex, exPourRole(o, objL, etat.A.regularite)); rangerLibre(l); }); };
+
+  /* Séance guidée : les cases d'Oxa pour ces muscles et cette durée ; les exercices déjà choisis restent. */
+  const gab = L.gab;
+  const remplies = gab ? remplissage(L.ex, gab.cases) : [];
+  const vides = gab ? remplies.flatMap((j, i) => (j < 0 ? [i] : [])) : [];
+  const dureeProfil = typeof etat.A.duree === "number" && [30, 45, 60].includes(etat.A.duree) ? etat.A.duree : 45;
+  const preparerCases = (m: string[], d = gab?.d ?? dureeProfil) => {
+    majLibre((l) => { l.gab = gabaritPour(etat, m, d, objL, sel, l.pour ?? aujHui); rangerLibre(l); });
+    setChoixM(false);
+  };
+  /* un exercice pour la case i : le rôle de la case s'il y va, sinon son rôle (il rejoint son bloc) */
+  const pourCase = (l: { gab?: typeof gab }, i: number, o: string): ExLibre => {
+    const c = l.gab!.cases[i];
+    return { ...exPourRole(o, objL, etat.A.regularite, convientA(c.ro, o, c.k) ? c.ro : roleDe(o, c.k)), k: c.k };
+  };
+  const choisirCase = (o: string) => {
+    if (caseOuverte == null) return;
+    const i = caseOuverte;
+    majLibre((l) => { l.ex.push(pourCase(l, i, o)); rangerLibre(l); });
+    toast.success(tr("Ajouté : {a}", { a: EX[o]?.n || o }), { duration: 1400 });
+    /* la feuille passe à la case vide suivante */
+    const l = useBrouillon.getState().libre;
+    const reste = l?.gab ? casesVides(l.ex, l.gab.cases) : [];
+    setCaseOuverte(reste.find((j) => j > i) ?? reste[0] ?? null);
+  };
+  const completer = () => {
+    tactile(10);
+    majLibre((l) => {
+      for (const i of casesVides(l.ex, l.gab!.cases)) {
+        const o = suggestion(l.gab!, i, sel, (x) => l.ex.some((e) => e.id === x));
+        if (o) l.ex.push(pourCase(l, i, o));
+      }
+      rangerLibre(l);
+    });
+  };
+  const vider = () => {
+    tactile(10);
+    const avant = L.ex;
+    majLibre((l) => { const r = new Set(remplissage(l.ex, l.gab!.cases)); l.ex = l.ex.filter((_, i) => !r.has(i)); });
+    toast(tr("Cases vidées"), { action: { label: tr("Annuler"), onClick: () => majLibre((l) => { l.ex = avant; }) } });
+  };
   const pris = (o: string) => L.ex.some((e) => e.id === o);
   const regl = (i: number, c: "s" | "r", d: number) => majLibre((l) => { const e = l.ex[i]; e[c] = Math.min(c === "s" ? 6 : 600, Math.max(1, e[c] + d)); });
   const reglRepos = (i: number, d: number) => majLibre((l) => { const e = l.ex[i]; let k = PAS_REPOS.indexOf(e.p); if (k < 0) k = 3; e.p = PAS_REPOS[Math.min(PAS_REPOS.length - 1, Math.max(0, k + d))]; });
@@ -124,7 +171,7 @@ export default function PageComposer() {
     /* une séance construite par Oxa ne va dans « Mes séances » que si on le décide : « Enregistrer »
        (la garder), ou la case « Garder dans Mes séances » ; sinon elle reste jouable depuis l'agenda */
     const auto = L.idx == null ? !!L.gen && (!!L.pour || commencer) && !garder : !!L.auto && !garder;
-    const s = { nom, ex: L.ex.map((e) => { const c = { ...e }; delete c.o; return c; }), ...(L.blocs?.length ? { blocs: L.blocs } : {}), ...(L.obj != null ? { obj: L.obj } : {}), ...(L.colObj != null ? { colObj: L.colObj } : {}), ...(L.gen ? { gen: L.gen } : {}), ...(L.code ? { code: L.code } : {}), ...(L.avisIgnores?.length ? { avisIgnores: L.avisIgnores } : {}), ...(auto ? { auto: true } : {}) };
+    const s = { nom, ex: L.ex.map((e) => { const c = { ...e }; delete c.o; delete c.k; return c; }), ...(L.blocs?.length ? { blocs: L.blocs } : {}), ...(L.obj != null ? { obj: L.obj } : {}), ...(L.colObj != null ? { colObj: L.colObj } : {}), ...(L.gen ? { gen: L.gen } : {}), ...(L.code ? { code: L.code } : {}), ...(L.avisIgnores?.length ? { avisIgnores: L.avisIgnores } : {}), ...(auto ? { auto: true } : {}) };
     /* modifiée depuis « Mon agenda » : la séance elle-même, ou une variante pour ce jour-là seulement */
     const ag = L.agenda;
     /* une séance existante, modifiée avant d'être ajoutée à un jour (aperçu de l'agenda) : même question */
@@ -183,6 +230,29 @@ export default function PageComposer() {
   const rempCur = remp != null ? L.ex[remp]?.id : undefined;
   const rempListe = rempCur ? [rempCur, ...Object.keys(EX).filter((o) => o !== rempCur && EX[o].pat === EX[rempCur].pat && exoFiltre(o, sel) && !pris(o))] : [];
 
+  /* carte d'un élément : exercice ou bloc cardio */
+  const carte = (x: ReturnType<typeof sections>[number]["el"][number]) => x.t === "ex" ? (
+                  <CarteCompo
+                    key={x.e.id}
+                    e={x.e} i={x.i} n={L.ex.length}
+                    /* la charge proposée et son pourquoi, comme dans la séance (clé du journal si la séance existe déjà) */
+                    prop={propositionLibre(etat, x.e, { obj: L.obj ?? L.gen?.obj, k: L.idx != null && x.e.o != null ? kLibre(L.idx, x.e.o) : "L|nouvelle|" + x.i })}
+                    ouvert={ouv === x.e.id}
+                    glisse={glisse === x.e.id}
+                    onToggle={() => setOuv(ouv === x.e.id ? null : x.e.id)}
+                    onSaisir={(ev) => saisir(ev, x.e.id)}
+                    regl={regl} reglRepos={reglRepos} deplacer={deplacer}
+                    onFiche={() => setFiche({ id: x.e.id, idx: -1, pres: [x.e.s, x.e.r, x.e.p], libelle: tr("séance libre") })}
+                    onRemplacer={() => setRemp(x.i)}
+                    onRetirer={() => retirer(x.i)}
+                  />
+                ) : (
+                  <CarteBloc key={x.b.id} b={x.b} glisse={glisse === "bloc-" + x.b.id} onSaisir={(ev) => saisir(ev, "bloc-" + x.b.id)} onOuvrir={() => setBlocOuvert(x.b.id)} />
+                );
+  /* séance guidée sans exercice de musculation encore : la partie existe quand même, pour les cases */
+  const secs = sections(L);
+  if (gab && !secs.some((x) => x.p === "muscu")) secs.unshift({ p: "muscu", el: [], debut: 0 });
+
   return (
     <>
       <EnTete
@@ -222,6 +292,17 @@ export default function PageComposer() {
           </div>
         )}
 
+        {/* séance guidée : choisir ses muscles, puis les cases à remplir */}
+        {(choixM || (L.guide && !gab && !L.ex.length && !L.blocs?.length)) && (
+          <ChoixMuscles
+            initial={gab?.m ?? []} jour={L.pour ?? aujHui} onPreparer={(m) => preparerCases(m)}
+            autre={choixM ? { n: tr("Annuler"), f: () => setChoixM(false) } : { n: tr("Ajouter un exercice librement"), f: () => { majLibre((l) => { l.guide = false; }); setAjout(true); } }}
+          />
+        )}
+        {gab && !choixM && (
+          <BandeauGabarit g={gab} vides={vides} onModifier={() => setChoixM(true)} onDuree={(d) => preparerCases(gab.m, d)} onCompleter={completer} onVider={vider} />
+        )}
+
         <section>
           <div className="eyebrow mb-2 px-1">{tr("Ta séance · {length} exercice{a} {a1} {a2}", { length: L.ex.length, a: pluriel(L.ex.length) ? "s" : "", a1: L.blocs?.length ? tr(" + {length} bloc{a} cardio", { length: L.blocs.length, a: pluriel(L.blocs.length) ? "s" : "" }) : "", a2: L.ex.length ? tr(" · environ {a} min", { a: dureeSeance(L) }) : "" })}</div>
           {/* séance d'Oxa nettement plus courte que la durée choisie : on le dit, et pourquoi */}
@@ -233,31 +314,25 @@ export default function PageComposer() {
             </p>
           )}
           <div ref={liste} className="flex flex-col gap-2">
-            {L.ex.length || L.blocs?.length ? sections(L).map((sec, k, tout) => (
+            {L.ex.length || L.blocs?.length || gab ? secs.map((sec, k, tout) => (
               <div key={sec.p + k} data-partie={sec.p} className="flex flex-col gap-2">
                 {tout.length > 1 && (
                   <TitrePartie p={sec.p} n={sec.el.length} haut={k > 0 ? () => bougerPartie(sec.p, -1) : undefined} bas={k < tout.length - 1 ? () => bougerPartie(sec.p, 1) : undefined} />
                 )}
-                {sec.el.map((x) => x.t === "ex" ? (
-                  <CarteCompo
-                    key={x.e.id}
-                    e={x.e} i={x.i} n={L.ex.length}
-                    /* la charge proposée et son pourquoi, comme dans la séance (clé du journal si la séance existe déjà) */
-                    prop={propositionLibre(etat, x.e, { obj: L.obj ?? L.gen?.obj, k: L.idx != null && x.e.o != null ? kLibre(L.idx, x.e.o) : "L|nouvelle|" + x.i })}
-                    ouvert={ouv === x.e.id}
-                    glisse={glisse === x.e.id}
-                    onToggle={() => setOuv(ouv === x.e.id ? null : x.e.id)}
-                    onSaisir={(ev) => saisir(ev, x.e.id)}
-                    regl={regl} reglRepos={reglRepos} deplacer={deplacer}
-                    onFiche={() => setFiche({ id: x.e.id, idx: -1, pres: [x.e.s, x.e.r, x.e.p], libelle: tr("séance libre") })}
-                    onRemplacer={() => setRemp(x.i)}
-                    onRetirer={() => retirer(x.i)}
-                  />
-                ) : (
-                  <CarteBloc key={x.b.id} b={x.b} glisse={glisse === "bloc-" + x.b.id} onSaisir={(ev) => saisir(ev, "bloc-" + x.b.id)} onOuvrir={() => setBlocOuvert(x.b.id)} />
-                ))}
+                {gab && sec.p === "muscu" ? ROLES_BLOCS.map((ro) => {
+                  /* séance guidée : un bloc par rôle, les exercices choisis puis les cases vides */
+                  const el = sec.el.filter((x) => x.t === "ex" && blocDe(x.e) === ro), cv = vides.filter((i) => gab.cases[i].ro === ro);
+                  if (!el.length && !cv.length) return null;
+                  return (
+                    <div key={ro} data-partie={"muscu-" + ro} className="flex flex-col gap-2">
+                      <TitreBloc ro={ro} n={el.length + cv.length} />
+                      {el.map(carte)}
+                      {cv.map((i) => <CaseVide key={"case" + i} c={gab.cases[i]} exemples={candidatsCase(gab.cases[i], sel, pris).slice(0, 2)} onClick={() => setCaseOuverte(i)} />)}
+                    </div>
+                  );
+                }) : sec.el.map(carte)}
               </div>
-            )) : (
+            )) : L.guide ? null : (
               <button onClick={() => setAjout(true)} className="flex flex-col items-center gap-1.5 rounded-[20px] border border-dashed border-plate/60 bg-card/50 p-6 text-[15px] font-semibold text-plate-ink active:scale-[.99]">
                 <PlusIcon className="size-6" weight="bold" />{tr("Ajouter un exercice")}
               </button>
@@ -276,6 +351,15 @@ export default function PageComposer() {
         </section>
       </div>
 
+      {gab && (
+        <FeuilleCase
+          g={gab} i={caseOuverte} sel={sel} pris={pris}
+          rang={caseOuverte != null ? vides.indexOf(caseOuverte) + 1 : 0} total={vides.length}
+          sug={caseOuverte != null ? suggestion(gab, caseOuverte, sel, pris) : undefined}
+          onChoisir={choisirCase} onClose={() => setCaseOuverte(null)}
+          onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") })}
+        />
+      )}
       <FeuilleAjout
         ouvert={ajout} onClose={() => setAjout(false)} onAjouter={ajouter} pris={pris} sel={selFeuille} onSel={setSel}
         onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") })}
@@ -340,6 +424,7 @@ export default function PageComposer() {
             if (e.ro && (e.ro === "g" ? x.pat !== old.pat : estPoly(o) !== estPoly(e.id))) delete e.ro;
             e.id = o;
             delete e.o; // un autre exercice : il ne reprend pas les séries du précédent
+            rangerLibre(l);
           });
           setOuv(o);
           setRemp(null);

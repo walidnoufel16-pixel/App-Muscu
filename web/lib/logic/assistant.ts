@@ -98,7 +98,16 @@ function prescrire(id: string, role: Role, obj: number, niveau: number | undefin
   return { id, s, r, p };
 }
 
-export function construireSeance(muscles: string[], duree: number, obj: number, sel: string[], rnd: Hasard = Math.random, eviteZones: (o: string) => boolean = () => false, niveau?: number, o: { prio?: string[]; habitudes?: Set<string>; dense?: boolean } = {}): ExLibre[] {
+/** Un exercice sans le muscle de sa case (ce qui s'enregistre). */
+export const sansCase = (e: ExLibre & { k?: string }): ExLibre => { const c = { ...e }; delete c.k; return c; };
+type OptSeance = { prio?: string[]; habitudes?: Set<string>; dense?: boolean };
+export function construireSeance(muscles: string[], duree: number, obj: number, sel: string[], rnd: Hasard = Math.random, eviteZones: (o: string) => boolean = () => false, niveau?: number, o: OptSeance = {}): ExLibre[] {
+  return construireCases(muscles, duree, obj, sel, rnd, eviteZones, niveau, o).map(sansCase);
+}
+
+/** La même séance, chaque exercice avec le muscle de sa case (`k`) : le gabarit de la séance guidée
+    en reprend les cases (muscle et rôle), pour proposer exactement ce qu'Oxa aurait construit. */
+export function construireCases(muscles: string[], duree: number, obj: number, sel: string[], rnd: Hasard = Math.random, eviteZones: (o: string) => boolean = () => false, niveau?: number, o: OptSeance = {}): (ExLibre & { k: string })[] {
   /* débutant : pas de soulevé de terre ni de good morning à la barre (technique et charge sur le bas du
      dos) ; soulevé de terre roumain aux haltères, hip thrust… à la place, s'il y en a */
   /* et pour lui, plutôt que tractions et dips (qu'il ne sait souvent pas encore faire) : le tirage à la
@@ -198,7 +207,7 @@ export function construireSeance(muscles: string[], duree: number, obj: number, 
   for (const role of ["principal", "accessoire"] as Role[])
     for (const e of res) if (e.role === role && e.s < plafond(e)) { e.s++; if (!tient()) e.s--; }
   const rang = (e: (typeof res)[number]) => (e.role === "tronc" ? 3 : e.role === "principal" ? 0 : e.role === "accessoire" ? 1 : 2);
-  return res.map((e, i) => ({ e, i })).sort((a, b) => rang(a.e) - rang(b.e) || a.i - b.i).map(({ e }) => ({ id: e.id, s: e.s, r: e.r, p: e.p, ro: RO[e.role] }));
+  return res.map((e, i) => ({ e, i })).sort((a, b) => rang(a.e) - rang(b.e) || a.i - b.i).map(({ e }) => ({ id: e.id, s: e.s, r: e.r, p: e.p, ro: RO[e.role], k: e.k }));
 }
 
 /** Charge lourdement le bas du dos (soulevés de terre, good mornings, rowing T-bar, rack pull) : écarté
