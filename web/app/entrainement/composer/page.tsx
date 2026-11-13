@@ -364,7 +364,8 @@ export default function PageComposer() {
         ouvert={ajout} onClose={() => setAjout(false)} onAjouter={ajouter} pris={pris} sel={selFeuille} onSel={setSel}
         onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") })}
       />
-      <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
+      {/* fond opaque sous les boutons : désactivés (semi-transparents), ils ne laissent pas voir la liste derrière */}
+      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] bg-background px-4 pt-3 pb-[max(env(safe-area-inset-bottom),14px)] shadow-[0_-10px_14px_-6px_var(--background)]">
         {/* séance d'Oxa : « Mes séances » seulement si on le décide */}
         {/* (« Enregistrer » tout court vaut « garder » : la case n'apparaît qu'avec « Enregistrer pour … » ou
             sur une séance d'Oxa pas encore gardée) */}
@@ -445,7 +446,7 @@ function CarteCompo({
 }) {
   const x = EX[e.id], mus = musclesDe([e.id]), pas = x.ch === "temps" ? 5 : x.ch === "dist" ? 50 : 1;
   const [vuRole, setVuRole] = useState(false);
-  const prescr = x.ch === "temps" ? `${e.s} × ${e.r}s${x.cote ? tr(" / côté") : ""}` : x.ch === "dist" ? `${e.s} × ${e.r}m` : `${e.s} × ${e.r}`;
+  const prescr = x.ch === "temps" ? `${e.s} × ${e.r}s${x.cote ? tr(" / côté") : ""}` : x.ch === "dist" ? `${e.s} × ${e.r}m` : `${e.s} × ${e.r}${x.cote ? tr(" / côté") : ""}`;
   const kg = x.ch === "kg" && prop ? prop.base.v : null, variation = kg != null ? variationDe({ id: e.id, base: prop!.base, prev: prop!.prev }) : 0;
   return (
     <div data-carte={e.id} className={cn("overflow-hidden rounded-[20px] border bg-card transition-shadow", glisse ? "z-10 border-plate shadow-[0_14px_34px_-14px_rgba(0,0,0,.45)]" : "border-border/80")}>

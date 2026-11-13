@@ -282,7 +282,7 @@ function Apercu({ c, d, auj, retour, ajouter, setF }: { c: Choix; d: string; auj
           if (!x) return null;
           const p = propositionLibre(etat, e, { obj, k: i >= 0 ? kLibre(i, j) : "L|apercu|" + j });
           const v = p?.base.v ?? 0, hausse = p ? variationDe({ id: e.id, base: p.base, prev: p.prev }) : 0;
-          const serie = `${e.s} × ${e.r}${x.ch === "temps" ? " s" : x.ch === "dist" ? " m" : ""}`;
+          const serie = `${e.s} × ${e.r}${x.ch === "temps" ? " s" : x.ch === "dist" ? " m" : ""}${x.cote && x.ch !== "dist" ? tr(" / côté") : ""}`;
           const charge = x.ch === "kg" && v ? `${nb(v)} kg` : x.ch === "lest" && v ? `+${nb(v)} kg` : "";
           return (
             <div key={e.id + j}

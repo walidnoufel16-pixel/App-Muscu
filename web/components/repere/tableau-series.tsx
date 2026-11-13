@@ -107,7 +107,7 @@ export function BarreSerie({ c, onFini }: { c: Ctx | null; onFini?: () => void }
   const S = seriesAffichees(c, L), n = S.findIndex((t) => !(L && okDe(L, t)));
   if (n < 0) return null;
   const unite = x.ch === "kg" ? " kg" : x.ch === "lest" ? tr(" kg de lest") : "";
-  const quoi = ["kg", "lest"].includes(x.ch) ? `${nb(S[n].v)}${unite} × ${S[n].reps}` : fmtSerie(x, S[n]) + (x.ch === "aucune" ? tr(" réps") : "");
+  const quoi = (["kg", "lest"].includes(x.ch) ? `${nb(S[n].v)}${unite} × ${S[n].reps}` : fmtSerie(x, S[n]) + (x.ch === "aucune" ? tr(" réps") : "")) + (x.cote ? tr(" / côté") : "");
   return (
     <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),12px)] z-30 mx-auto max-w-[480px] px-3 animate-in slide-in-from-bottom-4 fade-in-0 duration-300">
       <div className="flex items-center gap-3 rounded-[22px] border border-border bg-foreground py-2.5 pr-2.5 pl-4 text-background shadow-[0_12px_32px_-12px_rgba(0,0,0,.45)]">
@@ -144,7 +144,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
   const x = EX[c.id], dbl = ["kg", "lest"].includes(x.ch);
   const lestable = !dbl && LESTABLE.has(c.id), avecLest = lestable && (L ? !!L.lest : !!c.prev?.lest);
   const S = seriesAffichees(c, L);
-  const tete = { kg: "kg", lest: "lest", aucune: tr("réps"), temps: x.cote ? tr("sec / côté") : "sec", dist: "m" }[x.ch];
+  const tete = { kg: "kg", lest: "lest", aucune: x.cote ? tr("réps / côté") : tr("réps"), temps: x.cote ? tr("sec / côté") : "sec", dist: "m" }[x.ch];
   const P2 = c.prev?.series?.length ? c.prev.series : c.prev ? [{ v: maxV(c.prev), reps: c.prev.reps ?? 0 }] : [];
   const why = L ? L.why : c.why, done = !!L?.done;
   const temps = x.ch === "temps";
@@ -177,7 +177,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
         <span>#</span>
         <span>{tr("Précédent")}</span>
         <span className="text-center">{tete}</span>
-        {(dbl || avecLest) && <span className="text-center">{dbl ? tr("réps") : tr("+ kg")}</span>}
+        {(dbl || avecLest) && <span className="text-center">{dbl ? (x.cote ? tr("réps / côté") : tr("réps")) : tr("+ kg")}</span>}
         {temps && <span />}
         <span />
       </div>

@@ -108,7 +108,7 @@ function Muscles({ ids }: { ids: string[] }) {
 function prescription(x: { ch: string; cote?: unknown }, series: number | string, reps: number | string, kg?: number) {
   if (x.ch === "temps") return `${series} × ${reps}s${x.cote ? tr(" / côté") : ""}`;
   if (x.ch === "dist") return `${series} × ${reps}m`;
-  return `${series} × ${reps}${x.ch === "kg" && kg && +kg > 0 ? ` · ${nb(+kg)} kg` : ""}`;
+  return `${series} × ${reps}${x.cote ? tr(" / côté") : ""}${x.ch === "kg" && kg && +kg > 0 ? ` · ${nb(+kg)} kg` : ""}`;
 }
 
 /* ---------------- séance du plan ---------------- */

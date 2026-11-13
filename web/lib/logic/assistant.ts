@@ -135,6 +135,9 @@ export function construireCases(muscles: string[], duree: number, obj: number, s
       if (facile.length) l = facile;
       if (c === 0 && ENTREE[k]) { const e = l.filter((x) => ENTREE[k].includes(x)); if (e.length && l.every((x) => EX[x].ch === "aucune")) l = e; }
     }
+    /* le mouvement principal se fait des deux côtés à la fois quand c'est possible : plus lourd, et
+       deux fois plus court qu'un exercice fait côté par côté */
+    if (c === 0) { const b = l.filter((x) => !EX[x].cote); if (b.length) l = b; }
     const surs = l.filter((x) => !evite(x));
     return surs.length ? surs : l;
   };
@@ -222,7 +225,9 @@ export const nomSeance = (m: string[]) =>
    séries, une minute de mise en place par exercice, et 5 minutes d'échauffement. */
 export function dureeEstimee(ex: ExLibre[]) {
   const sec = (ex.length ? 300 : 0) + ex.reduce((a, e) => {
-    const x = EX[e.id], t = x?.ch === "temps" ? (+e.r || 45) * (x.cote ? 2 : 1) : 40;
+    /* côté par côté : la durée tenue compte deux fois ; une série de répétitions, une fois et demie
+       (on enchaîne le second côté presque sans pause) */
+    const x = EX[e.id], t = x?.ch === "temps" ? (+e.r || 45) * (x.cote ? 2 : 1) : x?.cote ? 60 : 40;
     return a + e.s * t + Math.max(0, e.s - 1) * secondesDe(e.p) + 60;
   }, 0);
   return Math.max(5, Math.round(sec / 300) * 5);
