@@ -8,9 +8,12 @@ import { Input } from "@/components/ui/input";
 import { SchemaCorps } from "./schema-corps";
 import { LigneExercice } from "./ligne-exercice";
 import { EX } from "@/lib/data/exercices";
-import { PAT2GRP, PATN, ZONES } from "@/lib/data/referentiels";
+import { PAT2GRP, PAT2MUSC, PATN, ZONES } from "@/lib/data/referentiels";
 import { exoFiltre, nomPat } from "@/lib/logic/core";
 import { exosDe, exosZone, patsZone, sansAccent } from "@/lib/logic/assistant";
+import { roleDe } from "@/lib/logic/roles";
+import { nomRole } from "./role-exercice";
+import type { RoleEx } from "@/lib/logic/types";
 import { cn } from "@/lib/utils";
 
 /* Bibliothèque par le corps : sous le schéma, tous les exercices du matériel coché, par groupe ;
@@ -58,8 +61,13 @@ export function Bibliotheque({
                 ))}
               </div>
             )}
-            <div className="flex flex-col gap-1.5">
-              {l.map((o) => <LigneExercice key={o} id={o} pris={pris?.(o)} onOuvrir={() => onFiche(o)} onAjouter={onAjouter ? () => onAjouter(o) : undefined} />)}
+            <div className="flex flex-col gap-4">
+              {parRole(l, zone.p ? PAT2MUSC[zone.p] : undefined).map(({ ro, ids }) => (
+                <div key={ro ?? "-"} className="flex flex-col gap-1.5">
+                  <h4 className="eyebrow px-1">{ro ? nomRole(ro) : tr("Autres")}{` · ${ids.length}`}</h4>
+                  {ids.map((o) => <LigneExercice key={o} id={o} ro={ro} pris={pris?.(o)} onOuvrir={() => onFiche(o)} onAjouter={onAjouter ? () => onAjouter(o) : undefined} />)}
+                </div>
+              ))}
               {!l.length && <p className="px-1 text-[13.5px] text-muted-foreground">{tr("Aucun exercice avec ce matériel.")}</p>}
             </div>
           </section>
@@ -80,6 +88,13 @@ export function Bibliotheque({
       )}
     </div>
   );
+}
+
+/* Exercices regroupés par rôle (Base, Complément, Isolation, Gainage, puis les autres), relatif au
+   muscle affiché : un exercice de base qui ne le travaille qu'en second y compte comme complément. */
+const ORDRE_ROLES: (RoleEx | undefined)[] = ["b", "c", "i", "g", undefined];
+function parRole(l: string[], muscle?: string) {
+  return ORDRE_ROLES.map((ro) => ({ ro, ids: l.filter((o) => roleDe(o, muscle) === ro) })).filter((g) => g.ids.length);
 }
 
 /* Les exercices du matériel coché dont un mot commence par `q`, par groupe musculaire. */
@@ -103,7 +118,7 @@ function ListeGroupes({ groupes, pris, onAjouter, onFiche }: { groupes: Record<s
             <span className="text-[12.5px] text-muted-foreground">{l.length}</span>
           </div>
           <div className="flex flex-col gap-1.5">
-            {l.map((o) => <LigneExercice key={o} id={o} pris={pris?.(o)} onOuvrir={() => onFiche(o)} onAjouter={onAjouter ? () => onAjouter(o) : undefined} />)}
+            {l.map((o) => <LigneExercice key={o} id={o} ro={roleDe(o)} pris={pris?.(o)} onOuvrir={() => onFiche(o)} onAjouter={onAjouter ? () => onAjouter(o) : undefined} />)}
           </div>
         </section>
       ))}
