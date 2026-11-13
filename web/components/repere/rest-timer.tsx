@@ -37,7 +37,7 @@ function Anneau({ part, alerte }: { part: number; alerte: boolean }) {
 /* Barre flottante du repos : anneau, grand chiffre condensé, passer.
    Un toucher sur le chiffre déplie les réglages ±15 s. */
 export function RestTimer({ avecOnglets }: { avecOnglets: boolean }) {
-  const { fin, total, fini, ajuster, arreter, terminer } = useRepos();
+  const { fin, total, fini, titre, ajuster, arreter, terminer } = useRepos();
   const [maintenant, setMaintenant] = useState(0);
   const [deplie, setDeplie] = useState(false);
   useEffect(() => {
@@ -79,7 +79,7 @@ export function RestTimer({ avecOnglets }: { avecOnglets: boolean }) {
             className="min-w-0 flex-1 text-left"
           >
             <div className={cn("text-[11px] font-medium tracking-[0.12em] uppercase", fini ? "opacity-80" : "opacity-60")}>
-              {fini ? tr("Repos terminé") : alerte ? tr("Prépare-toi") : tr("Repos")}
+              {fini ? tr("Repos terminé") : titre ?? (alerte ? tr("Prépare-toi") : tr("Repos"))}
             </div>
             <div className={cn("num text-[34px] leading-none font-bold", alerte && "text-plate", fini && "animate-[pop_.5s_cubic-bezier(.3,1.6,.5,1)]")}>
               {fini ? tr("C'est reparti") : <Defile texte={`${Math.floor(reste / 60)}:${String(reste % 60).padStart(2, "0")}`} />}

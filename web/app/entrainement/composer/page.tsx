@@ -21,6 +21,7 @@ import { exoFiltre, kLibre, musclesDe, nb, nomPat, propositionLibre, selDeclare,
 import { exPourRole } from "@/lib/logic/assistant";
 import { convientA, placer, roleDe } from "@/lib/logic/roles";
 import { blocDe, candidatsCase, casesVides, gabaritPour, remplissage, ROLES_BLOCS, suggestion, trierParBloc } from "@/lib/logic/gabarit";
+import { avecSupersets, CadreSuperset, EffetObjectif, partenaire } from "@/components/repere/superset";
 import { BandeauGabarit, CaseVide, ChoixMuscles, FeuilleCase, TitreBloc } from "@/components/repere/gabarit";
 import { seancePour } from "@/lib/logic/generer-seance";
 import { jourDe } from "@/lib/logic/historique";
@@ -123,8 +124,16 @@ export default function PageComposer() {
   const pris = (o: string) => L.ex.some((e) => e.id === o);
   const regl = (i: number, c: "s" | "r", d: number) => majLibre((l) => { const e = l.ex[i]; e[c] = Math.min(c === "s" ? 6 : 600, Math.max(1, e[c] + d)); });
   const reglRepos = (i: number, d: number) => majLibre((l) => { const e = l.ex[i]; let k = PAS_REPOS.indexOf(e.p); if (k < 0) k = 3; e.p = PAS_REPOS[Math.min(PAS_REPOS.length - 1, Math.max(0, k + d))]; });
-  const deplacer = (i: number, d: number) => majLibre((l) => { const j = i + d; if (j < 0 || j >= l.ex.length) return; [l.ex[i], l.ex[j]] = [l.ex[j], l.ex[i]]; rangerLibre(l); });
-  const retirer = (i: number) => { setOuv(null); majLibre((l) => { l.ex.splice(i, 1); }); };
+  /* un exercice qui quitte sa place quitte son superset : le premier reprend le repos du second */
+  const separer = (l: { ex: ExLibre[] }, i: number) => {
+    const p = partenaire(l.ex, i);
+    if (p < 0) return;
+    const a = l.ex[Math.min(i, p)], b = l.ex[Math.max(i, p)];
+    delete a.sup; a.p = b.p;
+  };
+  const deplacer = (i: number, d: number) => majLibre((l) => { const j = i + d; if (j < 0 || j >= l.ex.length) return; separer(l, i); separer(l, j); [l.ex[i], l.ex[j]] = [l.ex[j], l.ex[i]]; rangerLibre(l); });
+  const retirer = (i: number) => { setOuv(null); majLibre((l) => { separer(l, i); l.ex.splice(i, 1); }); };
+  const cadreSS = (a: { i: number; e: ExLibre }, enfants: React.ReactNode) => <CadreSuperset key={"ss" + a.e.id} onSeparer={() => majLibre((l) => separer(l, a.i))}>{enfants}</CadreSuperset>;
 
   /* Glisser-déposer à la poignée : on échange avec la voisine dès que le doigt
      passe son milieu. Écoute sur le document : la carte se déplace sous le doigt. */
@@ -280,6 +289,8 @@ export default function PageComposer() {
               </button>
             ))}
           </div>
+          {/* ce que change l'objectif choisi, replié */}
+          <EffetObjectif obj={L.obj} debutant={(etat.A.regularite ?? 2) <= 1} className="mt-2" />
           {/* séance guidée qui choisit ses muscles : le matériel vient juste avant « Préparer mes cases » */}
           {!(choixM || (L.guide && !gab && !L.ex.length && !L.blocs?.length)) && <div className="mt-4">{materiel}</div>}
         </section>
@@ -327,11 +338,11 @@ export default function PageComposer() {
                   return (
                     <div key={ro} data-partie={"muscu-" + ro} className="flex flex-col gap-2">
                       <TitreBloc ro={ro} n={el.length + cv.length} />
-                      {el.map(carte)}
+                      {avecSupersets(el, carte, cadreSS)}
                       {cv.map((i) => <CaseVide key={"case" + i} c={gab.cases[i]} exemples={candidatsCase(gab.cases[i], sel, pris).slice(0, 2)} onClick={() => setCaseOuverte(i)} />)}
                     </div>
                   );
-                }) : sec.el.map(carte)}
+                }) : avecSupersets(sec.el, carte, cadreSS)}
               </div>
             )) : L.guide ? null : (
               <button onClick={() => setAjout(true)} className="flex flex-col items-center gap-1.5 rounded-[20px] border border-dashed border-plate/60 bg-card/50 p-6 text-[15px] font-semibold text-plate-ink active:scale-[.99]">

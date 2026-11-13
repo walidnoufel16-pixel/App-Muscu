@@ -16,6 +16,7 @@ import { FormeDuJour } from "@/components/repere/forme";
 import { FicheExercice, type FicheOuverte } from "@/components/repere/fiche-exercice";
 import { Collation, Echauffement, Remplacer } from "@/components/repere/seance-vues";
 import { BarreSerie, TableauSeries } from "@/components/repere/tableau-series";
+import { avecSupersets, CadreSuperset, partenaire } from "@/components/repere/superset";
 import { CarteSport } from "@/components/repere/carte-sport";
 import { EX } from "@/lib/data/exercices";
 import { AXES } from "@/lib/data/referentiels";
@@ -26,7 +27,7 @@ import { exPourRole, objCollation } from "@/lib/logic/assistant";
 import * as act from "@/lib/logic/actions";
 import type { BlocCardio, Journal } from "@/lib/logic/types";
 import type { Route } from "next";
-import { dureeTotale as dureeSeance, minutesBloc, ordre, sections, type Element } from "@/lib/logic/combinee";
+import { dureeTotale as dureeSeance, minutesBloc, sections, type Element } from "@/lib/logic/combinee";
 import { TitrePartie } from "@/components/repere/parties";
 import { FORMATS, MACHINES } from "@/lib/logic/cardio";
 import { ICONE_FORMAT } from "@/components/repere/reglages-cardio";
@@ -294,6 +295,22 @@ function SeanceLibre({ i }: { i: number }) {
     setTimeout(() => document.getElementById("ex-" + kLibre(i, j))?.scrollIntoView({ behavior: "smooth", block: "start" }), 450);
   };
 
+  /* superset : une série validée ouvre l'autre exercice (s'il lui reste des séries) ; après le
+     premier, le repos court s'appelle « Enchaîne · … » */
+  const enchainement = (j: number) => {
+    const p = partenaire(S.ex, j);
+    if (p < 0) return {};
+    return {
+      enchaine: S.ex[j].sup ? EX[S.ex[p].id]?.n : undefined,
+      onValide: () => {
+        const k = kLibre(i, p), L = useRepere.getState().etat.LOG[k];
+        if (L?.ex === S.ex[p].id && L.done) return;
+        setOuvert(k);
+        setTimeout(() => document.getElementById("ex-" + k)?.scrollIntoView({ behavior: "smooth", block: "start" }), 350);
+      },
+    };
+  };
+
   /* Carte d'un élément de la séance : bloc cardio ou exercice avec son tableau de séries. */
   const carteSeance = (el: Element) => {
     if (el.t === "bloc") return <BlocSeance key={el.b.id} b={el.b} fait={blocFait(el.b.id)} onLancer={() => router.push(`/entrainement/cardio?l=${i}&b=${el.b.id}` as Route, AVANT)} />;
@@ -312,7 +329,7 @@ function SeanceLibre({ i }: { i: number }) {
         onFiche={() => setFiche({ id: e.id, idx: -1, pres: [e.s, e.r, e.p], libelle: tr("séance libre"), rpe: r || undefined })}
         onTout={() => { tactile(12); muter((E) => act.toutCocher(E, c)); if (!L?.done && useRepere.getState().etat.LOG[c.k]?.done) fini(); }}
       >
-        <TableauSeries c={c} rpe={r} onReplier={() => setOuvert(null)} onFini={fini} />
+        <TableauSeries c={c} rpe={r} onReplier={() => setOuvert(null)} onFini={fini} {...enchainement(j)} />
       </ExerciceCarte>
     );
   };
@@ -349,12 +366,14 @@ function SeanceLibre({ i }: { i: number }) {
       {(
         <div className={cn("flex flex-col gap-2.5 px-4", premiere && "entree")}>
           <FormeDuJour cles={cles} />
-          {ordre(S).map((el, k) => {
-            /* titre de partie (soin & mobilité, musculation, cardio) quand la séance en a plusieurs */
-            const titre = parts.length > 1 && parts.find((x) => x.debut === k);
-            const carte = carteSeance(el);
-            return titre ? <Fragment key={"t" + k}><TitrePartie p={titre.p} />{carte}</Fragment> : carte;
-          })}
+          {parts.map((sec) => (
+            /* titre de partie (soin & mobilité, musculation, cardio) quand la séance en a plusieurs ;
+               les deux exercices d'un superset dans un même cadre */
+            <Fragment key={"p" + sec.debut}>
+              {parts.length > 1 && <TitrePartie p={sec.p} />}
+              {avecSupersets(sec.el, carteSeance, (a, enfants) => <CadreSuperset key={"ss" + a.i}>{enfants}</CadreSuperset>)}
+            </Fragment>
+          ))}
           <button onClick={() => { tactile(6); setAjout(true); }} className="flex items-center justify-center gap-2 rounded-[18px] border border-dashed border-plate/60 py-3 text-[14.5px] font-semibold text-plate-ink active:scale-[.99]">
             <PlusIcon className="size-4" weight="bold" />{tr("Ajouter un exercice")}
           </button>
@@ -378,7 +397,8 @@ function SeanceLibre({ i }: { i: number }) {
       {/* mode séance : la série à faire, validée d'un toucher en bas de l'écran */}
       {ouvert && (() => {
         const m = S.ex.findIndex((_, j) => ctxLibre(etat, i, j)?.k === ouvert), c = m >= 0 ? ctxLibre(etat, i, m) : null;
-        return <BarreSerie c={c ?? null} onFini={() => enchainer({ k: ouvert, cles, titre: S.nom, setOuvert })} />;
+        const ss = m >= 0 && partenaire(S.ex, m) >= 0 ? tr("Superset · {l}", { l: S.ex[m].sup ? "A" : "B" }) : undefined;
+        return <BarreSerie c={c ?? null} etiquette={ss} {...(m >= 0 ? enchainement(m) : {})} onFini={() => enchainer({ k: ouvert, cles, titre: S.nom, setOuvert })} />;
       })()}
       <FicheExercice fiche={fiche} onClose={() => setFiche(null)} />
     </Cadre>

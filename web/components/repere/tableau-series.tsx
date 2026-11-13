@@ -76,14 +76,16 @@ function seriesAffichees(c: Ctx, L: Journal | undefined): Serie[] {
 }
 
 /* Valider (ou décocher) la série n : journal, repos, record. Partagé par le tableau et la barre du bas. */
-function validerSerie(c: Ctx, n: number, s: Serie, bouton: HTMLElement, onFini?: () => void) {
+/* superset : `o.enchaine` (le nom du second exercice) titre le repos, `o.onValide` ouvre l'autre exercice */
+type Enchainement = { enchaine?: string; onValide?: () => void };
+function validerSerie(c: Ctx, n: number, s: Serie, bouton: HTMLElement, onFini?: () => void, o: Enchainement = {}) {
   const avant = useRepere.getState().etat.LOG, L = journalActif(avant[c.k]);
   const fini = !!avant[c.k]?.done, rec = !(L && okDe(L, s)) && estRecord(avant, c.id, c.k, s);
   let valide = false;
   useRepere.getState().muter((E) => { valide = act.serOk(E, c, n); });
   if (valide) {
     useCelebrer.getState().marquerDebut(seanceDe(c.k));
-    useRepos.getState().lancer(secondesDe(c.repos));
+    useRepos.getState().lancer(secondesDe(c.repos), o.enchaine ? tr("Enchaîne · {n}", { n: o.enchaine }) : undefined);
     if (rec) {
       useCelebrer.getState().ajouterRecord(seanceDe(c.k));
       const b = bouton.getBoundingClientRect();
@@ -91,6 +93,7 @@ function validerSerie(c: Ctx, n: number, s: Serie, bouton: HTMLElement, onFini?:
       try { navigator.vibrate?.([14, 60, 28]); } catch {}
     } else tactile(12);
   } else tactile(6);
+  if (valide) o.onValide?.();
   if (!fini && useRepere.getState().etat.LOG[c.k]?.done) onFini?.();
   return { valide, rec };
 }
@@ -98,7 +101,7 @@ function validerSerie(c: Ctx, n: number, s: Serie, bouton: HTMLElement, onFini?:
 /* Mode séance : la série à faire de l'exercice ouvert, validée d'un toucher, en barre fixe en bas.
    Elle laisse la place au minuteur de repos ; pas de barre pour un exercice tenu en durée (son
    chrono se lance dans le tableau). */
-export function BarreSerie({ c, onFini }: { c: Ctx | null; onFini?: () => void }) {
+export function BarreSerie({ c, onFini, etiquette, ...o }: { c: Ctx | null; onFini?: () => void; etiquette?: string } & Enchainement) {
   const fin = useRepos((s) => s.fin), finiRepos = useRepos((s) => s.fini);
   const brut = useRepere((s) => (c ? s.etat.LOG[c.k] : undefined));
   if (!c || fin || finiRepos) return null;
@@ -112,11 +115,11 @@ export function BarreSerie({ c, onFini }: { c: Ctx | null; onFini?: () => void }
     <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),12px)] z-30 mx-auto max-w-[480px] px-3 animate-in slide-in-from-bottom-4 fade-in-0 duration-300">
       <div className="flex items-center gap-3 rounded-[22px] border border-border bg-foreground py-2.5 pr-2.5 pl-4 text-background shadow-[0_12px_32px_-12px_rgba(0,0,0,.45)]">
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[12px] font-medium opacity-70">{tr("Série {a}/{b}", { a: n + 1, b: S.length })} · {x.n}</div>
+          <div className="truncate text-[12px] font-medium opacity-70">{etiquette && `${etiquette} · `}{tr("Série {a}/{b}", { a: n + 1, b: S.length })} · {x.n}</div>
           <div className="num truncate text-[22px] leading-tight font-bold">{quoi}</div>
         </div>
         <button
-          onClick={(e) => validerSerie(c, n, S[n], e.currentTarget, onFini)}
+          onClick={(e) => validerSerie(c, n, S[n], e.currentTarget, onFini, o)}
           className="flex h-12 shrink-0 items-center gap-1.5 rounded-full bg-plate px-5 text-[15px] font-bold text-plate-foreground active:scale-95"
         >
           <CheckIcon className="size-[18px]" weight="bold" />{tr("Valider")}
@@ -127,7 +130,7 @@ export function BarreSerie({ c, onFini }: { c: Ctx | null; onFini?: () => void }
 }
 
 /* Tableau des séries façon Hevy / Strong : # · précédent · valeurs · (chrono) · ✓. */
-export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: number; onReplier: () => void; onFini?: () => void }) {
+export function TableauSeries({ c, rpe, onReplier, onFini, ...o }: { c: Ctx; rpe: number; onReplier: () => void; onFini?: () => void } & Enchainement) {
   const L: Journal | undefined = journalActif(useRepere((s) => s.etat.LOG[c.k]));
   const muter = useRepere((s) => s.muter);
   const [depuis] = useState(() => performance.now());
@@ -137,7 +140,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini }: { c: Ctx; rpe: numb
   const boutons = useRef<Record<number, HTMLElement | null>>({});
 
   const valider = (n: number, s: Serie, bouton: HTMLElement) => {
-    const { valide, rec } = validerSerie(c, n, s, bouton, onFini);
+    const { valide, rec } = validerSerie(c, n, s, bouton, onFini, o);
     setVient(valide ? n : null);
     setRecords((r) => (valide && rec ? [...r, n] : r.filter((x) => x !== n)));
   };

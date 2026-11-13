@@ -38,6 +38,7 @@ import { avisMuscles } from "@/lib/logic/avis-seance";
 import { jourDe } from "@/lib/logic/historique";
 import { CalendarDotsIcon } from "@phosphor-icons/react";
 import { jourCourt, jourLong, maj } from "@/components/repere/agenda";
+import { EffetObjectif } from "@/components/repere/superset";
 
 /* Ce que les exercices d'un muscle font travailler au passage (muscles secondaires des mouvements de base). */
 const INDIRECTS: Record<string, string[]> = {
@@ -288,6 +289,8 @@ function Assistant() {
             ))}
           </div>
           {obj == null && <p className="mt-2 px-1 text-[12.5px] text-muted-foreground">{tr("Choisis un objectif : il règle les répétitions, les repos et la collation.")}</p>}
+          {/* ce que change l'objectif choisi, replié */}
+          <EffetObjectif obj={obj} debutant={(A.regularite ?? 2) <= 1} className="mt-2" />
         </section>
 
         {type === "mixte" && (
