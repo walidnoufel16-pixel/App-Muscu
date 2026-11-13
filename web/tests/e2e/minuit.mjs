@@ -24,6 +24,8 @@ await pg.clock.setFixedTime(new Date("2026-10-22T00:18:00+02:00"));
 await pg.goto(U + "/entrainement/seance?l=0");
 { const l = pg.locator('[id="ex-L|0|2"] button[aria-expanded]').first(); await l.waitFor(); if ((await l.getAttribute("aria-expanded")) !== "true") await l.click(); }
 await pg.getByRole("button", { name: "Tout valider" }).click();
+/* l'exercice terminé attend la réponse au ressenti avant la suite */
+{ const j = pg.getByRole("button", { name: "Juste" }); if (await j.count()) { await j.first().click(); await pg.getByRole("button", { name: "Continuer" }).first().click(); } }
 await pg.waitForTimeout(800);
 const H = await pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")).HIST);
 ok(H.length === 1 && H[0].d === "2026-10-21", `une seule séance, le 21 (${H.map((l) => l.d)})`);

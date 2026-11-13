@@ -37,6 +37,9 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
     const c = pg.locator(`[data-ex="${id}"]`).first();
     if ((await c.locator("button[aria-expanded]").first().getAttribute("aria-expanded")) !== "true") await c.locator("button[aria-expanded]").first().click();
     await c.getByRole("button", { name: "Tout valider" }).click();
+    /* l'exercice terminé reste ouvert sur la question du ressenti : la réponse, puis « Continuer » */
+    await c.getByRole("button", { name: "Juste" }).click();
+    await c.getByRole("button", { name: "Continuer" }).click();
     await pg.waitForTimeout(900);
   }
   const bilan = pg.getByRole("dialog");
