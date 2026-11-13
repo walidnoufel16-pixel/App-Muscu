@@ -72,7 +72,7 @@ export function convientA(caseRole: RoleEx, id: string, muscle?: string) {
 }
 
 /* Rang dans la musculation : explosifs (à faire frais), Base, Complément, Isolation, Gainage, portés. */
-function rang(x: ExLibre) {
+export function rang(x: ExLibre) {
   if (EXPLOSIFS.has(x.id)) return 0;
   if (PORTES.has(x.id)) return 5;
   const r = x.ro ?? roleDe(x.id);
