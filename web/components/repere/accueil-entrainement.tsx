@@ -28,9 +28,6 @@ import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
-import { Vignette } from "./exercice-carte";
-import { lienRubrique } from "./rubriques";
-import { dureeTotale } from "@/lib/logic/combinee";
 import type { Etat } from "@/lib/logic/types";
 
 const RUN = "#c2622a";
@@ -321,39 +318,3 @@ export function AVenir({ auj, setF }: { auj: string; setF: (f: Feuille) => void 
   );
 }
 
-/* ---------------- mes séances ---------------- */
-/** Le second chemin pour lancer une séance (le premier : la carte du jour) : les séances
-    enregistrées, juste sous la carte, les dernières faites d'abord. Un toucher l'ouvre. */
-export function RangeeMesSeances() {
-  const etat = useRepere((s) => s.etat);
-  const router = useRouter();
-  const l = useMemo(() => {
-    const der = new Map<number, string>();
-    for (const h of etat.HIST || []) { const r = /^L\|(\d+)$/.exec(h.s); if (r && (der.get(+r[1]) ?? "") < h.d) der.set(+r[1], h.d); }
-    return etat.SEANCES.map((s, i) => ({ s, i })).filter(({ s }) => !s.auto && !s.soin && s.ex.length)
-      .sort((a, b) => (der.get(b.i) ?? "").localeCompare(der.get(a.i) ?? "") || a.i - b.i).slice(0, 8);
-  }, [etat.SEANCES, etat.HIST]);
-  if (!l.length) return null;
-  return (
-    <section aria-label={tr("Mes séances")}>
-      <div className="mb-2 flex items-baseline justify-between px-1">
-        <h2 className="text-[20px] font-extrabold tracking-[-0.015em]">{tr("Mes séances")}</h2>
-        <button onClick={() => router.push(lienRubrique("libre"), AVANT)} className="text-[15px] font-semibold text-plate-ink dark:text-plate">{tr("Tout voir")}</button>
-      </div>
-      <div className="no-scrollbar -mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1">
-        {l.map(({ s, i }) => (
-          <button key={i} onClick={() => { tactile(6); router.push(`/entrainement/seance?l=${i}` as Route, AVANT); }}
-            className="flex w-[156px] shrink-0 flex-col gap-2 rounded-[16px] bg-card p-3 text-left active:scale-[.98]">
-            <span className="flex -space-x-3">
-              {s.ex.slice(0, 3).map((e) => EX[e.id] && <Vignette key={e.id} id={e.id} className="size-10 rounded-[11px] ring-2 ring-card" />)}
-            </span>
-            <span className="min-w-0">
-              <span className="block truncate text-[15px] font-bold">{s.nom}</span>
-              <span className="block truncate text-[12.5px] text-muted-foreground">{tp(s.ex.length, "{n} exercice", "{n} exercices")} · {tr("environ {a} min", { a: dureeTotale(s) })}</span>
-            </span>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
