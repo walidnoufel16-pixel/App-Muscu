@@ -94,7 +94,6 @@ export function BandeauGabarit({ g, vides, onModifier, onDuree, onCompleter, onV
         </button>
         {vu && <p className="animate-in fade-in-0 mt-1 text-[12.5px] leading-snug text-muted-foreground">{tr("Ce sont les cases qu'Oxa remplirait pour ces muscles, ton niveau et cette durée : chaque grand muscle commence par une Base, puis un autre angle, puis l'isolation. Rien n'est obligatoire : les cases vides disparaissent quand tu enregistres.")}</p>}
       </div>
-      {vides.length > 0 && <p className="text-[12.5px] leading-snug text-muted-foreground">{tr("À choisir : {a}", { a: vides.map((i) => nomCase(g.cases[i])).join(", ") })}</p>}
       <div className="flex gap-2">
         {vides.length > 0 && <Button variant="plate" size="sm" className="rounded-full" onClick={onCompleter}>{tr("Compléter pour moi")}</Button>}
         {vides.length < g.cases.length && <Button variant="outline" size="sm" className="rounded-full bg-card" onClick={onVider}>{tr("Vider les cases")}</Button>}

@@ -36,8 +36,7 @@ import { cn } from "@/lib/utils";
 import { Recommandation } from "@/components/repere/recommandation";
 import { avisMuscles } from "@/lib/logic/avis-seance";
 import { jourDe } from "@/lib/logic/historique";
-import { CalendarDotsIcon } from "@phosphor-icons/react";
-import { jourCourt, jourLong, maj } from "@/components/repere/agenda";
+import { jourCourt, PastilleJour } from "@/components/repere/agenda";
 import { EffetObjectif } from "@/components/repere/superset";
 
 /* Ce que les exercices d'un muscle font travailler au passage (muscles secondaires des mouvements de base). */
@@ -145,11 +144,7 @@ function Assistant() {
         titre={courseSeule ? (modif ? tr("Modifier mon plan") : tr("Prépare une course")) : tr("Créer une séance pour moi")}
         gauche={<Retour repli="/entrainement" />}
       >
-        {pour && (
-          <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-plate-soft px-3 py-1.5 text-[13.5px] font-semibold text-plate-ink dark:text-plate">
-            <CalendarDotsIcon className="size-4" weight="bold" />{tr("Pour {j}", { j: maj(jourLong(pour)) })}
-          </p>
-        )}
+        {pour && <PastilleJour className="mt-2" jour={pour} auj={auj} onChange={(j) => { const p = new URLSearchParams(window.location.search); p.set("jour", j); router.replace(`/entrainement/assistant?${p}` as Route); }} />}
         <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
           {type === "muscu"
             ? tr("Choisis ce que tu veux travailler : Oxa construit ta séance, que tu modifies ensuite comme tu veux.")
