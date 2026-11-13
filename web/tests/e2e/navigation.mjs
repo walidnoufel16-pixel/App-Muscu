@@ -91,7 +91,7 @@ ok(true, "retour de la séance vers Mes séances");
 await pg.goto(U + "/entrainement/");
 await pg.getByRole("button", { name: "Nouvelle séance" }).click();
 await pg.getByRole("dialog").getByText("Je choisis les muscles").click();
-await pg.waitForURL(/\/entrainement\/assistant\/$/);
+await pg.waitForURL(/\/entrainement\/assistant\/(\?jour=[\d-]+)?$/); // le jour choisi suit (aujourd'hui compris)
 ok(await pg.getByRole("button", { name: "Entraînement" }).waitFor({ timeout: 3000 }).then(() => true, () => false), "assistant : retour libellé « Entraînement »");
 await pg.getByRole("button", { name: "Entraînement" }).click();
 await pg.waitForURL(/\/entrainement\/$/);

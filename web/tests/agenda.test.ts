@@ -127,11 +127,19 @@ describe("menu du jour", () => {
     expect(feuilleDuJour({ d: "2026-11-12", fait: [], prevus: [{}], manques: [] } as never, "2026-11-09")).toEqual({ m: "jour", d: "2026-11-12" });
   });
   it("une séance créée pour un jour à venir est programmée ce jour-là, avec le rappel habituel", () => {
+    const demain = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
     const E = { A: { rappelAgenda: { veille: false, h: 7 } }, SEANCES: [{ nom: "Dos", ex: [] }] } as unknown as Etat;
-    const p = programmerNouvelle(E, "2026-11-12", 0);
+    const p = programmerNouvelle(E, demain, 0);
     expect(E.AGENDA).toHaveLength(1);
-    expect(p).toMatchObject({ d: "2026-11-12", nom: "Dos", quoi: { t: "libre", i: 0 }, rappel: { veille: false, h: 7 } });
+    expect(p).toMatchObject({ d: demain, nom: "Dos", quoi: { t: "libre", i: 0 }, rappel: { veille: false, h: 7 } });
     const E2 = { A: {}, SEANCES: [{ nom: "Jambes", ex: [] }] } as unknown as Etat;
-    expect(programmerNouvelle(E2, "2026-11-12", 0).rappel).toEqual({ veille: true, h: 20 });
+    expect(programmerNouvelle(E2, demain, 0).rappel).toEqual({ veille: true, h: 20 });
+  });
+  it("une séance créée pour aujourd'hui est ajoutée à aujourd'hui, sans rappel (il serait déjà passé)", () => {
+    const auj = jourDe(Date.now());
+    const E = { A: {}, SEANCES: [{ nom: "Dos", ex: [] }] } as unknown as Etat;
+    const p = programmerNouvelle(E, auj, 0);
+    expect(p).toMatchObject({ d: auj, quoi: { t: "libre", i: 0 } });
+    expect(p.rappel).toBeUndefined();
   });
 });
