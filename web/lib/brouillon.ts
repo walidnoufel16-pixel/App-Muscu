@@ -1,8 +1,11 @@
 "use client";
 
 /* État d'interface partagé entre écrans, non enregistré : la séance en cours
-   de composition et le filtre de matériel choisi dans la bibliothèque. */
+   de composition et le filtre de matériel choisi dans la bibliothèque. Gardé pour l'onglet
+   (sessionStorage) : un rechargement, ou l'app rouverte après une mise en veille, ne perd pas la
+   séance en cours de composition ; fermer l'onglet l'efface. */
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 import type { Etat, SeanceLibre } from "@/lib/logic/types";
 import type { Gabarit } from "@/lib/logic/gabarit";
 import { seancePour } from "@/lib/logic/generer-seance";
@@ -21,7 +24,7 @@ type B = {
   setSel: (s: string[] | null) => void;
 };
 
-export const useBrouillon = create<B>((set, get) => ({
+export const useBrouillon = create<B>()(persist((set, get) => ({
   libre: null,
   sel: null,
   setLibre: (libre) => set({ libre }),
@@ -33,6 +36,10 @@ export const useBrouillon = create<B>((set, get) => ({
     set({ libre: c });
   },
   setSel: (sel) => set({ sel }),
+}), {
+  name: "oxa.brouillon.v1",
+  storage: createJSONStorage(() => sessionStorage),
+  partialize: (s) => ({ libre: s.libre, sel: s.sel }),
 }));
 
 /* Prépare une séance à partir de muscles conseillés et la place dans le composeur, pour
