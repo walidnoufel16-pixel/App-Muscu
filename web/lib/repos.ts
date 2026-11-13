@@ -10,7 +10,9 @@ type Repos = {
   fin: number | null;
   total: number;
   fini: boolean;
-  lancer: (sec: number) => void;
+  /* superset : « Enchaîne · Rowing haltère » au lieu de « Repos » */
+  titre?: string;
+  lancer: (sec: number, titre?: string) => void;
   ajuster: (d: number) => void;
   arreter: () => void;
   terminer: () => void;
@@ -22,10 +24,10 @@ export const useRepos = create<Repos>((set, get) => ({
   fin: null,
   total: 0,
   fini: false,
-  lancer(sec) {
+  lancer(sec, titre) {
     preparer();
     const fin = Date.now() + sec * 1000;
-    set({ fin, total: sec, fini: false });
+    set({ fin, total: sec, fini: false, titre });
     bipFin(fin);
   },
   ajuster(d) {

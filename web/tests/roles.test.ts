@@ -2,6 +2,7 @@
    naturel par exercice, pour les séances générées, les badges et le gabarit. */
 import { describe, expect, it } from "vitest";
 import { EX } from "@/lib/data/exercices";
+import { PAT2MUSC } from "@/lib/data/referentiels";
 import { construireSeance, exPourRole, hasardDe } from "@/lib/logic/assistant";
 import { secondesDe } from "@/lib/logic/core";
 import type { ExLibre } from "@/lib/logic/types";
@@ -64,5 +65,34 @@ describe("ajout à la main", () => {
     const ex: ExLibre[] = [exPourRole("curlb", 0), exPourRole("ferm", 0)];
     for (const id of ["gai", "sq", "fe", "jsq", "dc"]) placer(ex, exPourRole(id, 0));
     expect(ex.map((e) => e.id)).toEqual(["jsq", "sq", "dc", "fe", "curlb", "gai", "ferm"]);
+  });
+});
+
+describe("supersets (M'affiner)", () => {
+  const ANT: Record<string, string> = { pec: "dos", dos: "pec", bic: "tri", tri: "bic", qua: "isc", isc: "qua" };
+  const muscle = (id: string) => PAT2MUSC[EX[id].pat];
+  it("deux exercices de muscles opposés et de même rôle, côte à côte, repos court sur le premier", () => {
+    let vus = 0;
+    for (let k = 0; k < 20; k++) {
+      const ex = construireSeance(["pec", "dos", "bic", "tri"], 60, 2, ["m0", "m1", "m2", "m3", "bt"], hasardDe("ss" + k), () => false, 2);
+      ex.forEach((e, i) => {
+        if (!e.sup) return;
+        vus++;
+        const b = ex[i + 1];
+        expect(b, e.id).toBeTruthy();
+        expect(ANT[muscle(e.id)]).toBe(muscle(b.id));
+        expect(e.ro).toBe(b.ro);
+        expect(["c", "i"]).toContain(e.ro);
+        expect(e.p).toBe("15 s");
+        expect(b.sup).toBeUndefined();
+      });
+    }
+    expect(vus).toBeGreaterThan(0);
+  });
+  it("pas de superset pour les autres objectifs ni pour un débutant", () => {
+    for (let k = 0; k < 10; k++) {
+      for (const [obj, niv] of [[0, 2], [1, 3], [3, 2], [2, 1]])
+        expect(construireSeance(["pec", "dos", "bic", "tri"], 60, obj, ["m0", "m1", "m2", "m3", "bt"], hasardDe("ns" + k), () => false, niv).some((e) => e.sup)).toBe(false);
+    }
   });
 });
