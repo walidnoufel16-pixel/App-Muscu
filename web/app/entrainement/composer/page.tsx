@@ -4,7 +4,7 @@ import { pluriel, tr } from "@/lib/i18n";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { CalendarDotsIcon, ArrowDownIcon, ArrowUpIcon, ArrowsClockwiseIcon, ArrowsLeftRightIcon, CaretDownIcon, CaretRightIcon, DotsSixVerticalIcon, HeartbeatIcon, InfoIcon, MinusIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
+import { ArrowDownIcon, ArrowUpIcon, ArrowsClockwiseIcon, ArrowsLeftRightIcon, CaretDownIcon, CaretRightIcon, DotsSixVerticalIcon, HeartbeatIcon, InfoIcon, MinusIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EnTete } from "@/components/repere/en-tete";
@@ -37,7 +37,7 @@ import { preparer } from "@/lib/sons";
 import { Retour, useRetour } from "@/components/repere/retour";
 import { useBrouillon } from "@/lib/brouillon";
 import { programmerNouvelle, remplacerLe } from "@/lib/logic/agenda";
-import { jourCourt, jourLong, maj } from "@/components/repere/agenda";
+import { jourCourt, jourLong, maj, PastilleJour } from "@/components/repere/agenda";
 import { toast } from "sonner";
 import { AvisSeance } from "@/components/repere/avis-seance";
 import { estPoly } from "@/lib/logic/avis-seance";
@@ -262,11 +262,8 @@ export default function PageComposer() {
         actions={<Button variant="ghost" size="icon" aria-label={tr("Supprimer")} onClick={supprimer}><TrashIcon className="size-5 text-destructive" /></Button>}
       />
       {/* le jour choisi, rappelé en haut : la séance y sera ajoutée */}
-      {L.pour && (
-        <p className="mx-4 mb-3 inline-flex items-center gap-1.5 self-start rounded-full bg-plate-soft px-3 py-1.5 text-[13.5px] font-semibold text-plate-ink dark:text-plate">
-          <CalendarDotsIcon className="size-4" weight="bold" />{tr("Pour {j}", { j: maj(jourLong(L.pour)) })}
-        </p>
-      )}
+      {/* touché, on change de jour ; les boutons du bas suivent */}
+      {L.pour && <PastilleJour className="mx-4 mb-3" jour={L.pour} auj={aujHui} onChange={(d) => majLibre((l) => { l.pour = d; })} />}
       <div className="flex flex-col gap-5 px-4 pb-28">
         <section>
           <label className="eyebrow mb-1.5 block px-1" htmlFor="nom">{tr("Nom de la séance")}</label>
