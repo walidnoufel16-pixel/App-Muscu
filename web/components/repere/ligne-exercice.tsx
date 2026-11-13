@@ -16,8 +16,9 @@ export function LigneExercice({ id, onOuvrir, onAjouter, pris, ro }: { id: strin
       <button onClick={onOuvrir} className="flex min-w-0 flex-1 items-center gap-3 p-2.5 text-left">
         <Vignette id={id} className="size-12 rounded-[12px]" />
         <span className="min-w-0">
-          <span className="flex min-w-0 items-center gap-2"><span className="truncate text-[15px] font-semibold">{x.n}</span><EtiquetteRole ro={ro} /></span>
-          <span className="block truncate text-[12.5px] text-muted-foreground">{x.m}</span>
+          {/* le nom en entier (deux lignes au plus) ; l'étiquette passe sur la ligne des muscles */}
+          <span className="line-clamp-2 text-[15px] leading-tight font-semibold">{x.n}</span>
+          <span className="flex min-w-0 items-center gap-1.5 text-[12.5px] text-muted-foreground"><span className="min-w-0 truncate">{x.m}</span><EtiquetteRole ro={ro} /></span>
         </span>
       </button>
       {onAjouter && (

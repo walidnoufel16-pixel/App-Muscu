@@ -289,10 +289,11 @@ function Apercu({ c, d, auj, retour, ajouter, setF }: { c: Choix; d: string; auj
               className="flex flex-wrap items-center gap-x-3 border-t border-border/60 p-2.5 first:border-t-0">
               <Vignette id={e.id} className="size-11 rounded-[11px]" />
               <span className="min-w-0 flex-1">
-                <span className="flex min-w-0 items-center gap-2"><span className="truncate text-[14.5px] font-semibold">{x.n}</span><EtiquetteRole ro={e.ro} ouvert={vu === j} onToggle={() => setVu(vu === j ? null : j)} /></span>
-                <span className="block text-[12.5px] text-muted-foreground">
-                  <span className="num">{serie}</span>{charge && <> · <span className="num font-semibold text-foreground">{charge}</span></>}
+                <span className="line-clamp-2 text-[14.5px] leading-tight font-semibold">{x.n}</span>
+                <span className="flex flex-wrap items-center gap-y-1 text-[12.5px] text-muted-foreground">
+                  <span><span className="num">{serie}</span>{charge && <> · <span className="num font-semibold text-foreground">{charge}</span></>}</span>
                   {hausse > 0 && <span className="num ml-1.5 font-semibold text-plate-ink dark:text-plate">↑ +{nb(hausse)} kg</span>}
+                  <EtiquetteRole ro={e.ro} ouvert={vu === j} onToggle={() => setVu(vu === j ? null : j)} className="ml-1.5" />
                 </span>
               </span>
               {vu === j && <PourquoiRole ro={e.ro} onFermer={() => setVu(null)} className="mt-2 w-full basis-full" />}
