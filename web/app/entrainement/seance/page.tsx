@@ -306,7 +306,8 @@ function SeanceLibre({ i }: { i: number }) {
         const k = kLibre(i, p), L = useRepere.getState().etat.LOG[k];
         if (L?.ex === S.ex[p].id && L.done) return;
         setOuvert(k);
-        setTimeout(() => document.getElementById("ex-" + k)?.scrollIntoView({ behavior: "smooth", block: "start" }), 350);
+        /* sous l'en-tête collant : le haut de la carte reste visible */
+        setTimeout(() => { const el = document.getElementById("ex-" + k); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 76, behavior: "smooth" }); }, 350);
       },
     };
   };
