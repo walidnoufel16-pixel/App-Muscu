@@ -58,7 +58,8 @@ export function SchemaCorps({
           </path>
         ))}
       </svg>
-      <p className="mt-1 text-center text-[10.5px] text-muted-foreground">{tr("{a}Schéma : body-highlighter, Hicham Elabbassi — MIT", { a: legende ? legende + " · " : "" })}</p>
+      {/* l'auteur du schéma est cité dans les crédits (Profil › Crédits, lib/medias.ts) */}
+      {legende && <p className="mt-1 text-center text-[11px] text-muted-foreground">{legende}</p>}
     </div>
   );
 }
