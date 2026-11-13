@@ -184,9 +184,9 @@ function SeancePlan() {
                     onToggle={() => { tactile(5); setOuvert(ouvert === k ? null : k); }}
                     onFiche={() => ouvrirFiche(i)}
                     onRemplacer={L?.done ? undefined : () => setRemp(i)}
-                    onTout={() => { tactile(12); muter((E) => act.toutCocher(E, c)); if (!L?.done && useRepere.getState().etat.LOG[k]?.done && !r) fini(); }}
+                    onTout={() => { tactile(12); muter((E) => act.toutCocher(E, c)); if (!L?.done && useRepere.getState().etat.LOG[k]?.done) { if (r) setOuvert(k); else fini(); } }}
                   >
-                    <TableauSeries c={c} rpe={r} onReplier={() => setOuvert(null)} onFini={fini} />
+                    <TableauSeries c={c} rpe={r} onReplier={() => setOuvert(null)} onFini={fini} garder={() => setOuvert(k)} />
                   </ExerciceCarte>
                 );
               })}
@@ -203,7 +203,7 @@ function SeancePlan() {
       {!S.sportOnly && ouvert && (() => {
         const i = cles.indexOf(ouvert), c = i >= 0 ? ctxPlan(etat, i, W) : null;
         const rb = c ? (noRPE(c.id) ? 0 : rpeOf(etat.A, wk, c.id, S.x?.[i]?.[4] ?? 0)) : 0;
-        return <BarreSerie c={c ?? null} rpe={rb} onFini={() => enchainer({ k: ouvert, cles, titre: titreSeance(S.t), setOuvert })} />;
+        return <BarreSerie c={c ?? null} rpe={rb} garder={() => setOuvert(ouvert)} onFini={() => enchainer({ k: ouvert, cles, titre: titreSeance(S.t), setOuvert })} />;
       })()}
       <FicheExercice fiche={fiche} onClose={() => setFiche(null)} />
       {rempOrig && (
@@ -329,9 +329,9 @@ function SeanceLibre({ i }: { i: number }) {
         num={j + 1} id={e.id} prescr={prescr} repos={e.p} rpe={r} ro={e.ro} variation={L ? 0 : variationDe(c)} L={L} n={e.s} ouvert={ouvert === c.k}
         onToggle={() => { tactile(5); setOuvert(ouvert === c.k ? null : c.k); }}
         onFiche={() => setFiche({ id: e.id, idx: -1, pres: [e.s, e.r, e.p], libelle: tr("séance libre"), rpe: r || undefined })}
-        onTout={() => { tactile(12); muter((E) => act.toutCocher(E, c)); if (!L?.done && useRepere.getState().etat.LOG[c.k]?.done && !r) fini(); }}
+        onTout={() => { tactile(12); muter((E) => act.toutCocher(E, c)); if (!L?.done && useRepere.getState().etat.LOG[c.k]?.done) { if (r) setOuvert(c.k); else fini(); } }}
       >
-        <TableauSeries c={c} rpe={r} onReplier={() => setOuvert(null)} onFini={fini} {...enchainement(j)} />
+        <TableauSeries c={c} rpe={r} onReplier={() => setOuvert(null)} onFini={fini} garder={() => setOuvert(c.k)} {...enchainement(j)} />
       </ExerciceCarte>
     );
   };
@@ -400,7 +400,7 @@ function SeanceLibre({ i }: { i: number }) {
       {ouvert && (() => {
         const m = S.ex.findIndex((_, j) => ctxLibre(etat, i, j)?.k === ouvert), c = m >= 0 ? ctxLibre(etat, i, m) : null;
         const ss = m >= 0 && partenaire(S.ex, m) >= 0 ? tr("Superset · {l}", { l: S.ex[m].sup ? "A" : "B" }) : undefined;
-        return <BarreSerie c={c ?? null} rpe={c && !noRPE(c.id) ? 8 : 0} etiquette={ss} {...(m >= 0 ? enchainement(m) : {})} onFini={() => enchainer({ k: ouvert, cles, titre: S.nom, setOuvert })} />;
+        return <BarreSerie c={c ?? null} rpe={c && !noRPE(c.id) ? 8 : 0} garder={() => setOuvert(ouvert)} etiquette={ss} {...(m >= 0 ? enchainement(m) : {})} onFini={() => enchainer({ k: ouvert, cles, titre: S.nom, setOuvert })} />;
       })()}
       <FicheExercice fiche={fiche} onClose={() => setFiche(null)} />
     </Cadre>

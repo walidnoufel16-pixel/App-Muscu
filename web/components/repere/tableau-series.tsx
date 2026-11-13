@@ -79,7 +79,7 @@ function seriesAffichees(c: Ctx, L: Journal | undefined): Serie[] {
 /* superset : `o.enchaine` (le nom du second exercice) titre le repos, `o.onValide` ouvre l'autre exercice */
 /* `o.attendre` (un RPE à noter) : l'exercice tout juste terminé reste ouvert sur la question du ressenti ;
    c'est la réponse (« Continuer ») qui passe à la suite */
-type Enchainement = { enchaine?: string; onValide?: () => void; attendre?: boolean };
+type Enchainement = { enchaine?: string; onValide?: () => void; attendre?: boolean; garder?: () => void };
 function validerSerie(c: Ctx, n: number, s: Serie, bouton: HTMLElement, onFini?: () => void, o: Enchainement = {}) {
   const avant = useRepere.getState().etat.LOG, L = journalActif(avant[c.k]);
   const fini = !!avant[c.k]?.done, rec = !(L && okDe(L, s)) && estRecord(avant, c.id, c.k, s);
@@ -96,7 +96,7 @@ function validerSerie(c: Ctx, n: number, s: Serie, bouton: HTMLElement, onFini?:
     } else tactile(12);
   } else tactile(6);
   const termine = !fini && !!useRepere.getState().etat.LOG[c.k]?.done;
-  if (termine && o.attendre) return { valide, rec };
+  if (termine && o.attendre) { o.garder?.(); return { valide, rec }; }
   if (valide) o.onValide?.();
   if (termine) onFini?.();
   return { valide, rec };
