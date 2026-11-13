@@ -3127,5 +3127,16 @@
   "Ton plan de séance": "Your session plan",
   "Compléter les {n} cases vides": "Fill the {n} empty slots",
   "Compléter la case vide": "Fill the empty slot",
-  "Vider": "Clear"
+  "Vider": "Clear",
+  "La fois suivante, Oxa monte la charge d'un cran : c'est la règle de surcharge.": "Next time, Oxa raises the load one step: that's the overload rule.",
+  "Oxa garde la progression prévue.": "Oxa keeps the planned progression.",
+  "La fois suivante, Oxa redescend d'un cran.": "Next time, Oxa drops back one step.",
+  "Même distance : la dernière fois était au-dessus de la cible.": "Same distance: last time was above target.",
+  "+{a} kg : la dernière fois, c'était facile pour l'effort visé.": "+{a} kg: last time was easy for the target effort.",
+  "−{a} kg : la dernière fois, c'était trop dur.": "−{a} kg: last time was too hard.",
+  "+{a} s : la dernière fois, c'était facile.": "+{a} s: last time was easy.",
+  "−{a} s : la dernière fois, c'était trop dur.": "−{a} s: last time was too hard.",
+  "Une répétition de plus : la dernière fois, c'était facile. Ou un lest de 2,5 kg.": "One more rep: last time was easy. Or add 2.5 kg.",
+  "Une répétition de moins : la dernière fois, c'était trop dur.": "One rep fewer: last time was too hard.",
+  "Une répétition de plus : la dernière fois, c'était facile.": "One more rep: last time was easy."
 }

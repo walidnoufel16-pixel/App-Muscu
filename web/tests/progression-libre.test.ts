@@ -52,8 +52,20 @@ describe("progression en séance libre (double progression)", () => {
     const avant = [j([[60, 10, true], [60, 9, true], [60, 9, true]], 1, 6), j([[60, 9, true], [60, 9, true], [60, 9, true]], 1, 9)];
     expect(progressionLibre(EX.dc, { s: 3, r: 10 }, d, o(avant))?.t).toContain("variante");
   });
-  it("trop dur la dernière fois : même charge", () => {
-    expect(progressionLibre(EX.dc, { s: 3, r: 8 }, j([[60, 10, true], [60, 10, true], [60, 10, true]], 2), o())?.v).toBe(60);
+  it("ressenti « Trop dur » : la charge redescend d'un palier (poids du corps : une répétition de moins)", () => {
+    expect(progressionLibre(EX.dc, { s: 3, r: 8 }, j([[60, 10, true], [60, 10, true], [60, 10, true]], 2), o())?.v).toBe(57.5);
+    expect(progressionLibre(EX.pomp, { s: 3, r: 10 }, j([[10, 0, true], [11, 0, true], [10, 0, true]], 2), o())?.v).toBe(9);
+    expect(progressionLibre(EX.gai, { s: 3, r: 30 }, j([[30, 0, true], [30, 0, true], [30, 0, true]], 2), o())?.v).toBe(25);
+  });
+  it("ressenti « Facile », toutes les séries faites : la charge monte d'un palier, aux mêmes répétitions", () => {
+    expect(progressionLibre(EX.dc, { s: 3, r: 10 }, j([[60, 10, true], [60, 10, true], [60, 10, true]], 0), o())).toMatchObject({ v: 62.5, reps: 10 });
+    expect(progressionLibre(EX.pomp, { s: 3, r: 10 }, j([[10, 0, true], [10, 0, true], [10, 0, true]], 0), o())?.v).toBe(11);
+  });
+  it("ressenti « Facile » mais séries manquantes : la règle habituelle", () => {
+    expect(progressionLibre(EX.dc, { s: 3, r: 10 }, j([[60, 10, true], [60, 10, true], [60, 10, false]], 0), o())?.v).toBe(60);
+  });
+  it("ressenti « Juste » : rien ne change par rapport à la double progression", () => {
+    expect(progressionLibre(EX.dc, { s: 3, r: 10 }, j([[60, 10, true], [60, 10, true], [60, 9, true]], 1), o())).toMatchObject({ v: 60, reps: 10 });
   });
   it("poids du corps : une répétition de plus ; gainage : 5 s de plus", () => {
     expect(progressionLibre(EX.pomp, { s: 3, r: 10 }, j([[10, 0, true], [11, 0, true], [10, 0, true]]), o())?.v).toBe(11);

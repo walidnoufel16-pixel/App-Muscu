@@ -22,9 +22,9 @@ import { cn } from "@/lib/utils";
 
 const RESSENTIS = [tr("Facile"), tr("Juste"), tr("Trop dur")];
 const CONSEIL = [
-  [tr("Trop facile pour l'effort visé."), tr("La fois suivante, monte la charge : c'est la règle de surcharge.")],
-  [tr("Exactement la cible."), tr("Garde cette charge, l'effort visé montera tout seul.")],
-  [tr("Au-dessus de la cible."), tr("Redescends d'un cran la fois suivante.")],
+  [tr("Trop facile pour l'effort visé."), tr("La fois suivante, Oxa monte la charge d'un cran : c'est la règle de surcharge.")],
+  [tr("Exactement la cible."), tr("Oxa garde la progression prévue.")],
+  [tr("Au-dessus de la cible."), tr("La fois suivante, Oxa redescend d'un cran.")],
 ];
 
 /* Champ numérique : texte local pendant la saisie, validé à la sortie. */
