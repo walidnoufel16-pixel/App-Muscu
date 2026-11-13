@@ -26,6 +26,7 @@ export type PlanCourse = {
   cat?: "h" | "f"; // Hyrox : catégorie Open hommes ou femmes (charges des ateliers)
   salle?: boolean; // Hyrox : accès aux machines (SkiErg, traîneau, rameur), sinon les remplaçants
   marche?: boolean; // ne court pas encore 30 min d'affilée : course-marche les premières semaines
+  jsem?: number[]; // jours des sorties dans la semaine (0 = lundi … 6 = dimanche), posées dans l'agenda
 };
 /** Une sortie faite : `s` = « semaine|séance » si elle correspond à une séance du plan. */
 export type Sortie = { d: string; km: number; sec: number; rpe: number; douleur?: boolean; s?: string; course?: boolean };
@@ -494,7 +495,7 @@ export function avertissement(obj: ObjectifCourse, ref: PlanCourse["ref"], semai
 }
 
 /* ---------------- modification d'un plan en cours ---------------- */
-export type ReglagesPlan = Pick<PlanCourse, "obj" | "date" | "debut" | "jours" | "renfo" | "ref" | "cat" | "salle" | "marche">;
+export type ReglagesPlan = Pick<PlanCourse, "obj" | "date" | "debut" | "jours" | "renfo" | "ref" | "cat" | "salle" | "marche" | "jsem">;
 /** Nouveaux réglages d'un plan en cours : pauses, allègements et date de création sont gardés.
     `decalage` : semaines à ajouter aux numéros de semaine (sorties, allègements) quand le début bouge,
     pour qu'une semaine du calendrier garde ses séances faites. */
@@ -602,4 +603,27 @@ export function estimation(p: PlanCourse, S: Sortie[], auj: string): { sec: numb
     if (t < best.sec) best = { sec: t, depuis: s };
   }
   return best;
+}
+
+/* ---------------- course et musculation sur un seul calendrier ---------------- */
+/** Jours proposés pour n sorties : la sortie longue le dimanche, jamais deux jours durs collés. */
+export function joursParDefaut(n: number): number[] {
+  return n <= 3 ? [1, 3, 6] : n === 4 ? [1, 3, 5, 6] : [0, 1, 3, 4, 6];
+}
+
+/** Les dates des sorties du plan : chaque semaine, la sortie longue le dernier jour choisi, les
+    autres dans l'ordre du plan (la séance de qualité en premier) sur les jours d'avant ; le jour J
+    à sa date. Le renforcement n'est pas posé (il se fait un jour facile, au choix). */
+export function datesDuPlan(p: PlanCourse, S: SemaineCourse[] = genererPlan(p)): { d: string; cle: string; nom: string }[] {
+  const js = [...new Set(p.jsem?.length ? p.jsem : joursParDefaut(p.jours))].sort((a, b) => a - b);
+  const out: { d: string; cle: string; nom: string }[] = [];
+  for (const W of S) {
+    const runs = W.seances.map((x, j) => ({ x, j })).filter(({ x }) => x.type !== "renfo");
+    const longue = runs.find(({ x }) => x.type === "longue"), autres = runs.filter((r) => r !== longue && r.x.type !== "course");
+    const jours = [...js];
+    if (longue) out.push({ d: decaler(W.lundi, jours.pop()!), cle: `${W.k}|${longue.j}`, nom: longue.x.titre });
+    autres.forEach((r, i) => { if (i < jours.length) out.push({ d: decaler(W.lundi, jours[i]), cle: `${W.k}|${r.j}`, nom: r.x.titre }); });
+    for (const r of runs) if (r.x.type === "course") out.push({ d: p.date, cle: `${W.k}|${r.j}`, nom: r.x.titre });
+  }
+  return out.sort((a, b) => a.d.localeCompare(b.d));
 }

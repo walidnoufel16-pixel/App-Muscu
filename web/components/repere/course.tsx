@@ -18,12 +18,13 @@ import { EnTetePhoto } from "./en-tete-photo";
 import { confirmer } from "./confirmer";
 import {
   adapter, allureHyrox, allures, allureTxt, ATELIERS, avertissement, calendrier, chronoPrevu, chronoTxt, DISTANCES, enPause, estimation, genererPlan, joursAvantCourse, nomsRenfo,
-  decalerCle, modifierPlan, objectifChrono, plageFacile, semaineDe, seancesRenfo, seancesRenfoHyrox, tempsAteliers, vdotActuel, vdotDe, NOMS_PHASE, type ObjectifCourse, type PlanCourse, type SeanceCourse,
+  decalerCle, joursParDefaut, modifierPlan, objectifChrono, plageFacile, semaineDe, seancesRenfo, seancesRenfoHyrox, tempsAteliers, vdotActuel, vdotDe, NOMS_PHASE, type ObjectifCourse, type PlanCourse, type SeanceCourse,
 } from "@/lib/logic/course";
 import { dispoDeclare, nb } from "@/lib/logic/core";
 import { decaler, jourDe, lundiDe } from "@/lib/logic/historique";
 import { Barres } from "./graphes";
 import { useRepere } from "@/lib/store";
+import { poserPlan } from "@/lib/logic/agenda";
 import { useCelebrer } from "@/lib/celebrer";
 import { ARRIERE, AVANT, remplacement } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
@@ -38,6 +39,11 @@ const REFS = [{ km: 5, n: tr("5 km") }, { km: 10, n: tr("10 km") }, { km: 21.097
 const champ = "h-12 w-full rounded-xl border bg-background px-3 text-center text-[18px] font-semibold outline-none focus:border-plate num";
 
 /* ---------------- questionnaire ---------------- */
+/* noms des jours dans la langue de l'app, du lundi au dimanche (le 16 novembre 2026 est un lundi) */
+const nomJour = (j: number, f: "short" | "long") => new Date(Date.UTC(2026, 10, 16 + j, 12)).toLocaleDateString(loc(), { weekday: f, timeZone: "UTC" }).replace(".", "");
+const JOURS_COURTS = () => Array.from({ length: 7 }, (_, j) => nomJour(j, "short"));
+const JOURS_LONGS = () => Array.from({ length: 7 }, (_, j) => nomJour(j, "long"));
+
 export function QuestionnaireCourse() {
   const router = useRouter();
   const etat = useRepere((s) => s.etat);
@@ -56,14 +62,18 @@ export function QuestionnaireCourse() {
   const [marche, setMarche] = useState(!!ex?.marche);
   const [refKm, setRefKm] = useState(r0?.km ?? 10);
   const [h, setH] = useState(sec0 >= 3600 ? String(Math.floor(sec0 / 3600)) : ""), [m, setM] = useState(r0 ? String(Math.floor((sec0 % 3600) / 60)) : ""), [s, setS] = useState(r0 ? String(Math.round(sec0 % 60)).padStart(2, "0") : "");
-  const [jours, setJours] = useState(ex?.jours ?? 4);
+  const [jours, setJoursN] = useState(ex?.jours ?? 4);
+  /* les jours des sorties, posées dans l'agenda : une par jour, la sortie longue le dernier */
+  const [jsem, setJsem] = useState<number[]>(() => (ex?.jsem?.length === (ex?.jours ?? 4) ? ex!.jsem! : joursParDefaut(ex?.jours ?? 4)));
+  const setJours = (n: number) => { setJoursN(n); setJsem(joursParDefaut(n)); };
+  const basculerJour = (j: number) => { tactile(5); setJsem((l) => (l.includes(j) ? l.filter((x) => x !== j) : l.length < jours ? [...l, j].sort((a, b) => a - b) : l)); };
   const [renfo, setRenfo] = useState(ex?.renfo ?? 1);
   const sec = (+h || 0) * 3600 + (+m || 0) * 60 + (+s || 0);
   const ref = debutant || sec < 600 ? null : { km: refKm, sec };
   const cal = calendrier(obj, date, auj);
   const alerte = date > auj ? avertissement(obj, ref, cal.dispo) : tr("Choisis une date de course à venir.");
   const V = vdotDe({ ref }), A = allures(V), prevu = chronoPrevu(obj, V);
-  const peut = date > decaler(auj, 6) && (debutant || sec >= 600);
+  const peut = date > decaler(auj, 6) && (debutant || sec >= 600) && jsem.length === jours;
 
   /* renfo : les séances manquantes rejoignent « Mes séances » ; rien n'en est retiré */
   const ajouterRenfos = (E: typeof etat) =>
@@ -76,11 +86,12 @@ export function QuestionnaireCourse() {
     tactile(10);
     muter((E) => {
       if (!E.COURSE) return;
-      const { plan, decalage } = modifierPlan(E.COURSE, { obj, date, debut: cal.debut, jours, renfo, ref, marche: debutant && marche, ...(hyrox ? { cat, salle } : {}) });
+      const { plan, decalage } = modifierPlan(E.COURSE, { obj, date, debut: cal.debut, jours, renfo, ref, marche: debutant && marche, jsem, ...(hyrox ? { cat, salle } : {}) });
       E.COURSE = plan;
       /* les sorties du plan suivent leur semaine du calendrier */
       if (decalage) for (const o of E.SORTIES || []) { const c = decalerCle(o.s, decalage); if (c) o.s = c; else delete o.s; }
       ajouterRenfos(E);
+      poserPlan(E, auj);
     });
     toast.success(tr("Plan modifié"), { description: tr("{semaines} semaines jusqu'au jour J.", { semaines: cal.semaines }) });
     router.back();
@@ -90,9 +101,11 @@ export function QuestionnaireCourse() {
     if (ex) return enregistrer();
     if (etat.COURSE && !(await confirmer({ titre: tr("Remplacer ta préparation en cours ?"), texte: tr("Ton plan {a} sera remplacé. Tes sorties déjà notées restent dans ton historique.", { a: DISTANCES[etat.COURSE.obj].nom.toLowerCase() }), ok: tr("Remplacer") }))) return;
     tactile(10);
-    const plan: PlanCourse = { obj, date, debut: cal.debut, jours, renfo, ref, ...(debutant && marche ? { marche: true } : {}), pauses: [], ajust: {}, cree: auj, ...(hyrox ? { cat, salle } : {}) };
+    const plan: PlanCourse = { obj, date, debut: cal.debut, jours, renfo, ref, jsem, ...(debutant && marche ? { marche: true } : {}), pauses: [], ajust: {}, cree: auj, ...(hyrox ? { cat, salle } : {}) };
     muter((E) => {
+      /* un plan remplacé : ses sorties à venir quittent l'agenda, celles du nouveau y arrivent */
       E.COURSE = plan;
+      poserPlan(E, auj);
       /* séances de renfo (coureur ou Hyrox) : ajoutées une fois à « Mes séances » (groupe Musculation) */
       ajouterRenfos(E);
     });
@@ -166,6 +179,20 @@ export function QuestionnaireCourse() {
         <section>
           <div className="eyebrow mb-2 px-1">{hyrox ? tr("Séances par semaine") : tr("Sorties par semaine")}</div>
           <Segmente label={tr("Sorties par semaine")} valeur={jours} onChange={setJours} options={[3, 4, 5].map((j) => ({ v: j, n: hyrox ? `${j}` : `${j} sorties` }))} />
+          <div className="eyebrow mt-4 mb-2 px-1">{tr("Tes jours")}</div>
+          <div className="grid grid-cols-7 gap-1.5" role="group" aria-label={tr("Jours des sorties")}>
+            {JOURS_COURTS().map((n, j) => (
+              <button key={j} aria-pressed={jsem.includes(j)} aria-label={JOURS_LONGS()[j]} onClick={() => basculerJour(j)}
+                className={cn("h-11 rounded-xl border text-[14px] font-semibold transition-colors", jsem.includes(j) ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground")}>
+                {n}
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 px-1 text-[12.5px] leading-snug text-muted-foreground">
+            {jsem.length < jours
+              ? tr("Choisis encore {n} jour{a}.", { n: jours - jsem.length, a: jours - jsem.length > 1 ? "s" : "" })
+              : tr("Tes sorties arrivent dans ton agenda, la plus longue le {j}. Oxa n'y met pas de séance de jambes la veille d'une sortie dure.", { j: JOURS_LONGS()[jsem[jsem.length - 1]] })}
+          </p>
         </section>
         <section>
           <div className="eyebrow mb-2 px-1">{hyrox ? tr("Renfo Hyrox") : tr("Renforcement du coureur")}</div>

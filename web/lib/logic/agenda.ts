@@ -9,7 +9,7 @@ import { EX } from "@/lib/data/exercices";
 import { PAT2MUSC } from "@/lib/data/referentiels";
 import { effortsEndurance, recoDuJour } from "./recommandation";
 import { objectifHebdo } from "./motivation";
-import { genererPlan } from "./course";
+import { datesDuPlan, faite, genererPlan } from "./course";
 import type { LigneHist } from "./historique";
 import type { Etat } from "./types";
 
@@ -29,6 +29,7 @@ export type Prevu = {
   hebdo?: boolean; // chaque semaine à partir de d
   sauf?: string[]; // jours retirés d'une répétition
   rappel?: Rappel;
+  plan?: boolean; // posée par le plan de course (reposée quand le plan change)
 };
 
 export type Famille = "muscu" | "cardio" | "course";
@@ -120,6 +121,7 @@ export function retirer(A: Prevu[], id: string, jour: string | "tout") {
 export function deplacer(A: Prevu[], id: string, de: string, vers: string) {
   const p = A.find((x) => x.id === id);
   if (!p || de === vers) return;
+  delete p.plan; // déplacée à la main : le plan ne la repose plus
   if (!p.hebdo) { p.d = vers; return; }
   p.sauf = [...(p.sauf || []), de];
   const { sauf: _s, hebdo: _h, id: _i, ...reste } = p;
@@ -203,4 +205,21 @@ export function recoPour(E: Etat & { AGENDA?: Prevu[] }, d: string, auj = jourDe
   if (courseDureLe(E, decaler(d, 1), auj) && !ecartes.includes("jambes")) ecartes.push("jambes");
   return recoDuJour([...(E.HIST || []), ...prevus], d, ecartes, E.A.regularite, effortsEndurance(E.SORTIES, E.CARDIO, E.A.avant),
     { hebdo: objectifHebdo(E.A), jours, futur: d > auj });
+}
+
+/** Pose les sorties à venir du plan de course dans l'agenda, sur les jours choisis : la musculation
+    les voit (pas de jambes la veille d'une sortie dure) et elles se déplacent comme une séance.
+    Les sorties déjà posées par le plan et pas encore passées sont reposées ; une sortie déplacée
+    à la main, déjà faite ou passée ne bouge pas. Sans plan : les sorties à venir sont retirées. */
+export function poserPlan(E: Pick<Etat, "COURSE" | "SORTIES"> & { AGENDA?: Prevu[] }, auj: string) {
+  const A = (E.AGENDA ??= []);
+  for (let i = A.length - 1; i >= 0; i--) if (A[i].plan && A[i].d >= auj) A.splice(i, 1);
+  if (!E.COURSE) return;
+  const places = new Set(A.flatMap((p) => (p.quoi.t === "course" ? [p.quoi.cle] : [])));
+  for (const x of datesDuPlan(E.COURSE)) {
+    if (x.d < auj || places.has(x.cle)) continue;
+    const [k, j] = x.cle.split("|").map(Number);
+    if (faite(E.SORTIES || [], k, j)) continue;
+    programmer(A, { d: x.d, nom: x.nom, quoi: { t: "course", cle: x.cle }, plan: true });
+  }
 }

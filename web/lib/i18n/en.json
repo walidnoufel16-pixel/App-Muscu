@@ -3078,5 +3078,12 @@
   "Autres rôles · ils vont dans leur bloc": "Other roles · they go in their own block",
   " kg de lest": " kg added weight",
   " réps": " reps",
-  "Série {a}/{b}": "Set {a}/{b}"
+  "Série {a}/{b}": "Set {a}/{b}",
+  "Mets tes sorties dans ton agenda": "Put your runs in your calendar",
+  "Choisis tes jours de course : tes sorties s'ajoutent à ton agenda, à côté de tes séances, et Oxa évite les jambes la veille d'une sortie dure.": "Choose your running days: your runs are added to your calendar, next to your workouts, and Oxa avoids legs the day before a hard run.",
+  "Choisir mes jours": "Choose my days",
+  "Tes jours": "Your days",
+  "Jours des sorties": "Running days",
+  "Choisis encore {n} jour{a}.": "Choose {n} more day{a}.",
+  "Tes sorties arrivent dans ton agenda, la plus longue le {j}. Oxa n'y met pas de séance de jambes la veille d'une sortie dure.": "Your runs go into your calendar, the long one on {j}. Oxa won't put a leg workout the day before a hard run."
 }
