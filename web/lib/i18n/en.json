@@ -3052,5 +3052,12 @@
   "Plusieurs muscles à la fois, la charge la plus lourde : à faire en premier, quand tu es frais.": "Several muscles at once, the heaviest load: do it first, while you're fresh.",
   "Un autre mouvement lourd pour le même muscle, sous un autre angle : après la base.": "Another heavy movement for the same muscle, from another angle: after the base.",
   "Un seul muscle, une charge plus légère : pour finir le travail.": "A single muscle, a lighter load: to finish the job.",
-  "Abdos et bas du dos : en fin de séance, pour ne pas les fatiguer avant.": "Abs and lower back: at the end of the session, so you don't tire them before."
+  "Abdos et bas du dos : en fin de séance, pour ne pas les fatiguer avant.": "Abs and lower back: at the end of the session, so you don't tire them before.",
+  "Mets tes sorties dans ton agenda": "Put your runs in your calendar",
+  "Choisis tes jours de course : tes sorties s'ajoutent à ton agenda, à côté de tes séances, et Oxa évite les jambes la veille d'une sortie dure.": "Choose your running days: your runs are added to your calendar, next to your workouts, and Oxa avoids legs the day before a hard run.",
+  "Choisir mes jours": "Choose my days",
+  "Tes jours": "Your days",
+  "Jours des sorties": "Running days",
+  "Choisis encore {n} jour{a}.": "Choose {n} more day{a}.",
+  "Tes sorties arrivent dans ton agenda, la plus longue le {j}. Oxa n'y met pas de séance de jambes la veille d'une sortie dure.": "Your runs go into your calendar, the long one on {j}. Oxa won't put a leg workout the day before a hard run."
 }
