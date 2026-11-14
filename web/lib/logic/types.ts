@@ -90,6 +90,8 @@ export type Reponses = {
   rappelAgenda?: { veille: boolean; h: number } | null;
   /** « Exercice par exercice » sans les cases guidées (un coach, ou qui préfère la page blanche) ; Profil le rétablit. */
   sansCases?: boolean;
+  /** Entraînements de « Plus d'entraînements » épinglés sur l'accueil. */
+  epingles?: ("street" | "course" | "soin" | "cardio" | "defis")[];
   /** Zones que « Ma recommandation du jour » ne propose plus (lib/logic/recommandation.ts). */
   recoSans?: ("pec" | "dos" | "epa" | "bras" | "abd" | "qua" | "isc" | "mol" | "jambes")[];
   /* accueil : séance faite juste avant d'installer Oxa (jour, muscles), pour la récupération */

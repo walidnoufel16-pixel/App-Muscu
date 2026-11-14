@@ -25,7 +25,16 @@ await pg.goto(U + "/");
 await pg.waitForURL(/\/entrainement\/$/);
 ok(await actif() === "Entraînement", "accueil : onglet Entraînement actif");
 ok(await pg.locator("nav a").count() === 3, "trois onglets");
-ok(await pg.getByRole("button", { name: /^Mes séances/ }).count() === 1, "Explorer : la rubrique Mes séances est sur l'accueil");
+ok(await pg.getByRole("button", { name: /^Mes séances/ }).count() === 1, "accueil : l'entrée Mes séances");
+ok(await pg.getByRole("button", { name: /^Oxa Street/ }).count() === 0, "accueil recentré : Oxa Street rangé dans Plus d'entraînements");
+// Plus d'entraînements : épingler Oxa Run le fait apparaître sur l'accueil
+await pg.getByRole("button", { name: /^Plus d'entraînements/ }).click();
+await pg.waitForURL(/\/entrainement\/plus\//);
+ok(await pg.getByRole("button", { name: /^Épingler .* sur l'accueil$/ }).count() === 5, "Plus d'entraînements : street, course, soin, cardio, défis");
+await pg.getByRole("button", { name: "Épingler Oxa Run sur l'accueil" }).click();
+await pg.goBack();
+await pg.waitForURL(/\/entrainement\/$/);
+ok(await pg.getByRole("button", { name: /^Oxa Run/ }).count() === 1, "Oxa Run épinglé sur l'accueil");
 await pg.getByRole("button", { name: /^Mes séances/ }).click();
 await pg.waitForURL(/\/entrainement\/rubrique\/\?v=libre/);
 
