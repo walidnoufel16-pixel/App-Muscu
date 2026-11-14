@@ -168,9 +168,9 @@ export const photosDistantes = () => [
 const PHOTOS_SEANCES: { nom: string; auteur: string; site: string; lien: string }[] = [
   { nom: "seance-pecs", auteur: "U.S. Army", site: "rawpixel", lien: "https://www.rawpixel.com/image/11072620/10th-mdsb-command-mentorship" },
   { nom: "seance-dos", auteur: "", site: "rawpixel", lien: "https://www.rawpixel.com/image/5975039/man-performing-pull-ups" },
-  { nom: "seance-jambes", auteur: "Alexandre Vanier", site: "StockSnap", lien: "https://stocksnap.io/photo/girl-woman-EHS7NJY7KT" },
-  { nom: "seance-epaules", auteur: "The African Union Mission in Somalia", site: "rawpixel", lien: "https://www.rawpixel.com/image/3372747/free-photo-image-africa-back-cc0" },
-  { nom: "seance-bras", auteur: "Bruce Mars", site: "StockSnap", lien: "https://stocksnap.io/photo/woman-workout-MO8FFFHRSS" },
+  { nom: "seance-jambes", auteur: "Matt Moloney", site: "StockSnap", lien: "https://stocksnap.io/photo/female-fitness-7VAQUG1X3B" },
+  { nom: "seance-epaules", auteur: "Leeroy", site: "StockSnap", lien: "https://stocksnap.io/photo/bodybuilder-muscles-O8HQW8Q465" },
+  { nom: "seance-bras", auteur: "Direct Media", site: "StockSnap", lien: "https://stocksnap.io/photo/male-fitness-AN1YTW9AJX" },
   { nom: "seance-corps", auteur: "", site: "rawpixel", lien: "https://www.rawpixel.com/image/5926278/photo-image-public-domain-free-plates" },
   { nom: "seance-cardio", auteur: "The Lazy Artist Gallery", site: "StockSnap", lien: "https://stocksnap.io/photo/man-workout-GZ36IBWBDL" },
   { nom: "seance-repos", auteur: "Healthy Living", site: "StockSnap", lien: "https://stocksnap.io/photo/yoga-meditation-GG3SROJUUS" },
