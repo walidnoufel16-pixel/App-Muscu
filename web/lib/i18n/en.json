@@ -3152,5 +3152,7 @@
   "1 enregistrée": "1 saved",
   "{n} enregistrées": "{n} saved",
   "Crée ta séance, ou parcours les exercices": "Create your workout, or browse exercises",
-  "Street, course, Hyrox, mobilité, cardio, défis": "Street, running, Hyrox, mobility, cardio, challenges"
+  "Street, course, Hyrox, mobilité, cardio, défis": "Street, running, Hyrox, mobility, cardio, challenges",
+  "Photos des séances": "Workout photos",
+  "{n} sur {s}": "{n} on {s}"
 }

@@ -15,8 +15,9 @@ import { decaler, lundiDe } from "@/lib/logic/historique";
 import { familleDe, joursAgenda, tombeLe, type JourAgenda, type Prevu } from "@/lib/logic/agenda";
 import { avecSorties } from "@/lib/logic/course";
 import { objectifHebdo, serie } from "@/lib/logic/motivation";
-import { imgEx, imgExGrand } from "@/lib/medias";
 import { EX } from "@/lib/data/exercices";
+import { estSoin } from "@/lib/data/soin";
+import { PAT2MUSC } from "@/lib/data/referentiels";
 import { musclesRecommandes, type Proposition } from "@/lib/logic/recommandation";
 import { seancePour } from "@/lib/logic/generer-seance";
 import { dureeEstimee } from "@/lib/logic/assistant";
@@ -33,13 +34,26 @@ import type { Etat } from "@/lib/logic/types";
 const RUN = "#c2622a";
 
 /* ---------------- photos ---------------- */
+/* Les aperçus de séance ont leurs propres photos (libres de droits, CC0, voir Crédits), choisies
+   selon les muscles travaillés ; les photos de démonstration restent pour les exercices. */
 type Photo = { grand: string; petite: string };
 const photo = (nom: string): Photo => ({ grand: `/img/grand/${nom}.avif`, petite: `/img/${nom}.avif` });
-const photoEx = (ids: string[]): Photo | null => {
-  const id = ids.find((x) => EX[x]?.img);
-  return id ? { grand: imgExGrand(id), petite: imgEx(id) } : null;
-};
-const PHOTO_SEANCE = photo("Bent_Over_Barbell_Row_0"), PHOTO_CARDIO = photo("Bicycling_Stationary_0");
+const GROUPE: Record<string, string> = { pec: "pecs", dos: "dos", tra: "dos", lom: "dos", epa: "epaules", bic: "bras", tri: "bras", avb: "bras", qua: "jambes", isc: "jambes", mol: "jambes", add: "jambes" };
+/** La photo d'une séance d'après ses exercices : le groupe le plus travaillé, « corps entier » quand
+    le haut et le bas se partagent la séance, soin ou cardio pour une séance qui n'est que ça. */
+export function photoSeance(ids: string[]): Photo {
+  const l = ids.filter((x) => EX[x]);
+  if (l.length && l.every((x) => estSoin(x))) return photo("seance-soin");
+  const muscu = l.filter((x) => !estSoin(x) && EX[x].pat !== "ca" && EX[x].ch !== "dist");
+  if (!muscu.length) return l.length ? PHOTO_CARDIO : PHOTO_SEANCE;
+  const n: Record<string, number> = {};
+  for (const x of muscu) { const g = GROUPE[PAT2MUSC[EX[x].pat]] ?? "corps"; n[g] = (n[g] ?? 0) + 1; }
+  const bas = n.jambes ?? 0, haut = muscu.length - bas - (n.corps ?? 0);
+  if (bas >= 2 && haut >= 2) return PHOTO_SEANCE;
+  const top = Object.entries(n).sort((a, b) => b[1] - a[1])[0][0];
+  return photo(`seance-${top}`);
+}
+const PHOTO_SEANCE = photo("seance-corps"), PHOTO_CARDIO = photo("seance-cardio"), PHOTO_REPOS = photo("seance-repos");
 
 function photoPrevu(E: Etat, p: Prevu): Photo {
   const q = p.quoi;
@@ -47,7 +61,7 @@ function photoPrevu(E: Etat, p: Prevu): Photo {
   if (q.t === "cardio") return PHOTO_CARDIO;
   if (q.t === "libre") {
     const s = E.SEANCES[q.i]?.nom === p.nom ? E.SEANCES[q.i] : E.SEANCES.find((x) => x.nom === p.nom);
-    return (s && photoEx(s.ex.map((e) => e.id))) || PHOTO_SEANCE;
+    return s ? photoSeance(s.ex.map((e) => e.id)) : PHOTO_SEANCE;
   }
   return PHOTO_SEANCE;
 }
@@ -165,7 +179,7 @@ export function CarteDuJour({ auj, setF }: { auj: string; setF: (f: Feuille) => 
   if (c) {
     const S = etat.SEANCES[c.i];
     return (
-      <Hero ph={(S && photoEx(S.ex.map((e) => e.id))) || PHOTO_SEANCE} tag={<><span className="size-2 animate-pulse rounded-full bg-white" />{tr("Séance en cours")}</>} titre={c.nom}
+      <Hero ph={S ? photoSeance(S.ex.map((e) => e.id)) : PHOTO_SEANCE} tag={<><span className="size-2 animate-pulse rounded-full bg-white" />{tr("Séance en cours")}</>} titre={c.nom}
         sous={tp(c.series, "{n} série validée", "{n} séries validées") + " · " + tr("tes séries sont gardées, reprends où tu en étais.")}
         principal={{ label: tr("Reprendre"), icone: <PlayIcon className="size-4" weight="fill" />, onClick: () => router.push(`/entrainement/seance?l=${c.i}` as Route, AVANT) }} />
     );
@@ -184,7 +198,7 @@ export function CarteDuJour({ auj, setF }: { auj: string; setF: (f: Feuille) => 
   const f = j.fait[0];
   if (f) {
     const l = f.famille === "muscu" ? (etat.HIST || []).find((x) => x.d === auj && x.nom === f.nom) : undefined;
-    const ph = f.famille === "course" ? photo("rubrique-run") : f.famille === "cardio" ? PHOTO_CARDIO : (l && photoEx(Object.keys(l.ex))) || PHOTO_SEANCE;
+    const ph = f.famille === "course" ? photo("rubrique-run") : f.famille === "cardio" ? PHOTO_CARDIO : (l ? photoSeance(Object.keys(l.ex)) : PHOTO_SEANCE);
     return (
       <Hero ph={ph} tag={<><CheckIcon className="size-3.5" weight="bold" />{tr("Aujourd'hui · faite")}</>} titre={f.nom}
         sous={tr("Bravo. Ton corps récupère : c'est pendant le repos que les muscles se construisent.")}
@@ -200,7 +214,7 @@ export function CarteDuJour({ auj, setF }: { auj: string; setF: (f: Feuille) => 
     const m = musclesRecommandes(r0) ?? [];
     return (
       <>
-        <Hero ph={photo("Barbell_Deadlift_0")} tag={<><SparkleIcon className="size-3.5" weight="fill" />{tr("Pour commencer")}</>} titre={tr("Ta première séance")}
+        <Hero ph={PHOTO_SEANCE} tag={<><SparkleIcon className="size-3.5" weight="fill" />{tr("Pour commencer")}</>} titre={tr("Ta première séance")}
           sous={tr("Conseillée par Oxa selon ta récupération, avec ton matériel.")}
           principal={{ label: tr("Voir ma première séance"), onClick: () => router.push((preparerApercu(etat, m, q0?.nom ?? tr("Ta première séance"), auj) ? "/entrainement/composer" : `/entrainement/assistant${m.length ? `?m=${m.join(",")}` : ""}`) as Route, AVANT) }} />
         {/* questionnaire d'accueil passé : on peut y revenir tant qu'il n'est pas terminé */}
@@ -249,7 +263,7 @@ function CarteReco({ auj }: { auj: string }) {
   };
   if (p)
     return (
-      <Hero ph={photoEx(ex.map((e) => e.id)) || PHOTO_SEANCE} tag={<><SparkleIcon className="size-3.5" weight="fill" />{tr("Ta séance du jour")}</>} titre={p.nom} long
+      <Hero ph={photoSeance(ex.map((e) => e.id))} tag={<><SparkleIcon className="size-3.5" weight="fill" />{tr("Ta séance du jour")}</>} titre={p.nom} long
         sous={`${p.raison} · ${tp(ex.length, "{n} exercice", "{n} exercices")} · ${tr("environ {a} min", { a: dureeEstimee(ex) })}`}
         principal={{ label: tr("Voir la séance"), icone: <PlayIcon className="size-4" weight="fill" />, onClick: () => voir(p) }}
         second={r.propositions.length > 1 ? { label: tr("Autre idée"), texte: true, onClick: () => setK((x) => x + 1) } : undefined}
@@ -257,7 +271,7 @@ function CarteReco({ auj }: { auj: string }) {
     );
   const quandMeme = r.autres?.[0] ?? r.demain;
   return (
-    <Hero ph={PHOTO_CARDIO} tag={<><MoonIcon className="size-3.5" weight="fill" />{tr("Repos aujourd'hui")}</>} titre={tr("Récupère")} long
+    <Hero ph={PHOTO_REPOS} tag={<><MoonIcon className="size-3.5" weight="fill" />{tr("Repos aujourd'hui")}</>} titre={tr("Récupère")} long
       sous={(r.pause ?? tr("Tes muscles récupèrent encore de tes dernières séances.")) + (r.demain ? " " + tr("Demain : {s}.", { s: r.demain.nom.toLowerCase() }) : "")}
       principal={{ label: tr("Cardio doux"), onClick: () => router.push("/entrainement/assistant?type=cardio&format=endurance" as Route, AVANT) }}
       second={quandMeme ? { label: tr("Séance quand même"), texte: true, onClick: () => voir(quandMeme) } : undefined}
