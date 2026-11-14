@@ -25,11 +25,11 @@ describe("prochaineFois", () => {
 });
 
 describe("seriesParJour", () => {
-  const H: LigneHist[] = [
+  const H: LigneHist[] = ([
     { d: "2026-11-04", s: "L|0", nom: "Haut", vol: 0, ser: 3, ex: { arn: [0, 0, 10, 10, 3] }, det: [{ id: "arn", s: [[10, 10], [10, 10], [10, 8]] }] },
     { d: "2026-11-14", s: "L|0", nom: "Haut", vol: 0, ser: 3, ex: { arn: [0, 0, 12, 7, 3], pompe: [0, 0, 0, 15, 3] }, det: [{ id: "arn", s: [[12, 7], [12, 7], [12, 7]] }, { id: "pompe", s: [[0, 15], [0, 12], [0, 12]] }] },
     { d: "2026-10-21", s: "L|0", nom: "Haut", vol: 0, ser: 3, ex: { arn: [0, 0, 8, 11, 3] } },
-  ].sort((a, b) => (a.d < b.d ? -1 : 1));
+  ] as LigneHist[]).sort((a, b) => (a.d < b.d ? -1 : 1));
   it("le plus récent d'abord, séries identiques regroupées", () => {
     const j = seriesParJour(H, "arn");
     expect(j.map((x) => x.d)).toEqual(["2026-11-14", "2026-11-04", "2026-10-21"]);
