@@ -389,3 +389,9 @@ body.repas-recettes { --fond-repas: #ffe6d8; }
 @keyframes vt-flou {
   30% { filter: blur(2px); }
 }
+
+/* Éléments fixés en bas de l'écran : recalés quand l'iPhone décale la partie visible après une
+   saisie au clavier (lib/viewport.ts). `translate` se cumule avec les animations en `transform`. */
+.bas-ecran {
+  translate: 0 var(--vv-dy, 0px);
+}
