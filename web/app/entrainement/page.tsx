@@ -14,7 +14,7 @@ import { FeuillesAgenda, type Feuille } from "@/components/repere/agenda";
 import { AVenir, CarteDuJour, SemaineAnneaux } from "@/components/repere/accueil-entrainement";
 import { FeuilleImport } from "@/components/repere/mes-seances";
 import { Mosaique } from "@/components/repere/rubriques";
-import { EntreesAccueil, LigneAutre, useEpingles } from "@/components/repere/plus-entrainements";
+import { CarteBlog, EntreesAccueil, LigneAutre, useEpingles } from "@/components/repere/plus-entrainements";
 import { CarteProteines } from "@/components/repere/proteines";
 import { useProgramme } from "@/components/repere/programme-vues";
 import { jourDe } from "@/lib/logic/historique";
@@ -60,6 +60,7 @@ export default function PageEntrainement() {
           {epingles.map((a) => <LigneAutre key={a} a={a} />)}
           <EntreesAccueil />
         </section>
+        <CarteBlog />
       </div>
       <FeuillesAgenda f={f} setF={setF} auj={auj} />
       <FeuilleImport />

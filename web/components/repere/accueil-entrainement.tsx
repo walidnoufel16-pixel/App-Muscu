@@ -133,7 +133,7 @@ type Action = { label: string; icone?: React.ReactNode; onClick: () => void };
    boutons (« Ignorer aujourd'hui ») ; `long` : le sous-titre sur deux lignes */
 function Hero({ ph, tag, titre, sous, principal, second, pied, long }: { ph: Photo; tag: React.ReactNode; titre: string; sous?: string; principal: Action; second?: Action & { texte?: boolean }; pied?: React.ReactNode; long?: boolean }) {
   return (
-    <section className={cn("relative isolate overflow-hidden rounded-[24px] bg-[#111] text-white", pied || long ? "h-[252px]" : "h-[212px]")}>
+    <section data-visite="seance-du-jour" className={cn("relative isolate overflow-hidden rounded-[24px] bg-[#111] text-white", pied || long ? "h-[252px]" : "h-[212px]")}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img key={ph.grand} src={ph.grand} alt="" className="absolute inset-0 -z-10 size-full object-cover"
         onError={(e) => { if (!e.currentTarget.src.endsWith(ph.petite)) e.currentTarget.src = ph.petite; else e.currentTarget.style.visibility = "hidden"; }} />
@@ -143,7 +143,7 @@ function Hero({ ph, tag, titre, sous, principal, second, pied, long }: { ph: Pho
         <h2 className="mt-1.5 truncate text-[24px] leading-[1.1] font-extrabold tracking-[-0.02em] text-balance">{titre}</h2>
         {sous && <p className={cn("mt-0.5 text-[13.5px] leading-snug text-white/85", long ? "line-clamp-2" : "truncate")}>{sous}</p>}
         <div className="mt-3 flex gap-2">
-          <button onClick={() => { tactile(10); principal.onClick(); }} className="flex h-[46px] flex-1 items-center justify-center gap-2 rounded-full bg-white text-[15.5px] font-bold text-[#0a0a0c] active:scale-[.98]">
+          <button data-principal onClick={() => { tactile(10); principal.onClick(); }} className="flex h-[46px] flex-1 items-center justify-center gap-2 rounded-full bg-white text-[15.5px] font-bold text-[#0a0a0c] active:scale-[.98]">
             {principal.icone}{principal.label}
           </button>
           {second && (second.texte ? (

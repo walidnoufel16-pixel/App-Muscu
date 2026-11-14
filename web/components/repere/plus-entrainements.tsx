@@ -6,7 +6,8 @@
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { CaretRightIcon, PushPinIcon, TrophyIcon } from "@phosphor-icons/react";
-import { tr } from "@/lib/i18n";
+import { langue, tr } from "@/lib/i18n";
+import { ARTICLES, texte } from "@/lib/data/blog";
 import { noter } from "@/lib/mesure";
 import { AVANT } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
@@ -91,5 +92,30 @@ export function EntreesAccueil() {
       {ligne("rubrique-libre", tr("Mes séances"), n === 1 ? tr("1 enregistrée") : n ? tr("{n} enregistrées", { n }) : tr("Crée ta séance, ou parcours les exercices"), lienRubrique("libre"))}
       {ligne("rubrique-plus", tr("Plus d'entraînements"), tr("Street, course, Hyrox, mobilité, cardio, défis"), "/entrainement/plus" as Route, true)}
     </div>
+  );
+}
+
+/** Le blog sous les séances de l'accueil : le dernier article (photo, catégorie, titre) et « Tous les articles ». */
+export function CarteBlog() {
+  const en = langue() === "en";
+  const a = ARTICLES.find((x) => x.type === "article");
+  if (!a) return null;
+  const base = en ? "/en/blog/" : "/blog/";
+  return (
+    <section data-visite="blog" className="mt-2">
+      <div className="mb-2 flex items-baseline justify-between px-1">
+        <h2 className="titre text-[20px]">{tr("Le blog Oxa")}</h2>
+        <a href={base} onClick={() => noter("rubrique_ouverte", { r: "blog" })} className="text-[15px] font-semibold text-plate-ink dark:text-plate">{tr("Tous les articles")}</a>
+      </div>
+      <a href={base + a.slug + "/"} onClick={() => noter("rubrique_ouverte", { r: "blog" })} className="flex items-center gap-3 rounded-[20px] border border-border/80 bg-card p-2.5 active:bg-muted">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={a.couverture} alt="" loading="lazy" className="size-[72px] shrink-0 rounded-[14px] bg-muted object-cover" />
+        <span className="min-w-0 flex-1">
+          <span className="text-[11.5px] font-semibold tracking-[0.06em] text-plate-ink uppercase dark:text-plate">{a.categorie}</span>
+          <span className="mt-0.5 line-clamp-2 block text-[15px] leading-snug font-semibold">{texte(a, en ? "en" : "fr")?.titre ?? a.titre}</span>
+        </span>
+        <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" />
+      </a>
+    </section>
   );
 }

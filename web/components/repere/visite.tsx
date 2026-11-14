@@ -1,12 +1,15 @@
 "use client";
 
-/* Visite guidée du premier lancement : une feuille de bienvenue (les 4 grands axes), puis une bulle
-   posée sur chaque repère de la vraie interface (repérés par data-visite), puis la fin :
-   - sans Oxa Plan : la mise en route en 3 questions si le profil est vide, puis « Ta première séance ? » ;
-   - avec Oxa Plan : une bulle de plus sur la tuile du programme, puis « Construisons ton programme »
-     (ou « Ta séance du jour » s'il est déjà construit).
-   Une seule fois (repere.visite), pour un compte qui n'a encore rien fait ; jamais pendant une séance
-   ni sur l'ancienne adresse. Revoir : menu ☰ › Aide.
+/* Visite guidée (mise à jour le 14 novembre 2026, accueil recentré sur la musculation) : une feuille
+   de bienvenue (les 4 grands axes), puis une bulle posée sur chaque repère de la vraie interface
+   (repérés par data-visite) : Entraînement, Mes séances, Plus d'entraînements, le blog, Repas,
+   Progrès, Profil, Menu (avec Oxa Plan : sa tuile en deuxième), puis la fin :
+   - sans Oxa Plan : la mise en route en 3 questions si le profil est vide, sinon « Ta séance du jour
+     est prête », qui ouvre la séance proposée sur l'accueil ;
+   - avec Oxa Plan : « Construisons ton programme » (ou « Ta séance du jour » s'il est déjà construit).
+   Elle démarre d'elle-même pour tout nouveau compte (sans Oxa Plan : après le questionnaire
+   d'accueil, dont elle saute la feuille de bienvenue), une seule fois (repere.visite) ; jamais
+   pendant une séance ni sur l'ancienne adresse. Revoir : menu ☰ › Aide.
    Mini-visite : quand Oxa Plan s'ouvre plus tard pour un compte, une bulle unique sur sa tuile,
    une seule fois (repere.visite.plan). */
 import { noter as mesurer } from "@/lib/mesure";
@@ -31,14 +34,17 @@ export const useVisite = create<{ etape: number | null; mini: boolean }>(() => (
 export const revoirVisite = () => useVisite.setState({ etape: 0 });
 
 type BulleDef = { cible: string; k: () => string; t: () => string; d: () => string };
-const ENTRAINEMENT: BulleDef = { cible: "entrainement", k: () => tr("Entraînement"), t: () => tr("Tes séances"), d: () => tr("Ta semaine, ta récupération muscle par muscle et ta séance du jour. Le bouton + ou « Programmer une séance » : crée ta séance, ou laisse Oxa te la proposer selon tes muscles prêts.") };
+const ENTRAINEMENT: BulleDef = { cible: "entrainement", k: () => tr("Entraînement"), t: () => tr("Tes séances"), d: () => tr("Ta semaine, ta récupération et ta séance du jour, prête selon tes muscles récupérés. « Programmer une séance » la place dans ton agenda.") };
 const ENTRAINEMENT_PLAN: BulleDef = { cible: "entrainement", k: () => tr("Entraînement"), t: () => tr("Tes séances"), d: () => tr("Ta semaine en un coup d'œil et ta séance du jour. Des séances libres quand tu veux, en plus de ton programme.") };
 const PROGRAMME: BulleDef = { cible: "rubrique-programme", k: () => "Oxa Plan", t: () => tr("Ton programme sur 8 semaines"), d: () => tr("L'effort monte de semaine en semaine, puis une semaine d'allègement pour récupérer. Tes charges s'ajustent toutes seules à ce que tu réussis.") };
 const AUTRES: BulleDef[] = [
-  { cible: "repas", k: () => "Oxa Meal", t: () => tr("Tes repas"), d: () => tr("Tes besoins du jour, calculés sur tes vraies séances, ta semaine de repas et ta liste de courses.") },
+  { cible: "rubrique-libre", k: () => tr("Mes séances"), t: () => tr("Tes séances à toi"), d: () => tr("Tes séances enregistrées, et « exercice par exercice » pour composer la tienne : Oxa prépare les cases.") },
+  { cible: "rubrique-plus", k: () => tr("Plus d'entraînements"), t: () => tr("Et au-delà de la salle"), d: () => tr("Street workout, course et Hyrox, mobilité, cardio, défis. Épingle celui que tu utilises : il passe sur l'accueil.") },
+  { cible: "blog", k: () => tr("Le blog Oxa"), t: () => tr("Nos articles"), d: () => tr("Pour mieux t'entraîner et bien manger, appuyés sur la science.") },
+  { cible: "repas", k: () => "Oxa Meal", t: () => tr("Tes repas"), d: () => tr("Tes protéines du jour, calculées sur ton poids et tes séances, et tes repas.") },
   { cible: "progres", k: () => tr("Progrès"), t: () => tr("Tes progrès"), d: () => tr("Ta série de semaines, tes records et ton historique, où tu peux retirer une séance validée par erreur.") },
-  { cible: "profil", k: () => tr("Profil"), t: () => tr("Ton profil sportif"), d: () => tr("Âge, objectif, niveau, séances par semaine : plus il est complet, plus tes séances et tes repas sont justes.") },
-  { cible: "menu", k: () => tr("Menu"), t: () => tr("Tes réglages"), d: () => tr("Ton matériel, tes rappels, le blog, ton avis… et « Inviter un ami » pour t'entraîner à plusieurs.") },
+  { cible: "profil", k: () => tr("Profil"), t: () => tr("Ton profil sportif"), d: () => tr("Âge, objectif, niveau, matériel : plus il est complet, plus tes séances sont justes.") },
+  { cible: "menu", k: () => tr("Menu"), t: () => tr("Tes réglages"), d: () => tr("Ton matériel, tes rappels, ton avis, « Revoir la visite »… et « Inviter un ami » pour t'entraîner à plusieurs.") },
 ];
 const MINI: BulleDef = { ...PROGRAMME, t: () => tr("Nouveau : ton programme sur 8 semaines"), d: () => tr("Réponds à quelques questions : Oxa construit tes 8 semaines avec tes charges de départ, puis les ajuste à ce que tu réussis.") };
 
@@ -54,6 +60,8 @@ export function Visite() {
   const A = useRepere((s) => s.etat.A);
   const planConstruit = useRepere((s) => !!s.etat.PLAN || !!s.etat.FINI);
   const neuf = useRepere((s) => !(s.etat.HIST || []).length && !s.etat.SEANCES.length);
+  /* aucune séance faite : l'accueil propose « Ta première séance » */
+  const jamais = useRepere((s) => !(s.etat.HIST || []).length);
   const bilan = useCelebrer((s) => !!s.bilan);
   const prog = useProgrammeActif();
   const ancienne = typeof location !== "undefined" && location.hostname.endsWith(".onrender.com") && !!process.env.NEXT_PUBLIC_NOUVELLE_ADRESSE;
@@ -64,10 +72,11 @@ export function Visite() {
 
   /* première ouverture d'un compte qui n'a encore rien fait : la visite démarre d'elle-même */
   useEffect(() => {
-    /* sans Oxa Plan : le questionnaire d'accueil passe avant l'app (AppShell, accueil-premier.tsx) */
-    if (!pret || !pseudo || !neuf || !prog || bilan || etape !== null || mini || ancienne) return;
+    /* sans Oxa Plan, le questionnaire d'accueil passe avant l'app (AppShell, accueil-premier.tsx) et
+       souhaite déjà la bienvenue : la visite commence alors directement aux bulles */
+    if (!pret || !pseudo || !neuf || bilan || etape !== null || mini || ancienne) return;
     if (!RACINE.test(chemin) || lu(CLE)) return;
-    const t = setTimeout(() => useVisite.setState({ etape: 0 }), 700);
+    const t = setTimeout(() => useVisite.setState({ etape: prog ? 0 : 1 }), 700);
     return () => clearTimeout(t);
   }, [pret, pseudo, neuf, bilan, etape, mini, chemin, ancienne, prog]);
 
@@ -87,13 +96,23 @@ export function Visite() {
     useVisite.setState({ etape: (etape ?? 0) + 1 });
   };
   const allerVers = (lien: Parameters<typeof router.push>[0]) => { tactile(10); finir(); router.push(lien, AVANT); };
+  /* fin sans Oxa Plan : ouvre la séance proposée sur l'accueil (son bouton principal), sinon Mes séances */
+  const voirSeance = () => {
+    tactile(10); finir();
+    const ouvrir = () => {
+      const b = document.querySelector<HTMLButtonElement>('[data-visite="seance-du-jour"] [data-principal]');
+      if (b) b.click(); else router.push(lienRubrique("libre"), AVANT);
+    };
+    if (/^\/entrainement\/?$/.test(chemin)) setTimeout(ouvrir, 250);
+    else { router.push("/entrainement", AVANT); setTimeout(ouvrir, 900); }
+  };
   const finMini = () => { noter(CLE_PLAN); useVisite.setState({ mini: false }); };
 
   const AXES = [
-    { I: BarbellIcon, t: tr("T'entraîner"), d: prog ? tr("Ton programme de 8 semaines, et des séances libres quand tu veux") : tr("Ta séance du jour, prête en un geste") },
-    { I: ForkKnifeIcon, t: tr("Bien manger"), d: tr("Tes repas, tes besoins et ta liste de courses") },
+    { I: BarbellIcon, t: tr("T'entraîner"), d: prog ? tr("Ton programme de 8 semaines, et des séances libres quand tu veux") : tr("Ta séance du jour, prête selon tes muscles récupérés") },
+    { I: ForkKnifeIcon, t: tr("Bien manger"), d: tr("Tes protéines du jour, sans compter les calories") },
     { I: ChartLineUpIcon, t: tr("Progresser"), d: tr("Ta série, tes records, tes charges qui montent") },
-    { I: UserCircleIcon, t: tr("Ton profil"), d: tr("Il calcule tes séances et tes repas") },
+    { I: UserCircleIcon, t: tr("Ton profil"), d: tr("Objectif, niveau, matériel : il règle tes séances") },
   ];
 
   return (
@@ -128,10 +147,10 @@ export function Visite() {
       <MiseEnRoute ouvert={fin && !prog && besoinProfil} onFin={() => {}} />
       <Fin
         ouvert={fin && !prog && !besoinProfil}
-        titre={tr("Ta première séance ?")}
-        texte={tr("Touche les muscles que tu veux travailler, ou choisis une rubrique : ta séance est prête en un geste.")}
-        bouton={tr("Créer ma première séance")}
-        onOk={() => allerVers(lienRubrique("libre"))} onPlusTard={finir} />
+        titre={jamais ? tr("Ta première séance est prête") : tr("Ta séance du jour est prête")}
+        texte={tr("Oxa l'a choisie selon tes muscles récupérés et ton matériel. Ouvre-la, ou compose la tienne dans Mes séances.")}
+        bouton={tr("Voir ma séance")}
+        onOk={voirSeance} onPlusTard={finir} />
       {/* fin avec Oxa Plan */}
       <Fin
         ouvert={fin && prog}
