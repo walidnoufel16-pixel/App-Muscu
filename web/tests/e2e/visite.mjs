@@ -1,5 +1,6 @@
 /* Accueil sans Oxa Plan (profil sportif, dernières 48 h, première séance), visite avec Oxa Plan
-   (6 bulles dont la tuile du programme, « Construisons ton programme »), et la mini-visite quand
+   (9 bulles dont la tuile du programme, « Construisons ton programme »), visite sans Oxa Plan après
+   le questionnaire d'accueil (8 bulles, « Ta première séance est prête » ouvre la séance proposée), et la mini-visite quand
    Oxa Plan s'ouvre pour un compte qui a déjà vu la visite. CAPTURES=dossier pour garder des captures. */
 import { chromium } from "@playwright/test";
 import { servir } from "./serveur.mjs";
@@ -24,7 +25,7 @@ async function contexte(etat, extra = {}) {
 const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(700); await pg.screenshot({ path: `${CAP}/${nom}.png` }); } };
 async function bulles(pg, prefixe) {
   const vus = [];
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 12; i++) {
     const d = pg.locator('[role="dialog"][aria-modal="true"]').filter({ has: pg.getByRole("button", { name: "Suivant" }) });
     if (!(await d.count())) { await pg.waitForTimeout(900); if (!(await d.count())) break; }
     vus.push(await d.getAttribute("aria-label"));
@@ -119,7 +120,7 @@ async function bulles(pg, prefixe) {
   await pg.getByText("Faire la visite · 30 s").click();
   await pg.waitForTimeout(900);
   const vus = await bulles(pg, "plan");
-  ok(JSON.stringify(vus) === JSON.stringify(["Tes séances", "Ton programme sur 8 semaines", "Tes repas", "Tes progrès", "Ton profil sportif", "Tes réglages"]), "6 bulles avec Oxa Plan : " + vus.join(", "));
+  ok(JSON.stringify(vus) === JSON.stringify(["Tes séances", "Ton programme sur 8 semaines", "Tes séances à toi", "Et au-delà de la salle", "Nos articles", "Tes repas", "Tes progrès", "Ton profil sportif", "Tes réglages"]), "9 bulles avec Oxa Plan : " + vus.join(", "));
   await pg.getByText("Construisons ton programme").waitFor({ timeout: 4000 }).catch(() => {});
   ok(await pg.getByText("Construisons ton programme").count() === 1, "fin : « Construisons ton programme »");
   await cap(pg, "plan-fin");
@@ -127,6 +128,25 @@ async function bulles(pg, prefixe) {
   await pg.waitForURL(/questionnaire/, { timeout: 5000 }).catch(() => {});
   ok(pg.url().includes("/questionnaire"), "ouvre le questionnaire");
   ok(await pg.evaluate(() => !!localStorage.getItem("repere.visite") && !!localStorage.getItem("repere.visite.plan")), "visite et mini-visite notées comme vues");
+  await ctx.close();
+}
+
+/* 2 bis. sans Oxa Plan, questionnaire d'accueil fait : la visite démarre d'elle-même, sans 2e bienvenue */
+{
+  const pret = { ...neuf, A: { ...neuf.A, objectif: 0, regularite: 2, objHebdo: 3, sexe: 0, accueil: Date.now(), miseEnRoute: true } };
+  const [ctx, pg] = await contexte(pret);
+  await pg.goto(U + "/entrainement/");
+  await pg.locator('[role="dialog"][aria-modal="true"]').filter({ has: pg.getByRole("button", { name: "Suivant" }) }).waitFor({ timeout: 8000 });
+  ok(await pg.getByText("Faire la visite · 30 s").count() === 0, "sans Oxa Plan : pas de seconde feuille de bienvenue");
+  const vus = await bulles(pg, "sans");
+  ok(JSON.stringify(vus) === JSON.stringify(["Tes séances", "Tes séances à toi", "Et au-delà de la salle", "Nos articles", "Tes repas", "Tes progrès", "Ton profil sportif", "Tes réglages"]), "8 bulles sans Oxa Plan : " + vus.join(", "));
+  await pg.getByText("Ta première séance est prête").waitFor({ timeout: 4000 }).catch(() => {});
+  ok(await pg.getByText("Ta première séance est prête").count() === 1, "fin : « Ta première séance est prête »");
+  await cap(pg, "sans-visite-fin");
+  await pg.getByRole("button", { name: "Voir ma séance" }).click();
+  await pg.waitForURL(/\/entrainement\/(composer|rubrique)/, { timeout: 6000 }).catch(() => {});
+  ok(/\/entrainement\/(composer|rubrique)/.test(pg.url()), "« Voir ma séance » ouvre la séance proposée : " + pg.url());
+  ok(await pg.evaluate(() => !!localStorage.getItem("repere.visite")), "visite notée comme vue");
   await ctx.close();
 }
 
