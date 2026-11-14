@@ -3228,5 +3228,9 @@
   "Volume": "Volume",
   "Force estimée": "Estimated strength",
   "Prochaine fois": "Next time",
-  "Oxa te proposera": "Oxa will suggest"
+  "Oxa te proposera": "Oxa will suggest",
+  "Toutes tes séries, séance par séance": "All your sets, workout by workout",
+  "Meilleure série : {s}": "Best set: {s}",
+  "{n} série{a}": "{n} set{a}",
+  "Ce que tu veux voir": "What you want to see"
 }

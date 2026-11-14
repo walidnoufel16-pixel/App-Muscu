@@ -1,6 +1,6 @@
 /* Progrès › progression par exercice : « Prochaine fois » suit la règle de la séance. */
 import { describe, expect, it } from "vitest";
-import { prochaineFois } from "@/components/repere/progression-exercice";
+import { prochaineFois, seriesParJour } from "@/components/repere/progression-exercice";
 import type { Etat } from "@/lib/logic/types";
 import { jourDe, type LigneHist } from "@/lib/logic/historique";
 
@@ -21,5 +21,23 @@ describe("prochaineFois", () => {
   });
   it("exercice sans charge : rien", () => {
     expect(prochaineFois(vide(), "pompe")).toBeNull();
+  });
+});
+
+describe("seriesParJour", () => {
+  const H: LigneHist[] = [
+    { d: "2026-11-04", s: "L|0", nom: "Haut", vol: 0, ser: 3, ex: { arn: [0, 0, 10, 10, 3] }, det: [{ id: "arn", s: [[10, 10], [10, 10], [10, 8]] }] },
+    { d: "2026-11-14", s: "L|0", nom: "Haut", vol: 0, ser: 3, ex: { arn: [0, 0, 12, 7, 3], pompe: [0, 0, 0, 15, 3] }, det: [{ id: "arn", s: [[12, 7], [12, 7], [12, 7]] }, { id: "pompe", s: [[0, 15], [0, 12], [0, 12]] }] },
+    { d: "2026-10-21", s: "L|0", nom: "Haut", vol: 0, ser: 3, ex: { arn: [0, 0, 8, 11, 3] } },
+  ].sort((a, b) => (a.d < b.d ? -1 : 1));
+  it("le plus récent d'abord, séries identiques regroupées", () => {
+    const j = seriesParJour(H, "arn");
+    expect(j.map((x) => x.d)).toEqual(["2026-11-14", "2026-11-04", "2026-10-21"]);
+    expect(j[0].groupes).toEqual([{ n: 3, t: "12 kg × 7" }]);
+    expect(j[1].groupes).toEqual([{ n: 2, t: "10 kg × 10" }, { n: 1, t: "10 kg × 8" }]);
+    expect(j[2].groupes).toBeNull();
+  });
+  it("poids du corps : des répétitions", () => {
+    expect(seriesParJour(H, "pompe")[0].groupes).toEqual([{ n: 1, t: "15 réps" }, { n: 2, t: "12 réps" }]);
   });
 });
