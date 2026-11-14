@@ -17,13 +17,13 @@ import { cn } from "@/lib/utils";
 
 export function AvisSeance({ L, sel }: { L: SeanceLibre & { pour?: string; idx?: number | null }; sel: string[] }) {
   const A = useRepere((s) => s.etat.A), H = useRepere((s) => s.etat.HIST);
-  const S = useRepere((s) => s.etat.SORTIES), C = useRepere((s) => s.etat.CARDIO);
+  const S = useRepere((s) => s.etat.SORTIES), C = useRepere((s) => s.etat.CARDIO), ACT = useRepere((s) => s.etat.ACTIVITES);
   const majLibre = useBrouillon((s) => s.majLibre);
   /* une séance préparée pour un jour à venir se juge ce jour-là (récupération) */
   const [aujReel] = useState(() => jourDe(Date.now()));
   const auj = L.pour ?? aujReel;
   /* course, cardio et séance déclarée à l'accueil (dernières 48 h) comptent dans la récupération */
-  const efforts = useMemo(() => effortsEndurance(S, C, A.avant), [S, C, A.avant]);
+  const efforts = useMemo(() => effortsEndurance(S, C, A.avant, ACT), [S, C, A.avant, ACT]);
   const [ignores, setIgnores] = useState<string[]>([]);
   const [tout, setTout] = useState(false);
   const liste = useMemo(() => avisSeance(L, { A, H, sel, zones: zonesActives(A), auj, efforts }).filter((a) => !ignores.includes(a.id)), [L, A, H, sel, auj, efforts, ignores]);

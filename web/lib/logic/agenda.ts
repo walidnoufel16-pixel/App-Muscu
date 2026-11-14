@@ -11,7 +11,7 @@ import { effortsEndurance, recoDuJour } from "./recommandation";
 import { objectifHebdo } from "./motivation";
 import { datesDuPlan, faite, genererPlan } from "./course";
 import type { LigneHist } from "./historique";
-import type { Etat } from "./types";
+import type { Activite, Etat } from "./types";
 
 export type QuoiPrevu =
   | { t: "libre"; i: number }
@@ -34,7 +34,7 @@ export type Prevu = {
 
 export type Famille = "muscu" | "cardio" | "course";
 export type Fait = { nom: string; famille: Famille; s?: string; ts?: number };
-export type JourAgenda = { d: string; fait: Fait[]; prevus: Prevu[]; manques: Prevu[] };
+export type JourAgenda = { d: string; fait: Fait[]; prevus: Prevu[]; manques: Prevu[]; /** autres activités déclarées (foot, padel…) */ act: Activite[] };
 
 export const familleDe = (q: QuoiPrevu): Famille => (q.t === "cardio" ? "cardio" : q.t === "course" ? "course" : "muscu");
 export const nouvelId = () => Math.random().toString(36).slice(2, 10);
@@ -80,13 +80,13 @@ export function faitsParJour(E: Pick<Etat, "HIST" | "CARDIO" | "SORTIES"> & Part
 
 /** Les jours de l'agenda : n jours à partir du lundi `debut`. Un prévu est « fait » quand une
     séance de la même famille a été faite ce jour-là ; passé et pas fait, il est « manqué ». */
-export function joursAgenda(E: Pick<Etat, "HIST" | "CARDIO" | "SORTIES"> & Partial<Pick<Etat, "LOG" | "SEANCES">> & { AGENDA?: Prevu[] }, debut: string, auj: string, n = 14): JourAgenda[] {
+export function joursAgenda(E: Pick<Etat, "HIST" | "CARDIO" | "SORTIES"> & Partial<Pick<Etat, "LOG" | "SEANCES" | "ACTIVITES">> & { AGENDA?: Prevu[] }, debut: string, auj: string, n = 14): JourAgenda[] {
   const faits = faitsParJour(E), A = E.AGENDA || [];
   return Array.from({ length: n }, (_, k) => {
     const d = decaler(debut, k), fait = faits.get(d) || [];
     const tous = A.filter((p) => tombeLe(p, d));
     const restants = tous.filter((p) => !fait.some((f) => f.famille === familleDe(p.quoi)));
-    return { d, fait, prevus: d >= auj ? restants : [], manques: d < auj ? restants : [] };
+    return { d, fait, prevus: d >= auj ? restants : [], manques: d < auj ? restants : [], act: (E.ACTIVITES || []).filter((a) => a.d === d) };
   });
 }
 
@@ -181,6 +181,13 @@ export function courseDureLe(E: Etat & { AGENDA?: Prevu[] }, d: string, auj: str
   try { return DURES.has(genererPlan(E.COURSE)[k]?.seances[j]?.type ?? ""); } catch { return false; }
 }
 
+/** Une autre activité qui sollicite les jambes (foot, vélo…), pas tranquille, est-elle prévue ce jour-là ? */
+export const activiteJambesLe = (E: Pick<Etat, "ACTIVITES">, d: string) =>
+  (E.ACTIVITES || []).some((a) => a.d === d && a.int > 0 && a.m.some((g) => g === "qua" || g === "isc"));
+
+/** Les autres activités d'un jour. */
+export const activitesLe = (E: Pick<Etat, "ACTIVITES">, d: string) => (E.ACTIVITES || []).filter((a) => a.d === d);
+
 export function recoPour(E: Etat & { AGENDA?: Prevu[] }, d: string, auj = jourDe(Date.now())) {
   const debut = [lundiDe(d), decaler(d, -2), auj].sort()[0];
   const n = Math.max(0, Math.round((new Date(d + "T12:00").getTime() - new Date(debut + "T12:00").getTime()) / 864e5));
@@ -202,8 +209,8 @@ export function recoPour(E: Etat & { AGENDA?: Prevu[] }, d: string, auj = jourDe
   /* course et musculation sur un seul calendrier : la veille d'une sortie longue, d'une séance de qualité
      ou d'un Hyrox programmés, pas de jambes (elles doivent arriver fraîches) */
   const ecartes: NonNullable<Parameters<typeof recoDuJour>[2]> = [...(E.A.recoSans || [])];
-  if (courseDureLe(E, decaler(d, 1), auj) && !ecartes.includes("jambes")) ecartes.push("jambes");
-  return recoDuJour([...(E.HIST || []), ...prevus], d, ecartes, E.A.regularite, effortsEndurance(E.SORTIES, E.CARDIO, E.A.avant),
+  if ((courseDureLe(E, decaler(d, 1), auj) || activiteJambesLe(E, decaler(d, 1))) && !ecartes.includes("jambes")) ecartes.push("jambes");
+  return recoDuJour([...(E.HIST || []), ...prevus], d, ecartes, E.A.regularite, effortsEndurance(E.SORTIES, E.CARDIO, E.A.avant, E.ACTIVITES),
     { hebdo: objectifHebdo(E.A), jours, futur: d > auj });
 }
 

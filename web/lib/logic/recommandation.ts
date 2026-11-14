@@ -15,7 +15,8 @@ import { tp, tr } from "@/lib/i18n";
 import { EX } from "@/lib/data/exercices";
 import { PAT2MUSC } from "@/lib/data/referentiels";
 import { dateDe, decaler, jourDe, lundiDe, type LigneHist } from "./historique";
-import type { HistoCardio } from "./types";
+import type { Activite, HistoCardio } from "./types";
+import { joursRecup } from "@/lib/data/activites";
 import type { Sortie } from "./course";
 
 export const GROUPES = ["pec", "dos", "epa", "bic", "tri", "qua", "isc", "mol", "abd"] as const;
@@ -68,8 +69,13 @@ const MUSCLES_MACHINE: Record<string, MuscleRecup[]> = { tapis: JAMBES, ellip: J
       ou une sortie très dure (ressenti 8 et plus), 24 h après 8 km ou une sortie soutenue (6 et plus) ;
       rien pour un footing court et facile ;
     - cardio guidé : 24 h après du fractionné de 10 min et plus, ou une heure d'endurance. */
-export function effortsEndurance(S: Sortie[] = [], C: HistoCardio[] = [], avant?: Avant | null): Endurance[] {
+export function effortsEndurance(S: Sortie[] = [], C: HistoCardio[] = [], avant?: Avant | null, act: Activite[] = []): Endurance[] {
   const out: Endurance[] = effortsDeclares(avant);
+  /* autres activités déclarées dans l'agenda (foot, padel…) : leurs muscles, selon l'intensité et la durée */
+  for (const a of act) {
+    const m = (a.m || []).filter((g): g is MuscleRecup => SUIVIS.has(g));
+    if (m.length) out.push({ d: a.d, jours: joursRecup(a.int, a.min), muscles: m });
+  }
   for (const s of S) {
     const jours = s.km >= 25 || (s.course && s.km >= 21) ? 3 : s.km >= 15 || s.course || s.rpe >= 8 ? 2 : s.km >= 8 || s.rpe >= 6 ? 1 : 0;
     if (jours) out.push({ d: s.d, jours, muscles: JAMBES });

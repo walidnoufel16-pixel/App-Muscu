@@ -16,7 +16,7 @@ export function seancePour(E: Etat, m: string[], duree: number, obj: number, sel
 export function casesPour(E: Etat, m: string[], duree: number, obj: number, sel: string[], jour: string, rnd?: () => number): (ExLibre & { k: string })[] {
   const A = E.A, H = E.HIST || [], zones = zonesActives(A);
   const habitudes = new Set(H.slice(-12).flatMap((l) => Object.keys(l.ex)));
-  const lombaires = !etatGroupes(H, jour, effortsEndurance(E.SORTIES, E.CARDIO, A.avant)).lom.recupere;
+  const lombaires = !etatGroupes(H, jour, effortsEndurance(E.SORTIES, E.CARDIO, A.avant, E.ACTIVITES)).lom.recupere;
   return construireCases(m, duree, obj, sel, rnd ?? hasardDe(`${jour}|${m.join(",")}|${duree}|${obj}|${sel.join(",")}`),
     (o) => zonesDe(o, zones).length > 0 || (lombaires && chargeLombaires(o)), A.regularite,
     { prio: musclesPrioritaires(prioNoms(A)), habitudes, dense: duree === 30 });

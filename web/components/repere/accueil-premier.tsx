@@ -175,7 +175,7 @@ function Fin({ fermer }: { fermer: () => void }) {
   const muter = useRepere((s) => s.muter);
   const router = useRouter();
   const [auj] = useState(() => jourDe(Date.now()));
-  const efforts = useMemo(() => effortsEndurance(etat.SORTIES, etat.CARDIO, etat.A.avant), [etat]);
+  const efforts = useMemo(() => effortsEndurance(etat.SORTIES, etat.CARDIO, etat.A.avant, etat.ACTIVITES), [etat]);
   const E = useMemo(() => etatGroupes(etat.HIST || [], auj, efforts), [etat, auj, efforts]);
   const r = useMemo(() => recoPour(etat, auj), [etat, auj]);
   /* les muscles écartés n'apparaissent ni prêts ni en récupération */
