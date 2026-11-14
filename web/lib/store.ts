@@ -60,7 +60,7 @@ export function normaliser(A: Reponses): Reponses {
     const prem = (A.sport || []).filter((i) => i > 0)[0];
     A.sportFreq = prem !== undefined ? { [prem]: n } : {};
   }
-  (["blessure", "prio", "exclus", "acc"] as const).forEach((k) => { if (A[k] !== undefined) (A as Record<string, unknown>)[k] = tab(A[k]); });
+  (["blessure", "prio", "exclus", "acc", "epingles"] as const).forEach((k) => { if (A[k] !== undefined) (A as Record<string, unknown>)[k] = tab(A[k]); });
   (["prefs", "charges", "profil", "sportFreq"] as const).forEach((k) => { if (A[k] !== undefined) (A as Record<string, unknown>)[k] = obj(A[k]); });
   Object.keys(A.prefs || {}).forEach((g) => { if (!Array.isArray(A.prefs![g])) A.prefs![g] = []; });
   return A;

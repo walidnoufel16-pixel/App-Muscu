@@ -1,7 +1,8 @@
 "use client";
 
-/* Entraînement : la semaine en anneaux, la séance du jour en grand,
-   « À venir » (et l'écran Agenda), puis les rubriques en mosaïque (dont Mes séances).
+/* Entraînement, recentré sur la musculation (option A validée le 14 novembre 2026) : la semaine en
+   anneaux, la séance du jour en grand, les protéines du jour, « À venir » (et l'écran Agenda), les
+   entraînements épinglés, puis Mes séances et « Plus d'entraînements » (street, course, soin, cardio, défis).
    Programmer : toucher un jour de la semaine ou « Programmer » dans « À venir ». Oxa Plan ne
    s'ouvre que par sa rubrique. */
 import { AvatarProfil } from "@/components/repere/avatar-profil";
@@ -12,8 +13,9 @@ import { Reprise } from "@/components/repere/motivation";
 import { FeuillesAgenda, type Feuille } from "@/components/repere/agenda";
 import { AVenir, CarteDuJour, SemaineAnneaux } from "@/components/repere/accueil-entrainement";
 import { FeuilleImport } from "@/components/repere/mes-seances";
-import { ProgrammeBientot } from "@/components/repere/bientot";
-import { Mosaique, type Rubrique } from "@/components/repere/rubriques";
+import { Mosaique } from "@/components/repere/rubriques";
+import { EntreesAccueil, LigneAutre, useEpingles } from "@/components/repere/plus-entrainements";
+import { CarteProteines } from "@/components/repere/proteines";
 import { useProgramme } from "@/components/repere/programme-vues";
 import { jourDe } from "@/lib/logic/historique";
 import { useRepere } from "@/lib/store";
@@ -34,7 +36,7 @@ export default function PageEntrainement() {
   /* nouvel utilisateur : ni séance faite ni séance programmée, pas de semaine à montrer */
   const debutant = !etat.HIST?.length && !etat.CARDIO?.length && !etat.SORTIES?.length && !etat.AGENDA?.length;
 
-  const rubriques: Rubrique[] = ["libre", ...(prog ? (["programme"] as const) : []), "street", "course", "soin"];
+  const epingles = useEpingles();
   const detail = enProgramme && !etat.FINI ? { programme: tr("Semaine {a} sur 8 · {b}/{c}", { a: wk + 1, b: faites, c: socle.length }) } : {};
   const date = new Date(auj + "T12:00").toLocaleDateString(loc(), { weekday: "long", day: "numeric", month: "long" });
 
@@ -49,13 +51,15 @@ export default function PageEntrainement() {
         {!debutant && <SemaineAnneaux auj={auj} setF={setF} />}
         {!debutant && <LigneRecuperation auj={auj} />}
         <CarteDuJour auj={auj} setF={setF} />
+        <CarteProteines accueil />
         <Reprise />
         <div className="mt-2"><AVenir auj={auj} setF={setF} /></div>
-        <section className="mt-2">
-          <h2 className="mb-2 px-1 text-[20px] font-extrabold tracking-[-0.015em]">{debutant ? tr("Par où commencer") : tr("Explorer")}</h2>
-          <Mosaique rubriques={rubriques} detail={detail} />
+        <section className="mt-2 flex flex-col gap-2">
+          {debutant && <h2 className="titre mb-0.5 px-1 text-[20px]">{tr("Par où commencer")}</h2>}
+          {prog && <Mosaique rubriques={["programme"]} detail={detail} />}
+          {epingles.map((a) => <LigneAutre key={a} a={a} />)}
+          <EntreesAccueil />
         </section>
-        {!prog && <ProgrammeBientot className="mt-1" />}
       </div>
       <FeuillesAgenda f={f} setF={setF} auj={auj} />
       <FeuilleImport />
