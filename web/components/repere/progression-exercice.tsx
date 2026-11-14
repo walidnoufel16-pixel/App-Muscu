@@ -2,7 +2,7 @@
 
 /* Progrès › Ma progression par exercice (maquette A validée le 14 novembre 2026) : tes vraies séries
    plutôt qu'un 1RM estimé. Une barre par séance (les 8 dernières) avec la meilleure série au-dessus,
-   « De 8 kg × 11 à 12 kg × 7 », trois vues (charge, volume, force estimée) et ce qu'Oxa proposera la
+   « De 8 kg × 11 à 12 kg × 7 », trois vues (charge, séries jour par jour, force estimée) et ce qu'Oxa proposera la
    prochaine fois, calculé par la même règle que la séance (propositionLibre). */
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -18,7 +18,7 @@ import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 
 const court = (j: string) => dateDe(j).toLocaleDateString(loc(), { day: "numeric", month: "short" }).replace(".", "");
-type Vue = "charge" | "volume" | "force";
+type Vue = "charge" | "series" | "force";
 type Point = ReturnType<typeof courbe>[number];
 
 /** Ce qu'Oxa proposera la prochaine fois sur cet exercice chargé : la ligne d'une séance enregistrée
@@ -34,6 +34,41 @@ export function prochaineFois(E: Etat, id: string, dernier?: Point): { v: number
   e ??= { id, s: dernier?.ser || 3, r: dernier?.reps || 10, p: "90 s" };
   const p = propositionLibre(E, e, { obj: obj ?? E.A.objectif ?? undefined, k: "P|progres|0" });
   return p && p.base.v > 0 ? { v: p.base.v, reps: p.base.reps, t: p.why } : null;
+}
+
+/** Une série telle qu'elle a été faite : « 10 kg × 10 », « 12 réps », « +5 kg × 8 », « 45 s ». */
+export function texteSerie(id: string, [v, reps, lest]: [number, number, number?]) {
+  const ch = EX[id]?.ch;
+  if (ch === "kg") return `${nb(v)} kg × ${reps}`;
+  if (ch === "lest") return v > 0 ? `+${nb(v)} kg × ${reps}` : tr("{n} réps", { n: reps });
+  if (ch === "aucune") return lest ? `+${nb(lest)} kg × ${v}` : tr("{n} réps", { n: v });
+  if (ch === "temps") return `${v} s`;
+  return `${nb(v)} m`;
+}
+
+/** Les séries de chaque jour où l'exercice a été fait, du plus récent au plus ancien, les séries
+    identiques qui se suivent regroupées : « 3 × 10 kg × 10 », « 2 × 10 kg × 10 · 10 kg × 8 ».
+    Une ancienne séance sans le détail des séries : null (on montre alors sa meilleure série). */
+export function seriesParJour(H: LigneHist[], id: string, n = 8): { d: string; groupes: { n: number; t: string }[] | null; total: number }[] {
+  const jours = new Map<string, { s: [number, number, number?][]; sans: boolean; total: number }>();
+  for (const l of H) {
+    if (!l.ex[id]) continue;
+    const j = jours.get(l.d) ?? { s: [], sans: false, total: 0 };
+    const det = (l.det || []).filter((x) => x.id === id);
+    if (det.length) for (const x of det) j.s.push(...x.s);
+    else j.sans = true;
+    j.total += l.ex[id][4] || 0;
+    jours.set(l.d, j);
+  }
+  return [...jours].reverse().slice(0, n).map(([d, j]) => {
+    if (!j.s.length) return { d, groupes: null, total: j.total };
+    const groupes: { n: number; t: string }[] = [];
+    for (const x of j.s) {
+      const t = texteSerie(id, x), der = groupes.at(-1);
+      if (der && der.t === t) der.n++; else groupes.push({ n: 1, t });
+    }
+    return { d, groupes, total: j.s.length };
+  });
 }
 
 /** Durée lisible entre deux jours : « 11 jours », « 3 semaines », « 2 mois ». */
@@ -61,12 +96,13 @@ export function ProgressionExercice({ H, id, setId }: { H: LigneHist[]; id: stri
 
   const x = EX[courant], kg = x.ch === "kg", lest = x.ch === "lest" && pts.some((p) => p.max > 0);
   const pdc = (x.ch === "aucune" || x.ch === "lest") && !lest; // poids du corps sans lest : on suit les répétitions
-  const v = kg ? vue : "charge";
+  const v = !kg && vue === "force" ? "charge" : vue;
+  const jours = v === "series" ? seriesParJour(H, courant) : [];
   /* la meilleure série d'une séance, telle qu'on l'a faite */
   const serie = (p: Point) => kg ? `${nb(p.max)} × ${p.reps}` : lest ? `+${nb(p.max)} × ${p.reps}` : pdc ? tr("{n} réps", { n: p.reps }) : x.ch === "temps" ? `${p.max} s` : `${nb(p.max)} m`;
   const serieLongue = (p: Point) => kg ? `${nb(p.max)} kg × ${p.reps}` : lest ? `+${nb(p.max)} kg × ${p.reps}` : serie(p);
-  const val = (p: Point) => v === "volume" ? p.vol : v === "force" ? p.rm : pdc ? p.reps : p.max;
-  const etiquette = (p: Point) => v === "volume" ? `${nb(Math.round(p.vol))} kg` : v === "force" ? `${nb(Math.round(p.rm * 10) / 10)} kg` : serie(p);
+  const val = (p: Point) => v === "force" ? p.rm : pdc ? p.reps : p.max;
+  const etiquette = (p: Point) => v === "force" ? `${nb(Math.round(p.rm * 10) / 10)} kg` : serie(p);
   const vus = pts.slice(-8), haut = Math.max(...vus.map(val), 1);
   const premier = pts[0], dernier = pts.at(-1)!;
   const gain = kg || lest ? dernier.max - premier.max : pdc ? dernier.reps - premier.reps : dernier.max - premier.max;
@@ -93,10 +129,29 @@ export function ProgressionExercice({ H, id, setId }: { H: LigneHist[]; id: stri
       <div className="rounded-[22px] border border-border/80 bg-card p-4">
         <div className="titre text-[21px] leading-tight">{x.n}</div>
         <div className="text-[13px] text-muted-foreground">
-          {v === "volume" ? tr("Le poids total soulevé à chaque séance") : v === "force" ? tr("1RM estimé (formule d'Epley) à chaque séance") : tr("Ta meilleure série à chaque séance")}
+          {v === "series" ? tr("Toutes tes séries, séance par séance") : v === "force" ? tr("1RM estimé (formule d'Epley) à chaque séance") : tr("Ta meilleure série à chaque séance")}
           {" · "}{tr("{n} séance{a}", { n: pts.length, a: pluriel(pts.length) ? "s" : "" })}
         </div>
 
+        {v === "series" ? (
+          /* séance par séance, la plus récente en haut : « 3 × 10 kg × 10 » */
+          <ul className="mt-3 flex flex-col">
+            {jours.map((j, i) => (
+              <li key={j.d} className="flex items-baseline gap-3 border-b border-border/60 py-2.5 last:border-0">
+                <span className={cn("w-[52px] shrink-0 text-[13px]", i === 0 ? "font-semibold text-plate-ink dark:text-plate" : "text-muted-foreground")}>{court(j.d)}</span>
+                <span className="min-w-0 flex-1">
+                  {j.groupes ? j.groupes.map((g, k) => (
+                    <span key={k} className="num block text-[16.5px] font-bold">{g.n > 1 ? `${g.n} × ` : ""}{g.t}</span>
+                  )) : (
+                    <span className="block text-[14px] text-muted-foreground">{tr("Meilleure série : {s}", { s: serieLongue(pts.find((p) => p.d === j.d)!) })}</span>
+                  )}
+                </span>
+                <span className="shrink-0 text-[12px] text-muted-foreground">{tr("{n} série{a}", { n: j.total, a: pluriel(j.total) ? "s" : "" })}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+        <>
         {/* une barre par séance, la dernière en couleur */}
         <div className="mt-4 flex h-[210px] items-end gap-2" role="img" aria-label={tr("Tes séances : {l}", { l: vus.map((p) => `${court(p.d)} ${etiquette(p)}`).join(", ") })}>
           {vus.map((p, i) => {
@@ -110,6 +165,8 @@ export function ProgressionExercice({ H, id, setId }: { H: LigneHist[]; id: stri
             );
           })}
         </div>
+        </>
+        )}
 
         {pts.length > 1 && (
           <div className="mt-3.5 flex items-center gap-2.5 rounded-[16px] bg-plate-soft/60 p-3 dark:bg-plate/12">
@@ -123,9 +180,9 @@ export function ProgressionExercice({ H, id, setId }: { H: LigneHist[]; id: stri
           </div>
         )}
 
-        {kg && (
-          <div className="mt-3 flex gap-1.5" role="radiogroup" aria-label={tr("Ce que montrent les barres")}>
-            {([["charge", tr("Charge")], ["volume", tr("Volume")], ["force", tr("Force estimée")]] as [Vue, string][]).map(([k, n]) => (
+        {(
+          <div className="mt-3 flex gap-1.5" role="radiogroup" aria-label={tr("Ce que tu veux voir")}>
+            {([["charge", kg ? tr("Charge") : tr("Meilleure série")], ["series", tr("Séries")], ...(kg ? [["force", tr("Force estimée")]] : [])] as [Vue, string][]).map(([k, n]) => (
               <button key={k} role="radio" aria-checked={vue === k} onClick={() => { tactile(4); setVue(k); }}
                 className={cn("rounded-full px-3 py-1.5 text-[12.5px] font-semibold", vue === k ? "bg-foreground text-background" : "border border-border text-muted-foreground")}>
                 {n}
