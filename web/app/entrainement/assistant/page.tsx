@@ -174,7 +174,7 @@ function Assistant() {
               <Input value={nomCardio} onChange={(e) => setNomCardio(e.target.value)} maxLength={60} placeholder={nomSeanceCardio(choix.f, choix.m)} className="h-12 rounded-2xl bg-card text-[16px]" />
             </section>
           </div>
-          <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
+          <div className="fixed inset-x-0 bas-ecran bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
             <div className="flex gap-2">
               <Button variant="soft" size="xl" className="flex-1 border border-border/80 bg-card" onClick={() => creerCardio()}>{tr("Enregistrer")}</Button>
               <Button variant="plate" size="xl" className="flex-[1.4]" onClick={() => creerCardio(true)}>{tr("Créer et démarrer")}</Button>
@@ -301,8 +301,8 @@ function Assistant() {
       </div>
 
       {/* un voile sous les boutons fixes : le contenu qui défile ne se lit pas à travers (boutons grisés compris) */}
-      <div aria-hidden className="pointer-events-none fixed inset-x-0 bottom-0 z-20 h-[calc(max(env(safe-area-inset-bottom),14px)+80px)] bg-gradient-to-t from-background from-60% to-transparent" />
-      <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
+      <div aria-hidden className="pointer-events-none fixed inset-x-0 bas-ecran bottom-0 z-20 h-[calc(max(env(safe-area-inset-bottom),14px)+80px)] bg-gradient-to-t from-background from-60% to-transparent" />
+      <div className="fixed inset-x-0 bas-ecran bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
         {pour ? (
           <Button variant="plate" size="xl" className="w-full disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 disabled:shadow-none" disabled={!peut} onClick={() => creer()}>
             {pour === auj ? tr("Voir la séance d'aujourd'hui") : tr("Voir la séance pour {j}", { j: jourCourt(pour) })}

@@ -98,7 +98,7 @@ function Preparation({ source: enregistree, go, nomModifiable, refBloc, sauver }
           </Button>
         )}
       </div>
-      <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
+      <div className="fixed inset-x-0 bas-ecran bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
         <Button
           variant="plate" size="xl" className="w-full"
           onClick={() => { preparer(); setCourse({ debut: Date.now(), pause: null, cumulPause: 0, saut: 0 }); }}

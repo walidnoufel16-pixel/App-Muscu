@@ -223,7 +223,7 @@ export function QuestionnaireCourse() {
           {alerte && <p className="mt-3 flex gap-2 rounded-xl bg-amber-500/12 p-2.5 text-[12.5px] leading-snug"><WarningIcon className="mt-0.5 size-4 shrink-0 text-amber-600" weight="fill" />{alerte}</p>}
         </section>
       </div>
-      <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
+      <div className="fixed inset-x-0 bas-ecran bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto max-w-[480px] px-4">
         <Button variant="plate" size="xl" className="w-full" disabled={!peut} onClick={creer}>{ex ? tr("Enregistrer les modifications") : tr("Créer mon plan")}{!ex && <ArrowRightIcon />}</Button>
       </div>
     </>

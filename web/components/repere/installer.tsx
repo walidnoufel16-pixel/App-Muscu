@@ -58,7 +58,7 @@ export function Installer() {
   return (
     <>
       {/* carte flottante juste au-dessus de la barre d'onglets */}
-      {carte && <div className="fixed inset-x-0 bottom-[calc(max(env(safe-area-inset-bottom),10px)+78px)] z-40 mx-auto max-w-[480px] px-3">
+      {carte && <div className="fixed inset-x-0 bas-ecran bottom-[calc(max(env(safe-area-inset-bottom),10px)+78px)] z-40 mx-auto max-w-[480px] px-3">
         <div className="flex animate-[monter_.4s_cubic-bezier(.3,1.2,.5,1)_both] items-center gap-3 rounded-[20px] border border-border/70 bg-card/95 p-2.5 pr-1.5 shadow-[0_12px_32px_-14px_rgba(0,0,0,.45)] backdrop-blur-xl">
           <span className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-plate-soft text-plate"><DownloadSimpleIcon className="size-6" weight="bold" /></span>
           <button onClick={ouvrir} className="min-w-0 flex-1 text-left text-[14px] leading-snug text-muted-foreground">

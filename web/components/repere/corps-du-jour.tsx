@@ -56,7 +56,7 @@ export function CorpsDuJour({ titre }: { titre: string }) {
       )}
       {m.length > 0 && (
         /* au-dessus de la barre d'onglets, tant que des muscles sont touchés */
-        <div className="fixed inset-x-0 bottom-[calc(max(env(safe-area-inset-bottom),10px)+82px)] z-40 mx-auto max-w-[480px] px-4">
+        <div className="fixed inset-x-0 bas-ecran bottom-[calc(max(env(safe-area-inset-bottom),10px)+82px)] z-40 mx-auto max-w-[480px] px-4">
           <button onClick={() => router.push(`/entrainement/assistant?m=${m.join(",")}` as Route, AVANT)}
             className="flex h-14 w-full animate-[monter_.3s_ease-out_both] items-center justify-center gap-2 rounded-full bg-plate px-5 text-[15px] font-semibold text-plate-foreground shadow-[0_12px_28px_-10px_var(--plate)] active:scale-[.98]">
             <span className="truncate">{tr("Créer ma séance · {a}", { a: m.map(nom).join(", ") })}</span><ArrowRightIcon className="size-4 shrink-0" weight="bold" />

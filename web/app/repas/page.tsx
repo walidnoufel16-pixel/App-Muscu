@@ -341,7 +341,7 @@ function Semaine({ p, b, kcal, ouvrir }: { p: PrefsRepas; b: Besoins; kcal: bool
       <div className="h-20" aria-hidden />
 
       {/* la liste de courses, toujours à portée de pouce, au-dessus de la barre d'onglets */}
-      <div className="fixed inset-x-0 bottom-[calc(max(env(safe-area-inset-bottom),10px)+82px)] z-40 mx-auto max-w-[480px] px-4">
+      <div className="fixed inset-x-0 bas-ecran bottom-[calc(max(env(safe-area-inset-bottom),10px)+82px)] z-40 mx-auto max-w-[480px] px-4">
         <button onClick={() => { tactile(8); setCourses(true); }}
           className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-plate px-5 text-[15px] font-semibold text-plate-foreground shadow-[0_12px_28px_-10px_var(--plate)] active:scale-[.98]">
           <ShoppingCartIcon className="size-5" weight="bold" />

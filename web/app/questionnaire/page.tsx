@@ -166,7 +166,7 @@ export default function PageQuestionnaire() {
       </div>
 
       {!auto && (
-        <div className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[480px] bg-gradient-to-t from-background via-background to-transparent px-5 pt-6 pb-[max(env(safe-area-inset-bottom),16px)]">
+        <div className="fixed inset-x-0 bas-ecran bottom-0 z-20 mx-auto max-w-[480px] bg-gradient-to-t from-background via-background to-transparent px-5 pt-6 pb-[max(env(safe-area-inset-bottom),16px)]">
           <Button variant={idx === total - 1 ? "plate" : "default"} size="xl" className="w-full" disabled={!fait} onClick={suivant}>
             {idx === total - 1 ? tr("Générer mon programme") : tr("Continuer")}
           </Button>
