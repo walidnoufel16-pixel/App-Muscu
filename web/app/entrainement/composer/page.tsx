@@ -400,7 +400,7 @@ export default function PageComposer() {
         onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") })}
       />
       {/* fond opaque sous les boutons : désactivés (semi-transparents), ils ne laissent pas voir la liste derrière */}
-      <div className="fixed inset-x-0 bas-ecran bottom-0 z-30 mx-auto max-w-[480px] bg-background px-4 pt-3 pb-[max(env(safe-area-inset-bottom),14px)] shadow-[0_-10px_14px_-6px_var(--background)]">
+      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] bg-background px-4 pt-3 pb-[max(env(safe-area-inset-bottom),14px)] shadow-[0_-10px_14px_-6px_var(--background)]">
         {/* séance d'Oxa : « Mes séances » seulement si on le décide */}
         {/* (« Enregistrer » tout court vaut « garder » : la case n'apparaît qu'avec « Enregistrer pour … » ou
             sur une séance d'Oxa pas encore gardée) */}

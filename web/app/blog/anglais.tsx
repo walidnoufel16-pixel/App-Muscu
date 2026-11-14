@@ -21,7 +21,7 @@ export function ProposerAnglais({ href }: { href: string }) {
   if (!propose || ferme) return null;
   const non = () => { try { localStorage.setItem(CLE, "1"); } catch {} setFerme(true); };
   return (
-    <div lang="en" className="fixed inset-x-0 bas-ecran bottom-[max(env(safe-area-inset-bottom),14px)] z-40 mx-auto flex max-w-[440px] items-center gap-2 px-4">
+    <div lang="en" className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-40 mx-auto flex max-w-[440px] items-center gap-2 px-4">
       <a href={href} hrefLang="en" className="flex flex-1 items-center justify-between rounded-2xl bg-[#0a0a0c] px-4 py-3 text-[15px] font-semibold text-white shadow-lg">
         Read in English? <span className="text-[#2dd4bf]">English →</span>
       </a>

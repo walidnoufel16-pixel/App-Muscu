@@ -12,7 +12,6 @@ import { TabBar } from "./tab-bar";
 import { MenuLateral } from "./menu-lateral";
 import { Installer } from "./installer";
 import { RestTimer } from "./rest-timer";
-import { suivreViewport } from "@/lib/viewport";
 import { Confirmateur } from "./confirmer";
 import { Bilan } from "./bilan";
 import { SurveillantBadges } from "./motivation";
@@ -49,10 +48,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     noterSource(); suivreHistorique(); suivreDefis(); demarrer(); demarrerMesure();
-    const finViewport = suivreViewport();
     /* appareil inscrit aux rappels : remis au nom du compte et de la langue actuels */
     const t = setTimeout(resynchroniserRappels, 8000);
-    return () => { clearTimeout(t); finViewport(); };
+    return () => clearTimeout(t);
   }, [demarrer]);
   /* programme sur 8 semaines : ouvert compte par compte par l'admin */
   useVerifierAccesProgramme();
