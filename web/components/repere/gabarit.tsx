@@ -41,7 +41,7 @@ export function ChoixMuscles({ initial, jour, onPreparer, autre, jamais, materie
   const [vue, setVue] = useState<"corps" | "liste">("corps");
   const bascule = (k: string) => { tactile(6); setM((l) => (l.includes(k) ? l.filter((x) => x !== k) : [...l, k])); };
   /* un muscle qui récupère encore : on le dit, sans bloquer */
-  const recup = avisMuscles(m, { H: etat.HIST, auj: jour, efforts: effortsEndurance(etat.SORTIES, etat.CARDIO, etat.A.avant) }).find((a) => a.id === "recup");
+  const recup = avisMuscles(m, { H: etat.HIST, auj: jour, efforts: effortsEndurance(etat.SORTIES, etat.CARDIO, etat.A.avant, etat.ACTIVITES) }).find((a) => a.id === "recup");
   return (
     <div className="flex flex-col gap-3 rounded-[20px] border border-border/80 bg-card p-4">
       <div>

@@ -82,7 +82,7 @@ export function avisSeance(L: Brouillon, c: ContexteAvis): Avis[] {
       const avec = recup.filter((g) => E[g].dernier), j = avec.length ? Math.min(...avec.map((g) => E[g].jours)) : -1;
       const quand = j === 0 ? tr("aujourd'hui") : j === 1 ? tr("hier") : tr("il y a {n} jours", { n: j });
       out.push({ id: "recup", f: "corps", titre: tp(nombre(recup), "{a} récupère encore.", "{a} récupèrent encore.", { a: phrase(recup.map(nomGroupe)) }),
-        texte: j < 0 ? tp(nombre(recup), "Course, cardio ou séance d'avant Oxa : allège-le, ou garde-le pour une prochaine séance.", "Course, cardio ou séance d'avant Oxa : allège-les, ou garde-les pour une prochaine séance.")
+        texte: j < 0 ? tp(nombre(recup), "Autre sport, course, cardio ou séance d'avant Oxa : allège-le, ou garde-le pour une prochaine séance.", "Autre sport, course, cardio ou séance d'avant Oxa : allège-les, ou garde-les pour une prochaine séance.")
           : tr("Travaillés {q} : allège-les, ou garde-les pour une prochaine séance.", { q: quand }) });
     }
   }

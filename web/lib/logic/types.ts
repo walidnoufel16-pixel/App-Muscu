@@ -40,6 +40,8 @@ export type PlanIA = {
    g gainage), affichée en étiquette pour expliquer l'ordre */
 /* k : muscle de la case du gabarit où l'exercice a été choisi (composeur seulement, jamais enregistré) */
 /* sup : superset, l'exercice s'enchaîne sans repos avec le suivant (le repos vient après le second) */
+/** Une autre activité (sp : id dans lib/data/activites.ts ; int : 0 tranquille, 1 normale, 2 à fond ; m : muscles sollicités). */
+export type Activite = { id: string; d: string; sp: string; min: number; int: 0 | 1 | 2; m: string[] };
 export type ExLibre = { id: string; s: number; r: number; p: string; o?: number; ro?: RoleEx; k?: string; sup?: 1 };
 export type RoleEx = "b" | "c" | "i" | "g";
 export type SeanceLibre = {
@@ -178,6 +180,8 @@ export type Etat = {
   SORTIES?: Sortie[];
   /* « Mon agenda » : séances programmées, avec leur rappel (lib/logic/agenda.ts). */
   AGENDA?: Prevu[];
+  /** Autres activités déclarées dans l'agenda (foot, padel, vélo…) : leurs muscles récupèrent. */
+  ACTIVITES?: Activite[];
   /* Séances retirées de l'historique (« jour|séance@quand », ancien format « jour|séance », ou
      « c|ts » pour un cardio) : gardées pour qu'un autre appareil ne les fasse pas revenir à la
      synchronisation. Une séance refaite après son retrait (le même jour) reste. */

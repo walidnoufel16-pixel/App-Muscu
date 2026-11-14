@@ -124,11 +124,11 @@ import type { Etat } from "@/lib/logic/types";
 
 describe("menu du jour", () => {
   it("toucher un jour vide : le menu (aujourd'hui et à venir), rien pour un jour passé ; sinon la feuille du jour", () => {
-    const vide = (d: string) => ({ d, fait: [], prevus: [], manques: [] }) as never;
+    const vide = (d: string) => ({ d, fait: [], prevus: [], manques: [], act: [] }) as never;
     expect(feuilleDuJour(vide("2026-11-09"), "2026-11-09")).toEqual({ m: "nouvelle", d: "2026-11-09" });
     expect(feuilleDuJour(vide("2026-11-12"), "2026-11-09")).toEqual({ m: "nouvelle", d: "2026-11-12" });
     expect(feuilleDuJour(vide("2026-11-05"), "2026-11-09")).toBeNull();
-    expect(feuilleDuJour({ d: "2026-11-12", fait: [], prevus: [{}], manques: [] } as never, "2026-11-09")).toEqual({ m: "jour", d: "2026-11-12" });
+    expect(feuilleDuJour({ d: "2026-11-12", fait: [], prevus: [{}], manques: [], act: [] } as never, "2026-11-09")).toEqual({ m: "jour", d: "2026-11-12" });
   });
   it("une séance créée pour un jour à venir est programmée ce jour-là, avec le rappel habituel", () => {
     const demain = new Date(Date.now() + 864e5).toISOString().slice(0, 10);

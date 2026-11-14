@@ -14,6 +14,7 @@ import { confirmer } from "./confirmer";
 import { retirerDeHistorique } from "@/lib/logic/actions";
 import { BellIcon, CaretDownIcon, CaretLeftIcon, CaretRightIcon, PencilSimpleIcon, CalendarDotsIcon, CheckIcon, DownloadSimpleIcon, HeartbeatIcon, PersonSimpleIcon, PersonSimpleRunIcon, PlusIcon, SparkleIcon, BarbellIcon } from "@phosphor-icons/react";
 import { MiniCorps } from "./corps-muscles";
+import { ActivitesDuJour, FeuilleActivite, SectionActivites } from "./activites";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { Segmente } from "./segmente";
 import {
@@ -72,7 +73,8 @@ export type Feuille =
   | { m: "jour"; d: string }
   | { m: "programmer"; d: string; quoi?: QuoiPrevu; nom?: string; modifier?: boolean }
   | { m: "deplacer"; id: string; de: string }
-  | { m: "nouvelle"; d: string };
+  | { m: "nouvelle"; d: string }
+  | { m: "activite"; d: string; sp?: string; id?: string };
 
 /** Les feuilles de l'agenda (un jour, programmer, déplacer, nouvelle séance), dans un seul tiroir. */
 export function FeuillesAgenda({ f, setF, auj }: { f: Feuille | null; setF: (f: Feuille | null) => void; auj: string }) {
@@ -85,6 +87,7 @@ export function FeuillesAgenda({ f, setF, auj }: { f: Feuille | null; setF: (f: 
           {f?.m === "programmer" && <FeuilleProgrammer key={f.d + (f.nom ?? "")} init={f} auj={auj} fermer={() => setF(null)} />}
           {f?.m === "deplacer" && <FeuilleDeplacer id={f.id} de={f.de} auj={auj} fermer={() => setF(null)} />}
           {f?.m === "nouvelle" && <FeuilleNouvelle key={f.d} d={f.d} auj={auj} setF={setF} />}
+          {f?.m === "activite" && <FeuilleActivite key={f.d + (f.sp ?? "") + (f.id ?? "")} d={f.d} sp={f.sp} id={f.id} auj={auj} fermer={() => setF(null)} />}
         </div>
       </DrawerContent>
     </Drawer>
@@ -93,7 +96,7 @@ export function FeuillesAgenda({ f, setF, auj }: { f: Feuille | null; setF: (f: 
 
 /** Toucher un jour : vide et à venir (ou aujourd'hui), le menu du jour ; vide et passé, rien ; sinon sa feuille. */
 export const feuilleDuJour = (j: JourAgenda, auj: string): Feuille | null =>
-  !j.fait.length && !j.prevus.length && !j.manques.length ? (j.d >= auj ? { m: "nouvelle", d: j.d } : null) : { m: "jour", d: j.d };
+  !j.fait.length && !j.prevus.length && !j.manques.length && !j.act.length ? (j.d >= auj ? { m: "nouvelle", d: j.d } : null) : { m: "jour", d: j.d };
 
 /* ---------------- la feuille « Programmer une séance » (un jour, le bouton +, « Programmer une séance ») ----------------
    En haut, créer : je choisis les muscles (assistant), exercice par exercice (composeur), importer.
@@ -180,6 +183,8 @@ function FeuilleNouvelle({ d: d0, auj, setF }: { d: string; auj: string; setF: (
           </button>
         ))}
       </div>
+
+      <SectionActivites onChoisir={(sp) => setF({ m: "activite", d, sp })} />
 
       <section className="mt-4">
         <h3 className="eyebrow mb-0.5 flex items-center gap-1.5 px-1"><SparkleIcon className="size-3.5 text-plate" weight="fill" />{tr("Oxa choisit pour toi")}</h3>
@@ -445,9 +450,11 @@ function FeuilleJour({ d, auj, j, setF }: { d: string; auj: string; j: JourAgend
         );
       })}
 
+      <ActivitesDuJour act={j.act} onModifier={(id) => setF({ m: "activite", d, id })} />
+
       {d >= auj && (
         <button onClick={() => setF({ m: "nouvelle", d })} className="mt-5 flex w-full items-center justify-center gap-1.5 rounded-full border border-dashed border-plate/60 py-3 text-[14px] font-semibold text-plate-ink dark:text-plate">
-          <PlusIcon className="size-4" weight="bold" />{j.fait.length || j.prevus.length ? tr("Ajouter une autre séance ce jour-là") : tr("Ajouter une séance")}
+          <PlusIcon className="size-4" weight="bold" />{j.fait.length || j.prevus.length || j.act.length ? tr("Ajouter une autre séance ce jour-là") : tr("Ajouter une séance")}
         </button>
       )}
     </>

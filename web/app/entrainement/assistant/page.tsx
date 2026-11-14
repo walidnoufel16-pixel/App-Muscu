@@ -109,8 +109,8 @@ function Assistant() {
   /* jour choisi dans « Programmer » (aujourd'hui compris) : la séance créée y sera ajoutée */
   const pour = jourUrl && /^\d{4}-\d{2}-\d{2}$/.test(jourUrl) && jourUrl >= auj ? jourUrl : null;
   const [refus, setRefus] = useState<string[]>([]);
-  const efforts = useRepere((s) => s.etat.SORTIES), cardios = useRepere((s) => s.etat.CARDIO), avant = useRepere((s) => s.etat.A.avant);
-  const suggestion = street ? undefined : avisMuscles(m, { H, auj, efforts: effortsEndurance(efforts, cardios, avant) }).find((x) => !refus.includes(x.id));
+  const efforts = useRepere((s) => s.etat.SORTIES), cardios = useRepere((s) => s.etat.CARDIO), avant = useRepere((s) => s.etat.A.avant), activites = useRepere((s) => s.etat.ACTIVITES);
+  const suggestion = street ? undefined : avisMuscles(m, { H, auj: pour ?? auj, efforts: effortsEndurance(efforts, cardios, avant, activites) }).find((x) => !refus.includes(x.id));
   const budget = Math.round((DUREES.find((x) => x[0] === d) || DUREES[1])[1] / 3);
   const peut = m.length > 0 && obj != null && sel.some((t) => !t.startsWith("x:"));
 

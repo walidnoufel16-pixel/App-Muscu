@@ -16,6 +16,8 @@ import { decaler, jourDe, lundiDe } from "@/lib/logic/historique";
 import { useRepere } from "@/lib/store";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
+import { activite } from "@/lib/data/activites";
+import { texteDuree } from "@/components/repere/activites";
 
 const RUN = "#c2622a";
 type Vue = "mois" | "semaine";
@@ -127,6 +129,7 @@ function JourMois({ j, auj, sel, dansMois, onClick }: { j: JourAgenda; auj: stri
     ...j.fait.map((f) => (f.famille === "course" ? "run" : "fait")),
     ...j.prevus.map((p) => (familleDe(p.quoi) === "course" ? "runp" : "prevu")),
     ...j.manques.map(() => "manque"),
+    ...j.act.map(() => "act"),
   ].slice(0, 3);
   const estAuj = j.d === auj, estSel = j.d === sel;
   return (
@@ -139,7 +142,7 @@ function JourMois({ j, auj, sel, dansMois, onClick }: { j: JourAgenda; auj: stri
       <span className="mt-1 flex h-1.5 gap-[3px]">
         {points.map((t, k) => (
           <i key={k} className={cn("size-1.5 rounded-full",
-            t === "fait" && "bg-plate", t === "prevu" && "border-[1.5px] border-plate", t === "manque" && "bg-foreground/25",
+            t === "fait" && "bg-plate", t === "prevu" && "border-[1.5px] border-plate", t === "manque" && "bg-foreground/25", t === "act" && "bg-amber-500",
             t === "runp" && "border-[1.5px]")}
             style={t === "run" ? { background: RUN } : t === "runp" ? { borderColor: RUN } : undefined} />
         ))}
@@ -155,16 +158,17 @@ function Legende() {
       <span className="flex items-center gap-1"><i className="size-2 rounded-full border-[1.5px] border-plate" />{tr("prévu")}</span>
       <span className="flex items-center gap-1"><i className="size-2 rounded-full" style={{ background: RUN }} />Oxa Run</span>
       <span className="flex items-center gap-1"><i className="size-2 rounded-full bg-foreground/25" />{tr("manqué")}</span>
+      <span className="flex items-center gap-1"><i className="size-2 rounded-full bg-amber-500" />{tr("autre activité")}</span>
     </div>
   );
 }
 
 /* ---------------- les séances d'un jour, en liste ---------------- */
-function Rangee({ barre, titre, sous, rappel, droite, onClick }: { barre: "fait" | "prevu" | "run" | "manque"; titre: string; sous: string; rappel?: { veille: boolean; h: number }; droite?: string; onClick: () => void }) {
+function Rangee({ barre, titre, sous, rappel, droite, onClick }: { barre: "fait" | "prevu" | "run" | "manque" | "act"; titre: string; sous: string; rappel?: { veille: boolean; h: number }; droite?: string; onClick: () => void }) {
   return (
     <button onClick={onClick} className="flex w-full items-center gap-3 border-b border-border/70 px-1 py-2.5 text-left last:border-b-0 active:bg-muted/50">
       <span className={cn("w-1 self-stretch rounded-full",
-        barre === "fait" && "bg-plate", barre === "manque" && "bg-foreground/20",
+        barre === "fait" && "bg-plate", barre === "manque" && "bg-foreground/20", barre === "act" && "bg-amber-500",
         barre === "prevu" && "bg-[repeating-linear-gradient(var(--plate)_0_4px,transparent_4px_7px)]")}
         style={barre === "run" ? { background: RUN } : undefined} />
       <span className="min-w-0 flex-1">
@@ -183,9 +187,13 @@ function Rangee({ barre, titre, sous, rappel, droite, onClick }: { barre: "fait"
 function ListeJour({ j, auj, setF }: { j: JourAgenda; auj: string; setF: (f: Feuille) => void }) {
   const etat = useRepere((s) => s.etat);
   const ouvrir = () => { tactile(5); setF({ m: "jour", d: j.d }); };
-  const vide = !j.fait.length && !j.prevus.length && !j.manques.length;
+  const vide = !j.fait.length && !j.prevus.length && !j.manques.length && !j.act.length;
   return (
     <div className="rounded-[18px] bg-card px-3">
+      {j.act.map((a) => (
+        <Rangee key={a.id} barre="act" titre={activite(a.sp)?.n() ?? tr("Activité")} sous={[tr("Autre activité"), texteDuree(a.min)].join(" · ")}
+          onClick={() => { tactile(5); setF({ m: "activite", d: j.d, id: a.id }); }} />
+      ))}
       {j.fait.map((f, k) => (
         <Rangee key={"f" + k} barre={f.famille === "course" ? "run" : "fait"} titre={f.nom}
           sous={f.famille === "course" ? tr("Faite · Oxa Run") : f.famille === "cardio" ? tr("Faite · cardio") : tr("Faite")}

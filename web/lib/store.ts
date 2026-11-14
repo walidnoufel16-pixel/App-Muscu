@@ -104,6 +104,7 @@ export function versEtat(s: Stocke | null): Etat {
   e.SORTIES = Array.isArray(s.SORTIES) ? nettoieArbre(s.SORTIES).slice(-500) : [];
   /* « Mon agenda » : séances programmées ; les jours passés depuis plus de 60 jours sont oubliés */
   e.AGENDA = Array.isArray(s.AGENDA) ? (nettoieArbre(s.AGENDA) as Prevu[]).filter((p) => p && typeof p.d === "string" && p.quoi && (p.hebdo || p.d >= jourDe(Date.now() - 60 * 864e5))).slice(-200) : [];
+  e.ACTIVITES = Array.isArray(s.ACTIVITES) ? (nettoieArbre(s.ACTIVITES) as NonNullable<Etat["ACTIVITES"]>).filter((a) => a && typeof a.d === "string" && typeof a.sp === "string" && Array.isArray(a.m) && a.d >= jourDe(Date.now() - 60 * 864e5)).slice(-200) : [];
   e.RETIRES = Array.isArray(s.RETIRES) ? (s.RETIRES as unknown[]).filter((x): x is string => typeof x === "string").slice(-300) : [];
   /* séries restées à la position d'un autre exercice (séance modifiée avant la correction) */
   rattacherJournaux(e);
