@@ -85,15 +85,24 @@ function Ressenti() {
   );
 }
 
-function Prochaine() {
+/* Un vrai exemple de progression (compte d'un utilisateur d'Oxa, anonyme, avec son accord). */
+function Progression() {
   return (
-    <div className="flex items-center gap-3 rounded-[18px] border border-[#303038] bg-[#17171b] p-3.5">
-      <span className="min-w-0 flex-1">
-        <span className="block text-[11px] font-semibold tracking-[0.08em] text-[#9d9da7] uppercase">{tr("Séance suivante")}</span>
-        <span className="titre block text-[16px]">{tr("Développé couché barre")}</span>
-        <span className="num text-[16px] font-bold">3 × 8 · 35 kg</span>
-      </span>
-      <span className="num rounded-full bg-plate/15 px-3 py-1.5 text-[18px] font-bold text-plate">↑ {nb(2.5)} kg</span>
+    <div className="rounded-[18px] border border-[#303038] bg-[#17171b] p-3.5">
+      <div className="text-[10.5px] font-semibold tracking-[0.08em] text-[#9d9da7] uppercase">{tr("Un utilisateur d'Oxa, pour de vrai")}</div>
+      <div className="titre mt-0.5 text-[16px]">{tr("Rowing buste appuyé haltères")}</div>
+      <div className="mt-2 flex items-center gap-2.5 text-center">
+        <span className="flex-1">
+          <span className="block text-[10.5px] font-semibold tracking-[0.08em] text-[#9d9da7] uppercase">{tr("3 nov.")}</span>
+          <span className="num block text-[24px] font-bold">10 kg × 10</span>
+        </span>
+        <ArrowRightIcon className="size-5 text-plate" weight="bold" />
+        <span className="flex-1">
+          <span className="block text-[10.5px] font-semibold tracking-[0.08em] text-plate uppercase">{tr("14 nov.")}</span>
+          <span className="num block text-[24px] font-bold text-plate">12 kg × 11</span>
+        </span>
+      </div>
+      <p className="mt-1.5 text-center text-[12px] text-[#9d9da7]">{tr("+2 kg et une répétition de plus, en 11 jours")}</p>
     </div>
   );
 }
@@ -104,7 +113,7 @@ const ETAPES = [
   { quand: "Avant", titre: "Ta séance est prête", texte: "Selon tes muscles récupérés, ton objectif et ton matériel. Pas convaincu ? « Autre idée ».", Visuel: CarteJour },
   { quand: "Pendant", titre: "Un geste par série", texte: "La série à faire en bas de l'écran, la charge déjà remplie, le repos qui se lance seul.", Visuel: () => <div className="flex flex-col gap-2.5"><CarteExercice /><BarreValider /></div> },
   { quand: "Après chaque exercice", titre: "Ton ressenti compte", texte: "Facile, juste ou trop dur : Oxa ajuste la charge de la prochaine fois.", Visuel: Ressenti },
-  { quand: "La semaine suivante", titre: "Tu progresses", texte: "+2,5 kg quand tu as réussi, moins après une pause. Chaque lundi, ton bilan.", Visuel: Prochaine },
+  { quand: "Les semaines suivantes", titre: "Tu progresses", texte: "Quand tu réussis, Oxa ajoute du poids ou une répétition. Un exemple réel :", Visuel: Progression },
 ];
 const POUR_QUI = [
   { t: "Tu débutes", d: "Des séances guidées, les bons gestes en photo, des charges prudentes au départ." },
@@ -132,7 +141,8 @@ export function Vitrine({ onCommencer, onCompte }: { onCommencer: () => void; on
           <h1 className="titre text-[40px] leading-none font-extrabold">{tr("Arrive à la salle.")}<span className="block text-plate">{tr("Oxa a déjà prévu.")}</span></h1>
           <p className="mt-3 text-[16px] leading-snug opacity-90">{tr("Les exercices, les séries, la charge de chaque série. Et pourquoi.")}</p>
           <Button variant="plate" size="xl" onClick={onCommencer} className="mt-5 w-full">{tr("Commencer")}<ArrowRightIcon /></Button>
-          <p className="mt-2.5 text-center text-[13px] font-medium opacity-80">{tr("Pas d'App Store : ajoute-la à ton écran d'accueil en 2 gestes")}</p>
+          <p className="mt-3 text-center text-[14px] font-semibold">{tr("+250 exercices de musculation, chacun en photo")}</p>
+          <p className="mt-1 text-center text-[13px] font-medium opacity-80">{tr("Pas d'App Store : ajoute-la à ton écran d'accueil en 2 gestes")}</p>
         </div>
       </header>
 
