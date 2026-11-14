@@ -163,6 +163,22 @@ export const photosDistantes = () => [
   ...POSTES.filter((p) => !p.img && PHOTOS_POSTES[p.id]).flatMap((p) => [imgPoste(p)!, imgPosteGrand(p)!]),
 ];
 
+/* Photos des aperçus de séance (accueil, rubriques) : libres de droits (CC0), via Openverse.
+   Les photos de démonstration servent aux exercices seulement. */
+const PHOTOS_SEANCES: { nom: string; auteur: string; site: string; lien: string }[] = [
+  { nom: "seance-pecs", auteur: "U.S. Army", site: "rawpixel", lien: "https://www.rawpixel.com/image/11072620/10th-mdsb-command-mentorship" },
+  { nom: "seance-dos", auteur: "", site: "rawpixel", lien: "https://www.rawpixel.com/image/5975039/man-performing-pull-ups" },
+  { nom: "seance-jambes", auteur: "Alexandre Vanier", site: "StockSnap", lien: "https://stocksnap.io/photo/girl-woman-EHS7NJY7KT" },
+  { nom: "seance-epaules", auteur: "The African Union Mission in Somalia", site: "rawpixel", lien: "https://www.rawpixel.com/image/3372747/free-photo-image-africa-back-cc0" },
+  { nom: "seance-bras", auteur: "Bruce Mars", site: "StockSnap", lien: "https://stocksnap.io/photo/woman-workout-MO8FFFHRSS" },
+  { nom: "seance-corps", auteur: "", site: "rawpixel", lien: "https://www.rawpixel.com/image/5926278/photo-image-public-domain-free-plates" },
+  { nom: "seance-cardio", auteur: "The Lazy Artist Gallery", site: "StockSnap", lien: "https://stocksnap.io/photo/man-workout-GZ36IBWBDL" },
+  { nom: "seance-repos", auteur: "Healthy Living", site: "StockSnap", lien: "https://stocksnap.io/photo/yoga-meditation-GG3SROJUUS" },
+  { nom: "seance-soin", auteur: "Daria Shevtsova", site: "StockSnap", lien: "https://stocksnap.io/photo/woman-stretch-MVCPFTBOTT" },
+  { nom: "seance-libre", auteur: "", site: "rawpixel", lien: "https://www.rawpixel.com/image/6031193/photo-image-public-domain-hands-person" },
+  { nom: "seance-plan", auteur: "", site: "rawpixel", lien: "https://www.rawpixel.com/image/5923091/photo-image-public-domain-free-plates" },
+];
+
 /* Tout ce que l'app emprunte, pour la page Compte › Crédits. */
 export const CREDITS: { quoi: string; nom: string; licence: string; lien: string }[] = [
   ...Object.values(SOURCES).map((s) => ({ quoi: tr("Photos des exercices"), nom: s.nom, licence: s.licence, lien: s.lien })),
@@ -176,6 +192,7 @@ export const CREDITS: { quoi: string; nom: string; licence: string; lien: string
   }),
   /* les sources ne sont plus sous les photos : chaque photographe des recettes est cité ici, avec un lien vers son profil */
   ...[...new Map(Object.values(PHOTOS_RECETTES).map((ph) => [ph.profil, ph])).values()].map((ph) => ({ quoi: tr("Photos des recettes"), nom: tr("{n} sur Unsplash", { n: ph.auteur }), licence: tr("Licence Unsplash"), lien: `https://unsplash.com/@${ph.profil}${UTM}` })),
+  ...PHOTOS_SEANCES.map((ph) => ({ quoi: tr("Photos des séances"), nom: ph.auteur ? tr("{n} sur {s}", { n: ph.auteur, s: ph.site }) : ph.site, licence: "CC0", lien: ph.lien })),
   { quoi: tr("Valeurs des produits (protéines)"), nom: tr("Open Food Facts, recherche par nom via wger"), licence: "ODbL", lien: "https://world.openfoodfacts.org" },
   { quoi: tr("Schéma du corps"), nom: tr("react-native-body-highlighter, Hicham Elabbassi"), licence: "MIT", lien: "https://github.com/HichamELBSI/react-native-body-highlighter" },
   { quoi: tr("Icônes"), nom: tr("Phosphor Icons"), licence: "MIT", lien: "https://phosphoricons.com" },

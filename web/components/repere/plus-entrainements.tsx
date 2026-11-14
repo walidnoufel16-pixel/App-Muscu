@@ -21,8 +21,8 @@ export const AUTRES: Autre[] = ["street", "course", "soin", "cardio", "defis"];
 const DEF: Record<Autre, { nom: () => string; texte: () => string; lien: Route; photo?: string; fond: string }> = {
   street: { nom: () => "Oxa Street", texte: () => tr("Poids du corps et barre, programmes par niveau"), lien: lienRubrique("street"), photo: "rubrique-street", fond: "var(--street)" },
   course: { nom: () => "Oxa Run", texte: () => tr("10 km, semi, marathon ou Hyrox : un plan jusqu'au jour J"), lien: lienRubrique("course"), photo: "rubrique-run", fond: "#9a4a1c" },
-  soin: { nom: () => tr("Soin & mobilité"), texte: () => tr("Routines courtes par zone, pour bouger sans douleur"), lien: lienRubrique("soin"), photo: "Hamstring_Stretch_0", fond: "#5d6b55" },
-  cardio: { nom: () => tr("Cardio"), texte: () => tr("Fractionné ou endurance, seul ou dans une séance combinée"), lien: "/entrainement/assistant?type=cardio" as Route, photo: "Air_Bike_0", fond: "#9f1239" },
+  soin: { nom: () => tr("Soin & mobilité"), texte: () => tr("Routines courtes par zone, pour bouger sans douleur"), lien: lienRubrique("soin"), photo: "seance-soin", fond: "#5d6b55" },
+  cardio: { nom: () => tr("Cardio"), texte: () => tr("Fractionné ou endurance, seul ou dans une séance combinée"), lien: "/entrainement/assistant?type=cardio" as Route, photo: "seance-cardio", fond: "#9f1239" },
   defis: { nom: () => tr("Défis"), texte: () => tr("Un objectif à plusieurs, entre amis"), lien: "/progres#defis" as Route, fond: "#b45309" },
 };
 
