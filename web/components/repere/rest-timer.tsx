@@ -60,7 +60,7 @@ export function RestTimer({ avecOnglets }: { avecOnglets: boolean }) {
       role="timer"
       aria-live="polite"
       className={cn(
-        "fixed inset-x-0 bas-ecran z-40 mx-auto max-w-[480px] px-3 animate-in slide-in-from-bottom-4 fade-in-0 duration-300",
+        "fixed inset-x-0 z-40 mx-auto max-w-[480px] px-3 animate-in slide-in-from-bottom-4 fade-in-0 duration-300",
         avecOnglets ? "bottom-[calc(max(env(safe-area-inset-bottom),10px)+76px)]" : "bottom-[max(env(safe-area-inset-bottom),12px)]",
       )}
     >

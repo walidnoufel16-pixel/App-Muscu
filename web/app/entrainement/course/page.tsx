@@ -282,7 +282,7 @@ function Seance({ cle }: { cle: string }) {
           {tr("Lance le minuteur pour être guidé (signal sonore à chaque changement), ou cours avec ta montre puis note ta sortie.")}
         </p>
       </div>
-      <div className="fixed inset-x-0 bas-ecran bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto flex max-w-[480px] gap-2 px-4">
+      <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),14px)] z-30 mx-auto flex max-w-[480px] gap-2 px-4">
         {x.type === "renfo" ? (
           <Button variant="plate" size="xl" className="w-full" disabled={!r || r.idx < 0} onClick={() => router.push(`/entrainement/seance?l=${r!.idx}` as Route, AVANT)}>
             {tr("Ouvrir la séance de renfo")}<ArrowRightIcon />

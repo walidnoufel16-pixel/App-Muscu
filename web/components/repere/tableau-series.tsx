@@ -116,7 +116,7 @@ export function BarreSerie({ c, onFini, etiquette, rpe = 0, ...o }: { c: Ctx | n
   const unite = x.ch === "kg" ? " kg" : x.ch === "lest" ? tr(" kg de lest") : "";
   const quoi = (["kg", "lest"].includes(x.ch) ? `${nb(S[n].v)}${unite} × ${S[n].reps}` : fmtSerie(x, S[n]) + (x.ch === "aucune" ? tr(" réps") : "")) + (x.cote ? tr(" / côté") : "");
   return (
-    <div className="fixed inset-x-0 bas-ecran bottom-[max(env(safe-area-inset-bottom),12px)] z-30 mx-auto max-w-[480px] px-3 animate-in slide-in-from-bottom-4 fade-in-0 duration-300">
+    <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),12px)] z-30 mx-auto max-w-[480px] px-3 animate-in slide-in-from-bottom-4 fade-in-0 duration-300">
       {/* noire en clair ; en sombre, une carte surélevée plutôt qu'un bloc blanc qui éblouit */}
       <div className="flex items-center gap-3 rounded-[24px] border border-transparent bg-[#0a0a0c] py-2.5 pr-2.5 pl-[18px] text-[#f5f5f7] shadow-[0_14px_30px_-12px_rgba(0,0,0,.5)] dark:border-border dark:bg-[#26262d]">
         <div className="min-w-0 flex-1">

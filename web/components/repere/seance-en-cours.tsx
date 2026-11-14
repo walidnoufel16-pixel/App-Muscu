@@ -61,7 +61,7 @@ export function BandeauSeance() {
   const c = useEnCours()[0];
   if (!c) return null;
   return (
-    <div className="fixed inset-x-0 bas-ecran bottom-[calc(env(safe-area-inset-bottom)+86px)] z-30 mx-auto flex w-[calc(100%-32px)] max-w-[448px] items-center rounded-full bg-plate text-plate-foreground shadow-lg">
+    <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+86px)] z-30 mx-auto flex w-[calc(100%-32px)] max-w-[448px] items-center rounded-full bg-plate text-plate-foreground shadow-lg">
       <button onClick={() => { tactile(8); router.push(`/entrainement/seance?l=${c.i}` as Route, AVANT); }}
         className="flex min-w-0 flex-1 items-center gap-3 py-2 pl-4 text-left active:opacity-85">
         <span className="relative flex size-2.5 shrink-0"><span className="absolute inline-flex size-full animate-ping rounded-full bg-current opacity-60" /><span className="relative inline-flex size-2.5 rounded-full bg-current" /></span>
