@@ -64,16 +64,15 @@ ok(await pg.getByText("Squat barre").first().isVisible().catch(() => false) || a
 ok(!(await deborde()), "aucun débordement horizontal (393 px)");
 await cap("progres");
 
-// changer d'exercice dans la courbe
-await pg.locator("#par-exercice").click();
-await pg.getByRole("dialog").getByText("Développé couché barre").click();
+// changer d'exercice (pastilles)
+await pg.locator("#par-exercice").getByRole("button", { name: "Développé couché barre", exact: true }).click();
 await pg.waitForTimeout(400);
 {
   const txt = await pg.evaluate(() => document.body.innerText), m = txt.match(/.{0,40}(soulevé|\d t\b|tonne).{0,20}/);
   ok(!m, "Progrès : aucun total en kilos ou en tonnes" + (m ? " → " + m[0] : ""));
 }
 ok(await pg.locator("#par-exercice").textContent().then((t) => t.includes("Développé couché barre")), "courbe : exercice choisi");
-ok(await pg.getByText("1RM estimé (formule d'Epley)").isVisible(), "courbe en 1RM estimé");
+ok(await pg.getByText(/Ta meilleure série à chaque séance/).isVisible(), "barres : la meilleure série de chaque séance");
 
 // détail d'un jour
 await pg.locator('button[aria-label*="musculation"]').last().click();
