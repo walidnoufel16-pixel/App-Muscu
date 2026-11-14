@@ -5,8 +5,8 @@
 import { CarteBilanSemaine } from "@/components/repere/bilan-semaine";
 import { AvatarProfil } from "@/components/repere/avatar-profil";
 import { loc, pct, pluriel, tr } from "@/lib/i18n";
-import { Suspense, useEffect, useMemo, useState } from "react";
-import { ArrowDownIcon, ArrowUpIcon, CaretDownIcon, CaretRightIcon, ChartLineUpIcon, GearSixIcon, ScalesIcon, SparkleIcon, TrashIcon, TrophyIcon } from "@phosphor-icons/react";
+import { Suspense, useMemo, useState } from "react";
+import { ArrowDownIcon, ArrowUpIcon, CaretRightIcon, ChartLineUpIcon, GearSixIcon, ScalesIcon, SparkleIcon, TrashIcon, TrophyIcon } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LogoDisque } from "@/components/repere/logo";
 import { moisPrecedent, recap } from "@/lib/logic/recap";
@@ -19,6 +19,7 @@ import { Barres, Calendrier, Courbe } from "@/components/repere/graphes";
 import { SchemaCorps } from "@/components/repere/schema-corps";
 import { CarteRegularite, GrilleBadges } from "@/components/repere/motivation";
 import { SectionDefis } from "@/components/repere/defis";
+import { ProgressionExercice } from "@/components/repere/progression-exercice";
 import { SectionCourse } from "@/components/repere/course";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
@@ -28,7 +29,7 @@ import { PAT2MUSC } from "@/lib/data/referentiels";
 import { FORMATS } from "@/lib/logic/cardio";
 import { nb } from "@/lib/logic/core";
 import {
-  activite, courbe, dateDe, decaler, exercicesFaits, jourDe, lundiDe, nomMuscle, records, semaines, seriesParMuscle, type LigneHist,
+  activite, dateDe, decaler, jourDe, lundiDe, nomMuscle, records, semaines, seriesParMuscle, type LigneHist,
 } from "@/lib/logic/historique";
 import { useRepere } from "@/lib/store";
 import { retirerCardio, retirerDeHistorique } from "@/lib/logic/actions";
@@ -100,7 +101,7 @@ function Progres() {
             <Bilans auj={auj} />
             {/* progression par exercice et records, ensemble : toucher un record ouvre sa courbe */}
             <Section titre={tr("Ma progression par exercice")}>
-              <ParExercice H={H} id={exo} setId={setExo} />
+              <ProgressionExercice H={H} id={exo} setId={setExo} />
               <Records H={H} onChoisir={(id) => { setExo(id); requestAnimationFrame(() => document.getElementById("par-exercice")?.scrollIntoView({ block: "center", behavior: "smooth" })); }} />
             </Section>
             <SectionPoids />
@@ -276,66 +277,6 @@ function Records({ H, onChoisir }: { H: LigneHist[]; onChoisir: (id: string) => 
         })}
       </div>
     </div>
-  );
-}
-
-function ParExercice({ H, id, setId }: { H: LigneHist[]; id: string | null; setId: (id: string) => void }) {
-  const faits = useMemo(() => exercicesFaits(H).filter((e) => EX[e.id]), [H]);
-  /* ?ex= : ouvert depuis la fiche d'un exercice */
-  const q = useSearchParams().get("ex");
-  const [choix, setChoix] = useState(false);
-  useEffect(() => {
-    if (q) requestAnimationFrame(() => document.getElementById("par-exercice")?.scrollIntoView({ block: "center" }));
-  }, [q]);
-  const courant = id ?? (faits.find((e) => EX[e.id].ch === "kg" && e.n > 1) || faits[0])?.id;
-  const pts = useMemo(() => (courant ? courbe(H, courant) : []), [H, courant]);
-  if (!courant) return <Carte><p className="text-[14px] text-muted-foreground">{tr("Fais une séance pour voir ta progression.")}</p></Carte>;
-  const x = EX[courant], rm = x.ch === "kg" && pts.some((p) => p.rm > 0);
-  const pdc = (x.ch === "aucune" || x.ch === "lest") && !pts.some((q) => q.max > 0); // poids du corps sans lest : on suit les répétitions
-  const val = (p: (typeof pts)[number]) => (rm ? p.rm : pdc ? p.reps : p.max);
-  const unite = pdc ? "reps" : rm || x.ch === "kg" || x.ch === "lest" || x.ch === "aucune" ? "kg" : x.ch === "temps" ? "s" : x.ch === "dist" ? "m" : "";
-  const premier = pts[0] ? val(pts[0]) : 0, dernier = pts.length ? val(pts[pts.length - 1]) : 0;
-  return (
-    <Carte className="p-0">
-      <button id="par-exercice" onClick={() => setChoix(true)} className="flex w-full items-center gap-2 px-4 pt-3.5 text-left">
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-[16px] font-semibold">{x.n}</span>
-          <span className="block text-[12px] text-muted-foreground">{tr("{a} · {length} séance{a1}", { a: rm ? tr("1RM estimé (formule d'Epley)") : tr("Meilleure série"), length: pts.length, a1: pluriel(pts.length) ? "s" : "" })}</span>
-        </span>
-        <span className="flex items-center gap-1 rounded-full bg-muted px-3 py-1.5 text-[12.5px] font-semibold">{tr("Changer")}<CaretDownIcon className="size-3.5" /></span>
-      </button>
-      <div className="px-2 pt-2" key={courant}>
-        <Courbe points={pts.map((p) => ({ x: court(p.d), y: val(p), info: court(p.d) }))} unite={unite} />
-      </div>
-      {pts.length > 1 && (
-        <div className="grid grid-cols-3 border-t border-border/70 text-center">
-          {[[tr("Début"), premier], [tr("Aujourd'hui"), dernier], [tr("Progrès"), dernier - premier]].map(([n, v], i) => (
-            <div key={n as string} className={cn("py-2.5", i && "border-l border-border/70")}>
-              <div className={cn("num text-[19px] font-bold", i === 2 && (v as number) > 0 && "text-success")}>{i === 2 && (v as number) > 0 ? "+" : ""}{nb(Math.round((v as number) * 10) / 10)}</div>
-              <div className="text-[11px] text-muted-foreground">{n} · {unite}</div>
-            </div>
-          ))}
-        </div>
-      )}
-      <Drawer open={choix} onOpenChange={setChoix}>
-        <DrawerContent>
-          <DrawerTitle className="px-5 pt-2 text-[19px] font-bold">{tr("Choisir un exercice")}</DrawerTitle>
-          <DrawerDescription className="px-5 text-[13px] text-muted-foreground">{tr("Les exercices que tu as déjà faits")}</DrawerDescription>
-          <div className="mt-2 max-h-[60vh] overflow-y-auto px-2 pb-[max(env(safe-area-inset-bottom),16px)]">
-            {faits.map((e) => (
-              <button key={e.id} onClick={() => { setId(e.id); setChoix(false); }}
-                className={cn("flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left active:bg-muted", e.id === courant && "bg-plate-soft")}>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[15px] font-medium">{EX[e.id].n}</span>
-                  <span className="block text-[12px] text-muted-foreground">{tr("{n} séance{a} · dernière le {a1}", { n: e.n, a: pluriel(e.n) ? "s" : "", a1: court(e.dernier) })}</span>
-                </span>
-                <CaretRightIcon className="size-4 text-muted-foreground" />
-              </button>
-            ))}
-          </div>
-        </DrawerContent>
-      </Drawer>
-    </Carte>
   );
 }
 
