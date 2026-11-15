@@ -12,6 +12,7 @@ import { TabBar } from "./tab-bar";
 import { MenuLateral } from "./menu-lateral";
 import { Installer } from "./installer";
 import { RestTimer } from "./rest-timer";
+import { DiagnosticEcran } from "./diagnostic-ecran";
 import { Confirmateur } from "./confirmer";
 import { Bilan } from "./bilan";
 import { SurveillantBadges } from "./motivation";
@@ -96,6 +97,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </ViewTransition>
       </main>
       <RestTimer avecOnglets={onglets} />
+      <DiagnosticEcran />
       {onglets && <BandeauSeance />}
       {onglets && <TabBar />}
       {onglets && <Installer />}

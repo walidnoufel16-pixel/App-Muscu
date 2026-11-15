@@ -10,6 +10,7 @@ import { EnTete } from "@/components/repere/en-tete";
 import { Retour } from "@/components/repere/retour";
 import { Segmente } from "@/components/repere/segmente";
 import { AdminMesure } from "@/components/repere/admin-mesure";
+import { basculerDiag, useDiag } from "@/components/repere/diagnostic-ecran";
 import { Barres } from "@/components/repere/graphes";
 import { Input } from "@/components/ui/input";
 import { EX } from "@/lib/data/exercices";
@@ -45,11 +46,26 @@ function Admin() {
         <Segmente label={tr("Vue")} valeur={vue} onChange={(x) => router.replace(x === "u" ? "/admin?v=u" : x === "m" ? "/admin?v=m" : "/admin")}
           options={[{ v: "t", n: tr("Tableau") }, { v: "u", n: tr("Utilisateurs") }, { v: "m", n: tr("Mesure") }]} />
         {vue === "m" && admin && <AdminMesure />}
+        {admin && <InterrupteurDiag />}
         {vue !== "m" && err && <p className="rounded-2xl bg-card p-4 text-[14px] text-destructive">{err}</p>}
         {vue !== "m" && !err && (!L || !S) && <p className="py-10 text-center text-[14px] text-muted-foreground">{tr("Chargement…")}</p>}
         {vue !== "m" && L && S && (vue === "t" ? <Tableau L={L} S={S} /> : <Utilisateurs L={L} />)}
       </div>
     </>
+  );
+}
+
+/* Diagnostic d'affichage de l'iPhone (barres fixes décalées après une saisie) : sur ce téléphone seulement. */
+function InterrupteurDiag() {
+  const actif = useDiag((s) => s.actif);
+  return (
+    <label className="flex items-center gap-3 rounded-[22px] bg-card p-4">
+      <span className="min-w-0 flex-1">
+        <span className="block text-[15px] font-semibold">{tr("Diagnostic d'affichage")}</span>
+        <span className="block text-[12.5px] leading-snug text-muted-foreground">{tr("Affiche les mesures de l'écran sur ce téléphone, pour le bug des barres décalées. Toucher le panneau copie les mesures.")}</span>
+      </span>
+      <input type="checkbox" checked={actif} onChange={(e) => basculerDiag(e.target.checked)} className="size-5 accent-[var(--plate)]" />
+    </label>
   );
 }
 
