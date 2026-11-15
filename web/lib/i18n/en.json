@@ -3259,5 +3259,7 @@
   "Randonnée": "Hiking",
   "Danse / cours collectif": "Dance / group class",
   "Autre sport, course, cardio ou séance d'avant Oxa : allège-le, ou garde-le pour une prochaine séance.": "Another sport, running, cardio or a session before Oxa: go lighter, or save it for another session.",
-  "Autre sport, course, cardio ou séance d'avant Oxa : allège-les, ou garde-les pour une prochaine séance.": "Another sport, running, cardio or a session before Oxa: go lighter, or save them for another session."
+  "Autre sport, course, cardio ou séance d'avant Oxa : allège-les, ou garde-les pour une prochaine séance.": "Another sport, running, cardio or a session before Oxa: go lighter, or save them for another session.",
+  "Diagnostic d'affichage": "Display diagnostics",
+  "Affiche les mesures de l'écran sur ce téléphone, pour le bug des barres décalées. Toucher le panneau copie les mesures.": "Shows the screen measurements on this phone, for the shifted bars bug. Tap the panel to copy the measurements."
 }
