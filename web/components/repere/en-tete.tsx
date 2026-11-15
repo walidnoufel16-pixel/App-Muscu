@@ -49,14 +49,15 @@ export function EnTete({
       <div className="safe-top fixed inset-x-0 top-0 z-30 mx-auto max-w-[480px]">
         {/* Le flou est sur une couche à part, derrière le contenu : sur iPhone, ce qui est
             à l'intérieur d'un élément flouté (backdrop-filter) est dessiné en basse résolution. */}
-        <div
-          aria-hidden
-          data-fond
-          className={cn(
-            "pointer-events-none absolute inset-0 border-b border-border/70 bg-background/90 backdrop-blur-xl transition-opacity duration-200",
-            fond ? "opacity-100" : "opacity-0",
-          )}
-        />
+        {/* Le flou n'existe que quand la page a défilé : sur iPhone, un flou actif (même invisible)
+            fait dessiner en basse résolution ce qui est posé dessus (menu, avatar). */}
+        {fond && (
+          <div
+            aria-hidden
+            data-fond
+            className="pointer-events-none absolute inset-0 animate-in border-b border-border/70 bg-background/90 backdrop-blur-xl duration-200 fade-in-0"
+          />
+        )}
         {/* retour à gauche, actions à droite, de même largeur : le titre réduit est centré sur l'écran (tronqué plutôt que chevauchant) */}
         <div className="relative grid h-11 grid-cols-[minmax(max-content,1fr)_minmax(0,auto)_minmax(max-content,1fr)] items-center gap-2 px-4">
           <div className="flex min-w-0 items-center">{gauche ?? (estRacine(chemin) ? <>{retourPossible && <Retour repli="/entrainement" />}<BoutonMenu /></> : null)}</div>
