@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { BoutonMenu, estRacine } from "./menu-lateral";
 import { Retour } from "./retour";
 import { usePile } from "@/lib/nav";
+
+const rien = () => () => {};
 
 /* Grand titre façon iOS : la barre prend un fond translucide dès que la page défile,
    et le titre s'y réduit quand le grand titre sort de l'écran. */
@@ -30,6 +33,9 @@ export function EnTete({
   const ref = useRef<HTMLHeadingElement>(null);
   const [replie, setReplie] = useState(false);
   const [fond, setFond] = useState(false);
+  /* la barre est rendue hors de la page (dans <body>), comme la barre d'onglets : dans la page,
+     sous la transition d'écran, l'iPhone la dessinait en basse résolution (menu, avatar flous) */
+  const monte = useSyncExternalStore(rien, () => true, () => false);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -46,6 +52,7 @@ export function EnTete({
       {/* Barre fixe (et non « sticky ») : sur iPhone, le contenu d'une barre sticky est dessiné flou.
           Une cale de même hauteur garde la place dans la page. */}
       <div className="safe-top" aria-hidden><div className="h-11" /></div>
+      {monte && createPortal(
       <div className="safe-top fixed inset-x-0 top-0 z-30 mx-auto max-w-[480px]">
         {/* Le flou est sur une couche à part, derrière le contenu : sur iPhone, ce qui est
             à l'intérieur d'un élément flouté (backdrop-filter) est dessiné en basse résolution. */}
@@ -72,7 +79,9 @@ export function EnTete({
           </div>
           <div className="flex shrink-0 items-center justify-end gap-1">{actions}</div>
         </div>
-      </div>
+      </div>,
+        document.body,
+      )}
       <header className={cn("px-5 pt-1 pb-3", className)}>
         <div className="flex items-center gap-3.5">
           <div className="min-w-0 flex-1">
