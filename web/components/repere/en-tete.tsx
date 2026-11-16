@@ -56,13 +56,13 @@ export function EnTete({
       <div className="safe-top fixed inset-x-0 top-0 z-30 mx-auto max-w-[480px]">
         {/* Le flou est sur une couche à part, derrière le contenu : sur iPhone, ce qui est
             à l'intérieur d'un élément flouté (backdrop-filter) est dessiné en basse résolution. */}
-        {/* Le flou n'existe que quand la page a défilé : sur iPhone, un flou actif (même invisible)
-            fait dessiner en basse résolution ce qui est posé dessus (menu, avatar). */}
+        {/* Fond uni, sans backdrop-filter : sur iPhone, un fond flouté fait dessiner en basse
+            résolution ce qui est posé dessus (bouton retour, menu, avatar). Il paraît quand la page a défilé. */}
         {fond && (
           <div
             aria-hidden
             data-fond
-            className="pointer-events-none absolute inset-0 animate-in border-b border-border/70 bg-background/90 backdrop-blur-xl duration-200 fade-in-0"
+            className="pointer-events-none absolute inset-0 animate-in border-b border-border/70 bg-background duration-200 fade-in-0"
           />
         )}
         {/* retour à gauche, actions à droite, de même largeur : le titre réduit est centré sur l'écran (tronqué plutôt que chevauchant) */}
