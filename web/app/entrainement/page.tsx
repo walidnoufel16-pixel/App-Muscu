@@ -15,7 +15,6 @@ import { AVenir, CarteDuJour, SemaineAnneaux } from "@/components/repere/accueil
 import { FeuilleImport } from "@/components/repere/mes-seances";
 import { Mosaique } from "@/components/repere/rubriques";
 import { CarteBlog, EntreesAccueil, LigneAutre, useEpingles } from "@/components/repere/plus-entrainements";
-import { CarteProteines } from "@/components/repere/proteines";
 import { useProgramme } from "@/components/repere/programme-vues";
 import { jourDe } from "@/lib/logic/historique";
 import { useRepere } from "@/lib/store";
@@ -51,7 +50,6 @@ export default function PageEntrainement() {
         {!debutant && <SemaineAnneaux auj={auj} setF={setF} />}
         {!debutant && <LigneRecuperation auj={auj} />}
         <CarteDuJour auj={auj} setF={setF} />
-        <CarteProteines accueil />
         <Reprise />
         <div className="mt-2"><AVenir auj={auj} setF={setF} /></div>
         <section className="mt-2 flex flex-col gap-2">

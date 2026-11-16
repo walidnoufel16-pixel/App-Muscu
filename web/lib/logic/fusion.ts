@@ -1,6 +1,6 @@
 /* Fusion de deux sauvegardes du même compte (deux appareils). Ce qui a été FAIT ne se perd
    jamais : l'historique des séances, le journal des séries, le cardio, les sorties de course,
-   les tests et les produits sont réunis des deux côtés. Les réglages et les séances
+   et les tests sont réunis des deux côtés. Les réglages et les séances
    enregistrées (qui se modifient plutôt qu'ils ne s'ajoutent) viennent de la sauvegarde la
    plus récente. */
 import type { Etat, Journal } from "./types";
@@ -48,8 +48,6 @@ export function fusionner(a: Sauvegarde, b: Sauvegarde): Sauvegarde {
   const A = { ...(vieux.A || {}), ...(recent.A || {}) };
   const tests = reunir(vieux.A?.testsStreet, recent.A?.testsStreet, (t) => t.d);
   if (tests.length) A.testsStreet = tests.sort((x, y) => x.d.localeCompare(y.d)).slice(-12);
-  const produits = reunir(vieux.A?.produits, recent.A?.produits, (p) => p.code || `${p.n}|${p.marque ?? ""}`.toLowerCase());
-  if (produits.length) A.produits = produits.slice(-30);
   /* une séance retirée de l'historique sur un appareil ne revient pas par l'autre */
   const retires = [...new Set([...(vieux.RETIRES || []), ...(recent.RETIRES || [])])].slice(-300), R = new Set(retires);
   return {

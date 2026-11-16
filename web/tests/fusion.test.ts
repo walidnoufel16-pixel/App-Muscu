@@ -25,14 +25,13 @@ describe("fusion de deux appareils", () => {
     expect(Object.keys(f.LOG!).sort()).toEqual(["L|0|0", "L|0|1", "L|0|2"]);
     expect(f.LOG!["L|0|0"].ts).toBe(10);
   });
-  it("cardio, sorties, tests et produits réunis sans doublon", () => {
+  it("cardio, sorties et tests réunis sans doublon", () => {
     const f = fusionner(
-      { ts: 1, CARDIO: [{ nom: "a", f: "fractionne", m: "tapis", min: 20, effort: 7, ts: 5 }], SORTIES: [{ d: "2026-10-01", km: 5, sec: 1800, rpe: 4 }], A: { testsStreet: [{ d: "2026-09-01", tr: 3, po: 10, di: 2, sq: 20 }], produits: [{ code: "1", n: "Skyr", p: 10 }] } },
-      { ts: 2, CARDIO: [{ nom: "a", f: "fractionne", m: "tapis", min: 20, effort: 7, ts: 5 }, { nom: "b", f: "fractionne", m: "velo", min: 30, effort: 5, ts: 9 }], SORTIES: [{ d: "2026-10-01", km: 5, sec: 1800, rpe: 4 }], A: { testsStreet: [{ d: "2026-10-15", tr: 5, po: 14, di: 6, sq: 25 }], produits: [{ code: "2", n: "Thon", p: 25 }] } },
+      { ts: 1, CARDIO: [{ nom: "a", f: "fractionne", m: "tapis", min: 20, effort: 7, ts: 5 }], SORTIES: [{ d: "2026-10-01", km: 5, sec: 1800, rpe: 4 }], A: { testsStreet: [{ d: "2026-09-01", tr: 3, po: 10, di: 2, sq: 20 }] } },
+      { ts: 2, CARDIO: [{ nom: "a", f: "fractionne", m: "tapis", min: 20, effort: 7, ts: 5 }, { nom: "b", f: "fractionne", m: "velo", min: 30, effort: 5, ts: 9 }], SORTIES: [{ d: "2026-10-01", km: 5, sec: 1800, rpe: 4 }], A: { testsStreet: [{ d: "2026-10-15", tr: 5, po: 14, di: 6, sq: 25 }] } },
     );
     expect(f.CARDIO).toHaveLength(2);
     expect(f.SORTIES).toHaveLength(1);
     expect(f.A!.testsStreet!.map((t) => t.d)).toEqual(["2026-09-01", "2026-10-15"]);
-    expect(f.A!.produits).toHaveLength(2);
   });
 });

@@ -24,7 +24,7 @@ import { TYPES_DEFI, type TypeDefi } from "@/lib/logic/defis";
 import { formeDuJour, nomZone, NOMS_NIVEAU, niveau, zonesActives } from "@/lib/logic/forme";
 import { jourDe, nomMuscle, records, semaines } from "@/lib/logic/historique";
 import { BADGES, stats } from "@/lib/logic/motivation";
-import { objectifProteines, poidsDe, protDuJour } from "@/lib/logic/nutrition";
+import { objectifProteines, poidsDe } from "@/lib/logic/nutrition";
 import { recap } from "@/lib/logic/questionnaire";
 import { accesProgramme, fiche, supprimer, useEstAdmin } from "@/lib/admin";
 import { Button } from "@/components/ui/button";
@@ -229,7 +229,6 @@ function Contenu({ F, E }: { F: FicheAdmin; E: ReturnType<typeof versEtat> }) {
   const badges = BADGES.filter((b) => notes[b.id]).sort((a, b) => notes[b.id].localeCompare(notes[a.id]));
   const forme = formeDuJour(A), zones = zonesActives(A);
   const poids = poidsDe(A), protObj = poids ? objectifProteines(A) : 0;
-  const prot = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - 6 + i); return jourDe(d.getTime()); });
   const der = [...H.map((l) => l.d), ...(E.CARDIO || []).map((c) => jourDe(c.ts))].sort().at(-1) || null;
   const gen = F.generations.reduce((n, g) => n + g.n, 0);
   const vide = !H.length && !(E.CARDIO || []).length && !(E.SORTIES || []).length;
@@ -333,7 +332,7 @@ function Contenu({ F, E }: { F: FicheAdmin; E: ReturnType<typeof versEtat> }) {
           <Ligne k={tr("Douleurs signalées")} v={zones.length ? zones.map(nomZone).join(", ") : tr("aucune")} />
           <Ligne k={tr("Zones à ménager")} v={(A.blessure || []).map((i) => BLESN[i]).filter(Boolean).join(", ") || "aucune"} />
           <Ligne k={tr("Poids")} v={poids ? `${poids} kg` : "—"} />
-          <Ligne k={tr("Protéines (7 jours)")} v={protObj ? prot.map((j) => protDuJour(A, j)).join(" · ") + ` / ${protObj} g` : "—"} />
+          <Ligne k={tr("Besoin en protéines")} v={protObj ? `${protObj} g` : "—"} />
         </Bloc>
 
         <Bloc titre={tr("Générations par IA")}>

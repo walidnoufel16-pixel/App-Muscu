@@ -48,11 +48,3 @@ export const ALIMENTS: { n: string; q: string; g: number }[] = [
   { n: tr("Emmental"), q: tr("30 g"), g: 8 },
 ];
 
-export const protDuJour = (A: Reponses, jour: string) => ((A.prot || {}) as Record<string, number>)[jour] || 0;
-
-/** Ajoute (ou retire) des grammes au jour, en ne gardant que 30 jours. */
-export function ajouterProt(A: Reponses, jour: string, g: number) {
-  const p = { ...((A.prot || {}) as Record<string, number>) };
-  p[jour] = Math.max(0, Math.min(500, (p[jour] || 0) + g));
-  A.prot = Object.fromEntries(Object.entries(p).sort(([a], [b]) => (a < b ? -1 : 1)).slice(-30));
-}
