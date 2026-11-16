@@ -6,12 +6,13 @@ import { AssiettesObjectif } from "./assiettes";
 import { langue, tr } from "@/lib/i18n";
 import { useState } from "react";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
-import { ArrowsClockwiseIcon, BowlFoodIcon, CaretDownIcon, CaretRightIcon, CheckIcon, ClockIcon, CookieIcon, DropIcon, HandPalmIcon, MinusIcon, PlusIcon, SunHorizonIcon } from "@phosphor-icons/react";
+import { ArrowsClockwiseIcon, BowlFoodIcon, CaretDownIcon, CaretRightIcon, CheckIcon, ClockIcon, CookieIcon, DropIcon, MinusIcon, PlusIcon, SunHorizonIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import type { Moment, Recette } from "@/lib/data/recettes";
+import type { BilanProteines } from "@/lib/logic/repas";
 import {
-  ALLERGIES, alimentsParRayon, allergenesDe, chercherAliments, CULTES, EMOJIS_RAYON, estPerso, MATERIELS, nouvelAliment, macros, mains, glucManquants, SEC, nomAliment, nomRecette, NOM_CRENEAU, portion, prefsDe, protManquantes, quantite, regimeDe, REGIMES, TEMPS, type Besoins,
+  ALLERGIES, alimentsParRayon, allergenesDe, chercherAliments, CULTES, EMOJIS_RAYON, estPerso, MATERIELS, nouvelAliment, macros, glucManquants, SEC, nomAliment, nomRecette, NOM_CRENEAU, portion, prefsDe, protManquantes, quantite, regimeDe, REGIMES, TEMPS, type Besoins,
 } from "@/lib/logic/repas";
 import type { AlimentPerso, CreneauRepas, PrefsRepas } from "@/lib/logic/types";
 import { emojiDe, RAYONS } from "@/lib/data/aliments";
@@ -231,7 +232,28 @@ export function ConseilsNutrition({ vegan }: { vegan: boolean }) {
 }
 
 /* ---------------- besoins du jour ---------------- */
-const CRENEAUX_JOUR: CreneauRepas[] = ["matin", "dejeuner", "diner", "collation"];
+/** « Ces repas t'apportent x g de protéines, ton besoin est de X g », et de quoi compléter s'il manque. */
+export function CarteBilanProteines({ bilan, semaine = false }: { bilan: BilanProteines; semaine?: boolean }) {
+  const ok = !bilan.manque, pct = Math.min(100, Math.round((100 * bilan.apport) / Math.max(1, bilan.besoin)));
+  return (
+    <section className="rounded-[20px] bg-card p-4" aria-label={tr("Protéines de ces repas")}>
+      <p className="text-[14.5px] leading-snug">
+        {semaine ? tr("Ces repas t'apportent en moyenne") : tr("Ces repas t'apportent")}{" "}
+        <b className={cn("num text-[19px]", ok ? "text-success" : "text-plate-ink dark:text-plate")}>{tr("{g} g", { g: bilan.apport })}</b>{" "}
+        {semaine ? tr("de protéines par jour.") : tr("de protéines.")}
+        <span className="block">{tr("Ton besoin pour ces repas :")} <b className="num text-[19px]">{tr("{g} g", { g: bilan.besoin })}</b></span>
+      </p>
+      <div className="mt-2.5 h-2 overflow-hidden rounded-full bg-muted" aria-hidden>
+        <div className={cn("h-full rounded-full", ok ? "bg-success" : "bg-plate")} style={{ width: pct + "%" }} />
+      </div>
+      <p className="mt-2 text-[12.5px] leading-snug text-muted-foreground">
+        {ok ? tr("C'est bon : rien à compter, les portions sont déjà calculées pour toi.")
+          : tr("Il manque environ {g} g : un skyr (+15 g) ou deux œufs (+12 g) suffit.", { g: bilan.manque })}
+      </p>
+    </section>
+  );
+}
+
 export function CarteBesoins({ b, kcal }: { b: Besoins; kcal: boolean }) {
   const fmt = (x: number) => String(x).replace(".", EN() ? "." : ",");
   return (
@@ -247,41 +269,17 @@ export function CarteBesoins({ b, kcal }: { b: Besoins; kcal: boolean }) {
         ) : (
           <>
             <Chiffre v={4} u="" n={tr("repas, dont une collation")} />
-            <Chiffre v={2} u="" n={tr("poings de légumes par repas")} />
+            <Chiffre v="½" u="" n={tr("de l'assiette en légumes, midi et soir")} />
           </>
         )}
       </div>
       {b.eau ? <p className="mt-2.5 flex items-center gap-1.5 text-[13px] text-muted-foreground"><DropIcon className="size-4 shrink-0 text-[#2f8fd8]" weight="fill" />{tr("Eau : environ {l} l dans la journée", { l: fmt(Math.round(b.eau / 100) / 10) })}{b.seance ? tr(", dont un demi-litre par heure de sport") : ""}.</p> : null}
       {b.ajustement && <p className="mt-2.5 rounded-xl bg-muted/60 px-3 py-2 text-[12.5px] leading-snug text-muted-foreground">{b.ajustement}</p>}
-      <h3 className="eyebrow mt-4 mb-1.5 flex items-center gap-1.5"><HandPalmIcon className="size-3.5" weight="fill" />{tr("Dans ton assiette, à la main")}</h3>
-      <table className="w-full text-[13.5px]">
-        <thead>
-          <tr className="text-[11px] leading-tight text-muted-foreground">
-            <th className="pb-1.5 text-left font-medium" />
-            <th className="pb-1.5 font-medium">{tr("Paumes de protéines")}</th>
-            <th className="pb-1.5 font-medium">{tr("Poings de féculents")}</th>
-            <th className="pb-1.5 font-medium">{tr("Pouces de gras")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {CRENEAUX_JOUR.map((c) => {
-            const m = mains(b, c);
-            return (
-              <tr key={c} className="border-t border-border/60">
-                <th scope="row" className="py-2 text-left font-medium">{NOM_CRENEAU[c]}</th>
-                <td className="num text-center text-[16px] font-bold text-plate-ink">{fmt(m.paumes)}</td>
-                <td className="num text-center text-[16px] font-bold">{fmt(m.poings)}</td>
-                <td className="num text-center text-[16px] font-bold">{fmt(m.pouces)}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
       <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">{b.seance ? tr("Jour de séance : un peu plus de féculents, surtout au repas d'avant et à la collation d'après.") : tr("Jour de repos : un peu moins de féculents, plus de légumes et de bonnes graisses.")}</p>
     </section>
   );
 }
-function Chiffre({ v, u, n, accent }: { v: number; u: string; n: string; accent?: boolean }) {
+function Chiffre({ v, u, n, accent }: { v: number | string; u: string; n: string; accent?: boolean }) {
   return (
     <div className={cn("rounded-2xl p-3", accent ? "bg-plate-soft" : "bg-muted/60")}>
       <div className={cn("num text-[24px] leading-none font-bold", accent && "text-plate-ink")}>{v}<span className="text-[14px]">{u && " " + u}</span></div>

@@ -34,3 +34,19 @@ describe("assiette", () => {
     expect(assietteDe(R["butternut-lentilles"]).sansFeculent).toBe(true);
   });
 });
+
+import { bilanProteines, repasRecuperation } from "@/lib/logic/repas";
+describe("bilan des protéines", () => {
+  const b = { kcal: 2600, p: 140, g: 300, l: 80, seance: true };
+  it("compare l'apport des repas au besoin de ces repas, sans compter un petit écart", () => {
+    const x = bilanProteines([{ r: R["poulet-riz-brocoli"], c: "dejeuner" }, { r: R["chili-con-carne"], c: "diner" }], b);
+    expect(x.besoin).toBe(Math.round(140 * 0.6));
+    expect(x.apport).toBeGreaterThan(0);
+    expect(x.manque === 0 || x.manque >= 8).toBe(true);
+  });
+  it("repas de récupération : le déjeuner après une séance du matin, sinon le dîner", () => {
+    expect(repasRecuperation(9)).toBe("dejeuner");
+    expect(repasRecuperation(18)).toBe("diner");
+    expect(repasRecuperation()).toBe("diner");
+  });
+});
