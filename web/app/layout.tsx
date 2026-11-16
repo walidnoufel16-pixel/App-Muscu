@@ -41,7 +41,10 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image", title: "Oxa · Touche un muscle, ta séance est prête", description: ACCROCHE, images: ["/og.jpg"] },
   applicationName: "Oxa",
-  appleWebApp: { capable: true, title: "Oxa", statusBarStyle: "black-translucent" },
+  /* « default » : sur iPhone, l'appli installée commence sous la barre d'état (colorée par
+     themeColor) au lieu de passer dessous. Avec « black-translucent », iOS 26 floute le haut de
+     l'écran sous l'heure et le flou débordait sur le menu et l'avatar. */
+  appleWebApp: { capable: true, title: "Oxa", statusBarStyle: "default" },
   icons: { icon: "/icon-192.png", apple: "/apple-touch-icon.png" },
 };
 
