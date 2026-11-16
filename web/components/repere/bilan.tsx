@@ -5,7 +5,8 @@ import { parOnglet } from "@/lib/nav";
 import { loc, pluriel, tr } from "@/lib/i18n";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BellRingingIcon, FlameIcon, ShareFatIcon, TrophyIcon } from "@phosphor-icons/react";
+import type { Route } from "next";
+import { BellRingingIcon, CaretRightIcon, FlameIcon, ForkKnifeIcon, ShareFatIcon, TrophyIcon } from "@phosphor-icons/react";
 import { imageSeance, partagerImage } from "@/lib/carte-seance";
 import { sb } from "@/lib/supabase";
 import { activerRappels, dejaPropose, etatRappels, noterPropose } from "@/lib/rappels";
@@ -15,6 +16,7 @@ import { useRepere } from "@/lib/store";
 import { jourDe } from "@/lib/logic/historique";
 import { objectifHebdo, serie } from "@/lib/logic/motivation";
 import { avecSorties } from "@/lib/logic/course";
+import { besoins, macros, nomRecette, NOM_CRENEAU, portion, prefsDe, repasRecuperation, suggestions } from "@/lib/logic/repas";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { mouvementReduit, useCelebrer } from "@/lib/celebrer";
@@ -49,7 +51,7 @@ export function Bilan() {
   useEffect(() => { if (sBilan && !sBilan.startsWith("L|")) noter("seance_terminee", { r: /^\d/.test(sBilan) ? "plan" : "autre" }); }, [sBilan]);
   const router = useRouter();
   /* séance libre : rangée dans Progrès (elle repart vierge), et on y va pour la voir */
-  const fermer = () => { fermerBilan(); if (libre != null) { ajouterAuSuivi(libre); parOnglet(); router.replace("/progres"); } };
+  const fermer = (vers?: string) => { fermerBilan(); if (libre != null) ajouterAuSuivi(libre); if (vers ?? libre != null) { parOnglet(); router.replace((vers ?? "/progres") as Route); } };
   const stats = !bilan ? [] : bilan.cases ? bilan.cases : [
         { n: tr("exercices"), v: bilan.exercices },
         { n: tr("séries validées"), v: bilan.series },
@@ -60,7 +62,7 @@ export function Bilan() {
     <Drawer open={!!bilan} onOpenChange={(o) => !o && fermer()}>
       <DrawerContent>
         {bilan && (
-          <div className="px-5 pt-3 pb-[max(env(safe-area-inset-bottom),20px)] text-center">
+          <div className="min-h-0 overflow-y-auto overscroll-contain px-5 pt-3 pb-[max(env(safe-area-inset-bottom),20px)] text-center">
             <div className="mx-auto grid size-20 animate-[medaille_.8s_cubic-bezier(.3,1.5,.5,1)_both] place-items-center rounded-full bg-plate text-plate-foreground shadow-[0_12px_40px_-10px_var(--plate)]">
               <TrophyIcon className="size-10" weight="fill" />
             </div>
@@ -80,6 +82,7 @@ export function Bilan() {
               ))}
             </div>
             <Suite />
+            <PourRecuperer ouvrir={(id) => fermer(`/repas?r=${id}`)} />
             <UnePropositionDePlus />
             <Button variant="plate" size="xl" className="mt-6 w-full" onClick={() => { tactile(12); fermer(); }}>{tr("Terminer")}</Button>
             {libre != null && <p className="mt-2 text-[12.5px] text-muted-foreground">{tr("Elle s'enregistre dans Progrès et repart à zéro pour la prochaine fois.")}</p>}
@@ -88,6 +91,40 @@ export function Bilan() {
         )}
       </DrawerContent>
     </Drawer>
+  );
+}
+
+/* Pour récupérer : un repas riche en protéines dans les 2 h ; le repas prévu dans Repas si les
+   préférences sont faites (déjeuner si la séance finit avant 11 h, sinon dîner). */
+function PourRecuperer({ ouvrir }: { ouvrir: (id: string) => void }) {
+  const etat = useRepere((x) => x.etat);
+  const [auj] = useState(() => jourDe(Date.now()));
+  const p = prefsDe(etat.A);
+  const c = repasRecuperation(new Date().getHours());
+  const r = p.fait ? suggestions(p, auj, true)[c] : undefined;
+  const prot = r ? Math.round(macros(r, portion(r, besoins(etat, true), c)).p) : 0;
+  return (
+    <div className="mt-1.5 animate-[monter_.5s_.8s_ease-out_both] rounded-2xl border bg-card p-3.5 text-left">
+      <div className="flex items-start gap-2.5">
+        <ForkKnifeIcon className="mt-0.5 size-4 shrink-0 text-primary" weight="fill" />
+        <div className="min-w-0 flex-1">
+          <div className="text-[14px] font-semibold">{tr("Pour récupérer")}</div>
+          <p className="mt-0.5 text-[12.5px] leading-snug text-muted-foreground">
+            {tr("Un repas riche en protéines dans les 2 h.")}{!r && " " + tr("Poulet, poisson, œufs, skyr ou tofu, peu importe.")}
+          </p>
+        </div>
+      </div>
+      {r && (
+        <button onClick={() => { tactile(6); ouvrir(r.id); }} className="mt-2.5 flex w-full items-center gap-2 rounded-xl bg-muted/60 px-3 py-2.5 text-left active:scale-[.99]">
+          <span className="min-w-0 flex-1">
+            <span className="block text-[11.5px] text-muted-foreground">{tr("Ton {c} prévu", { c: NOM_CRENEAU[c].toLowerCase() })}</span>
+            <span className="block truncate text-[14px] font-semibold">{nomRecette(r)}</span>
+            <span className="block text-[12px] text-muted-foreground">≈ <b className="num text-foreground">{prot}</b> {tr("g de protéines")}</span>
+          </span>
+          <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" weight="bold" />
+        </button>
+      )}
+    </div>
   );
 }
 
