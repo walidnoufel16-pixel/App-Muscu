@@ -17,16 +17,14 @@ import { ArrowsClockwiseIcon, BarbellIcon, CheckIcon, CaretDownIcon, CaretRightI
 import { toast } from "sonner";
 import { EnTete } from "@/components/repere/en-tete";
 import { Segmente } from "@/components/repere/segmente";
-import { CarteProteines } from "@/components/repere/proteines";
 import { AccueilRepas, BoutonAutre, ConseilsNutrition, ChampBudget, ChoixAliments, CarteBesoins, CarteRecette, Coche, FicheRecette, FormPrefs, Prudence } from "@/components/repere/repas";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import type { Recette } from "@/lib/data/recettes";
 import { jourDe } from "@/lib/logic/historique";
-import { ajouterProt } from "@/lib/logic/nutrition";
 import { emojiDe } from "@/lib/data/aliments";
 import {
-  autreRecette, EMOJIS_RAYON, avecCeQueJai, besoins, CRENEAUX, listeCourses, macros, portion, nomAliment, nomRecette, NOM_CRENEAU, planSemaine, prefsDe, quantite, R, recettesPour, semaineParDefaut, suggestions, texteCourses,
+  autreRecette, EMOJIS_RAYON, avecCeQueJai, besoins, CRENEAUX, listeCourses, nomAliment, nomRecette, NOM_CRENEAU, planSemaine, prefsDe, quantite, R, recettesPour, semaineParDefaut, suggestions, texteCourses,
 } from "@/lib/logic/repas";
 import { ajuster, appliquer, coutsParJour, echanges, emballage, estimer, estimerSemaine, euros, petitBudget, prixKg, type Estimation } from "@/lib/logic/budget";
 import { PRIX } from "@/lib/data/prix";
@@ -143,7 +141,6 @@ function Jour({ p, seance, setSeance, b, kcal, auj, ouvrir }: { p: PrefsRepas; s
         {seance ? tr("Jour de séance") : tr("Jour de repos")}
       </button>
       <CarteBesoins b={b} kcal={kcal} />
-      <CarteProteines />
       <h2 className="mt-2 px-1 text-[19px] font-bold">{tr("Idées pour aujourd'hui")}</h2>
       {(["matin", "dejeuner", "diner", "collation"] as CreneauRepas[]).map((c) => s[c] && (
         <CarteRecette key={c} r={s[c]!} c={c} b={b} kcal={kcal} onOuvrir={() => ouvrir(s[c]!, c)}
@@ -156,20 +153,18 @@ function Jour({ p, seance, setSeance, b, kcal, auj, ouvrir }: { p: PrefsRepas; s
   );
 }
 
-/* « J'ai mangé ça » : les protéines de la portion s'ajoutent au suivi du jour, en un toucher. */
-function Mange({ r, c, b, auj }: { r: Recette; c: CreneauRepas; b: Besoins; auj: string }) {
+/* « J'ai mangé ça » : le repas est marqué comme mangé (le compte des protéines a été retiré). */
+function Mange({ c, auj }: { r: Recette; c: CreneauRepas; b: Besoins; auj: string }) {
   const muter = useRepere((s) => s.muter);
   const fait = useRepere((s) => (((s.etat.A.mange || {}) as Record<string, string[]>)[auj] || []).includes(c));
-  const g = macros(r, portion(r, b, c)).p;
   const basculer = (e: React.MouseEvent) => {
     e.stopPropagation(); tactile(8);
     muter((E) => {
       const m = { ...((E.A.mange || {}) as Record<string, string[]>) }, l = m[auj] || [];
       m[auj] = fait ? l.filter((x) => x !== c) : [...l, c];
       E.A.mange = Object.fromEntries(Object.entries(m).sort(([a], [b2]) => (a < b2 ? -1 : 1)).slice(-7));
-      ajouterProt(E.A, auj, fait ? -g : g);
     });
-    if (!fait) { toast.success(tr("+{g} g de protéines notés", { g })); noter("repas_note", { c }); }
+    if (!fait) noter("repas_note", { c });
   };
   return (
     <span role="button" tabIndex={0} onClick={basculer} aria-pressed={fait}

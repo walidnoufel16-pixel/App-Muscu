@@ -193,7 +193,6 @@ export const CREDITS: { quoi: string; nom: string; licence: string; lien: string
   /* les sources ne sont plus sous les photos : chaque photographe des recettes est cité ici, avec un lien vers son profil */
   ...[...new Map(Object.values(PHOTOS_RECETTES).map((ph) => [ph.profil, ph])).values()].map((ph) => ({ quoi: tr("Photos des recettes"), nom: tr("{n} sur Unsplash", { n: ph.auteur }), licence: tr("Licence Unsplash"), lien: `https://unsplash.com/@${ph.profil}${UTM}` })),
   ...PHOTOS_SEANCES.map((ph) => ({ quoi: tr("Photos des séances"), nom: ph.auteur ? tr("{n} sur {s}", { n: ph.auteur, s: ph.site }) : ph.site, licence: "CC0", lien: ph.lien })),
-  { quoi: tr("Valeurs des produits (protéines)"), nom: tr("Open Food Facts, recherche par nom via wger"), licence: "ODbL", lien: "https://world.openfoodfacts.org" },
   { quoi: tr("Schéma du corps"), nom: tr("react-native-body-highlighter, Hicham Elabbassi"), licence: "MIT", lien: "https://github.com/HichamELBSI/react-native-body-highlighter" },
   { quoi: tr("Icônes"), nom: tr("Phosphor Icons"), licence: "MIT", lien: "https://phosphoricons.com" },
   { quoi: tr("Polices"), nom: tr("Geist (Vercel) · Barlow Condensed (Jeremy Tribby)"), licence: tr("SIL Open Font License"), lien: "https://vercel.com/font" },

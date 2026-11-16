@@ -114,7 +114,6 @@ export type Reponses = {
   /** Partie Repas : semaine de repas planifiée et cases cochées de la liste de courses. */
   semaine?: SemaineRepas;
   /** Produits trouvés (scan ou recherche) pour le suivi des protéines, du plus récent au plus ancien. */
-  produits?: Produit[];
   /* tests d'entrée du street workout (tractions, pompes, dips, squats max), du plus ancien au plus récent */
   testsStreet?: { d: string; tr: number; po: number; di: number; sq: number }[];
   [k: string]: unknown;
@@ -145,8 +144,6 @@ export type PrefsRepas = {
   conso?: boolean;
 };
 export type AlimentPerso = { id: string; n: string; ray: string; e: string };
-/* Produit du commerce (Open Food Facts) : valeurs pour 100 g, portion en grammes si connue. */
-export type Produit = { code?: string; n: string; marque?: string; p: number; kcal?: number; g?: number; l?: number; portion?: number };
 /* article libre de la liste de courses (« papier cuisson », « 2 avocats ») */
 export type ArticleLibre = { id: string; n: string; q: string; e: string; prix?: number };
 export type CreneauRepas = "matin" | "dejeuner" | "diner" | "collation";

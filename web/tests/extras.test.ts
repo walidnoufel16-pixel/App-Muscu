@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { ajouterProt, objectifProteines, protDuJour } from "@/lib/logic/nutrition";
+import { objectifProteines } from "@/lib/logic/nutrition";
 import { moisPrecedent, periode, recap } from "@/lib/logic/recap";
 import { phaseDe } from "@/lib/cycle";
-import type { Etat, Reponses } from "@/lib/logic/types";
+import type { Etat } from "@/lib/logic/types";
 
 describe("protéines", () => {
   it("objectif selon poids et objectif, ou réglé à la main", () => {
@@ -14,14 +14,6 @@ describe("protéines", () => {
     expect(objectifProteines({ objectif: 3, profil: { Poids: 110, Taille: 175 } })).toBe(145);
     expect(objectifProteines({})).toBe(120);
     expect(objectifProteines({ protObj: 90, profil: { Poids: 80 } })).toBe(90);
-  });
-  it("ajout, retrait borné à 0, 30 jours gardés", () => {
-    const A: Reponses = {};
-    ajouterProt(A, "2026-10-04", 25);
-    ajouterProt(A, "2026-10-04", -40);
-    expect(protDuJour(A, "2026-10-04")).toBe(0);
-    for (let i = 1; i <= 40; i++) ajouterProt(A, `2026-08-${String(i).padStart(2, "0")}`, 10);
-    expect(Object.keys(A.prot as object)).toHaveLength(30);
   });
 });
 
