@@ -299,6 +299,19 @@ body.repas-recettes { --fond-repas: #ffe6d8; }
 ::view-transition-new(onglets) {
   animation: none;
 }
+/* La barre du haut ne glisse pas non plus : la nouvelle remplace l'ancienne d'un coup. Capturée
+   à part comme les onglets, elle reste nette sur iPhone (dans la capture de la page, elle
+   restait floue jusqu'au défilement suivant). */
+::view-transition-group(entete) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(entete) {
+  display: none;
+}
+::view-transition-new(entete) {
+  animation: none;
+}
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(*),
   ::view-transition-new(*),

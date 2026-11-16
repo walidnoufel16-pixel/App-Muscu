@@ -53,7 +53,7 @@ export function EnTete({
           Une cale de même hauteur garde la place dans la page. */}
       <div className="safe-top" aria-hidden><div className="h-11" /></div>
       {monte && createPortal(
-      <div className="safe-top fixed inset-x-0 top-0 z-30 mx-auto max-w-[480px]">
+      <div className="safe-top fixed inset-x-0 top-0 z-30 mx-auto max-w-[480px]" style={{ viewTransitionName: "entete" }}>
         {/* Le flou est sur une couche à part, derrière le contenu : sur iPhone, ce qui est
             à l'intérieur d'un élément flouté (backdrop-filter) est dessiné en basse résolution. */}
         {/* Fond uni, sans backdrop-filter : sur iPhone, un fond flouté fait dessiner en basse
