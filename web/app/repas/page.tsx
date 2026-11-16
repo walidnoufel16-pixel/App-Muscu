@@ -17,14 +17,14 @@ import { ArrowsClockwiseIcon, BarbellIcon, CheckIcon, CaretDownIcon, CaretRightI
 import { toast } from "sonner";
 import { EnTete } from "@/components/repere/en-tete";
 import { Segmente } from "@/components/repere/segmente";
-import { AccueilRepas, BoutonAutre, ConseilsNutrition, ChampBudget, ChoixAliments, CarteBesoins, CarteRecette, Coche, FicheRecette, FormPrefs, Prudence } from "@/components/repere/repas";
+import { AccueilRepas, BoutonAutre, ConseilsNutrition, ChampBudget, ChoixAliments, CarteBesoins, CarteBilanProteines, CarteRecette, Coche, FicheRecette, FormPrefs, Prudence } from "@/components/repere/repas";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import type { Recette } from "@/lib/data/recettes";
 import { jourDe } from "@/lib/logic/historique";
 import { emojiDe } from "@/lib/data/aliments";
 import {
-  autreRecette, EMOJIS_RAYON, avecCeQueJai, besoins, CRENEAUX, listeCourses, nomAliment, nomRecette, NOM_CRENEAU, planSemaine, prefsDe, quantite, R, recettesPour, semaineParDefaut, suggestions, texteCourses,
+  autreRecette, bilanProteines, EMOJIS_RAYON, avecCeQueJai, besoins, CRENEAUX, listeCourses, repasRecuperation, nomAliment, nomRecette, NOM_CRENEAU, planSemaine, prefsDe, quantite, R, recettesPour, semaineParDefaut, suggestions, texteCourses,
 } from "@/lib/logic/repas";
 import { ajuster, appliquer, coutsParJour, echanges, emballage, estimer, estimerSemaine, euros, petitBudget, prixKg, type Estimation } from "@/lib/logic/budget";
 import { PRIX } from "@/lib/data/prix";
@@ -131,7 +131,14 @@ function Feuille({ ouvert, onClose, titre, texte, children, pied }: { ouvert: bo
 /* ---------------- aujourd'hui ---------------- */
 function Jour({ p, seance, setSeance, b, kcal, auj, ouvrir }: { p: PrefsRepas; seance: boolean; setSeance: (s: boolean) => void; b: Besoins; kcal: boolean; auj: string; ouvrir: (r: Recette, c: CreneauRepas) => void }) {
   const [decal, setDecal] = useState<Partial<Record<CreneauRepas, number>>>({});
+  const [courses, setCourses] = useState(false);
   const s = suggestions(p, auj, seance, decal);
+  const repas = (["matin", "dejeuner", "diner", "collation"] as CreneauRepas[]).flatMap((c) => (s[c] ? [{ r: s[c]!, c }] : []));
+  /* le repas qui suit la séance : d'après l'heure de la séance faite aujourd'hui (sinon le dîner) */
+  const ts = useRepere((x) => (x.etat.HIST || []).filter((l) => l.d === auj && l.ts).at(-1)?.ts);
+  const recup = seance ? repasRecuperation(ts ? new Date(ts).getHours() : undefined) : null;
+  const liste = listeCourses(repas.map(({ r, c }) => ({ jour: 0, c, r, reste: false })), b, p.pers ?? 1, p.stock ?? []);
+  const nb = liste.reduce((n, x) => n + x.l.length, 0);
   return (
     <>
       {/* le type de journée : deviné (séance faite aujourd'hui), touché pour l'inverser */}
@@ -140,15 +147,36 @@ function Jour({ p, seance, setSeance, b, kcal, auj, ouvrir }: { p: PrefsRepas; s
         {seance ? <BarbellIcon className="size-4 text-plate-ink" weight="bold" /> : <CouchIcon className="size-4 text-plate-ink" weight="bold" />}
         {seance ? tr("Jour de séance") : tr("Jour de repos")}
       </button>
+      <CarteBilanProteines bilan={bilanProteines(repas, b)} />
       <CarteBesoins b={b} kcal={kcal} />
-      <h2 className="mt-2 px-1 text-[19px] font-bold">{tr("Idées pour aujourd'hui")}</h2>
+      <div className="mt-2 flex items-baseline justify-between px-1">
+        <h2 className="text-[19px] font-bold">{tr("Idées pour aujourd'hui")}</h2>
+        {nb > 0 && <button onClick={() => { tactile(6); setCourses(true); }} className="flex items-center gap-1.5 text-[14px] font-semibold text-plate-ink"><ShoppingCartIcon className="size-4" weight="bold" />{tr("Courses du jour")}</button>}
+      </div>
       {(["matin", "dejeuner", "diner", "collation"] as CreneauRepas[]).map((c) => s[c] && (
         <CarteRecette key={c} r={s[c]!} c={c} b={b} kcal={kcal} onOuvrir={() => ouvrir(s[c]!, c)}
           droite={<BoutonAutre label={tr("Une autre idée : {c}", { c: NOM_CRENEAU[c] })} onClick={() => setDecal((d) => ({ ...d, [c]: (d[c] ?? 0) + 1 }))} />}
-          sous={<Mange r={s[c]!} c={c} b={b} auj={auj} />}
+          sous={<>{recup === c && <span className="mt-1 block text-[12.5px] font-semibold text-plate-ink">✦ {tr("Repas de récupération, après ta séance")}</span>}<Mange r={s[c]!} c={c} b={b} auj={auj} /></>}
         />
       ))}
       <ConseilsNutrition vegan={p.regime === 3} />
+      <Feuille ouvert={courses} onClose={() => setCourses(false)} titre={tr("Courses du jour")}
+        texte={((p.pers ?? 1) > 1 ? tr("Pour les repas proposés aujourd'hui, pour {n} personnes", { n: p.pers ?? 1 }) : tr("Pour les repas proposés aujourd'hui")) + ((p.stock?.length ?? 0) > 0 ? " · " + tr("sans ce qui est déjà dans ton frigo") : "")}
+        pied={<PartagerTexte titre={tr("Courses du jour")} texte={tr("Courses du jour Oxa") + "\n\n" + texteCourses(liste, [])} />}>
+        <div className="flex flex-col gap-2">
+          {liste.map((x) => (
+            <section key={x.k} className="overflow-hidden rounded-[18px] bg-card" aria-label={x.n}>
+              <h3 className="eyebrow px-4 pt-3 pb-1">{x.n}</h3>
+              {x.l.map((a) => (
+                <div key={a.id} className="flex items-baseline justify-between gap-3 border-t border-border/60 px-4 py-2.5 text-[14.5px] first:border-t-0">
+                  <span><span aria-hidden className="mr-2">{emojiDe(a.id)}</span>{nomAliment(a.id)}</span>
+                  <span className="num shrink-0 font-semibold">{a.texte}</span>
+                </div>
+              ))}
+            </section>
+          ))}
+        </div>
+      </Feuille>
     </>
   );
 }
@@ -261,6 +289,7 @@ function Semaine({ p, b, kcal, ouvrir }: { p: PrefsRepas; b: Besoins; kcal: bool
   const resume = [tr(S.jours > 1 ? "{n} jours" : "{n} jour", { n: S.jours }), tr(pers > 1 ? "{n} personnes" : "{n} personne", { n: pers })].join(" · ");
   return (
     <>
+      {cases.length > 0 && <CarteBilanProteines semaine bilan={bilanProteines(cases.map((k) => ({ r: k.r, c: k.c })), b, Math.max(1, joursPlanifies.length))} />}
       {/* le budget en une ligne : touché, il ouvre les réglages de la semaine */}
       <button onClick={() => { tactile(5); setReglages(true); }} className="rounded-[22px] bg-card p-4 text-left active:opacity-85" aria-label={tr("Paramétrer ma semaine et mon budget")}>
         <span className="flex items-start gap-3">
@@ -340,7 +369,7 @@ function Semaine({ p, b, kcal, ouvrir }: { p: PrefsRepas; b: Besoins; kcal: bool
         <button onClick={() => { tactile(8); setCourses(true); }}
           className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-plate px-5 text-[15px] font-semibold text-plate-foreground shadow-[0_12px_28px_-10px_var(--plate)] active:scale-[.98]">
           <ShoppingCartIcon className="size-5" weight="bold" />
-          <span className="truncate">{restants < nbArticles ? tr("Ma liste de courses · {n} sur {t}", { n: restants, t: nbArticles }) : tr("Ma liste de courses · {n} articles", { n: nbArticles })}</span>
+          <span className="truncate">{restants < nbArticles ? tr("Courses de la semaine · {n} sur {t}", { n: restants, t: nbArticles }) : tr("Courses de la semaine · {n} articles", { n: nbArticles })}</span>
           <CaretRightIcon className="size-4 shrink-0" weight="bold" />
         </button>
       </div>
@@ -391,6 +420,15 @@ function ReglagesSemaine({ p, S, b, est, maj, majPrefs }: { p: PrefsRepas; S: Se
 }
 
 /* Bouton « Partager la liste », en pied de la feuille. */
+function PartagerTexte({ titre, texte }: { titre: string; texte: string }) {
+  const partager = async () => {
+    try {
+      if (navigator.share) await navigator.share({ title: titre, text: texte });
+      else { await navigator.clipboard.writeText(texte); toast(tr("Liste copiée")); }
+    } catch {}
+  };
+  return <Button variant="plate" size="lg" className="w-full rounded-xl" onClick={partager}><ShareNetworkIcon weight="bold" />{tr("Partager la liste")}</Button>;
+}
 function ListePartager({ liste, S, total }: { liste: ReturnType<typeof listeCourses>; S: SemaineRepas; total: number }) {
   const partager = async () => {
     const texte = tr("Liste de courses Oxa") + "\n\n" + texteCourses(liste, S.coches, S.articles) + "\n\n" + tr("Budget estimé : environ {e}", { e: euros(total) });

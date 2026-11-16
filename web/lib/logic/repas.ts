@@ -365,3 +365,20 @@ export function texteCourses(l: ReturnType<typeof listeCourses>, coches: string[
   const rayons = l.map((r) => `${r.n}\n` + r.l.filter((x) => !coches.includes(x.id)).map((x) => `• ${avecEmoji(x.id)} — ${x.texte}`).join("\n"));
   return [...(libres.length ? [`${tr("Mes articles")}\n${libres.join("\n")}`] : []), ...rayons].join("\n\n");
 }
+
+/* ---------------- bilan des protéines ---------------- */
+export type BilanProteines = { apport: number; besoin: number; manque: number };
+/** Ce que les repas apportent en protéines (à la portion de chacun) face au besoin de ces
+    repas-là (la part du besoin du jour qui leur revient) ; `jours` : nombre de jours couverts
+    (moyenne par jour pour la semaine). Un manque de moins de 8 g ne compte pas. */
+export function bilanProteines(repas: { r: Recette; c: CreneauRepas }[], b: Besoins, jours = 1): BilanProteines {
+  const apport = repas.reduce((s, { r, c }) => s + macros(r, portion(r, b, c)).p, 0) / Math.max(1, jours);
+  const creneaux = [...new Set(repas.map((x) => x.c))];
+  const besoin = b.p * creneaux.reduce((s, c) => s + part(c, b.seance), 0);
+  const m = besoin - apport;
+  return { apport: Math.round(apport), besoin: Math.round(besoin), manque: m >= 8 ? Math.round(m / 5) * 5 : 0 };
+}
+
+/** Le repas de récupération d'un jour de séance : le déjeuner si la séance a eu lieu le matin
+    (avant 11 h), sinon le dîner. */
+export const repasRecuperation = (heureSeance?: number): CreneauRepas => (heureSeance != null && heureSeance < 11 ? "dejeuner" : "diner");

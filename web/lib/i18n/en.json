@@ -3290,5 +3290,21 @@
   "Salade verte ou haricots verts": "Green salad or green beans",
   "Brocoli vapeur": "Steamed broccoli",
   "Salade verte, ou légumes vapeur": "Green salad, or steamed vegetables",
-  "Légumes à côté": "Vegetables on the side"
+  "Légumes à côté": "Vegetables on the side",
+  "Courses du jour": "Today's shopping",
+  "Repas de récupération, après ta séance": "Recovery meal, after your workout",
+  "Pour les repas proposés aujourd'hui, pour {n} personnes": "For today's suggested meals, for {n} people",
+  "Pour les repas proposés aujourd'hui": "For today's suggested meals",
+  "Courses du jour Oxa": "Oxa — today's shopping",
+  "Courses de la semaine · {n} sur {t}": "This week's shopping · {n} of {t}",
+  "Courses de la semaine · {n} articles": "This week's shopping · {n} items",
+  "Protéines de ces repas": "Protein in these meals",
+  "Ces repas t'apportent en moyenne": "On average, these meals give you",
+  "Ces repas t'apportent": "These meals give you",
+  "de protéines par jour.": "of protein per day.",
+  "de protéines.": "of protein.",
+  "Ton besoin pour ces repas :": "Your need for these meals:",
+  "C'est bon : rien à compter, les portions sont déjà calculées pour toi.": "You're good: nothing to count, the portions are already worked out for you.",
+  "Il manque environ {g} g : un skyr (+15 g) ou deux œufs (+12 g) suffit.": "About {g} g short: a skyr (+15 g) or two eggs (+12 g) is enough.",
+  "de l'assiette en légumes, midi et soir": "of the plate in vegetables, lunch and dinner"
 }
