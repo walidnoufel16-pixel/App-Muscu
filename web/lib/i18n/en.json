@@ -3306,5 +3306,10 @@
   "Ton besoin pour ces repas :": "Your need for these meals:",
   "C'est bon : rien à compter, les portions sont déjà calculées pour toi.": "You're good: nothing to count, the portions are already worked out for you.",
   "Il manque environ {g} g : un skyr (+15 g) ou deux œufs (+12 g) suffit.": "About {g} g short: a skyr (+15 g) or two eggs (+12 g) is enough.",
-  "de l'assiette en légumes, midi et soir": "of the plate in vegetables, lunch and dinner"
+  "de l'assiette en légumes, midi et soir": "of the plate in vegetables, lunch and dinner",
+  "Pour récupérer": "To recover",
+  "Un repas riche en protéines dans les 2 h.": "A protein-rich meal within 2 hours.",
+  "Poulet, poisson, œufs, skyr ou tofu, peu importe.": "Chicken, fish, eggs, skyr or tofu, whichever you like.",
+  "Ton {c} prévu": "Your planned {c}",
+  "g de protéines": "g of protein"
 }
