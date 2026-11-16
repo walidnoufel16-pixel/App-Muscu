@@ -178,7 +178,7 @@ export const RECETTES: Recette[] = [
     note: "Très léger et très protéiné : idéal un soir de repos.", noteEn: "Very light and very high in protein: ideal on a rest-day evening.",
   },
   {
-    id: "poke-saumon", n: "Poke bowl saumon et edamame", en: "Salmon poke bowl", m: "repas", min: 20, t: ["rapide"], mat: ["plaques"],
+    id: "poke-saumon", n: "Poke bowl saumon, avocat et mangue", en: "Salmon, avocado and mango poke bowl", m: "repas", min: 20, t: ["rapide"], mat: ["plaques"],
     ing: [["riz", 70], ["saumon", 120], ["avocat", 50], ["concombre", 80], ["carotte", 60], ["sauce_soja", 10], ["mangue", 60]],
     e: ["Fais cuire le riz et laisse-le tiédir.", "Coupe le saumon en dés (très frais) ou fais-le cuire 6 minutes à la poêle.", "Dispose le riz, le saumon, l'avocat, le concombre, la carotte râpée et la mangue.", "Assaisonne de sauce soja."],
     ee: ["Cook the rice and let it cool slightly.", "Dice the salmon (very fresh) or pan-fry it for 6 minutes.", "Arrange the rice, salmon, avocado, cucumber, grated carrot and mango.", "Season with soy sauce."],

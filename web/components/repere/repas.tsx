@@ -2,6 +2,7 @@
 
 /* Partie Repas : préférences, besoins du jour, cartes et fiche de recette.
    La logique est dans lib/logic/repas.ts. */
+import { AssiettesObjectif } from "./assiettes";
 import { langue, tr } from "@/lib/i18n";
 import { useState } from "react";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
@@ -340,7 +341,10 @@ function Fiche({ r, b, c, kcal, pers0 }: { r: Recette; b: Besoins; c?: CreneauRe
   const [pers, setPers] = useState(pers0);
   const f = portion(r, b, c), m = macros(r, f);
   const reg = regimeDe(r), alg = allergenesDe(r);
-  const pr = prefsDe(useRepere((s) => s.etat.A)), culte = pr.culte ?? 0, prixPerso = pr.prix;
+  const A = useRepere((s) => s.etat.A);
+  const pr = prefsDe(A), culte = pr.culte ?? 0, prixPerso = pr.prix;
+  /* moins de 18 ans : pas de « ressers-toi en légumes seulement » */
+  const mineur = (A.profil?.["Âge"] ?? 30) < 18;
   return (
     <div className="overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),20px)]">
       <VignetteRecette r={r} large className="mt-2 h-40 w-full rounded-[22px]" />
@@ -352,6 +356,7 @@ function Fiche({ r, b, c, kcal, pers0 }: { r: Recette; b: Besoins; c?: CreneauRe
         <Macro v={m.p} n={tr("protéines")} accent />
         {kcal ? <><Macro v={m.g} n={tr("glucides")} /><Macro v={m.l} n={tr("lipides")} /><Macro v={m.kcal} n={tr("kcal")} u="" /></> : <span className="col-span-3 self-center px-2 text-left text-[12.5px] leading-snug text-muted-foreground">{tr("Pour une portion à ta mesure (×{f} la recette de base).", { f: String(f).replace(".", EN() ? "." : ",") })}</span>}
       </div>
+      {r.m === "repas" && <AssiettesObjectif r={r} mineur={mineur} />}
       {glucManquants(r, b, c) > 0 && (
         <p className="mt-2 rounded-xl bg-plate-soft px-3 py-2 text-[13px] leading-snug text-plate-ink dark:text-plate">
           {tr("Journée d'endurance : ajoute environ {g} g de glucides à ce repas, par exemple un bol de riz, deux tranches de pain ou une banane.", { g: glucManquants(r, b, c) })}
