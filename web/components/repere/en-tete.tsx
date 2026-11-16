@@ -57,12 +57,13 @@ export function EnTete({
         {/* Le flou est sur une couche à part, derrière le contenu : sur iPhone, ce qui est
             à l'intérieur d'un élément flouté (backdrop-filter) est dessiné en basse résolution. */}
         {/* Fond uni, sans backdrop-filter : sur iPhone, un fond flouté fait dessiner en basse
-            résolution ce qui est posé dessus (bouton retour, menu, avatar). Il paraît quand la page a défilé. */}
+            résolution ce qui est posé dessus (bouton retour, menu, avatar). Il paraît quand la page a défilé,
+            sans fondu (un fondu y laissait aussi le texte flou jusqu'au défilement suivant). */}
         {fond && (
           <div
             aria-hidden
             data-fond
-            className="pointer-events-none absolute inset-0 animate-in border-b border-border/70 bg-background duration-200 fade-in-0"
+            className="pointer-events-none absolute inset-0 border-b border-border/70 bg-background"
           />
         )}
         {/* retour à gauche, actions à droite, de même largeur : le titre réduit est centré sur l'écran (tronqué plutôt que chevauchant) */}
@@ -70,8 +71,8 @@ export function EnTete({
           <div className="flex min-w-0 items-center">{gauche ?? (estRacine(chemin) ? <>{retourPossible && <Retour repli="/entrainement" />}<BoutonMenu /></> : null)}</div>
           <div
             className={cn(
-              "pointer-events-none truncate text-center text-[15px] font-semibold transition-opacity duration-200",
-              replie ? "opacity-100" : "opacity-0",
+              "pointer-events-none truncate text-center text-[15px] font-semibold",
+              !replie && "invisible",
             )}
             aria-hidden
           >
