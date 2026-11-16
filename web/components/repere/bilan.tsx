@@ -62,7 +62,7 @@ export function Bilan() {
     <Drawer open={!!bilan} onOpenChange={(o) => !o && fermer()}>
       <DrawerContent>
         {bilan && (
-          <div className="px-5 pt-3 pb-[max(env(safe-area-inset-bottom),20px)] text-center">
+          <div className="min-h-0 overflow-y-auto overscroll-contain px-5 pt-3 pb-[max(env(safe-area-inset-bottom),20px)] text-center">
             <div className="mx-auto grid size-20 animate-[medaille_.8s_cubic-bezier(.3,1.5,.5,1)_both] place-items-center rounded-full bg-plate text-plate-foreground shadow-[0_12px_40px_-10px_var(--plate)]">
               <TrophyIcon className="size-10" weight="fill" />
             </div>
