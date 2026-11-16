@@ -15,6 +15,7 @@
    portion) en protéines ; coulis de tomate et oignon en légumes ; maïs en féculents ; avocat,
    pesto, houmous, lait de coco, crème et yaourt en sauce comptent en « gras » ; parmesan et
    emmental râpés en garniture. Logique pure. */
+import { tr } from "@/lib/i18n";
 import { ALIM } from "@/lib/data/aliments";
 import { RECETTES, type Recette } from "@/lib/data/recettes";
 
@@ -67,12 +68,12 @@ export function typeDe(r: Recette): TypePlat {
 }
 
 /* L'accompagnement de légumes proposé, selon le plat (coach nutrition) ; vinaigrette huile et citron. */
-const ACCOMP: [RegExp, string][] = [
-  [/chili|tacos|wrap|soupe/, "Crudités (carotte râpée, chou) ou salade verte"],
-  [/curry|dahl|dal-/, "Concombre et tomate au citron, ou épinards vapeur"],
-  [/pates|gratin|risotto|gnocchis|bolognaise|pizza/, "Salade verte ou haricots verts"],
-  [/riz-saute|nouilles|wok/, "Brocoli vapeur"],
-  [/./, "Salade verte, ou légumes vapeur"],
+const ACCOMP: [RegExp, () => string][] = [
+  [/chili|tacos|wrap|soupe/, () => tr("Crudités (carotte râpée, chou) ou salade verte")],
+  [/curry|dahl|dal-/, () => tr("Concombre et tomate au citron, ou épinards vapeur")],
+  [/pates|gratin|risotto|gnocchis|bolognaise|pizza/, () => tr("Salade verte ou haricots verts")],
+  [/riz-saute|nouilles|wok/, () => tr("Brocoli vapeur")],
+  [/./, () => tr("Salade verte, ou légumes vapeur")],
 ];
 
 export type Assiette = {
@@ -105,7 +106,7 @@ export function assietteDe(r: Recette): Assiette {
   /* une salade composée, ou un plat qui a déjà sa salade : rien à ajouter */
   const aSalade = r.ing.some(([id]) => id === "salade") || r.id.startsWith("salade-");
   const manque = type === "mijote" || (type === "complet" ? partLegumes < 0.4 && !aSalade : leg < 130);
-  const accomp = manque ? ACCOMP.find(([re]) => re.test(r.id))![1] : undefined;
+  const accomp = manque ? ACCOMP.find(([re]) => re.test(r.id))![1]() : undefined;
   return {
     id: r.id, type, bol: EN_BOL.has(r.id),
     p: tri(par.p), f: tri(par.f), l: tri(par.l), gras: tri(par.gras), garniture: tri(par.garniture),
@@ -115,3 +116,34 @@ export function assietteDe(r: Recette): Assiette {
 
 /** Les plats (déjeuner, dîner) concernés par l'assiette. */
 export const PLATS = () => RECETTES.filter((r) => r.m === "repas");
+
+/** Fraction lisible : ⅓, ¼, ½, ⅔, ¾ ; « le reste » pour une part qui complète l'assiette. */
+export function texteFraction(v: number): string {
+  const F: [number, string][] = [[1 / 4, "¼"], [1 / 3, "⅓"], [1 / 2, "½"], [2 / 3, "⅔"], [3 / 4, "¾"], [1, "1"]];
+  const t = F.find(([x]) => Math.abs(x - v) < 0.01);
+  return t ? t[1] : "";
+}
+
+/** La grande assiette (≈ 28 cm) a environ 36 % de surface de plus que la normale (≈ 24 cm). */
+const GRANDE = (28 / 24) ** 2;
+
+/** Protéines d'une assiette, en grammes, pour chaque objectif. Les recettes sont écrites pour
+    des sportifs : une part de la recette de base sert d'assiette « prise de muscle » ; la part
+    protéines (ou du plat) des autres objectifs suit leur fraction et la taille de leur assiette.
+    Arrondi à 5 g : c'est une estimation. */
+export function protParAssiette(r: Recette, a: Assiette = assietteDe(r)): Record<Objectif, number> {
+  const pDe = (id: string, g: number) => ((ALIM[id]?.p ?? 0) * g) / 100;
+  const total = r.ing.reduce((s, [id, g]) => s + pDe(id, g), 0);
+  const zone = r.ing.reduce((s, [id, g]) => s + (a.p.includes(id) ? pDe(id, g) : 0), 0);
+  const arr = (g: number) => Math.max(5, Math.round(g / 5) * 5);
+  const taille = (o: Objectif) => (FRACTIONS[o].grande ? GRANDE : 1);
+  const out = {} as Record<Objectif, number>;
+  for (const o of ["muscle", "seche", "forme"] as Objectif[]) {
+    if (a.type === "complet") out[o] = arr(total * ((PART_PLAT[o] * taille(o)) / (PART_PLAT.muscle * GRANDE)));
+    else {
+      const k = (FRACTIONS[o].p * taille(o)) / (FRACTIONS.muscle.p * GRANDE);
+      out[o] = arr(zone * k + (total - zone) * (taille(o) / GRANDE));
+    }
+  }
+  return out;
+}
