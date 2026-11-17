@@ -15,6 +15,69 @@ const found = PROGRAMMES_STREET.find((p) => p.niv === "debutant")!;
 const pull = FAMILLES_STREET.find((f) => f.k === "tirage")!.ex;
 
 export const BLOG_EN: Record<string, Texte> = {
+  "courbatures-s-entrainer-ou-se-reposer": {
+    slug: "muscle-soreness-train-or-rest",
+    titre: "Muscle soreness: should you train or rest?",
+    description: "Sore after lifting: should you train or rest? What soreness really says about your workout, and how to get back to it without getting hurt.",
+    intro: "The day after leg day, you walk down the stairs holding the handrail. Two questions come up right away: can I go back to the gym today? And if I'm not sore next time, did my workout do anything?",
+    blocs: [
+      {
+        h: "What is muscle soreness?",
+        p: ["Delayed onset muscle soreness (DOMS) is muscle pain that shows up late: not during exercise, but the next day or the day after. The muscle feels stiff, tender to the touch or when stretched, and a bit weaker for a few days.", "It mostly happens in three situations:"],
+        liste: ["a new exercise, or a new variation;", "coming back after a break;", "lots of eccentric work, the phase where the muscle brakes the load (lowering a squat or a bench press, a long downhill run)."],
+      },
+      { h: "It fades quickly", p: ["When you repeat the same movement, soreness drops: researchers call it the repeated bout effect. Your body adapts, and the same workout hurts less the second time."] },
+      {
+        h: "No soreness, no progress? No",
+        p: ["It's the most stubborn gym myth. Yet soreness is not a good indicator of what your workout achieved:"],
+        liste: [
+          "It decreases as you progress. Regular lifters are often less sore than beginners, while still getting stronger.",
+          "You can be sore without building muscle. A long run or a long downhill causes plenty of soreness without growing your muscles.",
+          "Pain doesn't track adaptation. A review by Schoenfeld and Contreras (2013) concludes that soreness can't tell you whether a workout triggered the adaptations you're after. It says something new happened to the muscle, not that the workout was “good”.",
+        ],
+      },
+      { h: "The real benchmark: your log", p: ["One more rep than last week, the next step up on the bar, workouts kept week after week. That's progress."] },
+      {
+        h: "Sore: do I train or not?",
+        p: ["There's no single rule, but there is a simple guide based on how you feel. Either way, consistency is what matters: an adapted workout beats a skipped week."],
+        tableau: [
+          { titre: "Mild soreness (you feel it, but it doesn't get in the way)", lignes: ["You can train, even the sore muscle: after warming up, the discomfort often eases", "Keep one or two reps in the tank"] },
+          { titre: "Severe soreness (you limp, you can't stretch the muscle without wincing)", lignes: ["Let that muscle recover: train another muscle group", "Or do something light: walking, an easy bike ride, mobility", "A heavy session on a very sore muscle usually means less strength and sloppier technique"] },
+          { titre: "Sharp or sudden pain, joint pain, or pain that hasn't gone after a week", lignes: ["That's not muscle soreness", "Stop the exercise and see a health professional"] },
+        ],
+      },
+      {
+        h: "What helps, what helps less",
+        p: ["A meta-analysis by Dupuy and colleagues (2018) comparing recovery techniques found massage to be the most effective method for reducing soreness and perceived fatigue; compression garments and cold-water immersion also help, more modestly. An earlier review (Cheung et al., 2003) already noted that stretching doesn't really reduce soreness.", "The simplest and most useful things:"],
+        liste: [
+          "Move gently: a walk or an easy bike ride often brings relief on the spot.",
+          "Sleep and eat normally, with a source of protein at every meal.",
+          "Progress in small steps: add one rep, then the smallest weight increase, rather than doubling your volume at once. It's the best way to avoid heavy soreness.",
+          "Come back lighter after a break: an overambitious comeback is usually what causes the worst days after.",
+        ],
+      },
+      {
+        h: "What Oxa does for you",
+        p: ["Oxa doesn't measure your soreness, but it tracks what causes it:"],
+        liste: [
+          "The Recovery sheet shows each muscle as ready or recovering, with the day it will be ready. It accounts for your workouts (about 48 h for a well-worked muscle, up to 72 h for legs and back after a big session, 24 h for abs and calves) and your runs: a hard-ish 10 km also puts your legs into recovery.",
+          "“Workout with ready muscles” builds a session that leaves recovering muscles alone.",
+          "After a break, Oxa lowers your weights: −10% after 10 days without an exercise, −20% after 21 days, and explains why under the weight.",
+        ],
+      },
+      { h: "Key takeaway", p: ["Soreness says a muscle did something unusual, not that your workout worked. Mild soreness, go ahead. Severe, switch muscles. And judge your progress by your log, not by the stairs.", "These timings are app guidelines, not a medical rule: if a muscle still hurts, listen to it. This is general guidance, not medical advice."] },
+      {
+        h: "Sources",
+        liste: [
+          "Schoenfeld B. J., Contreras B. “Is Postexercise Muscle Soreness a Valid Indicator of Muscular Adaptations?” Strength and Conditioning Journal, 2013, 35(5), p. 16-21.",
+          "Cheung K., Hume P. A., Maxwell L. “Delayed onset muscle soreness: treatment strategies and performance factors.” Sports Medicine, 2003, 33(2), p. 145-164.",
+          "Dupuy O., Douzi W., Theurot D., Bosquet L., Dugué B. “An Evidence-Based Approach for Choosing Post-exercise Recovery Techniques to Reduce Markers of Muscle Damage, Soreness, Fatigue, and Inflammation.” Frontiers in Physiology, 2018, 9:403.",
+          "Hyldahl R. D., Chen T. C., Nosaka K. “Mechanisms and Mediators of the Skeletal Muscle Repeated Bout Effect.” Exercise and Sport Sciences Reviews, 2017, 45(1), p. 24-33.",
+        ],
+      },
+    ],
+    cta: "See which muscles are ready today and start a workout that lets the others recover",
+  },
   "winter-arc-programme-8-semaines": {
     slug: "winter-arc-8-week-plan",
     titre: "Winter Arc: an 8-week plan to start January already in shape (without burning out)",
