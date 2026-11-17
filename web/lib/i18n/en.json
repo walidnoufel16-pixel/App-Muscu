@@ -3311,5 +3311,21 @@
   "Un repas riche en protéines dans les 2 h.": "A protein-rich meal within 2 hours.",
   "Poulet, poisson, œufs, skyr ou tofu, peu importe.": "Chicken, fish, eggs, skyr or tofu, whichever you like.",
   "Ton {c} prévu": "Your planned {c}",
-  "g de protéines": "g of protein"
+  "g de protéines": "g of protein",
+  "Profil sportif": "Fitness profile",
+  "Réglages": "Settings",
+  "Touche une zone fragile : Oxa écarte les mouvements qui la sollicitent.": "Tap a sensitive area: Oxa leaves out the movements that load it.",
+  "Sans adresse, ton compte ne vit que sur ce téléphone : en changer te ferait tout perdre.": "Without an email, your account only lives on this phone: switching phones would lose everything.",
+  "Adresse du compte": "Account email",
+  "Sauvegarder mon compte": "Back up my account",
+  "Un code arrive par e-mail, sans mot de passe. Une seule adresse par compte, et on ne t'écrit que pour ça.": "A code arrives by email, no password. One address per account, and we only write to you for that.",
+  "Profil complété · {n} sur {t}": "Profile complete · {n} of {t}",
+  "Compléter mon profil": "Complete my profile",
+  "{n} réponse{s}": "{n} answer{s}",
+  "Activé": "On",
+  "Désactivé": "Off",
+  "App": "App",
+  "Rappels, langue": "Reminders, language",
+  "Pas sauvegardé": "Not backed up",
+  "L'éditeur d'Oxa peut les consulter pour suivre l'usage de l'app et l'améliorer. Elles ne sont ni vendues ni partagées. Le suivi du cycle menstruel ne quitte jamais ce téléphone. « Tout effacer », dans Mon compte, supprime tout, ici comme sur le serveur.": "Oxa's publisher can view it to monitor app usage and improve it. It is never sold or shared. Menstrual cycle tracking never leaves this phone. “Erase everything”, in My account, deletes it all, here and on the server."
 }

@@ -81,7 +81,7 @@ async function contexte(admin, acces = false) {
 // compte normal : pas d'entrée Admin, /admin renvoie vers Profil
 {
   const { ctx, pg, appels } = await contexte(false);
-  await pg.goto(U + "/profil/");
+  await pg.goto(U + "/profil/?p=reglages");
   await pg.getByText("Confidentialité").waitFor({ timeout: 8000 });
   await pg.waitForTimeout(800);
   ok(appels.includes("est_admin") && !(await pg.getByRole("button", { name: "Admin" }).isVisible()), "compte normal : pas d'entrée Admin");
@@ -97,7 +97,7 @@ async function contexte(admin, acces = false) {
 {
   const { ctx, pg } = await contexte(true);
   const cap = async (n) => { if (!process.env.CAPTURES) return; await pg.waitForTimeout(1200); await pg.screenshot({ path: `${process.env.CAPTURES}/${n}.png`, fullPage: n.endsWith("-long") }); };
-  await pg.goto(U + "/profil/");
+  await pg.goto(U + "/profil/?p=reglages");
   await pg.getByRole("button", { name: "Admin" }).click({ timeout: 8000 });
   await pg.waitForURL(/\/admin\/?$/);
   await pg.getByText("Séances par semaine, tous comptes").waitFor({ timeout: 8000 });

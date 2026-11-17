@@ -54,7 +54,7 @@ export function Demenagement() {
                 <li className="rounded-2xl border-2 border-plate bg-plate-soft p-3.5">
                   <b className="font-semibold">{tr("D'abord : rattache ton adresse e-mail.")}</b>{" "}
                   {tr("Ton compte n'en a pas encore : sans elle, tu repartirais de zéro sur la nouvelle adresse.")}
-                  <Button size="sm" className="mt-2.5 rounded-xl" onClick={() => { plusTard(); router.push("/profil#compte" as "/profil", AVANT); }}>{tr("Rattacher mon e-mail")}</Button>
+                  <Button size="sm" className="mt-2.5 rounded-xl" onClick={() => { plusTard(); router.push("/profil?p=compte" as "/profil", AVANT); }}>{tr("Rattacher mon e-mail")}</Button>
                 </li>
               )}
               <li className="rounded-2xl bg-card p-3.5">

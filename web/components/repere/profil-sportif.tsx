@@ -98,7 +98,7 @@ function Compteur({ label, v, unite, pas, min, max, onChange }: { label: string;
 
 /* ---------------- Profil › Mon profil sportif ---------------- */
 export type Ligne = "sexe" | "age" | "corps" | "objectif" | "niveau" | "rythme" | "gene" | "prio" | "sport";
-type LigneProfil = { k: Ligne; icone: React.ReactNode; fond: string; n: string; v: string | null };
+export type LigneProfil = { k: Ligne; icone: React.ReactNode; fond: string; n: string; v: string | null };
 
 function GroupeLignes({ l, ouvrir }: { l: LigneProfil[]; ouvrir: (k: Ligne) => void }) {
   return (
@@ -115,9 +115,8 @@ function GroupeLignes({ l, ouvrir }: { l: LigneProfil[]; ouvrir: (k: Ligne) => v
   );
 }
 
-export function ProfilSportif() {
-  const A = useRepere((s) => s.etat.A);
-  const [ouv, setOuv] = useState<Ligne | null>(null);
+/** Les 8 lignes du profil sportif, avec leur valeur (null : à compléter). */
+export function lignesProfil(A: Reponses): LigneProfil[] {
   const p = A.profil || {}, kg = poidsDe(A);
   const G = groupes(A), prio = (A.prio || []).filter((i) => i < G.length);
   const sports = (A.sport || []).filter((i) => i > 0 && SPORTS[i]);
@@ -131,10 +130,16 @@ export function ProfilSportif() {
     { k: "prio", icone: <StarIcon className="size-4" weight="fill" />, fond: "#bf5af2", n: tr("Muscles prioritaires"), v: A.prio ? (prio.length ? prio.map((i) => tr(G[i])).join(", ") : tr("Aucun")) : null },
     { k: "sport", icone: <PersonSimpleRunIcon className="size-4" weight="bold" />, fond: "#ff6b2c", n: tr("Autres sports"), v: A.sport ? (sports.length ? sports.map((i) => tr(SPORTS[i].n)).join(", ") : tr("Aucun")) : null },
   ];
+  return lignes;
+}
+
+export function ProfilSportif() {
+  const A = useRepere((s) => s.etat.A);
+  const [ouv, setOuv] = useState<Ligne | null>(null);
+  const lignes = lignesProfil(A);
   const faits = lignes.filter((l) => l.v).length;
   return (
     <section id="sportif" className="scroll-mt-20">
-      <h3 className="eyebrow mb-2 px-1">{tr("Mon profil sportif")}</h3>
       <GroupeLignes l={lignes.slice(0, 3)} ouvrir={setOuv} />
       <div className="mt-2.5"><GroupeLignes l={lignes.slice(3)} ouvrir={setOuv} /></div>
       <div className="mt-2.5 flex items-center gap-2.5 px-1 text-[12.5px] text-muted-foreground">
@@ -270,7 +275,7 @@ export function CalculePour({ duree, objectif }: { duree: number; objectif: numb
     <div className="flex items-center gap-2 rounded-2xl bg-plate-soft px-3 py-2.5 text-[13px] font-semibold text-plate-ink dark:text-plate">
       <GearSixIcon className="size-4 shrink-0" weight="fill" />
       <span className="min-w-0 flex-1 truncate">{tr("Calculée pour : {a}", { a: resumeCalcul({ ...A, objectif: objectif ?? A.objectif }, duree) })}</span>
-      <button onClick={() => router.push("/profil#sportif" as Route, AVANT)} className="shrink-0 underline underline-offset-2">{tr("modifier")}</button>
+      <button onClick={() => router.push("/profil?p=sportif" as Route, AVANT)} className="shrink-0 underline underline-offset-2">{tr("modifier")}</button>
     </div>
   );
 }

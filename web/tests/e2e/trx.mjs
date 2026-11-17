@@ -67,7 +67,7 @@ const pecs = (pg, l = pg) => l.locator("path", { has: pg.locator("title", { hasT
 {
   /* Profil › Mon matériel : TRX coché, repris par « Mon matériel déclaré » et ajouté à une séance. */
   const [ctx, pg] = await contexte(etat());
-  await pg.goto(U + "/profil/");
+  await pg.goto(U + "/profil/?p=materiel");
   const trx = pg.getByRole("button", { name: "TRX", exact: true });
   await trx.waitFor({ timeout: 8000 });
   await trx.click();

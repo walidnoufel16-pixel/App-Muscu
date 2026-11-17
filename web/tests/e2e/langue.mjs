@@ -48,7 +48,7 @@ async function ecran(pg, chemin, nom, attendu) {
   const pg = await ctx.newPage();
   pg.on("pageerror", (e) => errs.push(e.message));
 
-  await pg.goto(U + "/profil/");
+  await pg.goto(U + "/profil/?p=reglages");
   await pg.getByRole("heading", { name: "Langue" }).waitFor();
   ok(await pg.evaluate(() => document.documentElement.lang) === "fr", "téléphone en français : app en français");
   await Promise.all([pg.waitForEvent("load"), pg.getByRole("tab", { name: "English" }).click()]);
@@ -92,7 +92,7 @@ async function ecran(pg, chemin, nom, attendu) {
   /* Fermeture puis réouverture : toujours en anglais. */
   await pg.close();
   const pg2 = await ctx.newPage();
-  await pg2.goto(U + "/profil/");
+  await pg2.goto(U + "/profil/?p=reglages");
   await pg2.getByRole("heading", { name: "Language" }).waitFor();
   ok(true, "langue gardée après fermeture");
   await Promise.all([pg2.waitForEvent("load"), pg2.getByRole("tab", { name: "Français" }).click()]);

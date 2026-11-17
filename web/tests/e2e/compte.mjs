@@ -55,14 +55,14 @@ async function parcours(confirmer) {
     await pg.getByLabel("Code à six chiffres").fill(BON);
     await pg.getByRole("heading", { name: "Deux façons de t'entraîner" }).waitFor({ timeout: 5000 });
     ok(await pg.getByText("Adresse confirmée").isVisible(), "bon code (validé sans toucher le bouton) : adresse confirmée, on passe à la suite");
-    await pg.goto(U + "/profil/");
+    await pg.goto(U + "/profil/?p=compte");
     await pg.getByText("walid@exemple.fr").first().waitFor({ timeout: 5000 });
     ok(!(await pg.getByLabel("Code à six chiffres").isVisible()), "Profil : adresse rattachée, plus de code en attente");
   } else {
     await pg.getByRole("button", { name: "Plus tard" }).click();
     await pg.getByRole("heading", { name: "Deux façons de t'entraîner" }).waitFor();
     ok(true, "« Plus tard » mène à la suite");
-    await pg.goto(U + "/profil/");
+    await pg.goto(U + "/profil/?p=compte");
     await pg.getByLabel("Code à six chiffres").waitFor({ timeout: 5000 });
     await cap("compte-profil");
     await pg.getByLabel("Code à six chiffres").fill(BON);
