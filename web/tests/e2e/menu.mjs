@@ -46,17 +46,19 @@ const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(800); await 
 
   /* chaque entrée */
   const entree = async (n, url, cible) => {
+    /* une rubrique du Profil a un bouton retour à la place du menu : on repart d'un onglet */
+    if (!(await pg.getByRole("button", { name: "Menu" }).isVisible())) { await pg.goto(U + "/entrainement/"); await pg.locator("nav a").first().waitFor(); }
     await ouvrir();
     await menu().getByRole("button", { name: n }).click();
     await pg.waitForURL(url, { timeout: 8000 });
     if (cible) await cible().waitFor({ timeout: 8000 });
     ok(true, `« ${n} » → ${pg.url().replace(U, "")}`);
   };
-  await entree("Mon matériel", /\/profil\/?$/, () => pg.locator("#materiel"));
+  await entree("Mon matériel", /\/profil\/?\?p=materiel$/, () => pg.locator("#materiel"));
+  await entree("Rappels", /\/profil\/?\?p=reglages$/, () => pg.locator("#rappels"));
+  await entree("Apparence et langue", /\/profil\/?\?p=reglages$/, () => pg.locator("#apparence"));
   await pg.waitForTimeout(1200);
-  ok(await pg.locator("#materiel").evaluate((el) => { const r = el.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; }), "Mon matériel : la section est à l'écran");
-  await entree("Rappels", /\/profil\/?$/, () => pg.locator("#rappels"));
-  await entree("Apparence et langue", /\/profil\/?$/, () => pg.locator("#apparence"));
+  ok(await pg.locator("#apparence").evaluate((el) => { const r = el.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; }), "Apparence : la section est à l'écran");
   await entree("Préférences repas", /\/repas\/?\?prefs=1/, () => pg.getByRole("dialog").getByText("Préférences repas").first());
   await pg.getByRole("dialog").getByRole("button", { name: "Enregistrer" }).click();
   await pg.waitForTimeout(500);
@@ -66,7 +68,7 @@ const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(800); await 
   await ouvrir();
   await menu().getByRole("button", { name: /Walid/ }).click();
   await pg.waitForURL(/\/profil\/?$/);
-  ok(await pg.locator("#compte").count() === 1, "le compte ouvre le Profil");
+  ok(await pg.getByRole("button", { name: /^Mon compte/ }).waitFor({ timeout: 5000 }).then(() => true, () => false), "le compte ouvre le Profil");
   await cap(pg, "menu-profil");
   /* l'avatar mène aussi au Profil */
   await pg.goto(U + "/repas/");

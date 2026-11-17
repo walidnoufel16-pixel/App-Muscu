@@ -59,6 +59,8 @@ await ecran("/progres/bilan/", "14-bilan");
 await ecran("/exercices/", "15-exercices");
 await ecran("/exercices/", "16-liste", () => pg.getByRole("tab", { name: "List" }).click());
 await ecran("/profil/", "17-profil");
+await ecran("/profil/?p=reglages", "17b-reglages");
+await ecran("/profil/?p=compte", "17c-compte");
 await ecran("/questionnaire/", "18-questionnaire");
 await ecran("/plan/synthese/", "19-synthese");
 await ecran("/bienvenue/", "20-bienvenue");

@@ -60,7 +60,7 @@ await pg.getByRole("button", { name: "Fermer" }).click();
 await pg.waitForURL(/\/progres\/$/);
 
 // cycle : réglage local, phase dans le check-in, rien dans l'état synchronisé
-await pg.goto(U + "/profil/");
+await pg.goto(U + "/profil/?p=cycle");
 await pg.getByRole("heading", { name: "Cycle menstruel" }).waitFor();
 await pg.getByLabel("Adapter à mon cycle").check();
 const d = new Date(); d.setDate(d.getDate() - 1);

@@ -169,7 +169,7 @@ for (const c of ["/entrainement/", "/progres/", "/profil/", "/entrainement/seanc
 }
 
 // changer de compte (mode local : les données du téléphone seront effacées, on le dit)
-await pg.goto(U + "/profil/");
+await pg.goto(U + "/profil/?p=compte");
 await pg.getByRole("button", { name: "Changer de compte" }).click();
 await pg.getByText("ce sera effacé").waitFor({ timeout: 3000 });
 ok(true, "avertissement avant de quitter des données non rattachées");

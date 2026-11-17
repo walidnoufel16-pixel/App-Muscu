@@ -56,7 +56,7 @@ await pg.waitForTimeout(1200);
 ok(await pg.getByText("Comment tu te sens ?").count() === 0, "passer : plus de check-in aujourd'hui");
 
 // profil : zones à ménager
-await pg.goto(U + "/profil/");
+await pg.goto(U + "/profil/?p=zones");
 await pg.getByText("Zones à ménager").waitFor();
 await pg.getByRole("button", { name: "Genoux", exact: true }).click();
 await pg.waitForTimeout(200);

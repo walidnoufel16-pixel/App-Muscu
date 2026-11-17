@@ -62,10 +62,10 @@ export function MenuLateral() {
     {
       titre: tr("Mes réglages"),
       l: [
-        { Icone: ToolboxIcon, n: tr("Mon matériel"), onClick: va("/profil", "materiel") },
-        { Icone: BellIcon, n: tr("Rappels"), onClick: va("/profil", "rappels") },
+        { Icone: ToolboxIcon, n: tr("Mon matériel"), onClick: va("/profil?p=materiel") },
+        { Icone: BellIcon, n: tr("Rappels"), onClick: va("/profil?p=reglages", "rappels") },
         { Icone: ForkKnifeIcon, n: tr("Préférences repas"), onClick: va("/repas?prefs=1") },
-        { Icone: CircleHalfIcon, n: tr("Apparence et langue"), onClick: va("/profil", "apparence") },
+        { Icone: CircleHalfIcon, n: tr("Apparence et langue"), onClick: va("/profil?p=reglages", "apparence") },
       ],
     },
     {
@@ -87,7 +87,7 @@ export function MenuLateral() {
           <DrawerTitle className="sr-only">{tr("Menu")}</DrawerTitle>
           <DrawerDescription className="sr-only">{tr("Compte, réglages, défis, badges et plus")}</DrawerDescription>
           {/* le compte */}
-          <button onClick={va("/profil", "compte")} className={cn("flex items-center gap-3 rounded-[20px] bg-card p-3.5 text-left active:opacity-80", chemin.startsWith("/profil") && "ring-2 ring-plate/40")}>
+          <button onClick={va("/profil")} className={cn("flex items-center gap-3 rounded-[20px] bg-card p-3.5 text-left active:opacity-80", chemin.startsWith("/profil") && "ring-2 ring-plate/40")}>
             <span className="grid size-12 shrink-0 place-items-center rounded-full bg-plate text-[20px] font-bold text-plate-foreground">{initiale}</span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[17px] font-semibold">{pseudo || tr("Mon compte")}</span>
