@@ -31,6 +31,72 @@ const recette = (id: string) => ({ couverture: imgRecette(id, "large")!, credit:
 /* Les articles écrits pour le blog (après les quatre guides d'origine). */
 const NOUVEAUX: Article[] = [
   {
+    slug: "courbatures-s-entrainer-ou-se-reposer",
+    type: "article",
+    categorie: "Muscu", date: "2026-11-17", couverture: "/img/seance-repos.avif",
+    titre: "Courbatures : s'entraîner ou se reposer ?",
+    description: "Courbatures après la muscu : faut-il s'entraîner ou se reposer ? Ce qu'elles disent vraiment de ta séance, et comment reprendre sans te blesser.",
+    intro: "Le lendemain d'une séance de jambes, tu descends les escaliers en te tenant à la rampe. Deux questions arrivent tout de suite : est-ce que je peux retourner à la salle aujourd'hui ? Et, si je n'ai pas mal la prochaine fois, est-ce que ma séance aura servi à quelque chose ?",
+    blocs: [
+      {
+        h: "Les courbatures, c'est quoi ?",
+        p: ["Les courbatures (en anglais DOMS, pour delayed onset muscle soreness) sont une douleur musculaire qui apparaît à retardement : pas pendant l'effort, mais le lendemain ou le surlendemain. Le muscle est raide, sensible quand tu le touches ou quand tu l'étires, et un peu moins fort pendant quelques jours.", "Elles arrivent surtout dans trois cas :"],
+        liste: ["un exercice nouveau, ou une nouvelle variante ;", "une reprise après une pause ;", "beaucoup de travail excentrique, la phase où le muscle freine la charge (la descente d'un squat, d'un développé couché, une longue descente en course)."],
+      },
+      { h: "Elles s'atténuent vite", p: ["Quand tu refais le même mouvement, les courbatures diminuent : c'est ce que les chercheurs appellent l'« effet de répétition » (repeated bout effect). Le corps s'adapte, et la même séance fait moins mal la deuxième fois."] },
+      {
+        h: "Pas de courbatures, pas de progrès ? Non",
+        p: ["C'est l'idée reçue la plus tenace de la salle. Pourtant, les courbatures ne sont pas un bon indicateur de ce que ta séance a produit :"],
+        liste: [
+          "Elles diminuent quand tu progresses. Un pratiquant régulier a souvent moins de courbatures qu'un débutant, alors qu'il continue de gagner en force.",
+          "On peut en avoir sans gagner de muscle. Une longue course ou une longue descente en donne beaucoup, sans faire grossir les muscles.",
+          "La douleur ne suit pas l'adaptation. Une revue de Schoenfeld et Contreras (2013) conclut que les courbatures ne permettent pas de juger si une séance a provoqué les adaptations recherchées. Elles disent qu'il s'est passé quelque chose de nouveau pour le muscle, pas que la séance était « bonne ».",
+        ],
+      },
+      { h: "Le vrai repère : ton carnet", p: ["Une répétition de plus qu'il y a une semaine, le palier suivant sur la barre, des séances tenues semaine après semaine. C'est ça, la progression."] },
+      {
+        h: "Courbaturé : je m'entraîne ou pas ?",
+        p: ["Il n'y a pas de règle unique, mais un repère simple, selon ce que tu ressens. Dans tous les cas, l'enjeu est la régularité : une séance adaptée vaut mieux qu'une semaine sautée."],
+        tableau: [
+          { titre: "Courbatures légères (tu les sens, sans gêne pour bouger)", lignes: ["Tu peux t'entraîner, même le muscle concerné : après l'échauffement, la gêne diminue souvent", "Garde une ou deux répétitions en réserve"] },
+          { titre: "Courbatures fortes (tu boites, tu ne peux pas étirer le muscle sans grimacer)", lignes: ["Laisse ce muscle récupérer : entraîne un autre groupe musculaire", "Ou une activité légère : marche, vélo tranquille, mobilité", "Une séance lourde sur un muscle très courbaturé se fait souvent avec moins de force et une technique moins propre"] },
+          { titre: "Douleur vive, soudaine, dans une articulation, ou qui ne passe pas après une semaine", lignes: ["Ce ne sont pas des courbatures", "Arrête l'exercice et vois un professionnel de santé"] },
+        ],
+      },
+      {
+        h: "Ce qui aide, ce qui aide moins",
+        p: ["Une méta-analyse de Dupuy et ses collègues (2018), qui compare les techniques de récupération, trouve que le massage est la méthode la plus efficace pour réduire les courbatures et la sensation de fatigue ; les vêtements de compression et l'immersion dans l'eau froide ont aussi un effet, plus modeste. Une revue plus ancienne (Cheung et al., 2003) notait déjà que les étirements ne réduisent pas vraiment les courbatures.", "Ce qui reste le plus simple et le plus utile :"],
+        liste: [
+          "Bouger doucement : une marche ou un vélo léger soulagent souvent sur le moment.",
+          "Dormir et manger normalement, avec une source de protéines à chaque repas.",
+          "Progresser par petits pas : ajouter une répétition, puis le plus petit palier, plutôt que de doubler le volume d'un coup. C'est le meilleur moyen d'éviter les grosses courbatures.",
+          "Reprendre plus léger après une pause : c'est souvent la reprise trop ambitieuse qui donne les pires lendemains.",
+        ],
+      },
+      {
+        h: "Ce qu'Oxa fait pour toi",
+        p: ["Oxa ne mesure pas tes courbatures, mais il suit ce qui les provoque :"],
+        liste: [
+          "La feuille Récupération affiche chaque muscle prêt ou en récupération, avec le jour où il sera prêt. Elle tient compte de tes séances (environ 48 h pour un muscle bien travaillé, jusqu'à 72 h pour les jambes et le dos après une grosse séance, 24 h pour les abdos et les mollets) et de tes sorties de course : un 10 km un peu dur met aussi tes jambes en récupération.",
+          "« Séance avec les muscles prêts » te compose une séance qui laisse tranquilles ceux qui récupèrent.",
+          "Après une pause, Oxa baisse tes charges : −10 % après 10 jours sans un exercice, −20 % après 21 jours, et t'explique pourquoi sous la charge.",
+        ],
+      },
+      { h: "À retenir", p: ["Les courbatures disent qu'un muscle a fait quelque chose d'inhabituel, pas que ta séance a marché. Courbatures légères, tu peux y aller. Fortes, change de muscle. Et juge tes progrès sur ton carnet, pas sur tes escaliers.", "Ces délais sont des repères de l'app, pas une règle médicale : si un muscle est encore douloureux, écoute-le. Ce sont des conseils généraux, pas un avis médical."] },
+      {
+        h: "Sources",
+        liste: [
+          "Schoenfeld B. J., Contreras B. « Is Postexercise Muscle Soreness a Valid Indicator of Muscular Adaptations? » Strength and Conditioning Journal, 2013, 35(5), p. 16-21.",
+          "Cheung K., Hume P. A., Maxwell L. « Delayed onset muscle soreness: treatment strategies and performance factors. » Sports Medicine, 2003, 33(2), p. 145-164.",
+          "Dupuy O., Douzi W., Theurot D., Bosquet L., Dugué B. « An Evidence-Based Approach for Choosing Post-exercise Recovery Techniques to Reduce Markers of Muscle Damage, Soreness, Fatigue, and Inflammation. » Frontiers in Physiology, 2018, 9:403.",
+          "Hyldahl R. D., Chen T. C., Nosaka K. « Mechanisms and Mediators of the Skeletal Muscle Repeated Bout Effect. » Exercise and Sport Sciences Reviews, 2017, 45(1), p. 24-33.",
+        ],
+      },
+    ],
+    cta: "Vois quels muscles sont prêts aujourd'hui et lance une séance qui laisse les autres récupérer",
+    lien: "/entrainement/?src=blog-courbatures",
+  },
+  {
     slug: "winter-arc-programme-8-semaines",
     type: "article",
     categorie: "Muscu", date: "2026-11-08", couverture: imgExGrand("sq", 0),
