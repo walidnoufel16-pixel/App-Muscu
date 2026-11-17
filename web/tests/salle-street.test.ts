@@ -40,7 +40,7 @@ describe("Ma salle", () => {
     }
   });
   it("photo libre : copiée dans public/img, auteur et licence dans Crédits", () => {
-    const libres = POSTES.filter((p) => imgPoste(p)?.startsWith("/img/poste-"));
+    const libres = POSTES.filter((p) => imgPoste(p)?.startsWith("/img/poste-") && creditPoste(p)?.licence);
     expect(libres.map((p) => p.id).sort()).toEqual(["devinc", "latm", "mollass"]);
     for (const p of libres) {
       expect(fs.existsSync(path.join(PUB, imgPoste(p)!)), p.id).toBe(true);
@@ -48,6 +48,15 @@ describe("Ma salle", () => {
       expect(c?.licence, p.id).toMatch(/^CC BY(-SA)? \d\.\d$/);
       expect(c?.lien, p.id).toMatch(/^https:\/\//);
     }
+  });
+  it("photos du fabricant : fichiers locaux, marque sous la photo, accord dans Crédits", () => {
+    const catalogue = POSTES.filter((p) => imgPoste(p)?.startsWith("/img/poste-") && !creditPoste(p)?.licence);
+    expect(catalogue.length).toBe(15);
+    for (const p of catalogue) {
+      expect(fs.existsSync(path.join(PUB, imgPoste(p)!)), p.id).toBe(true);
+      expect(creditPoste(p)?.nom, p.id).toMatch(/^(Throwdown|Impulse Fitness)$/);
+    }
+    expect(CREDITS.find((c) => c.nom.includes("Core Health & Fitness"))?.licence).toBe("Avec l'accord du fabricant");
   });
   it("chaque machine avec photo l'a aussi en grand, avec son auteur ; les fichiers locaux existent", () => {
     for (const p of POSTES.filter((x) => imgPoste(x))) {
