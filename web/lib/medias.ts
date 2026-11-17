@@ -56,8 +56,17 @@ const PHOTOS_LIBRES: Record<string, { auteur: string; licence: string; lien: str
   latm: { auteur: "Aliva Sahoo", licence: "CC BY-SA 4.0", lien: "https://commons.wikimedia.org/w/index.php?curid=179972398" },
 };
 
+/* Photos du fabricant (catalogues Core Health & Fitness 2026, marques Throwdown et Impulse), utilisées
+   avec son accord : la machine sur fond blanc, copiées dans public/img. Machines ajoutées le 17 novembre 2026. */
+const MARQUES = { th: "Throwdown", im: "Impulse Fitness" } as const;
+const PHOTOS_CATALOGUE: Record<string, keyof typeof MARQUES> = Object.fromEntries([
+  ...["battle", "plyo", "sac", "sandbag", "skierg", "slam"].map((id) => [id, "th"] as const),
+  ...["bancabdo", "bancplat", "biking", "extlomb", "hyper45", "multihanche", "pecfly", "pressehor", "tapiscourbe"].map((id) => [id, "im"] as const),
+]);
+
 /** Photo d'un poste de « Ma salle » : celle de son exercice, sinon une photo libre ou Unsplash, sinon rien (icône). */
 export const imgPoste = (p: { id: string; img?: string }) => {
+  if (PHOTOS_CATALOGUE[p.id]) return `/img/poste-${p.id}.avif`;
   if (p.img) return imgEx(p.img);
   if (PHOTOS_LIBRES[p.id]) return `/img/poste-${p.id}.avif`;
   const ph = PHOTOS_POSTES[p.id];
@@ -65,6 +74,7 @@ export const imgPoste = (p: { id: string; img?: string }) => {
 };
 /** La même photo en grand, sans recadrage, pour la voir en plein écran. */
 export const imgPosteGrand = (p: { id: string; img?: string }) => {
+  if (PHOTOS_CATALOGUE[p.id]) return `/img/poste-${p.id}-grand.avif`;
   if (p.img) return imgExGrand(p.img);
   if (PHOTOS_LIBRES[p.id]) return `/img/poste-${p.id}-grand.avif`;
   const ph = PHOTOS_POSTES[p.id];
@@ -72,6 +82,8 @@ export const imgPosteGrand = (p: { id: string; img?: string }) => {
 };
 /** Qui a fait la photo d'un poste, pour la mention sous la photo en grand. */
 export const creditPoste = (p: { id: string; img?: string }): { nom: string; lien: string; licence: string } | undefined => {
+  /* l'accord du fabricant est mentionné une fois, dans Crédits, pas sous chaque photo */
+  if (PHOTOS_CATALOGUE[p.id]) return { nom: MARQUES[PHOTOS_CATALOGUE[p.id]], lien: "https://www.corehandf.com", licence: "" };
   if (p.img) { const s = sourceEx(p.img); return { nom: s.nom, lien: s.lien, licence: s.licence }; }
   if (PHOTOS_LIBRES[p.id]) { const ph = PHOTOS_LIBRES[p.id]; return { nom: ph.auteur, lien: ph.lien, licence: ph.licence }; }
   const ph = PHOTOS_POSTES[p.id];
@@ -190,6 +202,7 @@ export const CREDITS: { quoi: string; nom: string; licence: string; lien: string
     const ph = PHOTOS_LIBRES[p.id];
     return { quoi: tr("Photo recadrée · {n}", { n: p.n }), nom: ph.auteur, licence: ph.licence, lien: ph.lien };
   }),
+  { quoi: tr("Photos des machines (Ma salle)"), nom: tr("Core Health & Fitness · Throwdown et Impulse Fitness"), licence: tr("Avec l'accord du fabricant"), lien: "https://www.corehandf.com" },
   /* les sources ne sont plus sous les photos : chaque photographe des recettes est cité ici, avec un lien vers son profil */
   ...[...new Map(Object.values(PHOTOS_RECETTES).map((ph) => [ph.profil, ph])).values()].map((ph) => ({ quoi: tr("Photos des recettes"), nom: tr("{n} sur Unsplash", { n: ph.auteur }), licence: tr("Licence Unsplash"), lien: `https://unsplash.com/@${ph.profil}${UTM}` })),
   ...PHOTOS_SEANCES.map((ph) => ({ quoi: tr("Photos des séances"), nom: ph.auteur ? tr("{n} sur {s}", { n: ph.auteur, s: ph.site }) : ph.site, licence: "CC0", lien: ph.lien })),
