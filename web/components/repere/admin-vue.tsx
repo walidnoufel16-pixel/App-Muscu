@@ -8,7 +8,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { CaretRightIcon } from "@phosphor-icons/react";
-import { vueAdmin, type VueAdmin } from "@/lib/admin";
+import { analysesErreurs, mesureAdmin, vueAdmin, type VueAdmin } from "@/lib/admin";
+import { aRegarder } from "@/lib/logic/erreurs";
 import { court, jourIso, pl, sourcesLisibles, vueTesteurs, type CompteAdmin, type StatsAdmin } from "@/lib/logic/admin";
 import { jourDe } from "@/lib/logic/historique";
 import { tactile } from "@/lib/repos";
@@ -30,6 +31,11 @@ export function VueEnsemble({ L, S, exclus, avecMoi, plus }: { L: CompteAdmin[];
     vueAdmin(jours, avecMoi).then((v) => vivant && (setV(v), setErr(""))).catch((e) => vivant && setErr((e as Error).message));
     return () => { vivant = false; };
   }, [jours, avecMoi]);
+  /* erreurs à regarder : ni bruit connu, ni analysées (lib/logic/erreurs.ts) */
+  const [nbErr, setNbErr] = useState<number | null>(null);
+  useEffect(() => {
+    Promise.all([mesureAdmin(), analysesErreurs()]).then(([m, a]) => setNbErr(aRegarder(m.erreurs, a))).catch(() => setNbErr(null));
+  }, []);
   const T = useMemo(() => vueTesteurs(L, avecMoi ? [] : exclus, jours, auj), [L, exclus, avecMoi, jours, auj]);
   const aller = (q: string) => () => { tactile(5); router.push(`/admin?${q}` as Route); };
   const sans = T.inscrits - T.inscritsAvecSeance;
@@ -48,7 +54,7 @@ export function VueEnsemble({ L, S, exclus, avecMoi, plus }: { L: CompteAdmin[];
         <Cle v={V?.visiteurs} n={tr("visiteurs")} d={V ? tr("{n} cette semaine", { n: V.visiteurs7 }) : ""} />
         <Cle v={T.total} n={tr("testeurs")} d={tr("+{n} cette semaine", { n: T.nouveaux7 })} onClick={aller("v=u")} />
         <Cle v={T.seances} n={tr("séances terminées")} d={tr("{n} cette semaine", { n: T.seances7 })} />
-        <Cle v={V?.erreurs} n={V?.erreurs === 1 ? tr("erreur") : tr("erreurs")} d={V ? (V.erreurs ? tr("à regarder") : tr("tout va bien")) : ""} alerte={!!V?.erreurs} onClick={aller("v=m")} />
+        <Cle v={nbErr ?? undefined} n={nbErr === 1 ? tr("erreur à regarder") : tr("erreurs à regarder")} d={nbErr == null ? "" : nbErr ? tr("voir l'onglet Technique") : tr("tout va bien")} alerte={!!nbErr} onClick={aller("v=m")} />
       </div>
 
       <section className="rounded-[22px] bg-card p-4" aria-label={tr("Le parcours d'un visiteur")}>
