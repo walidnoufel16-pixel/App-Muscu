@@ -32,7 +32,7 @@ alter table public.testeurs add column exclu boolean not null default false;
 update public.testeurs set exclu = true where user_id in (select user_id from public.admins);
 update public.testeurs t set exclu = true from public.etats e
   where e.user_id = t.user_id and e.pseudo ilike 'walid-test%';
--- Claire : compte de l'entourage de l'admin, pas une testeuse (demandé le 18/11/2026)
+-- Claire : écartée des chiffres des testeurs à la demande de l'admin (18/11/2026)
 update public.testeurs set exclu = true where user_id = '32b6e582-dcfe-4286-a479-07fc6d246284';
 
 -- comptes écartés des chiffres : les admins et les comptes de test
