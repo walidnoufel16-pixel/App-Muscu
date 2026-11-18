@@ -3332,5 +3332,7 @@
   "Machine à lombaires": "Back extension machine",
   "Banc à abdos décliné": "Decline ab bench",
   "Cordes ondulatoires": "Battle ropes",
-  "Slam et medicine balls": "Slam and medicine balls"
+  "Slam et medicine balls": "Slam and medicine balls",
+  "Un code arrive par e-mail, sans mot de passe. Une seule adresse par compte : on ne t'écrit que pour ton compte, plus un mot de bienvenue.": "A code arrives by email, no password. One address per account: we only write to you about your account, plus a welcome note.",
+  "Ton adresse sert à retrouver ton compte. Quand tu la confirmes, tu reçois aussi un seul e-mail de bienvenue, et rien d'autre : pas de newsletter, pas de publicité.": "Your email is used to recover your account. When you confirm it, you also get a single welcome email, and nothing else: no newsletter, no ads."
 }

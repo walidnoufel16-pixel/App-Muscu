@@ -251,7 +251,7 @@ function Profil() {
                     <Button size="lg" className="h-11 rounded-xl" disabled={occupe || !mail} onClick={lier}>{adresse ? tr("Changer") : tr("Rattacher")}</Button>
                   </div>
                   {msg && <p className={cn("mt-2 text-[13px]", msg.ok ? "text-success" : "text-destructive")}>{msg.t}</p>}
-                  <p className="mt-3 text-[12px] text-muted-foreground">{tr("Un code arrive par e-mail, sans mot de passe. Une seule adresse par compte, et on ne t'écrit que pour ça.")}</p>
+                  <p className="mt-3 text-[12px] text-muted-foreground">{tr("Un code arrive par e-mail, sans mot de passe. Une seule adresse par compte : on ne t'écrit que pour ton compte, plus un mot de bienvenue.")}</p>
                 </div>
                 <div className="mt-2 overflow-hidden rounded-[22px] bg-card">
                   <Ligne onClick={changer} icone={<ArrowsLeftRightIcon className="size-5" />}>{tr("Changer de compte")}</Ligne>
@@ -361,6 +361,7 @@ function Feuilles({ feuille, setFeuille }: { feuille: "confidentialite" | "credi
               <div>
                 <p>{tr("Sur le serveur sont gardés ton surnom, ton adresse si tu l'as rattachée, tes réponses au questionnaire, ton programme, tes séances et charges, tes sorties de course, et, si tu les notes, ta forme du jour, ton poids et tes protéines.")}</p>
                 <p className="mt-2">{tr("L'éditeur d'Oxa peut les consulter pour suivre l'usage de l'app et l'améliorer. Elles ne sont ni vendues ni partagées. Le suivi du cycle menstruel ne quitte jamais ce téléphone. « Tout effacer », dans Mon compte, supprime tout, ici comme sur le serveur.")}</p>
+                <p className="mt-2">{tr("Ton adresse sert à retrouver ton compte. Quand tu la confirmes, tu reçois aussi un seul e-mail de bienvenue, et rien d'autre : pas de newsletter, pas de publicité.")}</p>
                 <p className="mt-2">{tr("Pour savoir quelles rubriques servent et corriger les bugs, l'app note aussi, de façon anonyme, quelques gestes (ouverture, séance terminée, rubrique ouverte…) et les erreurs qui surviennent. Ces notes portent un identifiant tiré au hasard sur ce téléphone, jamais ton compte ni ton adresse, et sont effacées au bout de 13 mois au plus.")}</p>
               </div>
             </DrawerDescription>

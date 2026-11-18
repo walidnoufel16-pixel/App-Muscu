@@ -81,6 +81,68 @@ async function alerterTesteurs() {
   return { ok: true, nouveaux: r.nouveaux, total: r.total, envoyes };
 }
 
+/* ---------------- e-mail de bienvenue des testeurs (Resend) ----------------
+   Un seul e-mail, aux comptes confirmés à partir du 18/11/2026 à 12 h (Paris) : public.testeurs
+   (bienvenue = false). La case est cochée avant l'envoi (jamais deux e-mails), et décochée si
+   Resend refuse, pour réessayer au passage suivant du cron. Sans clé RESEND_API_KEY : rien. */
+const RESEND = Deno.env.get("RESEND_API_KEY") ?? "";
+const DEBUT_BIENVENUE = "2026-11-18T11:00:00Z";
+const BIENVENUE_OBJET = "Bienvenue dans la communauté des testeurs Oxa 💪";
+const BIENVENUE_LIGNES = [
+  "Salut !",
+  "Merci d'avoir rejoint la communauté des testeurs d'Oxa. Ton avis va vraiment compter pour la suite.",
+  "Pour bien démarrer : ouvre Oxa, choisis ton objectif, et lance la séance du jour. Oxa s'occupe des exercices, des charges et des temps de repos.",
+  "Un bug, une idée, un truc qui t'agace ? Réponds simplement à cet e-mail, je lis tout.",
+  "À très vite à la salle,",
+];
+const bienvenueHtml = () => `<!doctype html><html lang="fr"><body style="margin:0;padding:0;background:#f2f2f4">
+<div style="max-width:520px;margin:0 auto;padding:32px 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#111;font-size:16px;line-height:1.55">
+<div style="background:#fff;border-radius:18px;padding:28px 24px">
+${BIENVENUE_LIGNES.map((l) => `<p style="margin:0 0 14px">${l}</p>`).join("\n")}
+<p style="margin:0">L'équipe Oxa · <a href="https://oxafit.app/?src=mail-bienvenue" style="color:#0b8f80;font-weight:600;text-decoration:none">oxafit.app</a></p>
+</div></div></body></html>`;
+const bienvenueTexte = () => [...BIENVENUE_LIGNES, "L'équipe Oxa · oxafit.app"].join("\n\n");
+
+async function envoyerBienvenue(email: string) {
+  const r = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${RESEND}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ from: "L'équipe Oxa <bonjour@oxafit.app>", to: [email], reply_to: "oxafitapp@gmail.com", subject: BIENVENUE_OBJET, text: bienvenueTexte(), html: bienvenueHtml() }),
+  });
+  if (!r.ok) { console.error("bienvenue", r.status, (await r.text()).slice(0, 200)); return false; }
+  await r.text();
+  return true;
+}
+const emailDe = async (id: string): Promise<string | null> => {
+  const r = await fetch(`${SB_URL}/auth/v1/admin/users/${id}`, { headers: srv });
+  if (!r.ok) { await r.text(); return null; }
+  return ((await r.json()) as { email?: string }).email ?? null;
+};
+const testeurs = (filtre: string, init: RequestInit = {}) => fetch(`${SB_URL}/rest/v1/testeurs?${filtre}`, { ...init, headers: { ...srv, Prefer: "return=representation" } }).then((r) => r.json());
+
+async function accueillirTesteurs() {
+  if (!RESEND) return { bienvenue: 0, ignore: "pas de clé Resend" };
+  const liste = await testeurs(`bienvenue=eq.false&confirme=gte.${DEBUT_BIENVENUE}&select=user_id&limit=20`) as { user_id: string }[];
+  let n = 0;
+  for (const t of liste) {
+    const email = await emailDe(t.user_id);
+    if (!email) continue;
+    const pris = await testeurs(`user_id=eq.${t.user_id}&bienvenue=eq.false`, { method: "PATCH", body: JSON.stringify({ bienvenue: true }) }) as unknown[];
+    if (!pris.length) continue;
+    if (await envoyerBienvenue(email)) n++;
+    else await testeurs(`user_id=eq.${t.user_id}`, { method: "PATCH", body: JSON.stringify({ bienvenue: false }) });
+  }
+  return { bienvenue: n };
+}
+/* Essai : l'e-mail de bienvenue envoyé aux seuls admins. */
+async function essaiBienvenue() {
+  if (!RESEND) return { ok: false, erreur: "pas de clé Resend" };
+  const admins = await fetch(`${SB_URL}/rest/v1/admins?select=user_id`, { headers: srv }).then((r) => r.json()) as { user_id: string }[];
+  let n = 0;
+  for (const a of admins) { const e = await emailDe(a.user_id); if (e && await envoyerBienvenue(e)) n++; }
+  return { ok: n > 0, envoyes: n };
+}
+
 /* comparaison en temps constant (la clé du cron ne fuit pas par le temps de réponse) */
 function egal(a: string, b: string) {
   const x = new TextEncoder().encode(a), y = new TextEncoder().encode(b);
@@ -105,7 +167,7 @@ Deno.serve(async (req) => {
   }
   if (!cles?.rappels_vapid_prive || !cles.rappels_vapid_public || !cles.rappels_cle) return rep({ erreur: "Clés absentes." }, 500);
   webpush.setVapidDetails("https://repere-soz5.onrender.com", cles.rappels_vapid_public, cles.rappels_vapid_prive);
-  const corps = await req.json().catch(() => ({})) as { essai?: boolean; force?: boolean; alerte_erreurs?: boolean; nouveau_testeur?: boolean };
+  const corps = await req.json().catch(() => ({})) as { essai?: boolean; force?: boolean; alerte_erreurs?: boolean; nouveau_testeur?: boolean; essai_bienvenue?: boolean };
 
   /* --- appel du cron --- */
   const cle = req.headers.get("x-cle");
@@ -113,7 +175,10 @@ Deno.serve(async (req) => {
     if (!egal(cle, cles.rappels_cle)) return rep({ erreur: "Clé invalide." }, 401);
     /* une nouvelle erreur dans le journal (déclencheur sur public.erreurs) : on prévient les admins */
     if (corps.alerte_erreurs) return rep(await alerterErreurs());
-    if (corps.nouveau_testeur) return rep(await alerterTesteurs());
+    if (corps.nouveau_testeur) return rep({ ...(await alerterTesteurs()), ...(await accueillirTesteurs()) });
+    if (corps.essai_bienvenue) return rep(await essaiBienvenue());
+    /* à chaque passage du cron : un e-mail de bienvenue resté en échec est retenté */
+    await accueillirTesteurs().catch((e) => console.error("bienvenue", String(e).slice(0, 200)));
     const auj = paris(Date.now()), heure = heureParis(), lignes = await rpc("rappels_a_traiter") as Ligne[];
     let envoyes = 0, agenda = 0;
     /* toutes les heures : les rappels des séances programmées dans « Mon agenda » */
