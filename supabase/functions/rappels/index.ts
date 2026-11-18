@@ -69,6 +69,18 @@ async function alerterErreurs() {
   return { ok: true, erreurs: r.erreurs.length, appareils: r.appareils.length, envoyes };
 }
 
+/* Nouveau testeur (compte confirmé, déclencheur sur auth.users) : on prévient les admins. */
+async function alerterTesteurs() {
+  const r = await rpc("testeurs_a_signaler") as { nouveaux: number; total: number; appareils: Pick<Ligne, "endpoint" | "abonnement">[] };
+  if (!r.nouveaux) return { ok: true, nouveaux: 0 };
+  const msg = r.nouveaux === 1
+    ? { titre: "🎉 Nouveau testeur Oxa", corps: `C'est le ${r.total}ᵉ testeur.`, url: "/admin/", tag: `testeur-${Date.now()}` }
+    : { titre: "🎉 Nouveaux testeurs Oxa", corps: `${r.nouveaux} de plus, ${r.total} au total.`, url: "/admin/", tag: `testeur-${Date.now()}` };
+  let envoyes = 0;
+  for (const a of r.appareils) if (await envoyer(a, msg)) envoyes++;
+  return { ok: true, nouveaux: r.nouveaux, total: r.total, envoyes };
+}
+
 /* comparaison en temps constant (la clé du cron ne fuit pas par le temps de réponse) */
 function egal(a: string, b: string) {
   const x = new TextEncoder().encode(a), y = new TextEncoder().encode(b);
@@ -93,7 +105,7 @@ Deno.serve(async (req) => {
   }
   if (!cles?.rappels_vapid_prive || !cles.rappels_vapid_public || !cles.rappels_cle) return rep({ erreur: "Clés absentes." }, 500);
   webpush.setVapidDetails("https://repere-soz5.onrender.com", cles.rappels_vapid_public, cles.rappels_vapid_prive);
-  const corps = await req.json().catch(() => ({})) as { essai?: boolean; force?: boolean; alerte_erreurs?: boolean };
+  const corps = await req.json().catch(() => ({})) as { essai?: boolean; force?: boolean; alerte_erreurs?: boolean; nouveau_testeur?: boolean };
 
   /* --- appel du cron --- */
   const cle = req.headers.get("x-cle");
@@ -101,6 +113,7 @@ Deno.serve(async (req) => {
     if (!egal(cle, cles.rappels_cle)) return rep({ erreur: "Clé invalide." }, 401);
     /* une nouvelle erreur dans le journal (déclencheur sur public.erreurs) : on prévient les admins */
     if (corps.alerte_erreurs) return rep(await alerterErreurs());
+    if (corps.nouveau_testeur) return rep(await alerterTesteurs());
     const auj = paris(Date.now()), heure = heureParis(), lignes = await rpc("rappels_a_traiter") as Ligne[];
     let envoyes = 0, agenda = 0;
     /* toutes les heures : les rappels des séances programmées dans « Mon agenda » */
