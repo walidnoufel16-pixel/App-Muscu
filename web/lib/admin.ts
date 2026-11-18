@@ -9,6 +9,7 @@ import { sb } from "@/lib/supabase";
 import { appareil } from "@/lib/mesure";
 import { nettoieArbre, useRepere, versEtat } from "@/lib/store";
 import type { CompteAdmin, FicheAdmin, StatsAdmin } from "@/lib/logic/admin";
+import type { Analyse } from "@/lib/logic/erreurs";
 
 async function appel<T>(nom: string, args?: Record<string, unknown>): Promise<T> {
   const c = await sb();
@@ -56,6 +57,10 @@ async function exclureCetAppareil() {
     localStorage.setItem(CLE_EXCLU, a);
   } catch { /* la migration n'est peut-être pas encore passée : on réessaiera */ }
 }
+/* Erreurs analysées par l'admin (migration 20261118160000_erreurs_analyses.sql) ; vide sans elle */
+export const analysesErreurs = () => appel<Analyse[]>("admin_analyses_erreurs").then((l) => nettoieArbre(l || [])).catch(() => [] as Analyse[]);
+/** Marque une erreur comme analysée (note), ou retire la marque (note null). */
+export const analyserErreur = (message: string, note: string | null) => appel<void>("admin_analyser_erreur", { p_message: message, p_note: note });
 export const fiche = (id: string) => appel<FicheAdmin | null>("admin_etat", { p_user: id }).then(nettoieArbre);
 
 /** Ouvre ou ferme le programme sur 8 semaines pour un compte (noté au journal admin). */
