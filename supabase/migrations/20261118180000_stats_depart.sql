@@ -1,11 +1,14 @@
--- Les statistiques de l'Admin repartent du 18/11/2026 à 12 h (Paris), à la demande de l'admin :
+-- Les statistiques de l'Admin repartent du 18/11/2026 à 1 h (Paris), juste avant l'arrivée de Mel,
+-- la première vraie testeuse, à la demande de l'admin :
 -- tous les comptes et appareils d'avant sont ceux de proches.
 -- 1. Les comptes déjà là sont écartés des chiffres des testeurs (testeurs.exclu).
 -- 2. admin_vue ne compte que les événements à partir de cette heure, et écarte les appareils
 --    déjà vus avant (ceux des proches), même s'ils reviennent ensuite.
 -- Script relançable sans erreur.
 
-update public.testeurs set exclu = true where confirme < '2026-11-18T11:00:00Z';
+update public.testeurs set exclu = true where confirme < '2026-11-18T00:00:00Z';
+-- Mel (confirmée à 1 h 04) compte, même si une version précédente de ce script l'avait écartée
+update public.testeurs set exclu = false where user_id = '69a4d0c6-627b-4a1b-9e6a-b37fb88a267d';
 
 create or replace function public.admin_vue(p_jours int, p_avec_moi boolean default false)
 returns jsonb
@@ -15,7 +18,7 @@ security definer
 set search_path = ''
 as $$
 declare
-  debut constant timestamptz := '2026-11-18T11:00:00Z';
+  debut constant timestamptz := '2026-11-18T00:00:00Z';
   auj date := (now() at time zone 'Europe/Paris')::date;
   d0 date := auj - greatest(1, least(coalesce(p_jours, 30), 3650)) + 1;
 begin
