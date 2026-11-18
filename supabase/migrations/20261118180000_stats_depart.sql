@@ -2,8 +2,8 @@
 -- la première vraie testeuse, à la demande de l'admin :
 -- tous les comptes et appareils d'avant sont ceux de proches.
 -- 1. Les comptes déjà là sont écartés des chiffres des testeurs (testeurs.exclu).
--- 2. admin_vue ne compte que les événements à partir de cette heure, et écarte les appareils
---    déjà vus avant (ceux des proches), même s'ils reviennent ensuite.
+-- 2. admin_vue ne compte que les événements à partir de cette heure. Un proche qui revient
+--    ensuite est compté comme tout le monde (demandé par l'admin).
 -- Script relançable sans erreur.
 
 update public.testeurs set exclu = true where confirme < '2026-11-18T00:00:00Z';
@@ -27,7 +27,6 @@ begin
     with ev as (
       select * from public.evenements e
       where e.jour >= d0 and e.cree >= debut
-        and not exists (select 1 from public.evenements o where o.appareil = e.appareil and o.cree < debut)
         and (p_avec_moi or not exists (select 1 from public.mesure_exclus x where x.appareil = e.appareil))
     ), premier as (
       select distinct on (appareil) appareil, jour, coalesce(nullif(props->>'src', ''), '') as src
