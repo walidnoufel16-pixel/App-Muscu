@@ -4,15 +4,16 @@
 -- 2. Les comptes de l'admin et ses comptes de test sont écartés des chiffres des testeurs
 --    (testeurs.exclu, et la table admins).
 -- 3. admin_vue(jours, avec_moi) : visiteurs, visite guidée, sources et rubriques sur la période.
+-- Script relançable sans erreur (if not exists, or replace).
 
-create table public.mesure_exclus (
+create table if not exists public.mesure_exclus (
   appareil text primary key check (appareil ~ '^[a-z0-9]{8,32}$'),
   cree     timestamptz not null default now()
 );
 alter table public.mesure_exclus enable row level security;
 revoke all on public.mesure_exclus from anon, authenticated;
 
-create function public.admin_exclure_appareil(p_appareil text)
+create or replace function public.admin_exclure_appareil(p_appareil text)
 returns void
 language plpgsql
 volatile
@@ -28,7 +29,7 @@ $$;
 revoke all on function public.admin_exclure_appareil(text) from public, anon;
 grant execute on function public.admin_exclure_appareil(text) to authenticated;
 
-alter table public.testeurs add column exclu boolean not null default false;
+alter table public.testeurs add column if not exists exclu boolean not null default false;
 update public.testeurs set exclu = true where user_id in (select user_id from public.admins);
 update public.testeurs t set exclu = true from public.etats e
   where e.user_id = t.user_id and e.pseudo ilike 'walid-test%';
@@ -36,7 +37,7 @@ update public.testeurs t set exclu = true from public.etats e
 update public.testeurs set exclu = true where user_id = '32b6e582-dcfe-4286-a479-07fc6d246284';
 
 -- comptes écartés des chiffres : les admins et les comptes de test
-create function public.admin_comptes_exclus()
+create or replace function public.admin_comptes_exclus()
 returns jsonb
 language plpgsql
 stable
@@ -54,7 +55,7 @@ revoke all on function public.admin_comptes_exclus() from public, anon;
 grant execute on function public.admin_comptes_exclus() to authenticated;
 
 -- marquer (ou non) un compte comme compte de test, depuis sa fiche
-create function public.admin_compte_test(p_user uuid, p_test boolean)
+create or replace function public.admin_compte_test(p_user uuid, p_test boolean)
 returns void
 language plpgsql
 volatile
@@ -70,7 +71,7 @@ $$;
 revoke all on function public.admin_compte_test(uuid, boolean) from public, anon;
 grant execute on function public.admin_compte_test(uuid, boolean) to authenticated;
 
-create function public.admin_vue(p_jours int, p_avec_moi boolean default false)
+create or replace function public.admin_vue(p_jours int, p_avec_moi boolean default false)
 returns jsonb
 language plpgsql
 stable
