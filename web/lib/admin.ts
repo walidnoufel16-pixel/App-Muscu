@@ -6,6 +6,7 @@
 import { tr } from "@/lib/i18n";
 import { useEffect, useState } from "react";
 import { sb } from "@/lib/supabase";
+import { appareil } from "@/lib/mesure";
 import { nettoieArbre, useRepere, versEtat } from "@/lib/store";
 import type { CompteAdmin, FicheAdmin, StatsAdmin } from "@/lib/logic/admin";
 
@@ -36,6 +37,25 @@ export type MesureAdmin = {
   erreurs: { message: string; page: string; version: string; navigateur: string; pile: string; n: number; jours: number; dernier: string }[];
 };
 export const mesureAdmin = () => appel<MesureAdmin>("admin_mesure").then(nettoieArbre);
+/* Admin en 3 onglets (migration 20261118140000_admin_vue.sql) */
+export type VueAdmin = {
+  visiteurs: number; visiteurs7: number; visite: number; erreurs: number;
+  sources: { source: string; n: number }[]; rubriques: { rubrique: string; appareils: number }[];
+};
+export const vueAdmin = (jours: number, avecMoi: boolean) => appel<VueAdmin>("admin_vue", { p_jours: jours, p_avec_moi: avecMoi }).then(nettoieArbre);
+/** Comptes écartés des chiffres (l'admin, ses comptes de test) ; vide tant que la migration n'est pas passée. */
+export const comptesExclus = () => appel<string[]>("admin_comptes_exclus").then((l) => l || []).catch(() => [] as string[]);
+export const compteTest = (id: string, test: boolean) => appel<void>("admin_compte_test", { p_user: id, p_test: test });
+/* L'appareil de l'admin est écarté des chiffres anonymes, une fois par appareil. */
+const CLE_EXCLU = "repere.admin.exclu";
+async function exclureCetAppareil() {
+  try {
+    const a = appareil();
+    if (!a || localStorage.getItem(CLE_EXCLU) === a) return;
+    await appel("admin_exclure_appareil", { p_appareil: a });
+    localStorage.setItem(CLE_EXCLU, a);
+  } catch { /* la migration n'est peut-être pas encore passée : on réessaiera */ }
+}
 export const fiche = (id: string) => appel<FicheAdmin | null>("admin_etat", { p_user: id }).then(nettoieArbre);
 
 /** Ouvre ou ferme le programme sur 8 semaines pour un compte (noté au journal admin). */
@@ -50,7 +70,7 @@ export function useEstAdmin() {
   useEffect(() => {
     if (!id) return;
     let vivant = true;
-    estAdmin().then((v) => vivant && setOk({ id, v }));
+    estAdmin().then((v) => { if (vivant) setOk({ id, v }); if (v) void exclureCetAppareil(); });
     return () => { vivant = false; };
   }, [id]);
   if (session === "inconnue") return null;
