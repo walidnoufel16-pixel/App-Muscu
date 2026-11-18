@@ -141,3 +141,46 @@ export const ilya = (j: string | null, auj = jourDe(Date.now())) => {
 };
 /** « 1 séance », « 3 séances ». */
 export const pl = (n: number, mot: string) => `${n} ${mot}${pluriel(n) ? "s" : ""}`;
+
+/* ---------------- Vue d'ensemble (Admin en 3 onglets) ----------------
+   Les comptes « exclus » (l'admin, ses comptes de test) ne comptent pas dans les chiffres. */
+export type FiltreTesteurs = "tous" | "seance" | "sans";
+export const aFaitUneSeance = (c: CompteAdmin) => resume(c).seances > 0;
+/** Les testeurs (comptes non exclus), avec le filtre de l'onglet Testeurs. */
+export function testeurs(L: CompteAdmin[], exclus: string[], f: FiltreTesteurs = "tous"): CompteAdmin[] {
+  const ex = new Set(exclus), l = L.filter((c) => !ex.has(c.id));
+  return f === "seance" ? l.filter(aFaitUneSeance) : f === "sans" ? l.filter((c) => !aFaitUneSeance(c)) : l;
+}
+export type VueTesteurs = { total: number; nouveaux7: number; inscrits: number; inscritsAvecSeance: number; seances: number; seances7: number };
+/** Chiffres des testeurs sur la période (jours ; 3650 pour « tout »). */
+export function vueTesteurs(L: CompteAdmin[], exclus: string[], jours: number, auj = jourDe(Date.now())): VueTesteurs {
+  const t = testeurs(L, exclus), d0 = decaler(auj, -jours + 1), d7 = decaler(auj, -6);
+  const inscrits = t.filter((c) => (jourIso(c.cree) || "") >= d0);
+  const jSeances = t.flatMap((c) => [...H(c).map((l) => l.d), ...C(c).filter((x) => !x.ref).map((x) => jourDe(x.ts))]);
+  return {
+    total: t.length,
+    nouveaux7: t.filter((c) => (jourIso(c.cree) || "") >= d7).length,
+    inscrits: inscrits.length,
+    inscritsAvecSeance: inscrits.filter(aFaitUneSeance).length,
+    seances: jSeances.filter((d) => d >= d0).length,
+    seances7: jSeances.filter((d) => d >= d7).length,
+  };
+}
+/** Nom lisible d'une source (?src= du lien). */
+export function nomSource(src: string): string {
+  const s = src.toLowerCase();
+  if (!s) return tr("Lien direct ou inconnu");
+  if (/^(insta|instagram|ig)/.test(s)) return "Instagram";
+  if (/^(tiktok|tt)/.test(s)) return "TikTok";
+  if (/^(yt|youtube)/.test(s)) return "YouTube";
+  if (/^(blog|guide)/.test(s)) return tr("Blog");
+  if (/^mail/.test(s)) return tr("E-mail");
+  if (/^reddit/.test(s)) return "Reddit";
+  return src;
+}
+/** Les sources regroupées par nom lisible, de la plus fréquente à la moins fréquente. */
+export function sourcesLisibles(l: { source: string; n: number }[]): [string, number][] {
+  const m = new Map<string, number>();
+  for (const x of l) m.set(nomSource(x.source), (m.get(nomSource(x.source)) || 0) + x.n);
+  return [...m].sort((a, b) => b[1] - a[1]);
+}
