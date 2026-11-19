@@ -38,6 +38,7 @@ export type PlanIA = {
 /* o : position d'origine pendant une modification dans le composeur (jamais enregistrée). */
 /* ro : place de l'exercice dans une séance construite par Oxa (b base, c complément, i isolation,
    g gainage), affichée en étiquette pour expliquer l'ordre */
+export type Connu = "tiktok" | "insta" | "ami" | "yt" | "google" | "autre" | "passe";
 export type ExLibre = { id: string; s: number; r: number; p: string; o?: number; ro?: RoleEx };
 export type RoleEx = "b" | "c" | "i" | "g";
 export type SeanceLibre = {
@@ -94,6 +95,10 @@ export type Reponses = {
   accueil?: boolean;
   /* accueil refermé avec « Plus tard » : il ne s'ouvre plus tout seul (carte « Complète ton profil sportif ») */
   accueilPasse?: boolean;
+  /* « Comment as-tu connu Oxa ? » (accueil, quand aucun lien ?src= ne l'a dit) : « passe » si sautée ;
+     connuTxt, le détail facultatif de « Autre » */
+  connu?: Connu;
+  connuTxt?: string;
   /** « Oxa te propose » masqué sur l'accueil : pour un jour (sa date) ou tout le temps (Profil le réactive). */
   recoMasquee?: string;
   recoOff?: boolean;

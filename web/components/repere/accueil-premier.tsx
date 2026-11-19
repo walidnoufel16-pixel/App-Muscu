@@ -21,6 +21,8 @@ import { effortsEndurance, etatGroupes, GROUPES, nomMuscle, nomZone, phrase, ZON
 import { recoPour } from "@/lib/logic/agenda";
 import { EditeurProfil, profilMinimal, type Ligne } from "./profil-sportif";
 import { MonMateriel } from "./mon-materiel";
+import { sourceNotee } from "@/lib/source";
+import type { Connu } from "@/lib/logic/types";
 
 export const useAccueil = create<{ ouvert: boolean }>(() => ({ ouvert: false }));
 
@@ -36,6 +38,9 @@ export function AccueilPremier({ onFin }: { onFin: (etape: number) => void }) {
   /* 0 bienvenue ; 1 à 9 le profil ; 10 les 48 h ; 11 la fin */
   const [etape, setEtape] = useState(0);
   const muter = useRepere((s) => s.muter);
+  /* « Comment as-tu connu Oxa ? », entre la bienvenue et le profil : seulement si aucun lien ?src= ne l'a dit */
+  const [demander] = useState(() => !sourceNotee() && !useRepere.getState().etat.A.connu);
+  const [connu, setConnu] = useState(false);
   const fermer = () => {
     onFin(etape);
     /* pas terminé : il ne se rouvre plus tout seul, la carte d'Entraînement y ramène */
@@ -47,7 +52,8 @@ export function AccueilPremier({ onFin }: { onFin: (etape: number) => void }) {
       <DialogContent showCloseButton={false}
         className="flex h-dvh data-[state=open]:animate-none max-h-dvh w-screen max-w-none flex-col gap-0 rounded-none border-0 bg-background p-0 sm:max-w-none">
         <div className="mx-auto flex w-full max-w-[480px] flex-1 flex-col overflow-y-auto overscroll-contain px-5 pt-[max(env(safe-area-inset-top),20px)] pb-[max(env(safe-area-inset-bottom),16px)]">
-          {etape === 0 && <Bienvenue suivant={() => setEtape(1)} plusTard={fermer} />}
+          {etape === 0 && !connu && <Bienvenue suivant={() => (demander ? setConnu(true) : setEtape(1))} plusTard={fermer} />}
+          {etape === 0 && connu && <Source suivant={() => { setConnu(false); setEtape(1); }} />}
           {etape >= 1 && etape <= QUESTIONS.length && <Question i={etape} suivant={() => setEtape(etape + 1)} retour={() => setEtape(etape - 1)} />}
           {etape === QUESTIONS.length + 1 && <Avant48 suivant={() => setEtape(etape + 1)} retour={() => setEtape(etape - 1)} />}
           {etape === QUESTIONS.length + 2 && <Fin fermer={fermer} />}
@@ -93,6 +99,48 @@ function Bienvenue({ suivant, plusTard }: { suivant: () => void; plusTard: () =>
         ))}
       </ol>
       <Bas libelle={tr("Commencer · 1 min")} onOk={suivant} second={tr("Plus tard")} onSecond={plusTard} />
+    </>
+  );
+}
+
+export const CONNUS: { k: Exclude<Connu, "passe">; n: () => string; ic: string }[] = [
+  { k: "tiktok", n: () => "TikTok", ic: "🎵" },
+  { k: "insta", n: () => "Instagram", ic: "📸" },
+  { k: "ami", n: () => tr("Un ami ou un proche"), ic: "👥" },
+  { k: "yt", n: () => "YouTube", ic: "▶️" },
+  { k: "google", n: () => tr("Recherche Google"), ic: "🔍" },
+  { k: "autre", n: () => tr("Autre"), ic: "✏️" },
+];
+
+function Source({ suivant }: { suivant: () => void }) {
+  const muter = useRepere((s) => s.muter);
+  const [c, setC] = useState<Connu | null>(null);
+  const [txt, setTxt] = useState("");
+  const garder = (k: Connu) => {
+    muter((E) => { E.A.connu = k; const t = txt.trim().slice(0, 60); if (k === "autre" && t) E.A.connuTxt = t; else delete E.A.connuTxt; });
+    suivant();
+  };
+  return (
+    <>
+      <Progression i={0} />
+      <div className="eyebrow px-1">{tr("Question rapide · facultative")}</div>
+      <DialogTitle className="mt-2 px-1 text-[22px] leading-tight font-extrabold">{tr("Comment as-tu connu Oxa ?")}</DialogTitle>
+      <DialogDescription className="mt-0.5 mb-3 px-1 text-[13.5px] text-muted-foreground">{tr("Ça nous aide à savoir où parler d'Oxa. Une seule réponse.")}</DialogDescription>
+      <div role="radiogroup" className="flex flex-col gap-2">
+        {CONNUS.map((o) => (
+          <button key={o.k} role="radio" aria-checked={c === o.k} onClick={() => { tactile(5); setC(o.k); }}
+            className={cn("flex items-center gap-3 rounded-2xl border-2 bg-card px-3.5 py-3 text-left text-[15.5px] font-semibold active:scale-[.99]", c === o.k ? "border-plate bg-plate-soft" : "border-transparent")}>
+            <span className="grid size-[34px] shrink-0 place-items-center rounded-[10px] bg-plate-soft text-[17px]" aria-hidden>{o.ic}</span>
+            {o.n()}
+            <span className={cn("ml-auto grid size-[22px] place-items-center rounded-full border-2 text-[12px] text-plate-foreground", c === o.k ? "border-plate bg-plate" : "border-border")}>{c === o.k && "✓"}</span>
+          </button>
+        ))}
+        {c === "autre" && (
+          <input value={txt} onChange={(e) => setTxt(e.target.value)} maxLength={60} placeholder={tr("Où ça ? (facultatif)")} aria-label={tr("Où ça ? (facultatif)")}
+            className="h-12 rounded-2xl border-2 border-plate bg-card px-3.5 text-[15px] outline-none" />
+        )}
+      </div>
+      <Bas ok={!!c} libelle={tr("Suivant")} onOk={() => c && garder(c)} second={tr("Passer cette question")} onSecond={() => garder("passe")} />
     </>
   );
 }

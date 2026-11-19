@@ -3007,5 +3007,16 @@
   "Séance la veille : à {n} séances par semaine, un jour de repos entre deux séances.": "Workout the day before: at {n} workouts a week, take a rest day between two sessions.",
   "Séance déjà prévue {j}": "Workout already planned {j}",
   "Repos {j}": "Rest {j}",
-  "Le lendemain : {s}.": "The day after: {s}."
+  "Le lendemain : {s}.": "The day after: {s}.",
+  "Un ami ou un proche": "A friend or family member",
+  "Recherche Google": "Google search",
+  "Question rapide · facultative": "Quick question · optional",
+  "Comment as-tu connu Oxa ?": "How did you hear about Oxa?",
+  "Ça nous aide à savoir où parler d'Oxa. Une seule réponse.": "It helps us know where to talk about Oxa. One answer.",
+  "Où ça ? (facultatif)": "Where? (optional)",
+  "Passer cette question": "Skip this question",
+  "Comment ils ont connu Oxa · {n}": "How they heard about Oxa · {n}",
+  "Déclaré au questionnaire d'accueil, quand aucun lien ne le disait · {n} passé": "Answered in the welcome questions when no link said so · {n} skipped",
+  "Autre :": "Other:",
+  "Pas encore de réponse.": "No answers yet."
 }

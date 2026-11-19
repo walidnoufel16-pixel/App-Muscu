@@ -2,6 +2,7 @@
 
 /* Admin : vue d'ensemble de tous les comptes, réservée aux comptes de la table
    admins (vérifié par le serveur à chaque appel). Lecture seule. */
+import { CONNUS } from "@/components/repere/accueil-premier";
 import { pluriel, tp, tr } from "@/lib/i18n";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -83,6 +84,26 @@ function Jauge({ n, v, max, d }: { n: string; v: number; max: number; d?: string
   );
 }
 
+/* « Comment as-tu connu Oxa ? » (questionnaire d'accueil) : les réponses des comptes, et le détail de « Autre » */
+function Declares({ L }: { L: CompteAdmin[] }) {
+  const R = L.map((c) => c.etat?.A).filter((A) => A?.connu);
+  const n = (k: string) => R.filter((A) => A!.connu === k).length;
+  const lignes = CONNUS.map((o) => ({ n: o.n(), v: n(o.k) })).sort((a, b) => b.v - a.v);
+  const max = Math.max(1, ...lignes.map((x) => x.v));
+  const autres = R.filter((A) => A!.connu === "autre" && A!.connuTxt).map((A) => A!.connuTxt!);
+  return (
+    <Carte titre={tr("Comment ils ont connu Oxa · {n}", { n: R.length - n("passe") })}>
+      {R.length ? (
+        <>
+          {lignes.map((x) => <Jauge key={x.n} n={x.n} v={x.v} max={max} />)}
+          <p className="mt-2 text-[12.5px] text-muted-foreground">{tr("Déclaré au questionnaire d'accueil, quand aucun lien ne le disait · {n} passé", { n: n("passe") })}</p>
+          {autres.length > 0 && <p className="mt-2 text-[13.5px]"><b>{tr("Autre :")}</b> {autres.slice(0, 30).join(" · ")}</p>}
+        </>
+      ) : <p className="text-[14px] text-muted-foreground">{tr("Pas encore de réponse.")}</p>}
+    </Carte>
+  );
+}
+
 function Tableau({ L, S }: { L: CompteAdmin[]; S: StatsAdmin }) {
   const [auj] = useState(() => jourDe(Date.now()));
   const T = useMemo(() => tableau(L, auj), [L, auj]);
@@ -109,6 +130,7 @@ function Tableau({ L, S }: { L: CompteAdmin[]; S: StatsAdmin }) {
         )) : <p className="text-[14px] text-muted-foreground">{tr("Pas encore de source enregistrée.")}</p>}
         <p className="mt-2 text-[12.5px] text-muted-foreground">{tr("Ajoute ?src=tiktok (ou insta, yt, reddit…) au lien que tu publies.")}</p>
       </Carte>
+      <Declares L={L} />
       <Carte titre={tr("Avis des utilisateurs · {n}", { n: S.avis?.length ?? 0 })}>
         {S.avis?.length ? S.avis.slice(0, 20).map((a, i) => (
           <div key={i} className="border-t border-border/60 py-2 text-[14px] first:border-t-0">
