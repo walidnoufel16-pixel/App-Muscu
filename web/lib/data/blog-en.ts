@@ -15,6 +15,42 @@ const found = PROGRAMMES_STREET.find((p) => p.niv === "debutant")!;
 const pull = FAMILLES_STREET.find((f) => f.k === "tirage")!.ex;
 
 export const BLOG_EN: Record<string, Texte> = {
+  "muscler-biceps-triceps-bras": {
+    slug: "how-to-build-bigger-arms-biceps-triceps",
+    titre: "Bicep heart: how to actually build your arms (biceps and triceps)",
+    description: "The “bicep heart” is all over TikTok. To pull it off you need arms: the right biceps and triceps exercises, how to progress, and the mistakes that hold you back.",
+    intro: "Since late October the “bicep heart” has been everywhere on TikTok and Instagram: flex your biceps and draw a heart with your arm. It's fun, but it puts everyone in front of the same question: how do you get arms that show? Good news, there's no secret. A few well-chosen exercises, steady progression, and above all, don't forget your triceps.",
+    blocs: [
+      { h: "Triceps make up most of your arm", p: ["The triceps, on the back of your arm, make up about two thirds of your upper arm. If you only do curls, you're missing half the result. For thicker arms, train both, every time.", "More good news if you already do presses, push-ups or pull-ups: your biceps and triceps are already working during those. Arm exercises come on top, at the end of your workout."] },
+      {
+        h: "Exercises that work",
+        tableau: [
+          { titre: "Biceps", lignes: [`${name("cu")}: seated on an incline bench, your arms hang behind your body and the biceps works in a stretched position`, `${name("mart")}: thumbs up, it also hits the muscle under the biceps and your forearm`, `${name("trs")}: a back exercise that loads the biceps heavily, ideal if all you have is a pull-up bar`] },
+          { titre: "Triceps", lignes: [`${name("nuq")} or ${name("extdb")}: with your arm overhead, the triceps is stretched`, `${name("tricor")}: easy to load and to progress`, `${name("dipt")}: bodyweight, once you can do at least 8 clean reps`] },
+        ],
+      },
+      { h: "Why “arms overhead” or “arms behind” exercises", p: ["A Japanese study (Maeo and colleagues, European Journal of Sport Science, 2022) had each participant train one arm with overhead extensions and the other with extensions at their side for 12 weeks. The triceps on the overhead side grew clearly more. The idea: a muscle trained in a stretched position often grows better. Same logic for the incline curl on the biceps side.", "That doesn't mean dropping other exercises: mixing both positions is still the best option."] },
+      {
+        h: "How to progress",
+        liste: [
+          "Sets of 8 to 15 reps, stopping 1 or 2 reps short of failure: for small muscles, moderate weights work as well as heavy ones and are easier on your elbows.",
+          "Log your weights: when you hit all your reps, add 1 rep or the smallest possible weight next time.",
+          "Train arms twice a week, at the end of your workout, after the big lifts.",
+          "Control the way down: 2 to 3 seconds, without dropping the weight.",
+        ],
+      },
+      {
+        h: "Mistakes that hold you back",
+        liste: [
+          "Swinging your back to lift the weight: then your back is working, not your biceps. Go lighter.",
+          "Cutting the range of motion short: lower until your arm is almost straight.",
+          "Training arms every day: muscles grow while you recover, not during the workout.",
+          "Not eating enough protein: without it there's nothing to build with (see our article on protein).",
+        ],
+      },
+    ],
+    cta: "Create your arm workout in Oxa: biceps and triceps, suggested weights and your progress logged every session",
+  },
   "marche-japonaise-methode": {
     slug: "japanese-walking-method",
     titre: "Japanese walking: the 3 minutes fast, 3 minutes slow method, and what it's really worth",

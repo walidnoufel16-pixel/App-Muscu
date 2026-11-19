@@ -31,6 +31,45 @@ const recette = (id: string) => ({ couverture: imgRecette(id, "large")!, credit:
 /* Les articles écrits pour le blog (après les quatre guides d'origine). */
 const NOUVEAUX: Article[] = [
   {
+    slug: "muscler-biceps-triceps-bras",
+    type: "article",
+    categorie: "Muscu", date: "2026-11-22", couverture: imgExGrand("cu", 0),
+    titre: "Bicep heart : comment muscler tes bras pour de vrai (biceps et triceps)",
+    description: "Le « bicep heart » fait le tour de TikTok. Pour le réussir, il faut des bras : les bons exercices pour les biceps et les triceps, la progression et les erreurs qui freinent.",
+    intro: "Depuis fin octobre, le « bicep heart » est partout sur TikTok et Instagram : on contracte le biceps et on dessine un cœur avec le bras. Drôle, mais il met tout le monde face à la même question : comment avoir des bras qui se voient ? Bonne nouvelle, il n'y a rien de secret. Quelques exercices bien choisis, une progression régulière, et surtout ne pas oublier les triceps.",
+    blocs: [
+      { h: "Les triceps font la plus grosse partie du bras", p: ["Le triceps, à l'arrière du bras, représente environ deux tiers du volume du haut du bras. Celui qui ne fait que des curls se prive de la moitié du résultat. Pour des bras plus épais, travaille les deux, à chaque fois.", "Bonne nouvelle aussi pour ceux qui font déjà des développés, des pompes ou des tractions : les biceps et les triceps travaillent déjà pendant ces exercices. Les exercices pour les bras viennent en plus, en fin de séance."] },
+      {
+        h: "Les exercices qui marchent",
+        tableau: [
+          { titre: "Biceps", lignes: [`${nom("cu")} : assis sur un banc incliné, les bras partent derrière le corps et le biceps travaille étiré`, `${nom("mart")} : pouces vers le haut, il travaille aussi le muscle sous le biceps et l'avant-bras`, `${nom("trs")} : un exercice de dos qui sollicite fortement les biceps, idéal si tu t'entraînes avec une simple barre de traction`] },
+          { titre: "Triceps", lignes: [`${nom("nuq")} ou ${nom("extdb").toLowerCase()} : le bras au-dessus de la tête étire le triceps`, `${nom("tricor")} : simple à charger et à progresser`, `${nom("dipt")} : au poids du corps, quand tu en fais au moins 8 propres`] },
+        ],
+      },
+      { h: "Pourquoi les exercices « bras levés » ou « bras en arrière »", p: ["Une étude japonaise (Maeo et ses collègues, European Journal of Sport Science, 2022) a fait travailler chaque participant avec un bras en extension au-dessus de la tête et l'autre en extension le long du corps, pendant 12 semaines. Le triceps du bras « au-dessus de la tête » a nettement plus grossi. L'idée : un muscle qu'on travaille en position étirée progresse souvent mieux. C'est la même logique pour le curl incliné côté biceps.", "Ça ne veut pas dire qu'il faut supprimer les autres exercices : varier les deux positions reste la meilleure option."] },
+      {
+        h: "Comment progresser",
+        liste: [
+          "Des séries de 8 à 15 répétitions, en t'arrêtant à 1 ou 2 répétitions de l'échec : pour les petits muscles, des charges modérées marchent aussi bien que des charges lourdes et ménagent les coudes.",
+          "Note tes charges : quand tu fais toutes tes répétitions, ajoute 1 répétition ou le plus petit poids possible la fois suivante.",
+          "Travaille les bras 2 fois par semaine, en fin de séance, après les gros exercices.",
+          "Contrôle la descente : 2 à 3 secondes, sans laisser tomber la charge.",
+        ],
+      },
+      {
+        h: "Les erreurs qui freinent",
+        liste: [
+          "Balancer le dos pour monter la charge : c'est le dos qui travaille, plus le biceps. Allège.",
+          "Couper l'amplitude : descends jusqu'à avoir le bras presque tendu.",
+          "Faire des bras tous les jours : un muscle grossit pendant la récupération, pas pendant la séance.",
+          "Oublier de manger assez de protéines : sans elles, pas de matière pour construire (voir notre article sur les protéines).",
+        ],
+      },
+    ],
+    cta: "Crée ta séance bras dans Oxa : biceps et triceps, les charges proposées et ta progression notée à chaque séance",
+    lien: "/entrainement/assistant/?m=bic,tri&src=blog-bras",
+  },
+  {
     slug: "marche-japonaise-methode",
     type: "article",
     categorie: "Course", date: "2026-11-15", couverture: "/img/grand/rubrique-run.avif",
