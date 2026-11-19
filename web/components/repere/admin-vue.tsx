@@ -3,6 +3,7 @@
 /* Admin › Vue d'ensemble : « Comment va Oxa » sur une période (maquette validée le 18 novembre 2026).
    Visiteurs, visite guidée, sources et rubriques : mesure anonyme (admin_vue, sans lien avec un compte).
    Testeurs et séances : comptes (admin_utilisateurs), sans l'admin ni ses comptes de test. */
+import { CONNUS } from "./accueil-premier";
 import { tr } from "@/lib/i18n";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -77,6 +78,8 @@ export function VueEnsemble({ L, S, exclus, avecMoi, plus }: { L: CompteAdmin[];
         <p className="mt-2 text-[12.5px] text-muted-foreground">{tr("Ajoute ?src=tiktok (ou insta, yt…) au lien que tu publies.")}</p>
       </section>
 
+      <Declares L={L.filter((c) => !exclus.includes(c.id))} />
+
       <section className="rounded-[22px] bg-card p-4">
         <h2 className="eyebrow mb-1">{tr("Ce qu'ils ouvrent le plus")}</h2>
         {V?.rubriques.length ? V.rubriques.map((r) => <Ligne key={r.rubrique} n={nomR(r.rubrique)} v={r.appareils === 1 ? tr("1 personne") : tr("{n} personnes", { n: r.appareils })} />)
@@ -131,3 +134,21 @@ const Ligne = ({ n, v }: { n: string; v: string }) => (
     <span className="min-w-0 truncate">{n}</span><span className="num shrink-0 text-muted-foreground">{v}</span>
   </div>
 );
+
+/* « Comment as-tu connu Oxa ? » (questionnaire d'accueil, quand aucun lien ?src= ne le disait) : réponses
+   des comptes, nombre de « passé » et détail de « Autre » */
+function Declares({ L }: { L: CompteAdmin[] }) {
+  const R = L.map((c) => c.etat?.A).filter((A) => A?.connu);
+  const n = (k: string) => R.filter((A) => A!.connu === k).length;
+  const lignes = CONNUS.map((o) => ({ n: o.n(), v: n(o.k) })).filter((x) => x.v).sort((a, b) => b.v - a.v);
+  const autres = R.filter((A) => A!.connu === "autre" && A!.connuTxt).map((A) => A!.connuTxt!);
+  return (
+    <section className="rounded-[22px] bg-card p-4">
+      <h2 className="eyebrow mb-1">{tr("Comment ils ont connu Oxa · {n}", { n: R.length - n("passe") })}</h2>
+      {lignes.length ? lignes.map((x) => <Ligne key={x.n} n={x.n} v={String(x.v)} />)
+        : <p className="text-[13.5px] text-muted-foreground">{tr("Pas encore de réponse.")}</p>}
+      {autres.length > 0 && <p className="mt-2 text-[13.5px]"><b>{tr("Autre :")}</b> {autres.slice(0, 30).join(" · ")}</p>}
+      <p className="mt-2 text-[12.5px] text-muted-foreground">{tr("Déclaré au questionnaire d'accueil, quand aucun lien ne le disait · {n} passé", { n: n("passe") })}</p>
+    </section>
+  );
+}

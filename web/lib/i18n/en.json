@@ -3394,5 +3394,16 @@
   "erreurs à regarder": "errors to check",
   "voir l'onglet Technique": "see the Technical tab",
   "{n} erreurs à regarder": "{n} errors to check",
-  "À regarder": "To check"
+  "À regarder": "To check",
+  "Un ami ou un proche": "A friend or family member",
+  "Recherche Google": "Google search",
+  "Question rapide · facultative": "Quick question · optional",
+  "Comment as-tu connu Oxa ?": "How did you hear about Oxa?",
+  "Ça nous aide à savoir où parler d'Oxa. Une seule réponse.": "It helps us know where to talk about Oxa. One answer.",
+  "Où ça ? (facultatif)": "Where? (optional)",
+  "Passer cette question": "Skip this question",
+  "Comment ils ont connu Oxa · {n}": "How they heard about Oxa · {n}",
+  "Déclaré au questionnaire d'accueil, quand aucun lien ne le disait · {n} passé": "Answered in the welcome questions when no link said so · {n} skipped",
+  "Autre :": "Other:",
+  "Pas encore de réponse.": "No answers yet."
 }
