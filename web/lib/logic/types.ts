@@ -42,6 +42,7 @@ export type PlanIA = {
 /* sup : superset, l'exercice s'enchaîne sans repos avec le suivant (le repos vient après le second) */
 /** Une autre activité (sp : id dans lib/data/activites.ts ; int : 0 tranquille, 1 normale, 2 à fond ; m : muscles sollicités). */
 export type Activite = { id: string; d: string; sp: string; min: number; int: 0 | 1 | 2; m: string[] };
+export type Connu = "tiktok" | "insta" | "ami" | "yt" | "google" | "autre" | "passe";
 export type ExLibre = { id: string; s: number; r: number; p: string; o?: number; ro?: RoleEx; k?: string; sup?: 1 };
 export type RoleEx = "b" | "c" | "i" | "g";
 export type SeanceLibre = {
@@ -102,6 +103,10 @@ export type Reponses = {
   accueil?: boolean;
   /* accueil refermé avec « Plus tard » : il ne s'ouvre plus tout seul (carte « Complète ton profil sportif ») */
   accueilPasse?: boolean;
+  /* « Comment as-tu connu Oxa ? » (accueil, quand aucun lien ?src= ne l'a dit) : « passe » si sautée ;
+     connuTxt, le détail facultatif de « Autre » */
+  connu?: Connu;
+  connuTxt?: string;
   /** « Oxa te propose » masqué sur l'accueil : pour un jour (sa date) ou tout le temps (Profil le réactive). */
   recoMasquee?: string;
   recoOff?: boolean;

@@ -47,7 +47,15 @@ async function bulles(pg, prefixe) {
   await cap(pg, "sans-bienvenue");
   await dlg.getByText("Commencer · 1 min").click();
   const suivant = () => dlg.getByRole("button", { name: "Suivant" }).click();
+  /* aucun lien ?src= : « Comment as-tu connu Oxa ? », facultative */
+  await dlg.getByText("Comment as-tu connu Oxa ?").waitFor();
+  ok(await dlg.getByRole("button", { name: "Suivant" }).isDisabled() && await dlg.getByText("Passer cette question").isVisible(), "source : Suivant attend un choix, on peut passer");
+  await dlg.getByRole("radio", { name: /Autre/ }).click();
+  await dlg.getByPlaceholder("Où ça ? (facultatif)").fill("Affiche salle");
+  await cap(pg, "sans-source");
+  await suivant();
   await dlg.getByText("1 / 10 · Profil sportif").waitFor();
+  ok(await pg.evaluate(() => { const A = JSON.parse(localStorage.getItem("palier.state.v1")).A; return A.connu === "autre" && A.connuTxt === "Affiche salle"; }), "source : réponse et détail gardés");
   await dlg.getByRole("button", { name: "Homme" }).click(); await suivant();
   await dlg.getByText("2 / 10 · Profil sportif").waitFor(); await suivant();
   await dlg.getByText("3 / 10 · Profil sportif").waitFor(); await suivant();
