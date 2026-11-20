@@ -22,7 +22,7 @@ import { exPourRole } from "@/lib/logic/assistant";
 import { convientA, placer, roleDe } from "@/lib/logic/roles";
 import { blocDe, candidatsCase, casesVides, gabaritPour, remplissage, ROLES_BLOCS, suggestion, trierParBloc } from "@/lib/logic/gabarit";
 import { avecSupersets, CadreSuperset, EffetObjectif, partenaire } from "@/components/repere/superset";
-import { BandeauGabarit, CaseVide, ChoixMuscles, FeuilleCase, nomMuscle, TitreBloc } from "@/components/repere/gabarit";
+import { BandeauGabarit, CaseVide, ChoixMuscles, FeuilleCase, nomMuscle, nomMuscles, TitreBloc } from "@/components/repere/gabarit";
 import { seancePour } from "@/lib/logic/generer-seance";
 import { jourDe } from "@/lib/logic/historique";
 import * as act from "@/lib/logic/actions";
@@ -98,7 +98,7 @@ export default function PageComposer() {
     majLibre((l) => {
       l.gab = gabaritPour(etat, m, d, objL, sel, l.pour ?? aujHui);
       /* une séance sans nom prend celui de ses muscles (« Épaules · Dos ») */
-      if (!l.nom.trim() || l.nom === tr("Séance libre") || l.nom === l.gab.m.map(nomMuscle).join(" · ") || (gab && l.nom === gab.m.map(nomMuscle).join(" · "))) l.nom = m.map(nomMuscle).join(" · ");
+      if (!l.nom.trim() || l.nom === tr("Séance libre") || l.nom === nomMuscles(l.gab.m) || (gab && [nomMuscles(gab.m), gab.m.map(nomMuscle).join(" · ")].includes(l.nom))) l.nom = nomMuscles(m);
       rangerLibre(l);
     });
     setChoixM(false);

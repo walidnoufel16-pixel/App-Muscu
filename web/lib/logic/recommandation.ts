@@ -87,6 +87,8 @@ export function effortsEndurance(S: Sortie[] = [], C: HistoCardio[] = [], avant?
   return out;
 }
 
+/** Les muscles d'une séance full body : un exercice par grand groupe, épaules et abdos (ACSM). */
+export const FULL_BODY: Groupe[] = ["pec", "dos", "qua", "isc", "epa", "abd"];
 type Modele = { id: string; nom: () => string; g: Groupe[]; large?: boolean };
 const MODELES: Modele[] = [
   { id: "push", nom: () => tr("Pecs, épaules et triceps"), g: ["pec", "tri", "epa"] },
@@ -95,7 +97,7 @@ const MODELES: Modele[] = [
   { id: "jambes", nom: () => tr("Jambes et abdos"), g: ["qua", "isc", "mol", "abd"] },
   { id: "epaabd", nom: () => tr("Épaules et abdos"), g: ["epa", "abd"] },
   { id: "haut", nom: () => tr("Haut du corps"), g: ["pec", "dos", "epa", "bic", "tri"], large: true },
-  { id: "full", nom: () => tr("Full body"), g: ["pec", "dos", "qua", "isc", "epa", "abd"], large: true },
+  { id: "full", nom: () => tr("Full body"), g: FULL_BODY, large: true },
   { id: "bas", nom: () => tr("Bas du corps"), g: ["qua", "isc", "mol", "abd"], large: true },
 ];
 /* Les séances proposées selon le profil (ACSM 2009 : full body 2 à 3 fois par semaine pour débuter ;
