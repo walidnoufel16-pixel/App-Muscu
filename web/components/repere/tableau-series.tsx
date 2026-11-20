@@ -195,7 +195,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini, ...o }: { c: Ctx; rpe
           /* la série à faire : la première qui n'est pas cochée, cerclée pour qu'on la trouve d'un coup d'œil */
           const prochaine = !done && n === S.findIndex((t) => !(L && okDe(L, t)));
           return (
-            <div key={n} aria-current={prochaine ? "step" : undefined} className={cn("relative isolate grid items-center gap-x-2 overflow-hidden rounded-xl px-1 py-1", cols)}>
+            <div key={n} aria-current={prochaine ? "step" : undefined} data-visite={prochaine ? "seance-serie" : undefined} className={cn("relative isolate grid items-center gap-x-2 overflow-hidden rounded-xl px-1 py-1", cols)}>
               {/* fond jaune : il se remplit de gauche à droite quand on valide */}
               {ok && <span aria-hidden className={cn("absolute inset-0 -z-10 origin-left bg-plate-soft", vient === n && "animate-[remplir_.42s_cubic-bezier(.2,.8,.2,1)]")} />}
               <span className={cn("num text-center text-[18px] font-bold transition-colors", prochaine ? "text-plate-ink dark:text-plate" : "text-foreground")}>{n + 1}</span>
@@ -220,6 +220,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini, ...o }: { c: Ctx; rpe
               ))}
               <button
                 ref={(el) => { boutons.current[n] = el; }}
+                data-visite={prochaine ? "seance-valider" : undefined}
                 onClick={(e) => valider(n, s, e.currentTarget)}
                 aria-label={tr("{a} la série {a1}", { a: ok ? tr("Décocher") : tr("Valider"), a1: n + 1 })}
                 aria-pressed={ok}

@@ -15,15 +15,17 @@ import { ExerciceCarte, Vignette } from "@/components/repere/exercice-carte";
 import { FormeDuJour } from "@/components/repere/forme";
 import { FicheExercice, type FicheOuverte } from "@/components/repere/fiche-exercice";
 import { Collation, Echauffement, Remplacer } from "@/components/repere/seance-vues";
+import { VisiteSeance } from "@/components/repere/visite-seance";
 import { BarreSerie, TableauSeries } from "@/components/repere/tableau-series";
 import { avecSupersets, CadreSuperset, partenaire } from "@/components/repere/superset";
 import { CarteSport } from "@/components/repere/carte-sport";
 import { EX } from "@/lib/data/exercices";
 import { AXES } from "@/lib/data/referentiels";
 import {
-  alternativesDe, baseRPE, ctxLibre, ctxPlan, journalActif, variationDe, kLibre, curId, nb, espacementDe, key, musclesDe, nomPat, noRPE, okDe, rirTxt, rpeOf, sportsChoisis, titreSeance, week,
+  alternativesDe, avecSalle, baseRPE, ctxLibre, exoFiltre, selDeclare, ctxPlan, journalActif, variationDe, kLibre, curId, nb, espacementDe, key, musclesDe, nomPat, noRPE, okDe, rirTxt, rpeOf, sportsChoisis, titreSeance, week,
 } from "@/lib/logic/core";
 import { exPourRole, objCollation } from "@/lib/logic/assistant";
+import { estPoly } from "@/lib/logic/roles";
 import * as act from "@/lib/logic/actions";
 import type { BlocCardio, Journal } from "@/lib/logic/types";
 import type { Route } from "next";
@@ -272,6 +274,8 @@ function SeanceLibre({ i }: { i: number }) {
   const [ouvertChoisi, setOuvert] = useState<string | null | undefined>(undefined);
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);
   const [ajout, setAjout] = useState(false);
+  /* « Remplacer » en séance libre : l'indice de l'exercice à remplacer */
+  const [remp, setRemp] = useState<number | null>(null);
   const [maintenant] = useState(() => Date.now());
   const S = etat.SEANCES[i];
   if (!S) return <Introuvable />;
@@ -336,6 +340,8 @@ function SeanceLibre({ i }: { i: number }) {
         num={j + 1} id={e.id} prescr={prescr} repos={e.p} rpe={r} ro={e.ro} variation={L ? 0 : variationDe(c)} L={L} n={e.s} ouvert={ouvert === c.k}
         onToggle={() => { tactile(5); setOuvert(ouvert === c.k ? null : c.k); }}
         onFiche={() => setFiche({ id: e.id, idx: -1, pres: [e.s, e.r, e.p], libelle: tr("séance libre"), rpe: r || undefined })}
+        /* remplaçable tant qu'aucune série n'est validée (les séries notées restent à leur exercice) */
+        onRemplacer={L && (L.done || L.series?.some((x) => x.ok)) ? undefined : () => { tactile(5); setRemp(j); }}
         onTout={() => { tactile(12); muter((E) => act.toutCocher(E, c)); if (!L?.done && useRepere.getState().etat.LOG[c.k]?.done) { if (r) setOuvert(c.k); else fini(); } }}
       >
         <TableauSeries c={c} rpe={r} onReplier={() => setOuvert(null)} onFini={fini} garder={() => setOuvert(c.k)} {...enchainement(j)} />
@@ -410,6 +416,32 @@ function SeanceLibre({ i }: { i: number }) {
         return <BarreSerie c={c ?? null} rpe={c && !noRPE(c.id) ? 8 : 0} garder={() => setOuvert(ouvert)} etiquette={ss} {...(m >= 0 ? enchainement(m) : {})} onFini={() => enchainer({ k: ouvert, cles, titre: S.nom, setOuvert })} />;
       })()}
       <FicheExercice fiche={fiche} onClose={() => setFiche(null)} />
+      {(() => {
+        const cur = remp != null ? S.ex[remp]?.id : undefined;
+        const sel = avecSalle(selDeclare(etat.A), etat.A), dans = new Set(S.ex.map((e) => e.id));
+        const liste = cur ? [cur, ...Object.keys(EX).filter((o) => !dans.has(o) && EX[o].pat === EX[cur].pat && exoFiltre(o, sel))] : [];
+        return (
+          <Remplacer
+            ouvert={!!cur} onClose={() => setRemp(null)}
+            titre={cur ? EX[cur].n : ""} sousTitre={cur ? tr("Remplacer · {a}", { a: nomPat(EX[cur].pat) }) : ""}
+            liste={liste} courant={cur}
+            onChoisir={(o) => {
+              const j = remp!;
+              muter((E) => {
+                const e = E.SEANCES[i]?.ex[j];
+                if (!e) return;
+                const x = EX[o], old = EX[e.id];
+                if (x.ch !== old.ch) e.r = x.ch === "temps" ? 45 : x.ch === "dist" ? 250 : 10;
+                /* l'étiquette (base, isolation…) ne suit que si le nouvel exercice joue le même rôle */
+                if (e.ro && (e.ro === "g" ? x.pat !== old.pat : estPoly(o) !== estPoly(e.id))) delete e.ro;
+                e.id = o;
+              });
+              toast(tr("Remplacé : {n}", { n: EX[o].n }));
+              setRemp(null);
+            }}
+          />
+        );
+      })()}
     </Cadre>
   );
 }
@@ -425,7 +457,12 @@ function Introuvable() {
 
 function Seance() {
   const l = useSearchParams().get("l");
-  return l != null ? <SeanceLibre i={Number(l)} /> : <SeancePlan />;
+  return (
+    <>
+      {l != null ? <SeanceLibre i={Number(l)} /> : <SeancePlan />}
+      <VisiteSeance />
+    </>
+  );
 }
 
 export default function PageSeance() {

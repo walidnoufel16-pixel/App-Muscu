@@ -14,11 +14,11 @@ const etat = (seances, extra = {}) => ({
 const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 const ok = (c, m) => { console.log(c ? "OK  " : "ÉCHEC", m); if (!c) process.exitCode = 1; };
 const errs = [];
-async function contexte(e, langue) {
+async function contexte(e, langue, visiteSeance = false) {
   const ctx = await b.newContext({ locale: "fr-FR", viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
-  await ctx.addInitScript(([s, l]) => {
-    if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); if (l) localStorage.setItem("repere.langue.v1", l); sessionStorage.vu = 1; }
-  }, [e, langue]);
+  await ctx.addInitScript(([s, l, v]) => {
+    if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); if (l) localStorage.setItem("repere.langue.v1", l); if (!v) localStorage.setItem("repere.visite.seance", "1"); sessionStorage.vu = 1; }
+  }, [e, langue, visiteSeance]);
   await ctx.route(/supabase\.co/, (r) => r.abort());
   const pg = await ctx.newPage();
   pg.on("pageerror", (x) => errs.push(x.message));
@@ -26,6 +26,26 @@ async function contexte(e, langue) {
 }
 const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(900); await pg.screenshot({ path: `${CAP}/${nom}.png` }); } };
 const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")));
+
+{
+  /* Première séance sur l'appareil : la visite de la séance, 5 bulles posées sur la vraie séance */
+  const [ctx, pg] = await contexte(etat([PUSH]), null, true);
+  await pg.goto(U + "/entrainement/seance?l=0");
+  const bulle = pg.locator('[role="dialog"][aria-modal="true"]');
+  const titres = [];
+  for (let k = 0; k < 5; k++) {
+    await bulle.locator("h3").waitFor({ timeout: 6000 }).catch(() => {});
+    if (!(await bulle.count())) break;
+    titres.push(await bulle.locator("h3").innerText());
+    await bulle.getByRole("button", { name: /^(Suivant|C'est parti)$/ }).click();
+    await pg.waitForTimeout(450);
+  }
+  ok(JSON.stringify(titres) === JSON.stringify(["Note ta série", "Valide-la", "Ajuste ton repos", "Remplace un exercice", "Regarde comment faire"]), "visite de la séance : " + titres.join(", "));
+  await pg.reload();
+  await pg.waitForTimeout(1800);
+  ok(await bulle.count() === 0, "visite de la séance : une seule fois");
+  await ctx.close();
+}
 
 {
   /* Séance finie : le bilan propose « Ajouter à mon suivi », puis Progrès ; la séance repart vierge. */

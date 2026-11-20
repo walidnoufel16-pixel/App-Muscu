@@ -2,6 +2,7 @@
 
 import { tr } from "@/lib/i18n";
 import { useRef, useState } from "react";
+import { tactile } from "@/lib/repos";
 import { ArrowsLeftRightIcon, BarbellIcon, CaretLeftIcon, CaretRightIcon, ChartLineUpIcon } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { AVANT } from "@/lib/nav";
@@ -12,7 +13,7 @@ import { useRepere } from "@/lib/store";
 import { useFiche } from "@/lib/fiches";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { imgEx, imgExGrand, PHOTOS_EX } from "@/lib/medias";
+import { imgDuo, imgDuoGrand, imgEx, imgExGrand, PHOTOS_EX } from "@/lib/medias";
 import { etapesDe } from "@/lib/data/street";
 import { variantesDe } from "@/lib/logic/variantes";
 import { musclesDe } from "@/lib/logic/core";
@@ -28,24 +29,34 @@ export type FicheOuverte = {
   onRemplacer?: () => void;
 };
 
-/* Photos départ / fin : elles alternent en fondu pour suggérer le mouvement. */
+/* Photos départ / fin : elles alternent en fondu pour suggérer le mouvement.
+   Un exercice avec une photo choisie (PHOTOS_EX) l'affiche d'abord ; « Animation » montre alors le
+   départ et la fin qui alternent, « Photo » y revient (la photo remplace le « côte à côte »). */
 export function Duo({ id }: { id: string }) {
-  const [anime, setAnime] = useState(true);
-  if (PHOTOS_EX[id])
-    return (
-      <div className="relative aspect-[3/2] overflow-hidden rounded-[22px] bg-muted">
-        {/* une seule photo (Pixabay) : pas de duo départ / fin */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={imgExGrand(id)} alt={EX[id]?.n ?? ""} className="size-full object-cover"
-          onError={(e) => { const p = imgEx(id); if (!e.currentTarget.src.endsWith(p)) e.currentTarget.src = p; }} />
-      </div>
-    );
-  if (!EX[id]?.img)
+  const photo = !!PHOTOS_EX[id], duo = !!EX[id]?.img;
+  const [mode, setMode] = useState<"photo" | "anime" | "cote">(photo ? "photo" : "anime");
+  if (!photo && !duo)
     return (
       <div className="grid aspect-[3/2] place-items-center rounded-[22px] bg-muted text-center text-muted-foreground">
         <div><BarbellIcon className="mx-auto size-10 opacity-60" /><p className="mt-1.5 text-[13px] font-medium">{tr("Photo à venir")}</p></div>
       </div>
     );
+  const bouton = (label: string, vers: typeof mode) => (
+    <button onClick={() => { tactile(5); setMode(vers); }}
+      className="absolute right-2.5 bottom-2.5 rounded-full bg-background/85 px-3 py-1.5 text-[12px] font-semibold backdrop-blur active:scale-95">
+      {label}
+    </button>
+  );
+  if (mode === "photo" || !duo)
+    return (
+      <div className="relative aspect-[3/2] overflow-hidden rounded-[22px] bg-muted">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={imgExGrand(id)} alt={EX[id]?.n ?? ""} className="size-full object-cover"
+          onError={(e) => { const p = imgEx(id); if (!e.currentTarget.src.endsWith(p)) e.currentTarget.src = p; }} />
+        {duo && bouton(tr("Animation"), "anime")}
+      </div>
+    );
+  const anime = mode === "anime";
   return (
     <div className="relative">
       <div className={cn("relative grid overflow-hidden rounded-[22px] bg-muted", anime ? "aspect-[3/2]" : "grid-cols-2 gap-px")}>
@@ -56,8 +67,8 @@ export function Duo({ id }: { id: string }) {
           >
             {/* en grand (850 px) ; hors connexion sans elle, la petite */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imgExGrand(id, n as 0 | 1)} alt={`${EX[id].n}, ${n ? "fin" : tr("départ")}`} className="size-full object-cover"
-              onError={(e) => { const p = imgEx(id, n as 0 | 1); if (!e.currentTarget.src.endsWith(p)) e.currentTarget.src = p; }} />
+            <img src={imgDuoGrand(id, n as 0 | 1)} alt={`${EX[id].n}, ${n ? "fin" : tr("départ")}`} className="size-full object-cover"
+              onError={(e) => { const p = imgDuo(id, n as 0 | 1); if (!e.currentTarget.src.endsWith(p)) e.currentTarget.src = p; }} />
             {!anime && (
               <figcaption className="absolute bottom-2 left-2 rounded-md bg-background/85 px-1.5 py-0.5 text-[10.5px] font-medium tracking-wide uppercase backdrop-blur">
                 {n ? tr("Fin") : tr("Départ")}
@@ -66,12 +77,7 @@ export function Duo({ id }: { id: string }) {
           </figure>
         ))}
       </div>
-      <button
-        onClick={() => setAnime((a) => !a)}
-        className="absolute right-2.5 bottom-2.5 rounded-full bg-background/85 px-3 py-1.5 text-[12px] font-semibold backdrop-blur active:scale-95"
-      >
-        {anime ? tr("Côte à côte") : tr("Animer")}
-      </button>
+      {photo ? bouton(tr("Photo"), "photo") : anime ? bouton(tr("Côte à côte"), "cote") : bouton(tr("Animer"), "anime")}
     </div>
   );
 }

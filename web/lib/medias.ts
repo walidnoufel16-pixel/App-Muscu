@@ -82,6 +82,11 @@ export const imgEx = (id: string, n: 0 | 1 = 0) =>
 export const imgExGrand = (id: string, n: 0 | 1 = 0) =>
   PHOTOS_EX[id]?.us ? usEx(id, true) : PHOTOS_EX[id] ? `/img/grand/ex-${id}.avif` : `/img/grand/${EX[id]?.img}_${n}.avif`;
 
+/** Les images départ (0) et fin (1) de l'animation, même pour un exercice qui a une photo unique
+    (celle-ci sert d'aperçu ; l'animation reste dans la fiche). */
+export const imgDuo = (id: string, n: 0 | 1) => `/img/${EX[id]?.img}_${n}.avif`;
+export const imgDuoGrand = (id: string, n: 0 | 1) => `/img/grand/${EX[id]?.img}_${n}.avif`;
+
 /* Photos Unsplash des machines sans exercice illustré (Ma salle). Règles d'Unsplash :
    l'image s'affiche depuis leurs serveurs (jamais copiée dans public/) et son
    photographe est cité dans Crédits, avec un lien vers son profil. */

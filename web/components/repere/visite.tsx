@@ -33,7 +33,7 @@ const CLE = "repere.visite", CLE_PLAN = "repere.visite.plan";
 export const useVisite = create<{ etape: number | null; mini: boolean }>(() => ({ etape: null, mini: false }));
 export const revoirVisite = () => useVisite.setState({ etape: 0 });
 
-type BulleDef = { cible: string; k: () => string; t: () => string; d: () => string };
+export type BulleDef = { cible: string; k: () => string; t: () => string; d: () => string };
 const ENTRAINEMENT: BulleDef = { cible: "entrainement", k: () => tr("Entraînement"), t: () => tr("Tes séances"), d: () => tr("Ta semaine, ta récupération et ta séance du jour, prête selon tes muscles récupérés. « Programmer une séance » la place dans ton agenda.") };
 const ENTRAINEMENT_PLAN: BulleDef = { cible: "entrainement", k: () => tr("Entraînement"), t: () => tr("Tes séances"), d: () => tr("Ta semaine en un coup d'œil et ta séance du jour. Des séances libres quand tu veux, en plus de ton programme.") };
 const PROGRAMME: BulleDef = { cible: "rubrique-programme", k: () => "Oxa Plan", t: () => tr("Ton programme sur 8 semaines"), d: () => tr("L'effort monte de semaine en semaine, puis une semaine d'allègement pour récupérer. Tes charges s'ajustent toutes seules à ce que tu réussis.") };
@@ -182,7 +182,7 @@ function Fin({ ouvert, titre, texte, bouton, onOk, onPlusTard }: { ouvert: boole
 
 /* Une bulle sur un repère de l'interface : le repère est éclairé, le reste assombri. Un repère hors
    de l'écran est amené au centre ; un repère absent (écran sans cette tuile) est sauté. */
-function Bulle({ b, i, total, onSuivant, onPasser, onAbsent = onSuivant, bouton, passer }: { b: BulleDef; i: number; total: number; onSuivant: () => void; onPasser: () => void; onAbsent?: () => void; bouton?: string; passer?: string }) {
+export function Bulle({ b, i, total, onSuivant, onPasser, onAbsent = onSuivant, bouton, passer }: { b: BulleDef; i: number; total: number; onSuivant: () => void; onPasser: () => void; onAbsent?: () => void; bouton?: string; passer?: string }) {
   const [r, setR] = useState<DOMRect | null>(null);
   useLayoutEffect(() => {
     let essais = 0, vivant = true, t: ReturnType<typeof setTimeout>;
