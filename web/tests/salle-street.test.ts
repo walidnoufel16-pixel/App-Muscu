@@ -72,7 +72,7 @@ describe("Ma salle", () => {
   });
   it("hors connexion : la liste des photos à garder ne contient que des photos Unsplash, sans doublon", () => {
     const l = photosDistantes();
-    expect(l.length).toBe(63 * 2 + 6 * 2 + 5 * 2);
+    expect(l.length).toBe(73 * 2 + 6 * 2 + 5 * 2);
     expect(new Set(l).size).toBe(l.length);
     for (const u of l) expect(u).toMatch(/^https:\/\/images\.unsplash\.com\/photo-/);
   });

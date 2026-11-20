@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
 import { ALIM, EMOJI, emojiDe } from "@/lib/data/aliments";
 import { RECETTES } from "@/lib/data/recettes";
 import { auteurRecette, imgRecette } from "@/lib/medias";
@@ -162,10 +164,18 @@ describe("suggestions, avec ce que j'ai, semaine, courses", () => {
 });
 
 describe("photos des recettes", () => {
+  it("photo Pixabay : fichiers locaux (carré et large), auteur et lien Pixabay", () => {
+    const locales = RECETTES.filter((x) => imgRecette(x.id)?.startsWith("/img/"));
+    expect(locales.length).toBe(4);
+    for (const r of locales) {
+      for (const f of ["carre", "large"] as const) expect(fs.existsSync(path.join(__dirname, "../public", imgRecette(r.id, f)!)), r.id).toBe(true);
+      expect(auteurRecette(r.id)?.lien, r.id).toMatch(/^https:\/\/pixabay\.com\/photos\//);
+    }
+  });
   it("une photo Unsplash par recette, affichée depuis leurs serveurs, photographe cité", () => {
     const vues = new Set<string>();
     /* les recettes ajoutées après l'audit du 12/11 n'ont pas encore de photo : la vignette garde sa pastille */
-    for (const r of RECETTES.filter((x) => imgRecette(x.id))) {
+    for (const r of RECETTES.filter((x) => imgRecette(x.id)?.startsWith("https://"))) {
       const src = imgRecette(r.id);
       expect(src, r.id).toMatch(/^https:\/\/images\.unsplash\.com\/photo-[\w-]+\?/);
       expect(imgRecette(r.id, "large"), r.id).toMatch(/w=1080&h=540/);

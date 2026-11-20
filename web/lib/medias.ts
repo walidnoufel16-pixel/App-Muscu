@@ -204,15 +204,37 @@ const PHOTOS_RECETTES: Record<string, { img: string; auteur: string; profil: str
   "pudding-chia": { img: "photo-1629180050285-7c56c6671f19", auteur: "Helen Van", profil: "uynnha" },
   "pomme-four": { img: "photo-1559057833-5290188ac9ef", auteur: "David B Townsend", profil: "dbtownsend" },
   "banane-glacee": { img: "photo-1749863438325-ec3ae343b014", auteur: "Elvira Syamsir", profil: "vira_yanar" },
+  /* ajoutées le 20/11/2026 (choix de Walid) */
+  "brouillade-tofu-micro": { img: "photo-1573678811620-2e1eccc3cdba", auteur: "Tim Bish", profil: "tjsocoz" },
+  "porridge-quinoa": { img: "photo-1715098841757-0e9690ec12d6", auteur: "Dimitris Asproloupos", profil: "dimaspros" },
+  "wrap-tofu-houmous": { img: "photo-1631021967255-898a52176fea", auteur: "Vije Vijendranath", profil: "vijev" },
+  "nouilles-tofu-wok": { img: "photo-1655427221151-870cc71a63c2", auteur: "Drake Whitney", profil: "thesupremechips" },
+  "salade-pois-chiches-haricots": { img: "photo-1688807450144-9d10de5eb913", auteur: "Bakd&Raw by Karolin Baitinger", profil: "bakdandraw" },
+  "chili-tempeh-express": { img: "photo-1658308766948-01c85ade2737", auteur: "Svitlana", profil: "kekse_und_ich" },
+  "quinoa-tempeh-bowl": { img: "photo-1579619002916-88cd4c81a70c", auteur: "James Frewin", profil: "jamesfrewin" },
+  "pates-thon-micro": { img: "photo-1673442635965-34f1b36d8944", auteur: "Sofia Ciravegna", profil: "sociravegna" },
+  "bol-riz-thon-micro": { img: "photo-1682566509568-ded8649b26bb", auteur: "Xavier Chng", profil: "cohesionsingapore" },
+  "couscous-pois-chiches-micro": { img: "photo-1673960802455-ec189a6207e5", auteur: "Sandie Clarke", profil: "honeypoppet" },
+};
+
+/* Photos Pixabay des recettes (20/11/2026) : copiées dans public/img (originaux dans medias/recettes),
+   en carré 240 px et en large 1080 × 540. */
+const PHOTOS_RECETTES_PX: Record<string, { auteur: string; lien: string }> = {
+  "pudding-chia-prot": { auteur: "Be_Stasya", lien: "https://pixabay.com/photos/berries-chia-pudding-breakfast-6514670/" },
+  "galettes-tofu-avocat": { auteur: "DanielaElenaTentis", lien: "https://pixabay.com/photos/rice-cake-avocado-smoked-salmon-2162364/" },
+  "dal-tofu-micro": { auteur: "sapnac2020", lien: "https://pixabay.com/photos/soup-bowl-food-spoon-dinner-3192814/" },
+  "patate-douce-oeufs-micro": { auteur: "RitaE", lien: "https://pixabay.com/photos/fried-egg-egg-meatloaf-mustard-3409076/" },
 };
 
 /** Photo d'une recette : carrée (listes) ou large (fiche). Sans photo : rien, la vignette garde sa pastille. */
 export const imgRecette = (id: string, format: "carre" | "large" = "carre") => {
+  if (PHOTOS_RECETTES_PX[id]) return `/img/recette-${id}${format === "large" ? "-large" : ""}.avif`;
   const ph = PHOTOS_RECETTES[id];
   return ph && `https://images.unsplash.com/${ph.img}?${format === "carre" ? "w=240&h=240" : "w=1080&h=540&crop=entropy"}&fit=crop&auto=format&q=70`;
 };
 /** Photographe d'une recette, pour la mention sous la photo. */
 export const auteurRecette = (id: string) => {
+  if (PHOTOS_RECETTES_PX[id]) return { nom: PHOTOS_RECETTES_PX[id].auteur, lien: PHOTOS_RECETTES_PX[id].lien };
   const ph = PHOTOS_RECETTES[id];
   return ph && { nom: ph.auteur, lien: `https://unsplash.com/@${ph.profil}${UTM}` };
 };
@@ -257,6 +279,7 @@ export const CREDITS: { quoi: string; nom: string; licence: string; lien: string
   { quoi: tr("Photos des machines (Ma salle)"), nom: tr("Core Health & Fitness · Throwdown et Impulse Fitness"), licence: tr("Avec l'accord du fabricant"), lien: "https://www.corehandf.com" },
   /* les sources ne sont plus sous les photos : chaque photographe des recettes est cité ici, avec un lien vers son profil */
   ...[...new Map(Object.values(PHOTOS_RECETTES).map((ph) => [ph.profil, ph])).values()].map((ph) => ({ quoi: tr("Photos des recettes"), nom: tr("{n} sur Unsplash", { n: ph.auteur }), licence: tr("Licence Unsplash"), lien: `https://unsplash.com/@${ph.profil}${UTM}` })),
+  ...Object.values(PHOTOS_RECETTES_PX).map((ph) => ({ quoi: tr("Photos des recettes"), nom: tr("{n} sur Pixabay", { n: ph.auteur }), licence: tr("Licence du contenu Pixabay"), lien: ph.lien })),
   ...PHOTOS_SEANCES.map((ph) => ({ quoi: tr("Photos des séances"), nom: ph.auteur ? tr("{n} sur {s}", { n: ph.auteur, s: ph.site }) : ph.site, licence: "CC0", lien: ph.lien })),
   { quoi: tr("Schéma du corps"), nom: tr("react-native-body-highlighter, Hicham Elabbassi"), licence: "MIT", lien: "https://github.com/HichamELBSI/react-native-body-highlighter" },
   { quoi: tr("Icônes"), nom: tr("Phosphor Icons"), licence: "MIT", lien: "https://phosphoricons.com" },
