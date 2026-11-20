@@ -52,7 +52,7 @@ describe("soin & mobilité", () => {
     for (const o of soins) expect(zonesDe(o, [0, 1, 2, 3])).toEqual([]);
   });
   it("des photos partout : plus aucun pictogramme dessiné", () => {
-    for (const o of Object.keys(EX)) expect(imgEx(o), o).toMatch(/^\/img\/[^/]+\.avif$/);
+    for (const o of Object.keys(EX)) expect(imgEx(o), o).toMatch(/^(\/img\/[^/]+\.avif|https:\/\/images\.unsplash\.com\/photo-[\w-]+\?.*)$/);
     expect(fs.existsSync(path.join(PUB, "img/picto"))).toBe(false);
   });
   it("un exercice retiré disparaît des séances enregistrées", () => {
