@@ -2,7 +2,8 @@
 -- oxa, compose, decouvrir) et seance_prete (une nouvelle séance a ses premiers exercices). L'entonnoir
 -- de l'Admin suit ce parcours : ouvrent Oxa, finissent la visite, choisissent un chemin, voient leur
 -- séance prête, programment ou font une série, terminent une séance, une 2e ; filtre par chemin.
--- Script relançable sans erreur.
+-- Nouvelle fonction admin_parcours (admin_entonnoir reste en place, n'est plus appelée par l'app :
+-- la supprimer demandait une confirmation). Script relançable sans erreur.
 
 alter table public.evenements drop constraint if exists evenements_nom_check;
 alter table public.evenements add constraint evenements_nom_check check (nom in ('ouverture', 'premiere_serie', 'seance_terminee', 'seance_arretee', 'rubrique_ouverte', 'plan_genere', 'repas_note', 'visite_finie', 'seance_programmee', 'chemin_choisi', 'seance_prete'));
@@ -39,8 +40,7 @@ begin
 end;
 $$;
 
-drop function if exists public.admin_entonnoir(int, boolean, text);
-create or replace function public.admin_entonnoir(p_jours int, p_avec_moi boolean default false, p_src text default null, p_chemin text default null)
+create or replace function public.admin_parcours(p_jours int, p_avec_moi boolean default false, p_src text default null, p_chemin text default null)
 returns jsonb
 language plpgsql
 stable
@@ -102,5 +102,5 @@ begin
   );
 end;
 $$;
-revoke all on function public.admin_entonnoir(int, boolean, text, text) from public, anon;
-grant execute on function public.admin_entonnoir(int, boolean, text, text) to authenticated;
+revoke all on function public.admin_parcours(int, boolean, text, text) from public, anon;
+grant execute on function public.admin_parcours(int, boolean, text, text) to authenticated;
