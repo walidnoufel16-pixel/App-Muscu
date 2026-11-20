@@ -11,7 +11,7 @@ import type { Journal, RoleEx } from "@/lib/logic/types";
 import { useCelebrer } from "@/lib/celebrer";
 import { cn } from "@/lib/utils";
 
-import { imgEx } from "@/lib/medias";
+import { aUneImage, imgEx } from "@/lib/medias";
 
 const UNITE_RESUME: Record<string, string> = { kg: "kg", lest: tr("kg de lest"), aucune: "", temps: "s", dist: "m" };
 
@@ -20,7 +20,7 @@ export function Vignette({ id, num, fait, trace, className }: { id: string; num?
   return (
     <span className={cn("relative block size-14 shrink-0 overflow-hidden rounded-[14px] bg-muted", className)}>
       {/* exercice encore sans photo : une icône à la place */}
-      {EX[id]?.img ? (
+      {aUneImage(id) ? (
         /* eslint-disable-next-line @next/next/no-img-element */
         <img
           src={imgEx(id)}

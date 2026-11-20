@@ -12,7 +12,7 @@ import { useRepere } from "@/lib/store";
 import { useFiche } from "@/lib/fiches";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { imgEx, imgExGrand } from "@/lib/medias";
+import { imgEx, imgExGrand, PHOTOS_EX } from "@/lib/medias";
 import { etapesDe } from "@/lib/data/street";
 import { variantesDe } from "@/lib/logic/variantes";
 import { musclesDe } from "@/lib/logic/core";
@@ -31,6 +31,15 @@ export type FicheOuverte = {
 /* Photos départ / fin : elles alternent en fondu pour suggérer le mouvement. */
 export function Duo({ id }: { id: string }) {
   const [anime, setAnime] = useState(true);
+  if (PHOTOS_EX[id])
+    return (
+      <div className="relative aspect-[3/2] overflow-hidden rounded-[22px] bg-muted">
+        {/* une seule photo (Pixabay) : pas de duo départ / fin */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={imgExGrand(id)} alt={EX[id]?.n ?? ""} className="size-full object-cover"
+          onError={(e) => { const p = imgEx(id); if (!e.currentTarget.src.endsWith(p)) e.currentTarget.src = p; }} />
+      </div>
+    );
   if (!EX[id]?.img)
     return (
       <div className="grid aspect-[3/2] place-items-center rounded-[22px] bg-muted text-center text-muted-foreground">

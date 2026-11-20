@@ -22,19 +22,36 @@ export const SOURCES = {
     lien: "https://wger.de/en/exercise/456/view",
     mention: tr("Photo · wakanda90 sur wger · CC BY-SA 4.0 · retouche Oxa"),
   },
+  pixabay: {
+    nom: "Pixabay",
+    licence: tr("Licence du contenu Pixabay"),
+    lien: "https://pixabay.com/service/license-summary/",
+    mention: tr("Photo · Pixabay · retouche Oxa"),
+  },
 } satisfies Record<string, Source>;
 
 export type CleSource = keyof typeof SOURCES;
 
 /* Source des démonstrations de chaque exercice (free-exercise-db, sauf celles-ci). */
-const SOURCE_EX: Partial<Record<string, CleSource>> = { pistol: "wgerWakanda" };
+/* Photos uniques (Pixabay, 20/11/2026) pour les exercices sans image ou qui empruntaient celle d'un
+   autre : une seule photo au lieu du duo départ / fin. Originaux dans medias/pixabay. */
+export const PHOTOS_EX: Record<string, { auteur: string; lien: string }> = {
+  susp: { auteur: "JackieJoy", lien: "https://pixabay.com/photos/outdoors-people-sports-3334154/" },
+  curlel: { auteur: "Pexels", lien: "https://pixabay.com/photos/man-indian-fit-fitness-gym-1868632/" },
+  trxrows: { auteur: "tanjashaw", lien: "https://pixabay.com/photos/trx-row-workout-fitness-strength-1730331/" },
+  trxfly: { auteur: "jborner", lien: "https://pixabay.com/photos/eaglefit-training-woman-fitness-3959017/" },
+  trxt: { auteur: "eaglefit1", lien: "https://pixabay.com/photos/isolated-young-background-atelier-3085940/" },
+};
+/** L'exercice a-t-il une illustration (duo de démonstration ou photo unique) ? */
+export const aUneImage = (id: string) => !!PHOTOS_EX[id] || !!EX[id]?.img;
+const SOURCE_EX: Partial<Record<string, CleSource>> = { pistol: "wgerWakanda", ...Object.fromEntries(Object.keys(PHOTOS_EX).map((id) => [id, "pixabay" as const])) };
 export const sourceEx = (id: string): Source => SOURCES[SOURCE_EX[id] ?? "fedb"];
 
 /** Photo de démonstration : 0 = départ, 1 = fin. */
-export const imgEx = (id: string, n: 0 | 1 = 0) => `/img/${EX[id]?.img}_${n}.avif`;
+export const imgEx = (id: string, n: 0 | 1 = 0) => (PHOTOS_EX[id] ? `/img/ex-${id}.avif` : `/img/${EX[id]?.img}_${n}.avif`);
 /** La même en grand (850 px au lieu de 420), pour l'afficher à pleine largeur (scripts/photos-grand.mjs).
     Gardée sur le téléphone quand on la regarde ; hors connexion sans elle, on reprend la petite. */
-export const imgExGrand = (id: string, n: 0 | 1 = 0) => `/img/grand/${EX[id]?.img}_${n}.avif`;
+export const imgExGrand = (id: string, n: 0 | 1 = 0) => (PHOTOS_EX[id] ? `/img/grand/ex-${id}.avif` : `/img/grand/${EX[id]?.img}_${n}.avif`);
 
 /* Photos Unsplash des machines sans exercice illustré (Ma salle). Règles d'Unsplash :
    l'image s'affiche depuis leurs serveurs (jamais copiée dans public/) et son
