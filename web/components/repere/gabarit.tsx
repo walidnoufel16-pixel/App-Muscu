@@ -11,7 +11,9 @@ import { EX } from "@/lib/data/exercices";
 import { MUSC, PAT2MUSC } from "@/lib/data/referentiels";
 import { avisMuscles } from "@/lib/logic/avis-seance";
 import { autresDuMuscle, candidatsCase, compte, type CaseG, type Gabarit } from "@/lib/logic/gabarit";
-import { effortsEndurance, FULL_BODY } from "@/lib/logic/recommandation";
+import { effortsEndurance } from "@/lib/logic/recommandation";
+import { nomMuscles, raccourciDe } from "@/lib/logic/raccourcis";
+import { RaccourcisCorps } from "./raccourcis-corps";
 import { roleDe } from "@/lib/logic/roles";
 import type { RoleEx } from "@/lib/logic/types";
 import { useRepere } from "@/lib/store";
@@ -24,9 +26,8 @@ import { SchemaCorps } from "./schema-corps";
 
 export const nomMuscle = (k: string) => MUSC.find((g) => g.k === k)?.n ?? k;
 /** Exactement les muscles du full body (dans n'importe quel ordre) ? */
-export const estFullBody = (m: string[]) => m.length === FULL_BODY.length && FULL_BODY.every((k) => m.includes(k));
 /** Le nom d'une sélection de muscles : « Full body », sinon « Épaules · Dos ». */
-export const nomMuscles = (m: string[]) => (estFullBody(m) ? tr("Full body") : m.map(nomMuscle).join(" · "));
+export { nomMuscles };
 /* « Complément · Dos » */
 export const nomCase = (c: CaseG) => `${nomRole(c.ro)} · ${nomMuscle(c.k)}`;
 const SOUS_BLOC: Record<RoleEx, () => string> = {
@@ -52,12 +53,8 @@ export function ChoixMuscles({ initial, jour, onPreparer, autre, jamais, materie
         <h3 className="text-[18px] font-bold">{tr("Quels muscles aujourd'hui ?")}</h3>
         <p className="mt-1 text-[13.5px] leading-snug text-muted-foreground">{tr("Oxa te prépare les cases à remplir : quoi faire en premier, quoi pour finir. Tu choisis les exercices.")}</p>
       </div>
-      {/* tout le corps d'un coup, sans cocher les muscles un par un ; on peut ensuite en retirer ou en ajouter */}
-      <button aria-pressed={estFullBody(m)} onClick={() => { tactile(8); setM(estFullBody(m) ? [] : [...FULL_BODY]); }}
-        className={cn("flex h-12 items-center justify-between rounded-[14px] border px-4 text-left active:scale-[.99]", estFullBody(m) ? "border-transparent bg-plate-soft text-plate-ink dark:text-plate" : "border-border bg-background")}>
-        <span className="text-[15px] font-bold">{tr("Full body")}</span>
-        <span className={cn("text-[12.5px]", !estFullBody(m) && "text-muted-foreground")}>{tr("Pecs, dos, jambes, épaules, abdos")}</span>
-      </button>
+      {/* raccourcis : tout le corps, le haut ou le bas d'un coup ; on ajuste ensuite sur le corps */}
+      <RaccourcisCorps m={m} onChange={setM} />
       <Segmente label={tr("Mode de sélection")} valeur={vue} onChange={setVue} options={[{ v: "corps", n: tr("Sur le corps") }, { v: "liste", n: tr("Liste") }]} />
       {vue === "corps" ? (
         <SchemaCorps
@@ -76,7 +73,7 @@ export function ChoixMuscles({ initial, jour, onPreparer, autre, jamais, materie
           ))}
         </div>
       )}
-      <p className={cn("px-1 text-[14px] font-medium", !m.length && "text-muted-foreground")}>{m.length ? (estFullBody(m) ? `${tr("Full body")} : ${m.map(nomMuscle).join(" · ")}` : nomMuscles(m)) : tr("Aucun muscle choisi pour l'instant.")}</p>
+      <p className={cn("px-1 text-[14px] font-medium", !m.length && "text-muted-foreground")}>{m.length ? (raccourciDe(m) ? `${nomMuscles(m)} : ${m.map(nomMuscle).join(" · ")}` : nomMuscles(m)) : tr("Aucun muscle choisi pour l'instant.")}</p>
       {recup && <p className="text-[12.5px] leading-snug text-muted-foreground">{recup.titre} {recup.texte}</p>}
       {/* le matériel, avant de préparer les cases : les suggestions en dépendent */}
       {materiel}

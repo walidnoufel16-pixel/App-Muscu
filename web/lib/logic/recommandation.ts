@@ -11,6 +11,7 @@
    - Séances possibles : les splits classiques ; on écarte celles qui touchent un groupe qui récupère
      ou que la personne a écarté, puis on préfère les groupes les moins travaillés de la semaine et
      ceux laissés de côté depuis le plus longtemps. */
+import { BAS_CORPS, FULL_BODY, HAUT_CORPS } from "./raccourcis";
 import { tp, tr } from "@/lib/i18n";
 import { EX } from "@/lib/data/exercices";
 import { PAT2MUSC } from "@/lib/data/referentiels";
@@ -87,8 +88,6 @@ export function effortsEndurance(S: Sortie[] = [], C: HistoCardio[] = [], avant?
   return out;
 }
 
-/** Les muscles d'une séance full body : un exercice par grand groupe, épaules et abdos (ACSM). */
-export const FULL_BODY: Groupe[] = ["pec", "dos", "qua", "isc", "epa", "abd"];
 type Modele = { id: string; nom: () => string; g: Groupe[]; large?: boolean };
 const MODELES: Modele[] = [
   { id: "push", nom: () => tr("Pecs, épaules et triceps"), g: ["pec", "tri", "epa"] },
@@ -96,9 +95,9 @@ const MODELES: Modele[] = [
   /* (les abdos y passent : en split, sans « Épaules et abdos », ils n'auraient plus de place) */
   { id: "jambes", nom: () => tr("Jambes et abdos"), g: ["qua", "isc", "mol", "abd"] },
   { id: "epaabd", nom: () => tr("Épaules et abdos"), g: ["epa", "abd"] },
-  { id: "haut", nom: () => tr("Haut du corps"), g: ["pec", "dos", "epa", "bic", "tri"], large: true },
-  { id: "full", nom: () => tr("Full body"), g: FULL_BODY, large: true },
-  { id: "bas", nom: () => tr("Bas du corps"), g: ["qua", "isc", "mol", "abd"], large: true },
+  { id: "haut", nom: () => tr("Haut du corps"), g: [...HAUT_CORPS], large: true },
+  { id: "full", nom: () => tr("Full body"), g: [...FULL_BODY], large: true },
+  { id: "bas", nom: () => tr("Bas du corps"), g: [...BAS_CORPS], large: true },
 ];
 /* Les séances proposées selon le profil (ACSM 2009 : full body 2 à 3 fois par semaine pour débuter ;
    un split n'a d'intérêt qu'à partir de 4 séances par semaine) :

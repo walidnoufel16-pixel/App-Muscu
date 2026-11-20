@@ -79,6 +79,10 @@ export default function PageComposer() {
   const versEntrainement = () => revenirA("/entrainement/rubrique", () => router.replace(lienRubrique("libre"), ARRIERE));
   const part = useRef(false); // on quitte : le brouillon vidé ne doit pas déclencher de redirection
   useEffect(() => { if (!libre && !part.current) router.replace("/entrainement"); }, [libre, router]);
+  /* entonnoir : une nouvelle séance a ses premiers exercices (proposés par Oxa ou choisis) — une fois par brouillon */
+  const prete = useRef(false);
+  const nbEx = libre?.ex.length ?? 0, nouvelle = libre?.idx == null;
+  useEffect(() => { if (nbEx > 0 && nouvelle && !prete.current) { prete.current = true; noter("seance_prete"); } }, [nbEx, nouvelle]);
   if (!libre) return null;
   const L = libre;
   const nbMat = TYPES.filter(([t]) => (selB ? selFeuille : sel).includes(t)).length;

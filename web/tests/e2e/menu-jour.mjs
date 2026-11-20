@@ -135,16 +135,28 @@ e = await etat(pg);
 ok(e.AGENDA.some((p) => p.d === aujD && p.quoi.t === "libre" && p.quoi.i === e.SEANCES.length - 1), "Plus tard → aujourd'hui → séance ajoutée à aujourd'hui dans l'agenda");
 ok(!errs.length, "aucune erreur JS " + errs.join(" | "));
 
-// un compte qui n'a jamais fait de séance : la carte « Ta première séance », vers l'assistant pré-coché
+// un compte qui n'a jamais fait de séance : « Comment veux-tu commencer ? » (Oxa prépare, ou je compose)
 const ctx2 = await b.newContext({ locale: "fr-FR", viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
-await ctx2.addInitScript((s) => { if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); localStorage.setItem("repere.visite", "1"); sessionStorage.vu = 1; } }, { ...base, HIST: [], SEANCES: [] });
+await ctx2.addInitScript((s) => { if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); localStorage.setItem("repere.visite", "1"); sessionStorage.vu = 1; } }, { ...base, A: { ...base.A, sexe: undefined, regularite: undefined }, HIST: [], SEANCES: [] });
 await ctx2.route(/supabase\.co/, (r) => r.abort());
 const pg2 = await ctx2.newPage();
 await pg2.goto(U + "/entrainement/");
-await pg2.getByText("Ta première séance").waitFor();
+await pg2.getByText("Comment veux-tu commencer ?").waitFor();
 await cap(pg2, "premiere");
-await pg2.getByRole("button", { name: "Voir ma première séance" }).click();
-await pg2.waitForURL(/\/entrainement\/composer/);
-await pg2.getByRole("button", { name: "Commencer", exact: true }).waitFor();
-ok(true, "aucune séance faite : « Ta première séance » → aperçu de la séance conseillée");
+ok(await pg2.getByText("Conseillée par Oxa selon ta récupération").count() === 0, "plus de séance « conseillée » sur un profil inconnu");
+await pg2.getByRole("button", { name: /^Oxa me prépare une séance/ }).click();
+const qs = pg2.getByRole("dialog");
+await qs.getByText("Pour te préparer la bonne séance").waitFor();
+ok(await qs.getByText("Sur quel corps afficher tes muscles ?").count() === 1 && await qs.getByText("Ton niveau").count() === 1, "les questions sans réponse sont posées (corps, niveau)");
+const choisir = qs.getByRole("button", { name: "Choisir mes muscles" });
+ok(await choisir.isDisabled(), "« Choisir mes muscles » attend les réponses");
+await qs.getByRole("tab", { name: "Femme" }).click();
+await qs.getByRole("button", { name: /^Je débute ou je reprends/ }).click();
+await choisir.click();
+await pg2.waitForURL(/\/entrainement\/assistant/);
+e = await etat(pg2);
+ok(e.A.sexe === 1 && e.A.regularite === 1, "réponses enregistrées dans le profil (corps, niveau)");
+await pg2.getByRole("button", { name: /^Bas du corps/ }).click();
+ok(await pg2.getByRole("button", { name: /^Bas du corps/ }).getAttribute("aria-pressed") === "true", "raccourci « Bas du corps » coché");
+ok(await pg2.locator("svg[data-silhouette=femme]").count() > 0, "corps de femme affiché après le choix");
 await b.close(); srv.close();

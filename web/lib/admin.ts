@@ -44,13 +44,14 @@ export type VueAdmin = {
   sources: { source: string; n: number }[]; rubriques: { rubrique: string; appareils: number }[];
 };
 export const vueAdmin = (jours: number, avecMoi: boolean) => appel<VueAdmin>("admin_vue", { p_jours: jours, p_avec_moi: avecMoi }).then(nettoieArbre);
-/* Entonnoir des nouveaux visiteurs (migration 20261120190000_admin_entonnoir.sql) */
+/* Entonnoir des nouveaux visiteurs (admin_parcours, migration 20261120230000_parcours_accueil.sql) */
 export type EntonnoirAdmin = {
-  etapes: { ouverture: number; profil: number; programme?: number; serie: number; seance: number; deux: number };
+  etapes: { ouverture: number; visite?: number; chemin?: number; prete?: number; agit?: number; seance: number; deux: number };
   sources: { source: string; n: number }[];
+  chemins?: { chemin: string; n: number }[];
 };
-export const entonnoirAdmin = (jours: number, avecMoi: boolean, src: string | null) =>
-  appel<EntonnoirAdmin>("admin_entonnoir", { p_jours: jours, p_avec_moi: avecMoi, p_src: src }).then(nettoieArbre);
+export const entonnoirAdmin = (jours: number, avecMoi: boolean, src: string | null, chemin: string | null = null) =>
+  appel<EntonnoirAdmin>("admin_parcours", { p_jours: jours, p_avec_moi: avecMoi, p_src: src, ...(chemin ? { p_chemin: chemin } : {}) }).then(nettoieArbre);
 /** Comptes écartés des chiffres (l'admin, ses comptes de test) ; vide tant que la migration n'est pas passée. */
 export const comptesExclus = () => appel<string[]>("admin_comptes_exclus").then((l) => l || []).catch(() => [] as string[]);
 export const compteTest = (id: string, test: boolean) => appel<void>("admin_compte_test", { p_user: id, p_test: test });

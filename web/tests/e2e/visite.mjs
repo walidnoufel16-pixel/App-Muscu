@@ -98,7 +98,7 @@ async function bulles(pg, prefixe) {
 }
 
 /* 1 bis. un nouveau profil sur un téléphone qui a déjà vu la visite : l'accueil s'ouvre quand même ;
-   « Plus tard » le referme pour de bon, la carte « Complète ton profil sportif » y ramène */
+   « Plus tard » le referme pour de bon, la carte « Comment veux-tu commencer ? » prend le relais */
 {
   const [ctx, pg] = await contexte(neuf, { "repere.visite": "1" });
   await pg.goto(U + "/entrainement/");
@@ -106,15 +106,15 @@ async function bulles(pg, prefixe) {
   await dlg.getByText("Commencer · 1 min").waitFor({ timeout: 8000 });
   ok(true, "nouveau profil, visite déjà vue sur l'appareil : l'accueil s'ouvre");
   await dlg.getByRole("button", { name: "Plus tard" }).click();
-  const carte = pg.getByRole("button", { name: /Complète ton profil sportif/ });
-  await carte.waitFor();
+  await pg.getByText("Comment veux-tu commencer ?").waitFor();
   await cap(pg, "plus-tard-carte");
+  ok(await pg.getByRole("button", { name: /^Oxa me prépare une séance/ }).count() === 1 && await pg.getByRole("button", { name: /^Je compose ma séance/ }).count() === 1, "« Plus tard » : les deux portes (Oxa prépare, je compose)");
   await pg.reload();
   await pg.waitForTimeout(2500);
   ok(await pg.getByText("Commencer · 1 min").count() === 0, "« Plus tard » : ne se rouvre plus tout seul");
-  await carte.click();
-  await dlg.getByText("Commencer · 1 min").waitFor();
-  ok(true, "la carte « Complète ton profil sportif » rouvre l'accueil");
+  await pg.getByRole("button", { name: /^Je compose ma séance/ }).click();
+  await pg.waitForURL(/\/entrainement\/composer/);
+  ok(true, "« Je compose ma séance » ouvre le composeur");
   await ctx.close();
 }
 

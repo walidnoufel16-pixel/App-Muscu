@@ -1,6 +1,7 @@
 /* Séance construite à partir des muscles choisis : tout se calcule ici, sans
    IA (instantané, gratuit, hors ligne). Port fidèle de l'ancienne app. */
 
+import { nomMuscles, raccourciDe } from "./raccourcis";
 import { tr } from "@/lib/i18n";
 import { EX } from "@/lib/data/exercices";
 import { MUSC, ZPATS } from "@/lib/data/referentiels";
@@ -235,8 +236,9 @@ export function construireCases(muscles: string[], duree: number, obj: number, s
 export const chargeLombaires = (o: string) => EX[o]?.pat2 === "lo" || o === "rkp" || o === "sdts";
 
 /* Nom de la séance générée. */
+/* un raccourci (Full body, Haut du corps, Bas du corps) donne son nom ; sinon 5 muscles ou plus : « Full body » */
 export const nomSeance = (m: string[]) =>
-  m.length >= 5 ? tr("Full body") : m.map((k) => MUSC.find((g) => g.k === k)!.n).join(" · ");
+  raccourciDe(m) || m.length < 5 ? nomMuscles(m) : tr("Full body");
 
 /* Durée approximative : 40 s d'effort par série (ou la durée demandée), le repos entre les
    séries, une minute de mise en place par exercice, et 5 minutes d'échauffement. */

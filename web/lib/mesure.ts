@@ -7,7 +7,7 @@
 import { sb } from "@/lib/supabase";
 import { sourceNotee } from "@/lib/source";
 
-export const NOMS = ["ouverture", "premiere_serie", "seance_terminee", "seance_arretee", "rubrique_ouverte", "plan_genere", "repas_note", "visite_finie", "seance_programmee"] as const;
+export const NOMS = ["ouverture", "premiere_serie", "seance_terminee", "seance_arretee", "rubrique_ouverte", "plan_genere", "repas_note", "visite_finie", "seance_programmee", "chemin_choisi", "seance_prete"] as const;
 export type NomEvenement = (typeof NOMS)[number];
 export type Evenement = { nom: NomEvenement; jour: string; props?: Record<string, string | number | boolean> };
 
@@ -47,8 +47,20 @@ const lireFile = (): Evenement[] => { try { const f = JSON.parse(localStorage.ge
 const ecrireFile = (f: Evenement[]) => { try { localStorage.setItem(CLE_FILE, JSON.stringify(f.slice(-MAX_FILE))); } catch {} };
 
 /** Ajoute un événement à la file (les plus anciens tombent au-delà de 200). */
+/* Événements qui n'ont de sens qu'une fois par appareil (ils étaient parfois notés deux fois) */
+const UNE_FOIS: NomEvenement[] = ["visite_finie", "premiere_serie"], CLE_UNE_FOIS = "repere.mesure.une";
+function dejaNote(nom: NomEvenement) {
+  if (!UNE_FOIS.includes(nom)) return false;
+  try {
+    const l: string[] = JSON.parse(localStorage.getItem(CLE_UNE_FOIS) || "[]");
+    if (l.includes(nom)) return true;
+    localStorage.setItem(CLE_UNE_FOIS, JSON.stringify([...l, nom]));
+  } catch { /* stockage indisponible : on note quand même */ }
+  return false;
+}
+
 export function noter(nom: NomEvenement, props?: Record<string, unknown>) {
-  if (!NOMS.includes(nom)) return;
+  if (!NOMS.includes(nom) || dejaNote(nom)) return;
   const e: Evenement = { nom, jour: jourLocal() };
   const p = nettoyerProps(props);
   if (p) e.props = p;
