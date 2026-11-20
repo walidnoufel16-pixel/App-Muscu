@@ -44,6 +44,13 @@ export type VueAdmin = {
   sources: { source: string; n: number }[]; rubriques: { rubrique: string; appareils: number }[];
 };
 export const vueAdmin = (jours: number, avecMoi: boolean) => appel<VueAdmin>("admin_vue", { p_jours: jours, p_avec_moi: avecMoi }).then(nettoieArbre);
+/* Entonnoir des nouveaux visiteurs (migration 20261120190000_admin_entonnoir.sql) */
+export type EntonnoirAdmin = {
+  etapes: { ouverture: number; profil: number; serie: number; seance: number; deux: number };
+  sources: { source: string; n: number }[];
+};
+export const entonnoirAdmin = (jours: number, avecMoi: boolean, src: string | null) =>
+  appel<EntonnoirAdmin>("admin_entonnoir", { p_jours: jours, p_avec_moi: avecMoi, p_src: src }).then(nettoieArbre);
 /** Comptes écartés des chiffres (l'admin, ses comptes de test) ; vide tant que la migration n'est pas passée. */
 export const comptesExclus = () => appel<string[]>("admin_comptes_exclus").then((l) => l || []).catch(() => [] as string[]);
 export const compteTest = (id: string, test: boolean) => appel<void>("admin_compte_test", { p_user: id, p_test: test });
