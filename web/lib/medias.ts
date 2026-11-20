@@ -97,9 +97,6 @@ const PHOTOS_POSTES: Record<string, { img: string; auteur: string; profil: strin
 
 /* Photos sous licence libre (Creative Commons), copiées dans public/img, recadrées au carré. */
 const PHOTOS_LIBRES: Record<string, { auteur: string; licence: string; lien: string }> = {
-  mollass: { auteur: "DakilAuctioneers", licence: "CC BY 2.0", lien: "https://www.flickr.com/photos/29694550@N06/19507914228" },
-  devinc: { auteur: "Aliva Sahoo", licence: "CC BY-SA 4.0", lien: "https://commons.wikimedia.org/w/index.php?curid=179972402" },
-  latm: { auteur: "Aliva Sahoo", licence: "CC BY-SA 4.0", lien: "https://commons.wikimedia.org/w/index.php?curid=179972398" },
 };
 
 /* Photos du fabricant (catalogues Core Health & Fitness 2026, marques Throwdown et Impulse), utilisées
@@ -110,8 +107,14 @@ const PHOTOS_CATALOGUE: Record<string, keyof typeof MARQUES> = Object.fromEntrie
   ...["bancabdo", "bancplat", "biking", "extlomb", "hyper45", "multihanche", "pecfly", "pressehor", "tapiscourbe"].map((id) => [id, "im"] as const),
 ]);
 
+/* Photos Pexels de machines choisies par Walid (20/11/2026), copiées dans public/img (originaux dans
+   medias/salle) : elles passent avant la photo de l'exercice du poste. Pexels est cité dans Crédits. */
+const PEXELS = { nom: "Pexels", lien: "https://www.pexels.com/license/", licence: tr("Licence Pexels") };
+export const PHOTOS_SALLE: Record<string, true> = Object.fromEntries(["pendule", "mollets", "hipthr", "devinc", "latm", "mollass", "legcurl"].map((id) => [id, true]));
+
 /** Photo d'un poste de « Ma salle » : celle de son exercice, sinon une photo libre ou Unsplash, sinon rien (icône). */
 export const imgPoste = (p: { id: string; img?: string }) => {
+  if (PHOTOS_SALLE[p.id]) return `/img/poste-${p.id}.avif`;
   if (PHOTOS_CATALOGUE[p.id]) return `/img/poste-${p.id}.avif`;
   if (p.img) return imgEx(p.img);
   if (PHOTOS_LIBRES[p.id]) return `/img/poste-${p.id}.avif`;
@@ -120,6 +123,7 @@ export const imgPoste = (p: { id: string; img?: string }) => {
 };
 /** La même photo en grand, sans recadrage, pour la voir en plein écran. */
 export const imgPosteGrand = (p: { id: string; img?: string }) => {
+  if (PHOTOS_SALLE[p.id]) return `/img/poste-${p.id}-grand.avif`;
   if (PHOTOS_CATALOGUE[p.id]) return `/img/poste-${p.id}-grand.avif`;
   if (p.img) return imgExGrand(p.img);
   if (PHOTOS_LIBRES[p.id]) return `/img/poste-${p.id}-grand.avif`;
@@ -128,6 +132,7 @@ export const imgPosteGrand = (p: { id: string; img?: string }) => {
 };
 /** Qui a fait la photo d'un poste, pour la mention sous la photo en grand. */
 export const creditPoste = (p: { id: string; img?: string }): { nom: string; lien: string; licence: string } | undefined => {
+  if (PHOTOS_SALLE[p.id]) return { ...PEXELS };
   /* l'accord du fabricant est mentionné une fois, dans Crédits, pas sous chaque photo */
   if (PHOTOS_CATALOGUE[p.id]) return { nom: MARQUES[PHOTOS_CATALOGUE[p.id]], lien: "https://www.corehandf.com", licence: "" };
   if (p.img) {
@@ -277,6 +282,7 @@ export const CREDITS: { quoi: string; nom: string; licence: string; lien: string
     const ph = PHOTOS_LIBRES[p.id];
     return { quoi: tr("Photo recadrée · {n}", { n: p.n }), nom: ph.auteur, licence: ph.licence, lien: ph.lien };
   }),
+  { quoi: tr("Photos des machines (Ma salle)"), ...PEXELS },
   { quoi: tr("Photos des machines (Ma salle)"), nom: tr("Core Health & Fitness · Throwdown et Impulse Fitness"), licence: tr("Avec l'accord du fabricant"), lien: "https://www.corehandf.com" },
   /* les sources ne sont plus sous les photos : chaque photographe des recettes est cité ici, avec un lien vers son profil */
   ...[...new Map(Object.values(PHOTOS_RECETTES).map((ph) => [ph.profil, ph])).values()].map((ph) => ({ quoi: tr("Photos des recettes"), nom: tr("{n} sur Unsplash", { n: ph.auteur }), licence: tr("Licence Unsplash"), lien: `https://unsplash.com/@${ph.profil}${UTM}` })),

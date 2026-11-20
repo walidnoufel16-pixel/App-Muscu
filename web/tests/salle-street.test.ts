@@ -5,7 +5,7 @@ import { EX } from "@/lib/data/exercices";
 import { POSTES, POSTE_DE, ZONES_SALLE } from "@/lib/data/salle";
 import { etapesDe, FAMILLES_STREET, niveauConseille, PROGRAMMES_STREET, testARefaire } from "@/lib/data/street";
 import EX_EN from "@/lib/i18n/exercices.en.json";
-import { CREDITS, creditPoste, imgEx, imgExGrand, imgPoste, imgPosteGrand, photosDistantes } from "@/lib/medias";
+import { CREDITS, PHOTOS_SALLE, creditPoste, imgEx, imgExGrand, imgPoste, imgPosteGrand, photosDistantes } from "@/lib/medias";
 import { avecSalle, barreDeclaree, exoFiltre, selDeclare } from "@/lib/logic/core";
 import { construireSeance } from "@/lib/logic/assistant";
 
@@ -40,14 +40,21 @@ describe("Ma salle", () => {
     }
   });
   it("photo libre : copiée dans public/img, auteur et licence dans Crédits", () => {
-    const libres = POSTES.filter((p) => imgPoste(p)?.startsWith("/img/poste-") && creditPoste(p)?.licence);
-    expect(libres.map((p) => p.id).sort()).toEqual(["devinc", "latm", "mollass"]);
+    /* les trois photos libres (mollets assis, développé incliné, élévations latérales) ont été remplacées le 20/11/2026 */
+    const libres = POSTES.filter((p) => imgPoste(p)?.startsWith("/img/poste-") && creditPoste(p)?.licence && !PHOTOS_SALLE[p.id]);
+    expect(libres.map((p) => p.id)).toEqual([]);
     for (const p of libres) {
       expect(fs.existsSync(path.join(PUB, imgPoste(p)!)), p.id).toBe(true);
       const c = CREDITS.find((x) => x.quoi.includes(p.n));
       expect(c?.licence, p.id).toMatch(/^CC BY(-SA)? \d\.\d$/);
       expect(c?.lien, p.id).toMatch(/^https:\/\//);
     }
+  });
+  it("photos Pexels choisies : fichiers locaux en petit et en grand, Pexels cité dans Crédits", () => {
+    const l = POSTES.filter((p) => PHOTOS_SALLE[p.id]);
+    expect(l.map((p) => p.id).sort()).toEqual(["devinc", "hipthr", "latm", "legcurl", "mollass", "mollets", "pendule"]);
+    for (const p of l) for (const f of [imgPoste(p)!, imgPosteGrand(p)!]) expect(fs.existsSync(path.join(PUB, f)), f).toBe(true);
+    expect(CREDITS.some((c) => c.nom === "Pexels")).toBe(true);
   });
   it("photos du fabricant : fichiers locaux, marque sous la photo, accord dans Crédits", () => {
     const catalogue = POSTES.filter((p) => imgPoste(p)?.startsWith("/img/poste-") && !creditPoste(p)?.licence);
