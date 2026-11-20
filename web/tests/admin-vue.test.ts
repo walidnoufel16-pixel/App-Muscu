@@ -27,18 +27,20 @@ describe("Admin › Vue d'ensemble", () => {
 
 describe("entonnoir des nouveaux visiteurs", () => {
   it("part des visiteurs, passage depuis l'étape d'avant, plus grosse perte", () => {
-    const { etapes, perte } = etapesEntonnoir({ ouverture: 100, profil: 60, serie: 30, seance: 24, deux: 10 });
-    expect(etapes.map((x) => x.part)).toEqual([100, 60, 30, 24, 10]);
-    expect(etapes.map((x) => x.passage)).toEqual([null, 60, 50, 80, 42]);
-    expect(perte).toBe(4);
+    const { etapes, perte } = etapesEntonnoir({ ouverture: 100, profil: 60, programme: 40, serie: 30, seance: 24, deux: 10 });
+    expect(etapes.map((x) => x.part)).toEqual([100, 60, 40, 30, 24, 10]);
+    expect(etapes.map((x) => x.passage)).toEqual([null, 60, 67, 75, 80, 42]);
+    expect(perte).toBe(5);
   });
   it("une étape sautée (séance sans profil) ne dépasse pas 100 % ; pas de perte signalée sous 3 personnes", () => {
-    const r = etapesEntonnoir({ ouverture: 2, profil: 0, serie: 1, seance: 1, deux: 0 });
-    expect(r.etapes[2].passage).toBe(null);
+    const r = etapesEntonnoir({ ouverture: 2, profil: 0, programme: 0, serie: 1, seance: 1, deux: 0 });
+    expect(r.etapes[3].passage).toBe(null);
     expect(r.perte).toBe(null);
-    expect(etapesEntonnoir({ ouverture: 10, profil: 2, serie: 5, seance: 5, deux: 1 }).etapes[2].passage).toBe(100);
+    expect(etapesEntonnoir({ ouverture: 10, profil: 2, programme: 2, serie: 5, seance: 5, deux: 1 }).etapes[3].passage).toBe(100);
+    /* ancienne version de la fonction (sans « programme ») : l'étape vaut 0, rien ne casse */
+    expect(etapesEntonnoir({ ouverture: 4, profil: 1, serie: 1, seance: 1, deux: 0 }).etapes[2].n).toBe(0);
   });
   it("aucun visiteur : tout à zéro", () => {
-    expect(etapesEntonnoir({ ouverture: 0, profil: 0, serie: 0, seance: 0, deux: 0 }).etapes.every((x) => x.part === 0)).toBe(true);
+    expect(etapesEntonnoir({ ouverture: 0, profil: 0, programme: 0, serie: 0, seance: 0, deux: 0 }).etapes.every((x) => x.part === 0)).toBe(true);
   });
 });

@@ -46,7 +46,7 @@ export type VueAdmin = {
 export const vueAdmin = (jours: number, avecMoi: boolean) => appel<VueAdmin>("admin_vue", { p_jours: jours, p_avec_moi: avecMoi }).then(nettoieArbre);
 /* Entonnoir des nouveaux visiteurs (migration 20261120190000_admin_entonnoir.sql) */
 export type EntonnoirAdmin = {
-  etapes: { ouverture: number; profil: number; serie: number; seance: number; deux: number };
+  etapes: { ouverture: number; profil: number; programme?: number; serie: number; seance: number; deux: number };
   sources: { source: string; n: number }[];
 };
 export const entonnoirAdmin = (jours: number, avecMoi: boolean, src: string | null) =>

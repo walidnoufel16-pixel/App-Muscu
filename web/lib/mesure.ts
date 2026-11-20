@@ -7,7 +7,7 @@
 import { sb } from "@/lib/supabase";
 import { sourceNotee } from "@/lib/source";
 
-export const NOMS = ["ouverture", "premiere_serie", "seance_terminee", "seance_arretee", "rubrique_ouverte", "plan_genere", "repas_note", "visite_finie"] as const;
+export const NOMS = ["ouverture", "premiere_serie", "seance_terminee", "seance_arretee", "rubrique_ouverte", "plan_genere", "repas_note", "visite_finie", "seance_programmee"] as const;
 export type NomEvenement = (typeof NOMS)[number];
 export type Evenement = { nom: NomEvenement; jour: string; props?: Record<string, string | number | boolean> };
 
