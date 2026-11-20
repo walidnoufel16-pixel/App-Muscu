@@ -117,7 +117,7 @@ function Cle({ v, n, d, onClick, alerte }: { v?: number; n: string; d: string; o
 
 /* L'entonnoir des nouveaux visiteurs (appareils apparus sur la période), filtrable par source.
    Une étape n'exige pas la précédente : on peut lancer une séance sans remplir le profil. */
-const NOMS_ETAPES = { ouverture: () => tr("ouvrent Oxa pour la première fois"), profil: () => tr("remplissent le profil d'entraînement"), serie: () => tr("font leur première série"), seance: () => tr("terminent une séance"), deux: () => tr("terminent une 2e séance") };
+const NOMS_ETAPES = { ouverture: () => tr("ouvrent Oxa pour la première fois"), profil: () => tr("remplissent le profil d'entraînement"), programme: () => tr("programment une séance pour plus tard"), serie: () => tr("font leur première série"), seance: () => tr("terminent une séance"), deux: () => tr("terminent une 2e séance") };
 function Entonnoir({ jours, avecMoi }: { jours: number; avecMoi: boolean }) {
   const [src, setSrc] = useState<string | null>(null);
   const [E, setE] = useState<EntonnoirAdmin | null>(null);
@@ -127,7 +127,7 @@ function Entonnoir({ jours, avecMoi }: { jours: number; avecMoi: boolean }) {
     entonnoirAdmin(jours, avecMoi, src).then((e) => vivant && (setE(e), setErr(""))).catch((e) => vivant && setErr((e as Error).message));
     return () => { vivant = false; };
   }, [jours, avecMoi, src]);
-  const { etapes, perte } = etapesEntonnoir(E?.etapes ?? { ouverture: 0, profil: 0, serie: 0, seance: 0, deux: 0 });
+  const { etapes, perte } = etapesEntonnoir(E?.etapes ?? { ouverture: 0, profil: 0, programme: 0, serie: 0, seance: 0, deux: 0 });
   const max = Math.max(1, etapes[0].n);
   const sources = E?.sources ?? [];
   return (

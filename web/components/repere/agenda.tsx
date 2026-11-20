@@ -30,6 +30,7 @@ import { Vignette } from "./exercice-carte";
 import { genererPlan, semaineDe, vdotActuel } from "@/lib/logic/course";
 import { musclesRecommandes } from "@/lib/logic/recommandation";
 import { activerRappels, etatRappels } from "@/lib/rappels";
+import { noter } from "@/lib/mesure";
 import { useRepere } from "@/lib/store";
 import { useBrouillon } from "@/lib/brouillon";
 import { AVANT, useMenu } from "@/lib/nav";
@@ -48,10 +49,22 @@ export const maj = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const indexLibre = (E: Etat, i: number, nom: string) => (E.SEANCES[i]?.nom === nom ? i : E.SEANCES.findIndex((s) => s.nom === nom));
 const indexCardio = (E: Etat, i: number, nom: string) => (E.SEANCES_CARDIO?.[i]?.nom === nom ? i : (E.SEANCES_CARDIO || []).findIndex((s) => s.nom === nom));
 
-function texteRappel(r?: Rappel | null) {
+export function texteRappel(r?: Rappel | null) {
   if (!r) return tr("sans rappel");
   return r.veille ? tr("rappel la veille à {h} h", { h: r.h }) : tr("rappel le jour même à {h} h", { h: r.h });
 }
+
+/** Un rappel demandé : les notifications doivent être actives sur cet appareil (sinon, on dit comment). */
+export async function assurerNotifications() {
+  if ((await etatRappels()) === "actif") return;
+  try {
+    const e = await activerRappels();
+    if (e !== "actif") toast(tr("Rappel enregistré"), { description: tr("Active les notifications (Profil › Rappels) pour le recevoir sur ce téléphone."), duration: 7000 });
+  } catch {
+    toast(tr("Rappel enregistré"), { description: tr("Connecte-toi à ton compte (Profil) puis active les notifications pour le recevoir."), duration: 7000 });
+  }
+}
+const diffJours = (a: string, b: string) => Math.round((Date.parse(b + "T12:00") - Date.parse(a + "T12:00")) / 864e5);
 
 /** Lancer une séance prévue. */
 export function useLancer() {
@@ -135,6 +148,8 @@ function FeuilleNouvelle({ d: d0, auj, setF }: { d: string; auj: string; setF: (
     const rappel = futur ? (etat.A.rappelAgenda === undefined ? { veille: true, h: 20 } : etat.A.rappelAgenda) : null;
     muter((E) => { E.AGENDA ??= []; programmer(E.AGENDA, { d, nom: c.nom, quoi: c.quoi, ...(rappel ? { rappel } : {}) }); });
     toast.success(futur ? tr("Programmée : {nom}", { nom: c.nom }) : tr("Ajoutée à aujourd'hui : {nom}", { nom: c.nom }), { description: maj(jourLong(d)) + (rappel ? " · " + texteRappel(rappel) : "") });
+    if (futur) noter("seance_programmee", { j: diffJours(auj, d) });
+    if (rappel) void assurerNotifications();
     setF(null);
   };
   /* une ligne (séance ou proposition) : la toucher montre « Ajouter ce jour » et « Programmer un autre jour » */
@@ -256,6 +271,8 @@ function Apercu({ c, d, auj, retour, ajouter, setF }: { c: Choix; d: string; auj
     const rappel = futur ? (A.rappelAgenda === undefined ? { veille: true, h: 20 } : A.rappelAgenda) : null;
     muter((E) => { E.SEANCES.push({ ...structuredClone(S), auto: true }); E.AGENDA ??= []; programmer(E.AGENDA, { d, nom: S.nom, quoi: { t: "libre", i: E.SEANCES.length - 1 }, ...(rappel ? { rappel } : {}) }); });
     toast.success(futur ? tr("Programmée : {nom}", { nom: S.nom }) : tr("Ajoutée à aujourd'hui : {nom}", { nom: S.nom }), { description: maj(jourLong(d)) + (rappel ? " · " + texteRappel(rappel) : "") });
+    if (futur) noter("seance_programmee", { j: diffJours(auj, d) });
+    if (rappel) void assurerNotifications();
     setF(null);
   };
   const modifier = () => {
@@ -495,7 +512,7 @@ export function ChoixJour({ valeur, auj, onChange }: { valeur: string; auj: stri
 }
 
 /* ---------------- choisir le rappel ---------------- */
-function ChoixRappel({ valeur, jour, onChange }: { valeur: Rappel | null; jour: string; onChange: (r: Rappel | null) => void }) {
+export function ChoixRappel({ valeur, jour, onChange }: { valeur: Rappel | null; jour: string; onChange: (r: Rappel | null) => void }) {
   const mode = !valeur ? "non" : valeur.veille ? "veille" : "jour";
   const heures = mode === "veille" ? HEURES_VEILLE : HEURES_JOUR;
   return (
@@ -570,15 +587,8 @@ function FeuilleProgrammer({ init, auj, fermer }: { init: { d: string; quoi?: Qu
       const S = etat.SEANCES[choix.quoi.i];
       if (S) { setLibre({ ...structuredClone(S), ex: S.ex.map((e, o) => ({ ...e, o })), idx: choix.quoi.i, agenda: { d, id: cree } }); router.push("/entrainement/composer", AVANT); }
     }
-    /* un rappel demandé : les notifications doivent être actives sur cet appareil */
-    if (rappel && (await etatRappels()) !== "actif") {
-      try {
-        const e = await activerRappels();
-        if (e !== "actif") toast(tr("Rappel enregistré"), { description: tr("Active les notifications (Profil › Rappels) pour le recevoir sur ce téléphone."), duration: 7000 });
-      } catch {
-        toast(tr("Rappel enregistré"), { description: tr("Connecte-toi à ton compte (Profil) puis active les notifications pour le recevoir."), duration: 7000 });
-      }
-    }
+    if (d > auj) noter("seance_programmee", { j: diffJours(auj, d) });
+    if (rappel) await assurerNotifications();
   };
 
   if (!choix)

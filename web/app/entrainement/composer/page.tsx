@@ -37,8 +37,10 @@ import { ARRIERE, AVANT, remplacement, revenirA } from "@/lib/nav";
 import { preparer } from "@/lib/sons";
 import { Retour, useRetour } from "@/components/repere/retour";
 import { useBrouillon } from "@/lib/brouillon";
-import { programmerNouvelle, remplacerLe } from "@/lib/logic/agenda";
-import { ChoixJour, jourCourt, jourLong, maj } from "@/components/repere/agenda";
+import { programmerNouvelle, remplacerLe, type Rappel } from "@/lib/logic/agenda";
+import { assurerNotifications, ChoixJour, ChoixRappel, jourCourt, jourLong, maj, texteRappel } from "@/components/repere/agenda";
+import { noter } from "@/lib/mesure";
+import { decaler } from "@/lib/logic/historique";
 import { toast } from "sonner";
 import { AvisSeance } from "@/components/repere/avis-seance";
 import { estPoly } from "@/lib/logic/avis-seance";
@@ -70,6 +72,8 @@ export default function PageComposer() {
   const [caseOuverte, setCaseOuverte] = useState<number | null>(null); // séance guidée : la case en cours de choix
   const [choixM, setChoixM] = useState(false); // séance guidée : muscles en cours de modification
   const [panneau, setPanneau] = useState<null | "jour" | "obj" | "mat" | "nom">(null); // la pastille dépliée
+  /* « Plus tard » : le jour et le rappel choisis pour une séance créée pour aujourd'hui */
+  const [plusTard, setPlusTard] = useState<{ d: string; rappel: Rappel | null } | null>(null);
 
   const retour = useRetour("/entrainement");
   const versEntrainement = () => revenirA("/entrainement/rubrique", () => router.replace(lienRubrique("libre"), ARRIERE));
@@ -188,7 +192,9 @@ export default function PageComposer() {
   const majBloc = (id: string, c: Partial<BlocCardio>) => majLibre((l) => { const b = l.blocs?.find((x) => x.id === id); if (b) Object.assign(b, c); });
   const retirerBloc = (id: string) => { majLibre((l) => { l.blocs = (l.blocs || []).filter((x) => x.id !== id); }); setBlocOuvert(null); };
 
-  const enregistrer = async (commencer = false, garder = !!L.garder) => {
+  /* cible : « Plus tard », un autre jour (et son rappel) que celui du brouillon */
+  const enregistrer = async (commencer = false, garder = !!L.garder, cible?: { d: string; rappel: Rappel | null }) => {
+    const pour = cible?.d ?? L.pour;
     let nom = L.nom.trim() || tr("Séance libre");
     /* une séance construite par Oxa ne va dans « Mes séances » que si on le décide : « Enregistrer »
        (la garder), ou la case « Garder dans Mes séances » ; sinon elle reste jouable depuis l'agenda */
@@ -198,7 +204,7 @@ export default function PageComposer() {
     const ag = L.agenda;
     /* une séance existante, modifiée avant d'être ajoutée à un jour (aperçu de l'agenda) : même question */
     /* (une séance d'Oxa pas gardée : on la modifie elle-même, une variante n'aurait pas de sens) */
-    const variante = (!!ag || !!L.pour) && L.idx != null && !L.auto && (await confirmer({
+    const variante = (!!ag || !!pour) && L.idx != null && !L.auto && (await confirmer({
       titre: tr("Pour ce jour, ou pour de bon ?"),
       texte: tr("Une variante garde « {nom} » telle qu'elle est et programme la version modifiée ce jour-là.", { nom: etat.SEANCES[L.idx]?.nom ?? nom }),
       ok: tr("Une variante pour ce jour"), non: tr("Modifier ma séance"),
@@ -209,14 +215,18 @@ export default function PageComposer() {
       muter((E) => {
         E.SEANCES.push(s);
         if (ag?.id) remplacerLe(E.AGENDA ?? [], ag.id, ag.d, { t: "libre", i: E.SEANCES.length - 1 }, nom);
-        else if (L.pour) programmerNouvelle(E, L.pour, E.SEANCES.length - 1);
+        else if (pour) programmerNouvelle(E, pour, E.SEANCES.length - 1);
       });
     } else
       /* modification : les séries déjà notées suivent leur exercice */
       muter((E) => {
         if (L.idx != null) { act.reattacherJournaux(E, L.idx, L.ex.map((e) => e.o)); E.SEANCES[L.idx] = s; } else E.SEANCES.push(s);
         /* créée (ou revue dans l'aperçu) pour un jour : programmée ce jour-là */
-        if (L.pour) programmerNouvelle(E, L.pour, L.idx ?? E.SEANCES.length - 1);
+        if (pour) {
+          const p = programmerNouvelle(E, pour, L.idx ?? E.SEANCES.length - 1);
+          /* le rappel choisi dans « Plus tard » (un jour à venir seulement) devient le rappel habituel */
+          if (cible) { if (cible.rappel && pour > aujHui) p.rappel = cible.rappel; else delete p.rappel; if (pour > aujHui) E.A.rappelAgenda = cible.rappel; }
+        }
         /* renommée : la séance programmée porte le nouveau nom */
         const p = ag?.id ? E.AGENDA?.find((x) => x.id === ag.id) : undefined;
         if (p && p.quoi.t === "libre") p.nom = nom;
@@ -230,8 +240,13 @@ export default function PageComposer() {
       return;
     }
     /* pour un jour : retour à Entraînement, où elle apparaît dans la semaine */
-    if (L.pour) {
-      toast.success(tr("Programmée : {nom}", { nom }), { description: maj(jourLong(L.pour)) });
+    if (pour) {
+      const prevu = useRepere.getState().etat.AGENDA?.findLast((p) => p.d === pour && p.quoi.t === "libre");
+      toast.success(pour > aujHui ? tr("Programmée : {nom}", { nom }) : tr("Ajoutée à aujourd'hui : {nom}", { nom }), { description: maj(jourLong(pour)) + (pour > aujHui ? " · " + texteRappel(prevu?.rappel) : "") });
+      if (pour > aujHui) {
+        noter("seance_programmee", { j: Math.round((Date.parse(pour + "T12:00") - Date.parse(aujHui + "T12:00")) / 864e5) });
+        if (prevu?.rappel) void assurerNotifications();
+      }
       /* retour à Entraînement en dépilant l'assistant : un retour arrière ne ramène pas à une séance déjà créée */
       revenirA("/entrainement", () => router.replace("/entrainement" as Route, ARRIERE));
       return;
@@ -413,7 +428,9 @@ export default function PageComposer() {
         {L.pour && L.pour <= aujHui && L.idx == null ? (
           /* pour aujourd'hui : l'ajouter à la journée, ou la commencer tout de suite (elle est ajoutée aussi) */
           <div className="flex gap-2">
-            <Button variant="outline" size="xl" className="flex-1 bg-background" disabled={!L.ex.length} onClick={() => enregistrer()}>{tr("Ajouter à aujourd'hui")}</Button>
+            {/* pas à la salle maintenant : la programmer pour plus tard (aujourd'hui ou un autre jour), avec un rappel */}
+            <Button variant="outline" size="xl" className="flex-1 bg-background" disabled={!L.ex.length}
+              onClick={() => { tactile(6); setPlusTard({ d: decaler(aujHui, 1), rappel: etat.A.rappelAgenda === undefined ? { veille: true, h: 20 } : etat.A.rappelAgenda }); }}>{tr("Plus tard")}</Button>
             <Button variant="plate" size="xl" className="flex-[1.4]" disabled={!L.ex.length} onClick={() => enregistrer(true)}>{tr("Commencer")}</Button>
           </div>
         ) : L.pour ? (
@@ -429,6 +446,21 @@ export default function PageComposer() {
       </div>
 
       <FicheExercice fiche={fiche} onClose={() => setFiche(null)} />
+      <Drawer open={!!plusTard} onOpenChange={(o) => !o && setPlusTard(null)}>
+        <DrawerContent className="max-h-[92dvh]">
+          {plusTard && (
+            <div className="overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),20px)]">
+              <DrawerTitle className="mt-2 px-1 text-[22px] font-bold">{tr("Quand vas-tu la faire ?")}</DrawerTitle>
+              <DrawerDescription className="mt-1 mb-3 px-1 text-[13.5px] text-muted-foreground">{tr("Elle t'attendra ce jour-là dans Entraînement, et Oxa te le rappellera.")}</DrawerDescription>
+              <ChoixJour valeur={plusTard.d} auj={aujHui} onChange={(d) => { tactile(6); setPlusTard({ ...plusTard, d }); }} />
+              {plusTard.d > aujHui && <ChoixRappel valeur={plusTard.rappel} jour={plusTard.d} onChange={(rappel) => { tactile(4); setPlusTard({ ...plusTard, rappel }); }} />}
+              <Button variant="plate" size="xl" className="mt-5 w-full" onClick={() => { const c = plusTard; setPlusTard(null); void enregistrer(false, !!L.garder, c); }}>
+                {plusTard.d > aujHui ? tr("Programmer pour {j}", { j: jourCourt(plusTard.d) }) : tr("Ajouter à aujourd'hui")}
+              </Button>
+            </div>
+          )}
+        </DrawerContent>
+      </Drawer>
       <Drawer open={!!blocActif} onOpenChange={(o) => !o && setBlocOuvert(null)}>
         <DrawerContent className="max-h-[92dvh]">
           {blocActif && (
