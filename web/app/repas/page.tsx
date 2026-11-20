@@ -13,18 +13,18 @@ import { tr } from "@/lib/i18n";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Route } from "next";
-import { ArrowsClockwiseIcon, BarbellIcon, CheckIcon, CaretDownIcon, CaretRightIcon, CouchIcon, GearSixIcon, MinusIcon, PencilSimpleIcon, PlusIcon, ShareNetworkIcon, ShoppingCartIcon, SlidersHorizontalIcon, XIcon } from "@phosphor-icons/react";
+import { ArrowsClockwiseIcon, BarbellIcon, CheckIcon, CaretDownIcon, CaretRightIcon, CouchIcon, GearSixIcon, MagnifyingGlassIcon, MinusIcon, PencilSimpleIcon, PlusIcon, ShareNetworkIcon, ShoppingCartIcon, SlidersHorizontalIcon, XIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { EnTete } from "@/components/repere/en-tete";
 import { Segmente } from "@/components/repere/segmente";
 import { AccueilRepas, BoutonAutre, ConseilsNutrition, ChampBudget, ChoixAliments, CarteBesoins, CarteBilanProteines, CarteRecette, Coche, FicheRecette, FormPrefs, Prudence } from "@/components/repere/repas";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
-import type { Recette } from "@/lib/data/recettes";
+import { RECETTES, type Recette } from "@/lib/data/recettes";
 import { jourDe } from "@/lib/logic/historique";
 import { emojiDe } from "@/lib/data/aliments";
 import {
-  autreRecette, bilanProteines, EMOJIS_RAYON, avecCeQueJai, besoins, CRENEAUX, listeCourses, repasRecuperation, nomAliment, nomRecette, NOM_CRENEAU, planSemaine, prefsDe, quantite, R, recettesPour, semaineParDefaut, suggestions, texteCourses,
+  autreRecette, bilanProteines, compatible, MATERIELS, EMOJIS_RAYON, avecCeQueJai, besoins, CRENEAUX, listeCourses, repasRecuperation, nomAliment, nomRecette, NOM_CRENEAU, planSemaine, prefsDe, quantite, R, recettesPour, semaineParDefaut, suggestions, texteCourses,
 } from "@/lib/logic/repas";
 import { ajuster, appliquer, coutsParJour, echanges, emballage, estimer, estimerSemaine, euros, petitBudget, prixKg, type Estimation } from "@/lib/logic/budget";
 import { PRIX } from "@/lib/data/prix";
@@ -87,7 +87,7 @@ function Repas() {
             options={[{ v: "jour", n: tr("Aujourd'hui"), t: "#f7b14a" }, { v: "semaine", n: tr("Ma semaine"), t: "#f08a24" }, { v: "recettes", n: tr("Recettes"), t: "#e2611c" }]} />
           {vue === "jour" && <Jour p={p} seance={seance} setSeance={setSeance} b={b} kcal={kcal} auj={auj} ouvrir={(r, c) => setFiche({ r, c })} />}
           {vue === "semaine" && <Semaine p={p} b={b} kcal={kcal} ouvrir={(r, c) => setFiche({ r, c })} />}
-          {vue === "recettes" && <Recettes p={p} b={b} kcal={kcal} majPrefs={majPrefs} ouvrir={(r) => setFiche({ r })} />}
+          {vue === "recettes" && <Recettes p={p} b={b} kcal={kcal} majPrefs={majPrefs} ouvrir={(r) => setFiche({ r })} reglages={() => setBrouillon(p)} />}
           <Prudence />
         </div>
       )}
@@ -204,14 +204,31 @@ function Mange({ c, auj }: { r: Recette; c: CreneauRepas; b: Besoins; auj: strin
 
 /* ---------------- recettes ---------------- */
 type Filtre = "tout" | "frigo" | "matin" | "repas" | "collation" | "rapide" | "batch" | "budget" | "post";
-function Recettes({ p, b, kcal, majPrefs, ouvrir }: { p: PrefsRepas; b: Besoins; kcal: boolean; majPrefs: (p: PrefsRepas) => void; ouvrir: (r: Recette) => void }) {
+/* recherche sans accents ni majuscules : « gratin » trouve « Gratin de pâtes », « pates » aussi */
+const plat = (x: string) => x.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const trouve = (r: Recette, q: string) => !q || plat(`${nomRecette(r)} ${r.n} ${r.ing.map(([id]) => nomAliment(id)).join(" ")}`).includes(q);
+/** Ce qui écarte une recette des réglages : le temps ou le matériel seulement (régime, culte, allergies et
+    aliments exclus ne se contournent jamais). Rien : la recette n'est pas montrable. */
+function horsReglages(r: Recette, p: PrefsRepas): string | null {
+  if (compatible(r, p) || !compatible(r, { ...p, temps: 2, mat: MATERIELS.map(([k]) => k) })) return null;
+  const manque = r.mat.filter((m) => !p.mat.includes(m)).map((m) => MATERIELS.find(([k]) => k === m)?.[1] ?? m);
+  return [r.min > [15, 30, Infinity][p.temps ?? 2] ? tr("{n} min", { n: r.min }) : "", ...manque].filter(Boolean).join(" · ");
+}
+function Recettes({ p, b, kcal, majPrefs, ouvrir, reglages }: { p: PrefsRepas; b: Besoins; kcal: boolean; majPrefs: (p: PrefsRepas) => void; ouvrir: (r: Recette) => void; reglages: () => void }) {
   const [f, setF] = useState<Filtre>("tout");
+  const [q0, setQ] = useState("");
+  const [voirAutres, setVoirAutres] = useState(false);
+  const q = plat(q0.trim());
   const [frigo, setFrigo] = useState(false);
   const stock = useMemo(() => p.stock ?? [], [p.stock]);
   const corr = useMemo(() => avecCeQueJai(p, stock), [p, stock]);
   const FILTRES: [Filtre, string][] = [["tout", tr("Tout")], ["matin", tr("Petit-déjeuner")], ["repas", tr("Plats")], ["collation", tr("Collations et desserts")], ["rapide", tr("Rapide")], ["post", tr("Après la séance")], ["budget", tr("Petit budget")], ["batch", tr("Batch cooking")]];
   /* « Petit budget » : le tiers le moins cher de chaque moment, d'après les prix ; les desserts vont avec les collations */
-  const liste = recettesPour(p).filter((r) => f === "tout" || f === "frigo" || r.m === f || (f === "collation" && r.t.includes("dessert" as never)) || (f === "budget" ? petitBudget(r, p.prix) : r.t.includes(f as never)));
+  const filtre = (r: Recette) => (f === "tout" || f === "frigo" || r.m === f || (f === "collation" && r.t.includes("dessert" as never)) || (f === "budget" ? petitBudget(r, p.prix) : r.t.includes(f as never))) && trouve(r, q);
+  const liste = recettesPour(p).filter(filtre);
+  /* les recettes qui demandent plus de temps ou un autre matériel : comptées, et montrées sur demande (ou dès qu'on cherche) */
+  const autres = RECETTES.flatMap((r) => { const why = horsReglages(r, p); return why && filtre(r) ? [{ r, why }] : []; });
+  const montrerAutres = voirAutres || !!q;
   const choisir = (k: Filtre) => { tactile(4); setF(k); if (k === "frigo" && !stock.length) setFrigo(true); };
   return (
     <>
@@ -243,8 +260,33 @@ function Recettes({ p, b, kcal, majPrefs, ouvrir }: { p: PrefsRepas; b: Besoins;
         </>
       ) : (
         <>
-          <p className="px-1 text-[12.5px] text-muted-foreground">{tr(liste.length > 1 ? "{n} recettes pour toi" : "{n} recette pour toi", { n: liste.length })}</p>
+          <label className="flex h-11 items-center gap-2 rounded-full bg-card px-4">
+            <MagnifyingGlassIcon className="size-4 shrink-0 text-muted-foreground" weight="bold" />
+            <input type="text" enterKeyHint="search" value={q0} onChange={(e) => setQ(e.target.value)} placeholder={tr("Chercher un plat ou un ingrédient")} aria-label={tr("Chercher une recette")}
+              className="h-full min-w-0 flex-1 bg-transparent text-[16px] outline-none placeholder:text-muted-foreground" />
+            {q0 && <button onClick={() => setQ("")} aria-label={tr("Effacer")} className="grid size-7 place-items-center rounded-full text-muted-foreground"><XIcon className="size-4" weight="bold" /></button>}
+          </label>
+          <p className="px-1 text-[12.5px] text-muted-foreground">
+            {tr(liste.length > 1 ? "{n} recettes pour toi" : "{n} recette pour toi", { n: liste.length })}
+            {" · "}<button onClick={() => { tactile(5); reglages(); }} className="font-semibold text-plate-ink underline-offset-2 active:underline">{tr("Mes préférences")}</button>
+          </p>
           <div className="flex flex-col gap-2">{liste.map((r) => <CarteRecette key={r.id} r={r} b={b} kcal={kcal} onOuvrir={() => ouvrir(r)} />)}</div>
+          {autres.length > 0 && (montrerAutres ? (
+            <>
+              <h3 className="mt-2 px-1 text-[15px] font-bold">{tr("Hors de tes réglages de temps ou de matériel")}</h3>
+              <div className="flex flex-col gap-2">
+                {autres.map(({ r, why }) => (
+                  <CarteRecette key={r.id} r={r} b={b} kcal={kcal} onOuvrir={() => ouvrir(r)}
+                    sous={<span className="mt-1 block truncate text-[12.5px] font-medium text-muted-foreground">{tr("Demande : {l}", { l: why })}</span>} />
+                ))}
+              </div>
+            </>
+          ) : (
+            <Button variant="soft" className="h-11 w-full rounded-full" onClick={() => { tactile(5); setVoirAutres(true); }}>
+              {tr(autres.length > 1 ? "Voir {n} autres recettes (plus longues ou autre matériel)" : "Voir 1 autre recette (plus longue ou autre matériel)", { n: autres.length })}
+            </Button>
+          ))}
+          {!liste.length && !(montrerAutres && autres.length) && <p className="px-1 py-6 text-center text-[14px] text-muted-foreground">{tr("Aucune recette ne correspond.")}</p>}
         </>
       )}
       <Feuille ouvert={frigo} onClose={() => setFrigo(false)} titre={tr("Mon frigo")}
