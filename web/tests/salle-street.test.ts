@@ -30,7 +30,7 @@ describe("Ma salle", () => {
     }
   });
   it("photo Unsplash : affichée depuis leurs serveurs, photographe cité dans Crédits", () => {
-    const unsplash = POSTES.filter((p) => imgPoste(p)?.startsWith("https://images.unsplash.com/"));
+    const unsplash = POSTES.filter((p) => !p.img && imgPoste(p)?.startsWith("https://images.unsplash.com/"));
     expect(unsplash.length).toBe(6);
     for (const p of unsplash) {
       expect(imgPoste(p), p.id).toMatch(/^https:\/\/images\.unsplash\.com\//);
@@ -72,7 +72,7 @@ describe("Ma salle", () => {
   });
   it("hors connexion : la liste des photos à garder ne contient que des photos Unsplash, sans doublon", () => {
     const l = photosDistantes();
-    expect(l.length).toBe(63 * 2 + 6 * 2);
+    expect(l.length).toBe(63 * 2 + 6 * 2 + 5 * 2);
     expect(new Set(l).size).toBe(l.length);
     for (const u of l) expect(u).toMatch(/^https:\/\/images\.unsplash\.com\/photo-/);
   });

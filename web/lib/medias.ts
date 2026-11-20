@@ -15,18 +15,17 @@ export const SOURCES = {
     lien: "https://github.com/yuhonas/free-exercise-db",
     mention: tr("Illustrations · free-exercise-db · domaine public · retouche Oxa"),
   },
-  /* photos de la base d'exercices wger, une par auteur (licence CC BY-SA : auteur cité) */
-  wgerWakanda: {
-    nom: "wakanda90 · wger",
-    licence: "CC BY-SA 4.0",
-    lien: "https://wger.de/en/exercise/456/view",
-    mention: tr("Photo · wakanda90 sur wger · CC BY-SA 4.0 · retouche Oxa"),
-  },
   pixabay: {
     nom: "Pixabay",
     licence: tr("Licence du contenu Pixabay"),
     lien: "https://pixabay.com/service/license-summary/",
     mention: tr("Photo · Pixabay · retouche Oxa"),
+  },
+  unsplash: {
+    nom: "Unsplash",
+    licence: tr("Licence Unsplash"),
+    lien: "https://unsplash.com/license",
+    mention: tr("Photo · Unsplash"),
   },
 } satisfies Record<string, Source>;
 
@@ -35,23 +34,53 @@ export type CleSource = keyof typeof SOURCES;
 /* Source des démonstrations de chaque exercice (free-exercise-db, sauf celles-ci). */
 /* Photos uniques (Pixabay, 20/11/2026) pour les exercices sans image ou qui empruntaient celle d'un
    autre : une seule photo au lieu du duo départ / fin. Originaux dans medias/pixabay. */
-export const PHOTOS_EX: Record<string, { auteur: string; lien: string }> = {
+export const PHOTOS_EX: Record<string, { auteur: string; lien: string; us?: string }> = {
   susp: { auteur: "JackieJoy", lien: "https://pixabay.com/photos/outdoors-people-sports-3334154/" },
   curlel: { auteur: "Pexels", lien: "https://pixabay.com/photos/man-indian-fit-fitness-gym-1868632/" },
   trxrows: { auteur: "tanjashaw", lien: "https://pixabay.com/photos/trx-row-workout-fitness-strength-1730331/" },
   trxfly: { auteur: "jborner", lien: "https://pixabay.com/photos/eaglefit-training-woman-fitness-3959017/" },
   trxt: { auteur: "eaglefit1", lien: "https://pixabay.com/photos/isolated-young-background-atelier-3085940/" },
+  /* photos choisies le 20/11/2026 pour remplacer les illustrations des exercices les plus courants
+     (originaux dans medias/etape2, medias/etape3 et medias/machines) */
+  plat: { auteur: "HannahWells", lien: "https://pixabay.com/photos/plank-fitness-muscular-exercising-1327256/" },
+  rw: { auteur: "karabulakastan", lien: "https://pixabay.com/photos/kettlebell-fitness-crossfit-fit-3293452/" },
+  sq: { auteur: "FabianoAdvertising", lien: "https://pixabay.com/photos/gym-lift-training-bodybuilding-3516208/" },
+  gai: { auteur: "Anilsharma26", lien: "https://pixabay.com/photos/women-fitness-plank-pose-portrait-9421835/" },
+  rh: { auteur: "eduardoonef", lien: "https://pixabay.com/photos/bodybuilder-exercise-gym-7200531/" },
+  curlb: { auteur: "TotalShape", lien: "https://pixabay.com/photos/fitness-and-health-fitness-abs-5711489/" },
+  kbdm: { auteur: "tacofleur", lien: "https://pixabay.com/photos/kettlebells-crossfit-taco-fleur-3670543/" },
+  pistol: { auteur: "alex73qr95", lien: "https://pixabay.com/photos/outdoors-exercise-workout-fitness-4245628/" },
+  /* machines de Ma salle (leg extension, traîneau) : la photo de leur exercice */
+  lext: { auteur: "eduardoonef", lien: "https://pixabay.com/photos/woman-gym-leg-day-exercise-fitness-7200528/" },
+  trpush: { auteur: "tsquaredlab", lien: "https://pixabay.com/photos/trainer-gym-sled-training-fitness-7808159/" },
+  /* Unsplash : affichées depuis leurs serveurs (règles d'Unsplash, comme les machines et les recettes) */
+  fe: { auteur: "Walter O", lien: "https://unsplash.com/photos/EWV_N-B5GwY", us: "photo-1617085606353-75ba20310b8c" },
+  pr: { auteur: "Jonathan Borba", lien: "https://unsplash.com/photos/JD6RMKGwSCQ", us: "photo-1571019613723-c7e5b75bd4c6" },
+  pont: { auteur: "Margaret Young", lien: "https://unsplash.com/photos/Je4hwBwCWlQ", us: "photo-1767611086180-6b1176976371" },
+  sdt: { auteur: "Rodrigo Rodrigues | WOLF Λ R T", lien: "https://unsplash.com/photos/Q2sunZ-GwqU", us: "photo-1772450014713-19bc36041593" },
+  sqpc: { auteur: "SUNDAY II SUNDAY", lien: "https://unsplash.com/photos/snM3yEpvklU", us: "photo-1649887974297-4be052375a67" },
 };
 /** L'exercice a-t-il une illustration (duo de démonstration ou photo unique) ? */
 export const aUneImage = (id: string) => !!PHOTOS_EX[id] || !!EX[id]?.img;
-const SOURCE_EX: Partial<Record<string, CleSource>> = { pistol: "wgerWakanda", ...Object.fromEntries(Object.keys(PHOTOS_EX).map((id) => [id, "pixabay" as const])) };
+const SOURCE_EX: Partial<Record<string, CleSource>> = {
+  ...Object.fromEntries(Object.entries(PHOTOS_EX).map(([id, ph]) => [id, ph.us ? ("unsplash" as const) : ("pixabay" as const)])),
+};
 export const sourceEx = (id: string): Source => SOURCES[SOURCE_EX[id] ?? "fedb"];
+/** Photographe d'une photo unique d'exercice (Pixabay ou Unsplash). */
+export const auteurEx = (id: string) => {
+  const ph = PHOTOS_EX[id];
+  return ph && { nom: tr(ph.us ? "{n} sur Unsplash" : "{n} sur Pixabay", { n: ph.auteur }), lien: ph.us ? ph.lien + UTM : ph.lien };
+};
+const usEx = (id: string, grand: boolean) =>
+  `https://images.unsplash.com/${PHOTOS_EX[id].us}?${grand ? "w=1080&h=720" : "w=420&h=280"}&fit=crop&crop=faces,entropy&auto=format&q=70`;
 
 /** Photo de démonstration : 0 = départ, 1 = fin. */
-export const imgEx = (id: string, n: 0 | 1 = 0) => (PHOTOS_EX[id] ? `/img/ex-${id}.avif` : `/img/${EX[id]?.img}_${n}.avif`);
+export const imgEx = (id: string, n: 0 | 1 = 0) =>
+  PHOTOS_EX[id]?.us ? usEx(id, false) : PHOTOS_EX[id] ? `/img/ex-${id}.avif` : `/img/${EX[id]?.img}_${n}.avif`;
 /** La même en grand (850 px au lieu de 420), pour l'afficher à pleine largeur (scripts/photos-grand.mjs).
     Gardée sur le téléphone quand on la regarde ; hors connexion sans elle, on reprend la petite. */
-export const imgExGrand = (id: string, n: 0 | 1 = 0) => (PHOTOS_EX[id] ? `/img/grand/ex-${id}.avif` : `/img/grand/${EX[id]?.img}_${n}.avif`);
+export const imgExGrand = (id: string, n: 0 | 1 = 0) =>
+  PHOTOS_EX[id]?.us ? usEx(id, true) : PHOTOS_EX[id] ? `/img/grand/ex-${id}.avif` : `/img/grand/${EX[id]?.img}_${n}.avif`;
 
 /* Photos Unsplash des machines sans exercice illustré (Ma salle). Règles d'Unsplash :
    l'image s'affiche depuis leurs serveurs (jamais copiée dans public/) et son
@@ -101,7 +130,10 @@ export const imgPosteGrand = (p: { id: string; img?: string }) => {
 export const creditPoste = (p: { id: string; img?: string }): { nom: string; lien: string; licence: string } | undefined => {
   /* l'accord du fabricant est mentionné une fois, dans Crédits, pas sous chaque photo */
   if (PHOTOS_CATALOGUE[p.id]) return { nom: MARQUES[PHOTOS_CATALOGUE[p.id]], lien: "https://www.corehandf.com", licence: "" };
-  if (p.img) { const s = sourceEx(p.img); return { nom: s.nom, lien: s.lien, licence: s.licence }; }
+  if (p.img) {
+    const a = auteurEx(p.img), s = sourceEx(p.img);
+    return a ? { nom: a.nom, lien: a.lien, licence: s.licence } : { nom: s.nom, lien: s.lien, licence: s.licence };
+  }
   if (PHOTOS_LIBRES[p.id]) { const ph = PHOTOS_LIBRES[p.id]; return { nom: ph.auteur, lien: ph.lien, licence: ph.licence }; }
   const ph = PHOTOS_POSTES[p.id];
   return ph && { nom: tr("{n} sur Unsplash", { n: ph.auteur }), lien: `https://unsplash.com/@${ph.profil}${UTM}`, licence: tr("Licence Unsplash") };
@@ -185,11 +217,12 @@ export const auteurRecette = (id: string) => {
   return ph && { nom: ph.auteur, lien: `https://unsplash.com/@${ph.profil}${UTM}` };
 };
 
-/** Toutes les photos servies par Unsplash (recettes, machines, petites et grandes) : l'app les
+/** Toutes les photos servies par Unsplash (recettes, machines, exercices, petites et grandes) : l'app les
     garde sur le téléphone pour les montrer hors connexion (lib/photos-hors-ligne.ts). */
 export const photosDistantes = () => [
   ...Object.keys(PHOTOS_RECETTES).flatMap((id) => [imgRecette(id, "carre")!, imgRecette(id, "large")!]),
   ...POSTES.filter((p) => !p.img && PHOTOS_POSTES[p.id]).flatMap((p) => [imgPoste(p)!, imgPosteGrand(p)!]),
+  ...Object.keys(PHOTOS_EX).filter((id) => PHOTOS_EX[id].us).flatMap((id) => [imgEx(id), imgExGrand(id)]),
 ];
 
 /* Photos des aperçus de séance (accueil, rubriques) : libres de droits (CC0), via Openverse.
@@ -211,6 +244,8 @@ const PHOTOS_SEANCES: { nom: string; auteur: string; site: string; lien: string 
 /* Tout ce que l'app emprunte, pour la page Compte › Crédits. */
 export const CREDITS: { quoi: string; nom: string; licence: string; lien: string }[] = [
   ...Object.values(SOURCES).map((s) => ({ quoi: tr("Photos des exercices"), nom: s.nom, licence: s.licence, lien: s.lien })),
+  /* chaque photographe des photos uniques d'exercice, avec un lien vers sa photo */
+  ...Object.keys(PHOTOS_EX).map((id) => ({ quoi: tr("Photo · {n}", { n: EX[id]?.n ?? id }), nom: auteurEx(id)!.nom, licence: tr(PHOTOS_EX[id].us ? "Licence Unsplash" : "Licence du contenu Pixabay"), lien: auteurEx(id)!.lien })),
   ...POSTES.filter((p) => PHOTOS_POSTES[p.id]).map((p) => {
     const ph = PHOTOS_POSTES[p.id];
     return { quoi: tr("Photo · {n}", { n: p.n }), nom: tr("{n} sur Unsplash", { n: ph.auteur }), licence: tr("Licence Unsplash"), lien: `https://unsplash.com/@${ph.profil}${UTM}` };
