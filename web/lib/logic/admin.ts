@@ -188,9 +188,9 @@ export function sourcesLisibles(l: { source: string; n: number }[]): [string, nu
 /* Entonnoir des nouveaux visiteurs : chaque étape avec sa part des visiteurs et le taux de passage
    depuis l'étape précédente ; « perte » : l'étape où l'on perd la plus grande part des gens (au moins
    3 personnes à l'étape d'avant, pour ne pas crier au loup sur un seul appareil). */
-export type EtapeEntonnoir = { k: "ouverture" | "profil" | "programme" | "serie" | "seance" | "deux"; n: number; part: number; passage: number | null };
+export type EtapeEntonnoir = { k: "ouverture" | "visite" | "chemin" | "prete" | "agit" | "seance" | "deux"; n: number; part: number; passage: number | null };
 export function etapesEntonnoir(e: Partial<Record<EtapeEntonnoir["k"], number>>): { etapes: EtapeEntonnoir[]; perte: number | null } {
-  const ks: EtapeEntonnoir["k"][] = ["ouverture", "profil", "programme", "serie", "seance", "deux"];
+  const ks: EtapeEntonnoir["k"][] = ["ouverture", "visite", "chemin", "prete", "agit", "seance", "deux"];
   const base = e.ouverture || 0;
   const etapes = ks.map((k, i) => {
     const n = e[k] || 0, avant = i ? e[ks[i - 1]] || 0 : 0;

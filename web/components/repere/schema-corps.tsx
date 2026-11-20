@@ -21,8 +21,11 @@ export function SchemaCorps({
 }) {
   const [cote, setCote] = useState<"front" | "back">("front");
   /* silhouette féminine si l'utilisatrice l'a choisie (Profil), sinon masculine : mêmes zones */
-  const femme = useRepere((s) => s.etat.A.sexe === 1);
+  const sexe = useRepere((s) => s.etat.A.sexe);
+  const femme = sexe === 1;
   const regions = (femme ? CORPS_F : CORPS)[cote];
+  /* jamais choisi : on demande avant d'afficher un corps qui ne serait peut-être pas le bon */
+  if (sexe == null) return <ChoixSilhouette />;
   return (
     <div className="rounded-[24px] border border-border/80 bg-card p-3">
       <Segmente
@@ -60,6 +63,25 @@ export function SchemaCorps({
       </svg>
       {/* l'auteur du schéma est cité dans les crédits (Profil › Crédits, lib/medias.ts) */}
       {legende && <p className="mt-1 text-center text-[11px] text-muted-foreground">{legende}</p>}
+    </div>
+  );
+}
+
+/* Le corps à afficher, demandé une fois (il remplit Profil › Sexe) : un corps d'homme par défaut
+   n'aurait pas de sens pour une femme. La raison est donnée, et on sait où le changer. */
+export function ChoixSilhouette() {
+  const muter = useRepere((s) => s.muter);
+  const choisir = (v: 0 | 1) => muter((E) => { E.A.sexe = v; });
+  return (
+    <div className="rounded-[24px] border border-border/80 bg-card p-4">
+      <h3 className="text-[17px] leading-snug font-bold">{tr("Sur quel corps afficher tes muscles ?")}</h3>
+      <p className="mt-1 text-[13px] leading-snug text-muted-foreground">{tr("Les muscles ne se dessinent pas pareil sur une silhouette de femme et d'homme. Ton choix sert aussi au calcul de ta dépense d'énergie et de tes portions dans Repas.")}</p>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        {([[1, tr("Femme")], [0, tr("Homme")]] as const).map(([v, n]) => (
+          <button key={v} onClick={() => choisir(v)} className="h-14 rounded-[16px] border-2 border-border bg-background text-[15.5px] font-bold active:scale-[.98] active:border-plate">{n}</button>
+        ))}
+      </div>
+      <p className="mt-2 text-center text-[12px] text-muted-foreground">{tr("Modifiable à tout moment dans Profil › Sexe.")}</p>
     </div>
   );
 }

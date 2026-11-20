@@ -7,8 +7,8 @@ import { loc, tp, tr } from "@/lib/i18n";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { BellIcon, CheckIcon, FlameIcon, ListBulletsIcon, PencilSimpleIcon, PersonSimpleRunIcon, PlayIcon, MoonIcon, PlusIcon, SparkleIcon, UserCircleIcon, CaretRightIcon } from "@phosphor-icons/react";
-import { useAccueil } from "./accueil-premier";
+import { BellIcon, CheckIcon, FlameIcon, ListBulletsIcon, PencilSimpleIcon, PersonSimpleRunIcon, PlayIcon, MoonIcon, PlusIcon, SparkleIcon } from "@phosphor-icons/react";
+import { PremiersPas } from "./premiers-pas";
 import { useEnCours } from "./seance-en-cours";
 import { feuilleDuJour, initiales, nomPrevu, sousTitre, useLancer, type Feuille } from "./agenda";
 import { decaler, lundiDe } from "@/lib/logic/historique";
@@ -18,11 +18,11 @@ import { objectifHebdo, serie } from "@/lib/logic/motivation";
 import { EX } from "@/lib/data/exercices";
 import { estSoin } from "@/lib/data/soin";
 import { PAT2MUSC } from "@/lib/data/referentiels";
-import { musclesRecommandes, type Proposition } from "@/lib/logic/recommandation";
+import type { Proposition } from "@/lib/logic/recommandation";
 import { seancePour } from "@/lib/logic/generer-seance";
 import { dureeEstimee } from "@/lib/logic/assistant";
 import { avecSalle, selDeclare } from "@/lib/logic/core";
-import { preparerApercu, useBrouillon } from "@/lib/brouillon";
+import { useBrouillon } from "@/lib/brouillon";
 import { useProgrammeActif } from "@/lib/fonctionnalites";
 import { recoPour } from "@/lib/logic/agenda";
 import { useRepere } from "@/lib/store";
@@ -207,31 +207,9 @@ export function CarteDuJour({ auj, setF }: { auj: string; setF: (f: Feuille) => 
     );
   }
 
-  /* aucune séance jamais faite : un seul chemin guidé vers la première (full body conseillé, déjà
-     coché dans l'assistant). La carte disparaît dès la première séance validée. */
-  if (!(etat.HIST || []).length) {
-    const r0 = recoPour(etat, auj), q0 = r0.propositions[0] ?? r0.autres?.[0] ?? r0.demain;
-    const m = musclesRecommandes(r0) ?? [];
-    return (
-      <>
-        <Hero ph={PHOTO_SEANCE} tag={<><SparkleIcon className="size-3.5" weight="fill" />{tr("Pour commencer")}</>} titre={tr("Ta première séance")}
-          sous={tr("Conseillée par Oxa selon ta récupération, avec ton matériel.")}
-          principal={{ label: tr("Voir ma première séance"), onClick: () => router.push((preparerApercu(etat, m, q0?.nom ?? tr("Ta première séance"), auj) ? "/entrainement/composer" : `/entrainement/assistant${m.length ? `?m=${m.join(",")}` : ""}`) as Route, AVANT) }} />
-        {/* questionnaire d'accueil passé : on peut y revenir tant qu'il n'est pas terminé */}
-        {!etat.A.accueil && (
-          <button onClick={() => { tactile(6); useAccueil.setState({ ouvert: true }); }}
-            className="mt-2 flex w-full items-center gap-3 rounded-2xl bg-plate-soft px-3.5 py-3 text-left active:scale-[.99]">
-            <UserCircleIcon className="size-6 shrink-0 text-plate-ink dark:text-plate" weight="fill" />
-            <span className="min-w-0 flex-1">
-              <span className="block text-[14.5px] font-semibold">{tr("Complète ton profil sportif")}</span>
-              <span className="block text-[12.5px] text-muted-foreground">{tr("1 min pour des séances à ta mesure")}</span>
-            </span>
-            <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" />
-          </button>
-        )}
-      </>
-    );
-  }
+  /* aucune séance jamais faite : « Comment veux-tu commencer ? » (Oxa prépare, ou je compose), plutôt
+     qu'une séance « conseillée » construite sur un profil inconnu. Disparaît dès la première séance. */
+  if (!(etat.HIST || []).length) return <PremiersPas auj={auj} />;
   /* rien de prévu ni de fait aujourd'hui : la séance du jour d'Oxa (ou le repos que le rythme impose) ;
      pas pendant un programme Oxa Plan, qui a sa propre séance du jour (sa tuile) */
   if (prog && (etat.PLAN || etat.FINI)) return null;

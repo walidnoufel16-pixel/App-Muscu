@@ -21,7 +21,8 @@ import { MATERIEL_STREET, OUTILS_STREET } from "@/lib/data/street";
 import { Segmente } from "@/components/repere/segmente";
 import { BibliothequeMuscles } from "@/components/repere/bibliotheque-muscles";
 import { dire } from "@/components/repere/confirmer";
-import { DUREES, FULLBODY, MUSC, OBJS, PAT2MUSC } from "@/lib/data/referentiels";
+import { DUREES, MUSC, OBJS, PAT2MUSC } from "@/lib/data/referentiels";
+import { RaccourcisCorps } from "@/components/repere/raccourcis-corps";
 import { avecSalle, selDeclare } from "@/lib/logic/core";
 import { hasardDe, nomSeance } from "@/lib/logic/assistant";
 import { seancePour } from "@/lib/logic/generer-seance";
@@ -191,10 +192,11 @@ function Assistant() {
           <div className="mb-2 flex items-baseline justify-between px-1">
             <span className="eyebrow">{tr("Muscles{a}", { a: m.length ? ` · ${m.length}` : "" })}</span>
             <span className="flex gap-3 text-[13px] font-medium">
-              <button onClick={() => setM([...FULLBODY])} className="text-foreground">{tr("Full body")}</button>
               {m.length > 0 && <button onClick={() => setM([])} className="text-muted-foreground">{tr("Tout décocher")}</button>}
             </span>
           </div>
+          {/* raccourcis : tout le corps, le haut ou le bas d'un coup ; on ajuste ensuite sur le corps */}
+          <div className="mb-2"><RaccourcisCorps m={m} onChange={setM} /></div>
           <Segmente
             label={tr("Mode de sélection")}
             className="mb-2"

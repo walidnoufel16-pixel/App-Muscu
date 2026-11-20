@@ -30,9 +30,9 @@ export const OBJECTIFS = () => [
 ];
 /* niveau : trois choix, rangés dans A.regularite (questionnaire : 0 et 1 = reprise, 2 = régulier, 3 = confirmé) */
 export const NIVEAUX = () => [
-  { v: 1, n: tr("Je débute ou je reprends"), c: tr("débutant"), d: tr("Moins de 6 mois de pratique régulière") },
-  { v: 2, n: tr("Régulier"), c: tr("régulier"), d: tr("1 à 2 séances par semaine depuis 6 mois") },
-  { v: 3, n: tr("Confirmé"), c: tr("confirmé"), d: tr("3 séances ou plus par semaine depuis plus d'un an") },
+  { v: 1, n: tr("Je débute ou je reprends"), c: tr("débutant"), d: tr("Moins de 6 mois de pratique, ou une pause de plus de 3 mois") },
+  { v: 2, n: tr("Régulier"), c: tr("régulier"), d: tr("Au moins 6 mois, 1 à 3 séances par semaine") },
+  { v: 3, n: tr("Confirmé"), c: tr("confirmé"), d: tr("Plus d'un an, 3 séances ou plus par semaine") },
 ];
 export const niveauDe = (A: Reponses) => (A.regularite == null ? null : A.regularite <= 1 ? 1 : A.regularite);
 const SEXES = () => [{ v: 0, n: tr("Homme") }, { v: 1, n: tr("Femme") }, { v: 2, n: tr("Je préfère ne pas répondre") }];
