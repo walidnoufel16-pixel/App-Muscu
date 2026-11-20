@@ -166,7 +166,7 @@ describe("suggestions, avec ce que j'ai, semaine, courses", () => {
 describe("photos des recettes", () => {
   it("photo Pixabay : fichiers locaux (carré et large), auteur et lien Pixabay", () => {
     const locales = RECETTES.filter((x) => imgRecette(x.id)?.startsWith("/img/"));
-    expect(locales.length).toBe(4);
+    expect(locales.length).toBe(5);
     for (const r of locales) {
       for (const f of ["carre", "large"] as const) expect(fs.existsSync(path.join(__dirname, "../public", imgRecette(r.id, f)!)), r.id).toBe(true);
       expect(auteurRecette(r.id)?.lien, r.id).toMatch(/^https:\/\/pixabay\.com\/photos\//);

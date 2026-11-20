@@ -224,6 +224,7 @@ const PHOTOS_RECETTES_PX: Record<string, { auteur: string; lien: string }> = {
   "galettes-tofu-avocat": { auteur: "DanielaElenaTentis", lien: "https://pixabay.com/photos/rice-cake-avocado-smoked-salmon-2162364/" },
   "dal-tofu-micro": { auteur: "sapnac2020", lien: "https://pixabay.com/photos/soup-bowl-food-spoon-dinner-3192814/" },
   "patate-douce-oeufs-micro": { auteur: "RitaE", lien: "https://pixabay.com/photos/fried-egg-egg-meatloaf-mustard-3409076/" },
+  "omelette-patate-douce": { auteur: "CrafterChef", lien: "https://pixabay.com/photos/cheese-baked-pizza-delicious-8305772/" },
 };
 
 /** Photo d'une recette : carrée (listes) ou large (fiche). Sans photo : rien, la vignette garde sa pastille. */
