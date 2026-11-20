@@ -184,3 +184,21 @@ export function sourcesLisibles(l: { source: string; n: number }[]): [string, nu
   for (const x of l) m.set(nomSource(x.source), (m.get(nomSource(x.source)) || 0) + x.n);
   return [...m].sort((a, b) => b[1] - a[1]);
 }
+
+/* Entonnoir des nouveaux visiteurs : chaque étape avec sa part des visiteurs et le taux de passage
+   depuis l'étape précédente ; « perte » : l'étape où l'on perd la plus grande part des gens (au moins
+   3 personnes à l'étape d'avant, pour ne pas crier au loup sur un seul appareil). */
+export type EtapeEntonnoir = { k: "ouverture" | "profil" | "serie" | "seance" | "deux"; n: number; part: number; passage: number | null };
+export function etapesEntonnoir(e: Record<EtapeEntonnoir["k"], number>): { etapes: EtapeEntonnoir[]; perte: number | null } {
+  const ks: EtapeEntonnoir["k"][] = ["ouverture", "profil", "serie", "seance", "deux"];
+  const base = e.ouverture || 0;
+  const etapes = ks.map((k, i) => {
+    const n = e[k] || 0, avant = i ? e[ks[i - 1]] || 0 : 0;
+    return { k, n, part: base ? Math.round((n / base) * 100) : 0, passage: i && avant ? Math.min(100, Math.round((n / avant) * 100)) : null };
+  });
+  let perte: number | null = null, pire = 101;
+  etapes.forEach((x, i) => {
+    if (i && (e[ks[i - 1]] || 0) >= 3 && x.passage != null && x.passage < pire) { pire = x.passage; perte = i; }
+  });
+  return { etapes, perte };
+}

@@ -9,9 +9,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { CaretRightIcon } from "@phosphor-icons/react";
-import { analysesErreurs, mesureAdmin, vueAdmin, type VueAdmin } from "@/lib/admin";
+import { analysesErreurs, entonnoirAdmin, mesureAdmin, vueAdmin, type EntonnoirAdmin, type VueAdmin } from "@/lib/admin";
 import { aRegarder } from "@/lib/logic/erreurs";
-import { court, jourIso, pl, sourcesLisibles, vueTesteurs, type CompteAdmin, type StatsAdmin } from "@/lib/logic/admin";
+import { court, etapesEntonnoir, jourIso, nomSource, pl, sourcesLisibles, vueTesteurs, type CompteAdmin, type StatsAdmin } from "@/lib/logic/admin";
 import { jourDe } from "@/lib/logic/historique";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
@@ -40,7 +40,6 @@ export function VueEnsemble({ L, S, exclus, avecMoi, plus }: { L: CompteAdmin[];
   const T = useMemo(() => vueTesteurs(L, avecMoi ? [] : exclus, jours, auj), [L, exclus, avecMoi, jours, auj]);
   const aller = (q: string) => () => { tactile(5); router.push(`/admin?${q}` as Route); };
   const sans = T.inscrits - T.inscritsAvecSeance;
-  const max = Math.max(1, V?.visiteurs ?? 0, T.inscrits);
   return (
     <>
       <div className="flex gap-1.5">
@@ -58,18 +57,15 @@ export function VueEnsemble({ L, S, exclus, avecMoi, plus }: { L: CompteAdmin[];
         <Cle v={nbErr ?? undefined} n={nbErr === 1 ? tr("erreur à regarder") : tr("erreurs à regarder")} d={nbErr == null ? "" : nbErr ? tr("voir l'onglet Technique") : tr("tout va bien")} alerte={!!nbErr} onClick={aller("v=m")} />
       </div>
 
-      <section className="rounded-[22px] bg-card p-4" aria-label={tr("Le parcours d'un visiteur")}>
-        <h2 className="eyebrow mb-2">{tr("Le parcours d'un visiteur")}</h2>
-        <Etape n={V?.visiteurs ?? 0} texte={tr("ont ouvert Oxa")} max={max} />
-        <Etape n={V?.visite ?? 0} texte={tr("ont fini la visite guidée")} max={max} />
-        <Etape n={T.inscrits} texte={tr("ont créé un compte")} max={max} onClick={aller("v=u")} />
-        <Etape n={T.inscritsAvecSeance} texte={tr("ont fait au moins une séance")} max={max} onClick={aller("v=u&f=seance")} />
-        <p className="mt-2 text-[14px] leading-snug">
-          {!T.inscrits ? tr("Aucun nouveau testeur sur la période.")
-            : sans ? <>{tr("Sur {n} testeurs, ", { n: T.inscrits })}<b className="text-amber-600 dark:text-amber-300">{sans === 1 ? tr("1 n'a encore jamais fait de séance") : tr("{n} n'ont encore jamais fait de séance", { n: sans })}</b>{tr(". C'est l'étape à travailler.")}</>
-            : tr("Tous les testeurs de la période ont fait au moins une séance.")}
-        </p>
-      </section>
+      <Entonnoir jours={jours} avecMoi={avecMoi} />
+      {/* les comptes ne sont pas reliés aux appareils (mesure anonyme) : à part, sous l'entonnoir */}
+      <button onClick={aller("v=u&f=seance")} className="-mt-1 flex items-center gap-1.5 rounded-[18px] bg-card px-4 py-3 text-left text-[14px] leading-snug active:scale-[.99]">
+        <span className="min-w-0 flex-1">
+          {!T.inscrits ? tr("Aucun nouveau compte sur la période.")
+            : <>{tr("Comptes créés : {n}, dont {m} avec au moins une séance.", { n: T.inscrits, m: T.inscritsAvecSeance })}{sans > 0 && <b className="text-amber-600 dark:text-amber-300"> {sans === 1 ? tr("1 n'a encore jamais fait de séance.") : tr("{n} n'ont encore jamais fait de séance.", { n: sans })}</b>}</>}
+        </span>
+        <CaretRightIcon className="size-3.5 shrink-0 text-muted-foreground" />
+      </button>
 
       <section className="rounded-[22px] bg-card p-4">
         <h2 className="eyebrow mb-1">{tr("D'où ils viennent")}</h2>
@@ -119,13 +115,48 @@ function Cle({ v, n, d, onClick, alerte }: { v?: number; n: string; d: string; o
   );
 }
 
-function Etape({ n, texte, max, onClick }: { n: number; texte: string; max: number; onClick?: () => void }) {
-  const Corps = onClick ? "button" : "div";
+/* L'entonnoir des nouveaux visiteurs (appareils apparus sur la période), filtrable par source.
+   Une étape n'exige pas la précédente : on peut lancer une séance sans remplir le profil. */
+const NOMS_ETAPES = { ouverture: () => tr("ouvrent Oxa pour la première fois"), profil: () => tr("remplissent le profil d'entraînement"), serie: () => tr("font leur première série"), seance: () => tr("terminent une séance"), deux: () => tr("terminent une 2e séance") };
+function Entonnoir({ jours, avecMoi }: { jours: number; avecMoi: boolean }) {
+  const [src, setSrc] = useState<string | null>(null);
+  const [E, setE] = useState<EntonnoirAdmin | null>(null);
+  const [err, setErr] = useState("");
+  useEffect(() => {
+    let vivant = true;
+    entonnoirAdmin(jours, avecMoi, src).then((e) => vivant && (setE(e), setErr(""))).catch((e) => vivant && setErr((e as Error).message));
+    return () => { vivant = false; };
+  }, [jours, avecMoi, src]);
+  const { etapes, perte } = etapesEntonnoir(E?.etapes ?? { ouverture: 0, profil: 0, serie: 0, seance: 0, deux: 0 });
+  const max = Math.max(1, etapes[0].n);
+  const sources = E?.sources ?? [];
   return (
-    <Corps onClick={onClick} className="block w-full py-1.5 text-left">
-      <span className="flex items-center gap-1.5 text-[14.5px]"><b className="num text-[17px]">{n}</b> {texte}{onClick && <CaretRightIcon className="size-3.5 text-muted-foreground" />}</span>
-      <span className="mt-1 block h-2 overflow-hidden rounded-full bg-muted"><i className="block h-full rounded-full bg-plate" style={{ width: `${Math.round((n / max) * 100)}%` }} /></span>
-    </Corps>
+    <section className="rounded-[22px] bg-card p-4" aria-label={tr("Entonnoir des nouveaux visiteurs")}>
+      <h2 className="eyebrow mb-1">{tr("Entonnoir des nouveaux visiteurs")}</h2>
+      <p className="mb-2 text-[12.5px] leading-snug text-muted-foreground">{tr("Les appareils arrivés sur la période, et jusqu'où ils sont allés.")}</p>
+      {sources.length > 1 && (
+        <div className="no-scrollbar -mx-4 mb-2 flex gap-1.5 overflow-x-auto px-4">
+          {[null, ...sources.map((x) => x.source)].map((k) => (
+            <button key={k ?? "*"} onClick={() => { tactile(4); setSrc(k); }} aria-pressed={src === k}
+              className={cn("h-8 shrink-0 rounded-full px-3 text-[13px] font-semibold whitespace-nowrap", src === k ? "bg-foreground text-background" : "bg-muted text-muted-foreground")}>
+              {k == null ? tr("Toutes les sources") : nomSource(k)}
+            </button>
+          ))}
+        </div>
+      )}
+      {err ? <p className="text-[13.5px] text-destructive">{err}</p> : etapes.map((x, i) => (
+        <div key={x.k} className="py-1.5">
+          {i > 0 && x.passage != null && (
+            <span className={cn("mb-1 block text-[12px] font-semibold", perte === i ? "text-amber-600 dark:text-amber-300" : "text-muted-foreground")}>
+              ↓ {tr("{p} % de l'étape d'avant", { p: x.passage })}{perte === i ? " · " + tr("la plus grosse perte") : ""}
+            </span>
+          )}
+          <span className="flex items-baseline gap-1.5 text-[14.5px]"><b className="num text-[17px]">{x.n}</b> {NOMS_ETAPES[x.k]()}{i > 0 && etapes[0].n > 0 && <span className="num ml-auto text-[12.5px] text-muted-foreground">{x.part} %</span>}</span>
+          <span className="mt-1 block h-2 overflow-hidden rounded-full bg-muted"><i className={cn("block h-full rounded-full", perte === i ? "bg-amber-500" : "bg-plate")} style={{ width: `${Math.round((x.n / max) * 100)}%` }} /></span>
+        </div>
+      ))}
+      {E && !etapes[0].n && <p className="mt-1 text-[13.5px] text-muted-foreground">{tr("Aucun nouveau visiteur sur la période.")}</p>}
+    </section>
   );
 }
 
