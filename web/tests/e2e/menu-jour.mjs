@@ -123,10 +123,16 @@ ok(await pg.getByText(/^Pour /).count() > 0, "le jour choisi est rappelé en hau
 if (await bt3.isDisabled()) for (const m of ["Haltères", "Barre", "Machines", "Poids du corps"]) await pg.getByRole("button", { name: m, exact: true }).first().click().catch(() => {});
 await bt3.click();
 await pg.waitForURL(/composer/);
-await pg.getByRole("button", { name: "Ajouter à aujourd'hui" }).click();
+// « Plus tard » : la feuille propose demain par défaut ; le premier jour (aujourd'hui) remet « Ajouter à aujourd'hui »
+await pg.getByRole("button", { name: "Plus tard" }).click();
+const feuille = pg.getByRole("dialog");
+await feuille.getByText("Quand vas-tu la faire ?").waitFor();
+ok(await feuille.getByRole("button", { name: /^Programmer pour / }).count() === 1, "Plus tard → demain proposé par défaut");
+await feuille.locator("button[aria-pressed]").first().click();
+await feuille.getByRole("button", { name: "Ajouter à aujourd'hui" }).click();
 await pg.waitForURL(/\/entrainement\/?$/);
 e = await etat(pg);
-ok(e.AGENDA.some((p) => p.d === aujD && p.quoi.t === "libre" && p.quoi.i === e.SEANCES.length - 1), "Ajouter à aujourd'hui → séance ajoutée à aujourd'hui dans l'agenda");
+ok(e.AGENDA.some((p) => p.d === aujD && p.quoi.t === "libre" && p.quoi.i === e.SEANCES.length - 1), "Plus tard → aujourd'hui → séance ajoutée à aujourd'hui dans l'agenda");
 ok(!errs.length, "aucune erreur JS " + errs.join(" | "));
 
 // un compte qui n'a jamais fait de séance : la carte « Ta première séance », vers l'assistant pré-coché
