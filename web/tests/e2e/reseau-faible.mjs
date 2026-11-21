@@ -8,7 +8,7 @@ const U = "http://localhost:8861";
 const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 const ok = (c, m) => { console.log(c ? "OK  " : "ÉCHEC", m); if (!c) process.exitCode = 1; };
 const ctx = await b.newContext({ locale: "fr-FR", viewport: { width: 393, height: 852 } });
-await ctx.addInitScript(() => { if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify({ A: { objectif: 0, accueil: true, miseEnRoute: true, objHebdo: 3 }, LOG: {}, SWAP: {}, SWAPP: {}, PLAN: null, SEANCES: [], wk: 0, day: 0, FINI: false, HIST: [{ d: "2026-11-02", s: "L|0", nom: "Push", vol: 1, ser: 1, ex: { dc: [60, 1, 1, 8, 3] } }], ts: Date.now() })); localStorage.setItem("palier.pseudo.v1", "W"); localStorage.setItem("repere.visite", "1"); sessionStorage.vu = 1; } });
+await ctx.addInitScript(() => { if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify({ A: { objectif: 0, accueil: true, miseEnRoute: true, objHebdo: 3 }, LOG: {}, SWAP: {}, SWAPP: {}, PLAN: null, SEANCES: [], wk: 0, day: 0, FINI: false, HIST: [{ d: "2026-11-02", s: "L|0", nom: "Push", vol: 1, ser: 1, ex: { dc: [60, 1, 1, 8, 3] } }], ts: Date.now() })); localStorage.setItem("palier.pseudo.v1", "W"); localStorage.setItem("repere.visite", "1"); localStorage.setItem("repere.visite.seance", "1"); sessionStorage.vu = 1; } });
 await ctx.route(/supabase\.co/, (r) => r.abort());
 const pg = await ctx.newPage();
 await pg.goto(U + "/entrainement/");

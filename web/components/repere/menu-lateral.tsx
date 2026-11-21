@@ -7,7 +7,8 @@
 import { langue, tr } from "@/lib/i18n";
 import { usePathname, useRouter } from "next/navigation";
 import type { Route } from "next";
-import { BellIcon, CompassIcon, CaretRightIcon, ChatCircleTextIcon, CircleHalfIcon, DeviceMobileIcon, ForkKnifeIcon, ListIcon, NewspaperIcon, ToolboxIcon, UserPlusIcon, WrenchIcon, type Icon } from "@phosphor-icons/react";
+import { BarbellIcon, BellIcon, CompassIcon, CaretRightIcon, ChatCircleTextIcon, CircleHalfIcon, DeviceMobileIcon, ForkKnifeIcon, ListIcon, NewspaperIcon, ToolboxIcon, UserPlusIcon, WrenchIcon, type Icon } from "@phosphor-icons/react";
+import { toast } from "sonner";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { useRepere } from "@/lib/store";
 import { useEstAdmin } from "@/lib/admin";
@@ -16,6 +17,7 @@ import { tactile } from "@/lib/repos";
 import { appInstallee } from "./installer";
 import { inviterAmi } from "./inviter";
 import { revoirVisite } from "./visite";
+import { revoirVisiteSeance } from "./visite-seance";
 import { cn } from "@/lib/utils";
 
 /* Les écrans des quatre onglets, et « Compte et réglages » : le bouton ☰ y remplace le retour. */
@@ -74,6 +76,7 @@ export function MenuLateral() {
         { Icone: ChatCircleTextIcon, n: tr("Donner mon avis"), onClick: ouvrir("avis") },
         { Icone: NewspaperIcon, n: tr("Le blog Oxa"), onClick: va(langue() === "en" ? "/en/blog" : "/blog") },
         { Icone: CompassIcon, n: tr("Revoir la visite"), onClick: () => { tactile(5); fermer(); setTimeout(revoirVisite, 300); } },
+        { Icone: BarbellIcon, n: tr("Revoir la visite de la séance"), onClick: () => { tactile(5); revoirVisiteSeance(); fermer(); toast(tr("C'est noté"), { description: tr("Elle s'affichera au début de ta prochaine séance.") }); } },
         { Icone: DeviceMobileIcon, n: tr("Installer l'app"), onClick: ouvrir("installer"), cache: appInstallee() && !admin },
         { Icone: WrenchIcon, n: tr("Administration"), onClick: va("/admin"), cache: !admin },
       ],

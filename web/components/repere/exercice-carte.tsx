@@ -106,7 +106,7 @@ export function ExerciceCarte({
       ) : (
       <div className="flex items-center gap-3.5 p-3">
         {/* la photo ouvre la fiche ; le reste de la carte déplie les séries */}
-        <button onClick={onFiche} aria-label={tr("Fiche : {n}", { n: x.n })} className="shrink-0 rounded-[14px] active:scale-95">
+        <button onClick={onFiche} data-visite="seance-fiche" aria-label={tr("Fiche : {n}", { n: x.n })} className="shrink-0 rounded-[14px] active:scale-95">
           <Vignette id={id} num={num} fait={fait} trace={celebre} />
         </button>
         <button onClick={onToggle} aria-expanded={ouvert} className="flex min-w-0 flex-1 items-center gap-3.5 text-left">
@@ -146,12 +146,12 @@ export function ExerciceCarte({
               </span>
             )}
             {!!rpe && <span>{tr("Effort")}{" "}<b className="num text-[14px] text-foreground">{tr("RPE")}{" "}{rpe}</b></span>}
-            <span>{tr("Repos")}{" "}<b className="font-semibold text-foreground">{repos}</b></span>
+            <span data-visite="seance-repos">{tr("Repos")}{" "}<b className="font-semibold text-foreground">{repos}</b></span>
           </div>
           {children}
           <div className={cn("grid border-t border-border/70", onRemplacer ? "grid-cols-3" : "grid-cols-2")}>
             <OutilBtn onClick={onFiche} icone={<InfoIcon className="size-5" />} label={tr("Fiche")} />
-            {onRemplacer && <OutilBtn onClick={onRemplacer} icone={<ArrowsLeftRightIcon className="size-5" />} label={tr("Remplacer")} />}
+            {onRemplacer && <OutilBtn visite="seance-remplacer" onClick={onRemplacer} icone={<ArrowsLeftRightIcon className="size-5" />} label={tr("Remplacer")} />}
             <OutilBtn onClick={onTout} icone={<CheckIcon className="size-5" weight="bold" />} label={fait ? tr("Tout décocher") : tr("Tout valider")} accent />
           </div>
         </div>
@@ -160,10 +160,11 @@ export function ExerciceCarte({
   );
 }
 
-function OutilBtn({ onClick, icone, label, accent }: { onClick: () => void; icone: React.ReactNode; label: string; accent?: boolean }) {
+function OutilBtn({ onClick, icone, label, accent, visite }: { onClick: () => void; icone: React.ReactNode; label: string; accent?: boolean; visite?: string }) {
   return (
     <button
       onClick={onClick}
+      data-visite={visite}
       className="flex flex-col items-center gap-1 border-r border-border/70 py-2.5 text-[12px] font-medium last:border-r-0 active:bg-muted"
     >
       <span className={accent ? "text-plate-ink" : "text-muted-foreground"}>{icone}</span>
