@@ -34,7 +34,8 @@ avec la date et la source (fichier de stats). Rayer ou supprimer ce qui est cont
 9. Carrousels : images intérieures sombres comme la couverture, une idée et gros texte par image,
    réponse courte dès l'image 2, question en un mot sur la dernière.
 10. Juger une vidéo d'abord sur le temps de visionnage moyen et le % regardé en entier, pas sur les vues.
-11. Pas de photo de personne en accroche : le texte de la question doit être l'élément principal.
+11. Vidéos libres de droits avec des personnes autorisées (Walid n'apparaît jamais), mais l'image doit illustrer
+    le conseil et le texte de la question rester l'élément principal. Pas de couverture fixe au début.
 
 ## Chiffres à demander à chaque relevé
 - TikTok : durée moyenne de visionnage, % regardé en entier, visites du profil, nouveaux followers ;
