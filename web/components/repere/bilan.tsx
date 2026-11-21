@@ -56,7 +56,8 @@ export function Bilan() {
         { n: tr("exercices"), v: bilan.exercices },
         { n: tr("séries validées"), v: bilan.series },
         ...(bilan.minutes != null ? [{ n: tr("minutes"), v: bilan.minutes }] : []),
-        { n: tr(pluriel(bilan.records) ? "records battus" : "record battu"), v: bilan.records, accent: bilan.records > 0 },
+        /* aucun record (la toute première séance, rien à battre encore) : pas de tuile « 0 record battu » */
+        ...(bilan.records > 0 ? [{ n: tr(pluriel(bilan.records) ? "records battus" : "record battu"), v: bilan.records, accent: true }] : []),
       ];
   return (
     <Drawer open={!!bilan} onOpenChange={(o) => !o && fermer()}>
@@ -73,7 +74,7 @@ export function Bilan() {
               {stats.map((s, i) => (
                 <div
                   key={s.n}
-                  className={cn("animate-[monter_.5s_ease-out_both] rounded-2xl border p-3.5 text-left", s.accent ? "border-plate bg-plate-soft" : "bg-card")}
+                  className={cn("animate-[monter_.5s_ease-out_both] rounded-2xl border p-3.5 text-left", s.accent ? "border-plate bg-plate-soft" : "bg-card", stats.length % 2 === 1 && i === stats.length - 1 && "col-span-2")}
                   style={{ animationDelay: 300 + i * 80 + "ms" }}
                 >
                   <div className="num text-[34px] leading-none font-bold"><Compteur valeur={s.v} delai={350 + i * 80} /></div>

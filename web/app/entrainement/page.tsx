@@ -5,6 +5,7 @@
    entraînements épinglés, puis Mes séances et « Plus d'entraînements » (street, course, soin, cardio, défis).
    Programmer : toucher un jour de la semaine ou « Programmer » dans « À venir ». Oxa Plan ne
    s'ouvre que par sa rubrique. */
+import { CarteConnu } from "@/components/repere/carte-connu";
 import { AvatarProfil } from "@/components/repere/avatar-profil";
 import { loc, tr } from "@/lib/i18n";
 import { useState } from "react";
@@ -51,6 +52,8 @@ export default function PageEntrainement() {
         {!debutant && <LigneRecuperation auj={auj} />}
         <CarteDuJour auj={auj} setF={setF} />
         <Reprise />
+        {/* « Comment as-tu connu Oxa ? » pour qui n'y a jamais répondu (une seule fois) */}
+        <CarteConnu />
         <div className="mt-2"><AVenir auj={auj} setF={setF} /></div>
         <section className="mt-2 flex flex-col gap-2">
           {debutant && <h2 className="titre mb-0.5 px-1 text-[20px]">{tr("Par où commencer")}</h2>}
