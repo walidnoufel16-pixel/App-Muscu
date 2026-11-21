@@ -17,7 +17,7 @@ import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 import { nomRubrique, RUBRIQUES, type Rubrique } from "./rubriques";
 
-const PERIODES: [number, () => string][] = [[7, () => tr("7 jours")], [30, () => tr("30 jours")], [3650, () => tr("Tout")]];
+const PERIODES: [number, () => string][] = [[1, () => tr("Aujourd'hui")], [7, () => tr("7 jours")], [30, () => tr("30 jours")], [3650, () => tr("Tout")]];
 const AUTRES_RUBRIQUES: Record<string, () => string> = { plus: () => tr("Plus d'entraînements"), cardio: () => tr("Cardio"), defis: () => tr("Défis") };
 const nomR = (r: string) => (RUBRIQUES.includes(r as Rubrique) ? nomRubrique(r as Rubrique) : AUTRES_RUBRIQUES[r]?.() ?? r);
 
