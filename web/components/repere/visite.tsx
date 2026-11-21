@@ -192,7 +192,11 @@ export function Bulle({ b, i, total, onSuivant, onPasser, onAbsent = onSuivant, 
       const e = el();
       if (!e) { if (++essais < 20) t = setTimeout(chercher, 100); else onAbsent(); return; }
       const q = e.getBoundingClientRect();
-      if (q.top < 60 || q.bottom > innerHeight - 90) { e.scrollIntoView({ block: "center", behavior: "smooth" }); t = setTimeout(mesurer, 450); }
+      /* caché par une barre fixe (bas de l'écran de création, barre de série…) : le repère est dans
+         l'écran mais pas visible ; on le ramène au centre */
+      const dessus = document.elementFromPoint(q.left + q.width / 2, q.top + q.height / 2);
+      const cache = !!dessus && dessus !== e && !e.contains(dessus);
+      if (q.top < 60 || q.bottom > innerHeight - 90 || cache) { e.scrollIntoView({ block: "center", behavior: "smooth" }); t = setTimeout(mesurer, 450); }
       mesurer();
     };
     chercher();
