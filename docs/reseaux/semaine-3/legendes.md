@@ -23,7 +23,7 @@ Où : Instagram Reels. Quand : samedi 21 novembre, vers 18 h 30.
 Vidéos : Pixabay (licence Pixabay, sans attribution obligatoire) n° 169590, 148204, 148208.
 Sources : Lopez et al., Med Sci Sports Exerc 2021 (méta-analyse en réseau, charges) ; Schoenfeld et al., JSCR 2017
 (charges légères ou lourdes) ; Refalo et al., PeerJ 2025 et Roberts et al., JSCR 2020 (hommes et femmes).
-Textes des plans : `outils/reseaux/reel-textes-soulever-lourd.js` (montage ffmpeg : recadrage vertical + calques).
+Textes des plans : `outils/reseaux/reel-textes-soulever-lourd.js` (montage ffmpeg : vidéo entière en bande de 800 px au centre, fond flouté de la même vidéo, texte au-dessus, sans zoom).
 
 **Légende Instagram**
 ```
