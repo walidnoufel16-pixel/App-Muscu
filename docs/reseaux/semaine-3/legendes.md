@@ -20,7 +20,7 @@ Après publication : répondre aux commentaires dans la première heure.
 ## Reel Instagram · Soulever lourd va me rendre trop musclée ?
 Fichier : `reel-soulever-lourd.mp4` (13 s, 1080×1920, muet : ajouter un son tendance à la publication).
 Où : Instagram Reels. Quand : samedi 21 novembre, vers 18 h 30.
-Couverture : `reel-soulever-lourd-couverture.png` (1080×1920 ; titre et visage visibles aussi dans la grille du profil).
+Couverture : `reel-soulever-lourd-couverture.png` (1080×1920, photo Pixabay n° 7445556, pas un extrait de la vidéo ; titre et visage visibles aussi dans la grille du profil).
 Vidéos : Pixabay (licence Pixabay, sans attribution obligatoire) n° 169590, 148204, 148208.
 Sources : Lopez et al., Med Sci Sports Exerc 2021 (méta-analyse en réseau, charges) ; Schoenfeld et al., JSCR 2017
 (charges légères ou lourdes) ; Refalo et al., PeerJ 2025 et Roberts et al., JSCR 2020 (hommes et femmes).
