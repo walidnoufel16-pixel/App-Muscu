@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 export function RaccourcisCorps({ m, onChange }: { m: string[]; onChange: (m: string[]) => void }) {
   const actif = raccourciDe(m);
   return (
-    <div className="grid grid-cols-3 gap-1.5">
+    <div data-visite="creer-muscles" className="grid grid-cols-3 gap-1.5">
       {RACCOURCIS.map((r) => (
         <button key={r.k} aria-pressed={actif === r.k} onClick={() => { tactile(8); onChange(actif === r.k ? [] : [...r.m]); }}
           className={cn("rounded-[14px] border px-2.5 py-2 text-left active:scale-[.98]", actif === r.k ? "border-transparent bg-plate-soft text-plate-ink dark:text-plate" : "border-border bg-background")}>

@@ -40,6 +40,7 @@ import { useBrouillon } from "@/lib/brouillon";
 import { programmerNouvelle, remplacerLe, type Rappel } from "@/lib/logic/agenda";
 import { assurerNotifications, ChoixJour, ChoixRappel, jourCourt, jourLong, maj, texteRappel } from "@/components/repere/agenda";
 import { noter } from "@/lib/mesure";
+import { BandeauDemo, finDemoEnQuittant, VisiteCreer } from "@/components/repere/visites";
 import { decaler } from "@/lib/logic/historique";
 import { toast } from "sonner";
 import { AvisSeance } from "@/components/repere/avis-seance";
@@ -79,6 +80,11 @@ export default function PageComposer() {
   const versEntrainement = () => revenirA("/entrainement/rubrique", () => router.replace(lienRubrique("libre"), ARRIERE));
   const part = useRef(false); // on quitte : le brouillon vidé ne doit pas déclencher de redirection
   useEffect(() => { if (!libre && !part.current) router.replace("/entrainement"); }, [libre, router]);
+  /* démonstration (Visites guidées › Créer ta séance) : en quittant l'écran, le brouillon de démo
+     disparaît et l'état d'avant revient */
+  useEffect(() => finDemoEnQuittant(() => location.pathname.includes("/entrainement/composer"), () => {
+    if (useBrouillon.getState().libre?.demo) useBrouillon.getState().setLibre(null);
+  }), []);
   /* entonnoir : une nouvelle séance a ses premiers exercices (proposés par Oxa ou choisis) — une fois par brouillon */
   const prete = useRef(false);
   const nbEx = libre?.ex.length ?? 0, nouvelle = libre?.idx == null;
@@ -198,6 +204,7 @@ export default function PageComposer() {
 
   /* cible : « Plus tard », un autre jour (et son rappel) que celui du brouillon */
   const enregistrer = async (commencer = false, garder = !!L.garder, cible?: { d: string; rappel: Rappel | null }) => {
+    if (L.demo) { toast(tr("Démonstration"), { description: tr("Rien n'est enregistré : quitte la démonstration pour créer ta séance.") }); return; }
     const pour = cible?.d ?? L.pour;
     let nom = L.nom.trim() || tr("Séance libre");
     /* une séance construite par Oxa ne va dans « Mes séances » que si on le décide : « Enregistrer »
@@ -294,8 +301,11 @@ export default function PageComposer() {
   const secs = sections(L);
   if (gab && !secs.some((x) => x.p === "muscu")) secs.unshift({ p: "muscu", el: [], debut: 0 });
 
+  const quitterDemo = () => { part.current = true; setLibre(null); router.replace("/entrainement" as Route); };
   return (
     <>
+      {L.demo && <BandeauDemo onQuitter={quitterDemo} />}
+      <VisiteCreer pret={L.ex.length > 0} force={!!L.demo} />
       <EnTete
         surtitre={L.idx != null ? tr("Modifier la séance") : tr("Nouvelle séance")}
         titre={L.nom || tr("Séance libre")}
@@ -387,7 +397,7 @@ export default function PageComposer() {
                 }) : avecSupersets(sec.el, carte, cadreSS)}
               </div>
             )) : L.guide ? null : (
-              <button onClick={() => setAjout(true)} className="flex flex-col items-center gap-1.5 rounded-[20px] border border-dashed border-plate/60 bg-card/50 p-6 text-[15px] font-semibold text-plate-ink active:scale-[.99]">
+              <button data-visite="creer-ajouter" onClick={() => setAjout(true)} className="flex flex-col items-center gap-1.5 rounded-[20px] border border-dashed border-plate/60 bg-card/50 p-6 text-[15px] font-semibold text-plate-ink active:scale-[.99]">
                 <PlusIcon className="size-6" weight="bold" />{tr("Ajouter un exercice")}
               </button>
             )}
@@ -395,7 +405,7 @@ export default function PageComposer() {
           {/* l'avis d'Oxa : ce qu'un coach changerait (volume, équilibre, ordre, réglages) */}
           <div className="mt-3 empty:hidden"><AvisSeance L={L} sel={sel} /></div>
           <div className="mt-2 grid grid-cols-2 gap-2">
-            <button onClick={() => { tactile(6); setAjout(true); }} className="flex items-center justify-center gap-2 rounded-[18px] bg-plate py-3 text-[14.5px] font-semibold text-plate-foreground active:scale-[.98]">
+            <button data-visite="creer-ajouter" onClick={() => { tactile(6); setAjout(true); }} className="flex items-center justify-center gap-2 rounded-[18px] bg-plate py-3 text-[14.5px] font-semibold text-plate-foreground active:scale-[.98]">
               <PlusIcon className="size-4" weight="bold" />{tr("Exercice")}
             </button>
             <button onClick={ajouterBloc} className="flex items-center justify-center gap-2 rounded-[18px] border border-dashed border-plate/60 py-3 text-[14.5px] font-semibold text-plate-ink active:scale-[.98]">
@@ -419,7 +429,7 @@ export default function PageComposer() {
         onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") })}
       />
       {/* fond opaque sous les boutons : désactivés (semi-transparents), ils ne laissent pas voir la liste derrière */}
-      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] bg-background px-4 pt-3 pb-[max(env(safe-area-inset-bottom),14px)] shadow-[0_-10px_14px_-6px_var(--background)]">
+      <div data-visite="creer-lancer" className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] bg-background px-4 pt-3 pb-[max(env(safe-area-inset-bottom),14px)] shadow-[0_-10px_14px_-6px_var(--background)]">
         {/* séance d'Oxa : « Mes séances » seulement si on le décide */}
         {/* (« Enregistrer » tout court vaut « garder » : la case n'apparaît qu'avec « Enregistrer pour … » ou
             sur une séance d'Oxa pas encore gardée) */}
@@ -434,7 +444,7 @@ export default function PageComposer() {
           <div className="flex gap-2">
             {/* pas à la salle maintenant : la programmer pour plus tard (aujourd'hui ou un autre jour), avec un rappel */}
             <Button variant="outline" size="xl" className="flex-1 bg-background" disabled={!L.ex.length}
-              onClick={() => { tactile(6); setPlusTard({ d: decaler(aujHui, 1), rappel: etat.A.rappelAgenda === undefined ? { veille: true, h: 20 } : etat.A.rappelAgenda }); }}>{tr("Plus tard")}</Button>
+              onClick={() => { tactile(6); if (L.demo) { void enregistrer(); return; } setPlusTard({ d: decaler(aujHui, 1), rappel: etat.A.rappelAgenda === undefined ? { veille: true, h: 20 } : etat.A.rappelAgenda }); }}>{tr("Plus tard")}</Button>
             <Button variant="plate" size="xl" className="flex-[1.4]" disabled={!L.ex.length} onClick={() => enregistrer(true)}>{tr("Commencer")}</Button>
           </div>
         ) : L.pour ? (
@@ -520,7 +530,7 @@ function CarteCompo({
   const prescr = x.ch === "temps" ? `${e.s} × ${e.r}s${x.cote ? tr(" / côté") : ""}` : x.ch === "dist" ? `${e.s} × ${e.r}m` : `${e.s} × ${e.r}${x.cote ? tr(" / côté") : ""}`;
   const kg = x.ch === "kg" && prop ? prop.base.v : null, variation = kg != null ? variationDe({ id: e.id, base: prop!.base, prev: prop!.prev }) : 0;
   return (
-    <div data-carte={e.id} className={cn("overflow-hidden rounded-[20px] border bg-card transition-shadow", glisse ? "z-10 border-plate shadow-[0_14px_34px_-14px_rgba(0,0,0,.45)]" : "border-border/80")}>
+    <div data-carte={e.id} data-visite={i === 0 ? "creer-exercice" : undefined} className={cn("overflow-hidden rounded-[20px] border bg-card transition-shadow", glisse ? "z-10 border-plate shadow-[0_14px_34px_-14px_rgba(0,0,0,.45)]" : "border-border/80")}>
       <div className="flex items-center">
         <button onPointerDown={onSaisir} aria-label={tr("Glisser pour déplacer")} className="grid h-16 w-8 shrink-0 cursor-grab touch-none place-items-center text-muted-foreground/70 active:cursor-grabbing">
           <DotsSixVerticalIcon className="size-5" />

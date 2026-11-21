@@ -15,7 +15,7 @@ const cap = async (pg, n) => { if (process.env.CAPTURES) { await pg.waitForTimeo
 const errs = [];
 async function page(H) {
   const ctx = await b.newContext({ locale: "fr-FR", viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
-  await ctx.addInitScript((s) => { if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); localStorage.setItem("palier.pseudo.v1", "Walid"); localStorage.setItem("repere.visite", "1"); localStorage.setItem("repere.visite.seance", "1"); sessionStorage.vu = 1; } }, etat(H));
+  await ctx.addInitScript((s) => { if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); localStorage.setItem("palier.pseudo.v1", "Walid"); localStorage.setItem("repere.visite", "1"); localStorage.setItem("repere.visite.seance", "1"); localStorage.setItem("repere.visite.creer", "1"); sessionStorage.vu = 1; } }, etat(H));
   await ctx.route(/supabase\.co/, (r) => r.abort());
   const pg = await ctx.newPage(); pg.on("pageerror", (e) => errs.push(e.message));
   await pg.goto(U + "/entrainement/");

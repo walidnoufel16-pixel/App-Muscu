@@ -7,7 +7,7 @@ const U = "http://localhost:8803";
 const etat = { A: { objectif: 0, materiel: 0, acc: [], miseEnRoute: true }, LOG: {}, SWAP: {}, SWAPP: {}, PLAN: null, SEANCES: [{ nom: "Test", ex: [{ id: "dc", s: 3, r: 8, p: "2 min" }] }], wk: 0, day: 0, FINI: false, ts: Date.now() };
 const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 const ctx = await b.newContext({ locale: "fr-FR", viewport: { width: 390, height: 844 }, serviceWorkers: "block" });
-await ctx.addInitScript(() => { localStorage.setItem("repere.visite", "1"); localStorage.setItem("repere.visite.seance", "1"); });
+await ctx.addInitScript(() => { localStorage.setItem("repere.visite", "1"); localStorage.setItem("repere.visite.seance", "1"); localStorage.setItem("repere.visite.creer", "1"); });
 await ctx.addInitScript((s) => { if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); sessionStorage.vu = 1; } }, etat);
 await ctx.route(/supabase\.co/, (r) => r.abort());
 const pg = await ctx.newPage();

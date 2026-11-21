@@ -22,6 +22,7 @@ import { ROUTINES_SOIN } from "@/lib/data/soin";
 import { rattacherJournaux } from "@/lib/logic/actions";
 import { fusionner } from "@/lib/logic/fusion";
 import { sourceNotee } from "@/lib/source";
+import { enDemo, marquerDemo } from "@/lib/demo";
 
 export const SKEY = "palier.state.v1";
 /* date (ts) de la dernière sauvegarde du compte que cet appareil a vue : si le compte a été
@@ -123,6 +124,10 @@ type Store = {
   sync: boolean | null; // vert : synchronisé · gris : hors ligne · null : inconnu
   session: "inconnue" | "ouverte" | "aucune";
   muter: (fn: (e: Etat) => void) => void;
+  /** Démonstration : l'état d'avant, rendu tel quel à la sortie (null hors démo). */
+  avantDemo: Etat | null;
+  entrerDemo: () => void;
+  sortirDemo: () => void;
   demarrer: () => Promise<void>;
   apresConnexion: (forcerDistant?: boolean) => Promise<string | null>;
   creerCompte: (pseudo: string, mail?: string) => Promise<{ ok: boolean; message?: string }>;
@@ -162,9 +167,25 @@ export const useRepere = create<Store>((set, get) => ({
   sync: null,
   session: "inconnue",
 
+  avantDemo: null,
+  entrerDemo() {
+    if (get().avantDemo) return;
+    if (minuteurPush) { clearTimeout(minuteurPush); minuteurPush = null; void get().pousser(); }
+    marquerDemo(true);
+    set({ avantDemo: get().etat });
+  },
+  sortirDemo() {
+    const avant = get().avantDemo;
+    if (!avant) return;
+    marquerDemo(false);
+    set({ etat: avant, avantDemo: null });
+  },
+
   muter(fn) {
     const etat = produce(get().etat, fn);
     set({ etat });
+    /* démonstration : rien n'est gardé ni envoyé */
+    if (enDemo()) return;
     try { localStorage.setItem(SKEY, JSON.stringify(instantane(etat))); } catch {}
     if (get().user) {
       if (minuteurPush) clearTimeout(minuteurPush);
@@ -174,7 +195,7 @@ export const useRepere = create<Store>((set, get) => ({
 
   async pousser() {
     const c = await sb(), u = get().user;
-    if (!c || !u) return;
+    if (!c || !u || enDemo()) return;
     try {
       /* un autre appareil a écrit depuis notre dernière lecture : on fusionne avant d'envoyer */
       const { data } = await c.from("etats").select("etat").eq("user_id", u.id).maybeSingle();
@@ -199,7 +220,7 @@ export const useRepere = create<Store>((set, get) => ({
   /* Retour sur l'app (ou retour du réseau) : on reprend ce qu'un autre appareil a fait entre-temps. */
   async tirer() {
     const c = await sb(), u = get().user;
-    if (!c || !u) return;
+    if (!c || !u || enDemo()) return;
     try {
       const { data } = await c.from("etats").select("etat").eq("user_id", u.id).maybeSingle();
       const distant = data?.etat as Stocke | undefined;

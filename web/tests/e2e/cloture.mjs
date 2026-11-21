@@ -17,7 +17,7 @@ const errs = [];
 async function contexte(e, langue, visiteSeance = false) {
   const ctx = await b.newContext({ locale: "fr-FR", viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
   await ctx.addInitScript(([s, l, v]) => {
-    if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); if (l) localStorage.setItem("repere.langue.v1", l); if (!v) localStorage.setItem("repere.visite.seance", "1"); sessionStorage.vu = 1; }
+    if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); if (l) localStorage.setItem("repere.langue.v1", l); if (!v) localStorage.setItem("repere.visite.seance", "1"); localStorage.setItem("repere.visite.creer", "1"); localStorage.setItem("repere.visite.creer", "1"); sessionStorage.vu = 1; }
   }, [e, langue, visiteSeance]);
   await ctx.route(/supabase\.co/, (r) => r.abort());
   const pg = await ctx.newPage();
@@ -44,6 +44,38 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
   await pg.reload();
   await pg.waitForTimeout(1800);
   ok(await bulle.count() === 0, "visite de la séance : une seule fois");
+  await ctx.close();
+}
+
+{
+  /* Menu ☰ › Visites guidées › « Ta séance » : une démonstration, rien n'est enregistré */
+  const [ctx, pg] = await contexte(etat([PUSH]), null, true);
+  await pg.goto(U + "/entrainement/");
+  await pg.waitForTimeout(1500);
+  const avant = await etatLu(pg);
+  await pg.getByRole("button", { name: "Menu" }).first().click();
+  await pg.getByRole("button", { name: /^Visites guidées/ }).click();
+  const feuille = pg.getByRole("dialog").filter({ hasText: "Visites guidées" });
+  await feuille.getByText("Ta séance", { exact: true }).waitFor();
+  ok(await feuille.getByText("Créer ta séance", { exact: true }).count() === 1 && await feuille.getByText("Découvrir l'app", { exact: true }).count() === 1, "Visites guidées : les 3 visites listées");
+  /* dans l'ordre : Découvrir l'app, Créer ta séance, Ta séance */
+  await feuille.getByRole("button", { name: /^(Lancer|Revoir)$/ }).nth(2).click();
+  await pg.waitForURL(/demo=1/);
+  await pg.getByText("essaie tout, rien n'est enregistré.").waitFor();
+  const bulle = pg.locator('[role="dialog"][aria-modal="true"]');
+  await bulle.locator("h3").waitFor({ timeout: 6000 });
+  ok((await bulle.locator("h3").innerText()) === "Note ta série", "démonstration : la visite de la séance démarre");
+  await bulle.getByRole("button", { name: "Passer" }).click();
+  await pg.getByRole("button", { name: /^Valider la série 1/ }).first().click();
+  await pg.waitForTimeout(500);
+  await pg.getByRole("button", { name: "Quitter" }).click();
+  await pg.waitForURL(/\/entrainement\/?$/);
+  await pg.waitForTimeout(800);
+  const apres = await etatLu(pg);
+  ok(apres.SEANCES.length === avant.SEANCES.length && JSON.stringify(apres.LOG) === JSON.stringify(avant.LOG) && (apres.HIST || []).length === (avant.HIST || []).length, "démonstration : rien d'enregistré (séances, séries, historique)");
+  await pg.reload(); await pg.waitForTimeout(1200);
+  const relu = await etatLu(pg);
+  ok(relu.SEANCES.length === avant.SEANCES.length, "démonstration : rien après rechargement non plus");
   await ctx.close();
 }
 

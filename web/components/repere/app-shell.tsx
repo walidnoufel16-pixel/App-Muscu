@@ -18,6 +18,7 @@ import { Bilan } from "./bilan";
 import { SurveillantBadges } from "./motivation";
 import { LogoDisque } from "./logo";
 import { FeuilleAvis } from "./avis-feuille";
+import { FeuilleVisites } from "./visites";
 import { Visite } from "./visite";
 import { AccueilPremier, useAccueil } from "./accueil-premier";
 import { useProgrammeActif } from "@/lib/fonctionnalites";
@@ -103,6 +104,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {onglets && <Installer />}
       {onglets && <MenuLateral />}
       {onglets && <FeuilleAvis />}
+      {onglets && <FeuilleVisites />}
       {onglets && <Visite />}
       {/* le bandeau de mise à jour attend qu'on quitte une tâche en cours (séance, composeur…) */}
       <MiseAJour visible={onglets} auto={chemin === "/" || chemin === "/bienvenue"} />

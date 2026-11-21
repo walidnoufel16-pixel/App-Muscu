@@ -19,7 +19,7 @@ const cap = async (pg, n) => { if (process.env.CAPTURES) await pg.screenshot({ p
 const etat = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")));
 
 const ctx = await b.newContext({ locale: "fr-FR", viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
-await ctx.addInitScript((s) => { if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); localStorage.setItem("repere.visite", "1"); localStorage.setItem("repere.visite.seance", "1"); sessionStorage.vu = 1; } }, base);
+await ctx.addInitScript((s) => { if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); localStorage.setItem("repere.visite", "1"); localStorage.setItem("repere.visite.seance", "1"); localStorage.setItem("repere.visite.creer", "1"); sessionStorage.vu = 1; } }, base);
 await ctx.route(/supabase\.co/, (r) => r.abort());
 const pg = await ctx.newPage();
 const errs = []; pg.on("pageerror", (e) => errs.push(e.message));
@@ -137,7 +137,7 @@ ok(!errs.length, "aucune erreur JS " + errs.join(" | "));
 
 // un compte qui n'a jamais fait de séance : « Comment veux-tu commencer ? » (Oxa prépare, ou je compose)
 const ctx2 = await b.newContext({ locale: "fr-FR", viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
-await ctx2.addInitScript((s) => { if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); localStorage.setItem("repere.visite", "1"); localStorage.setItem("repere.visite.seance", "1"); sessionStorage.vu = 1; } }, { ...base, A: { ...base.A, sexe: undefined, regularite: undefined }, HIST: [], SEANCES: [] });
+await ctx2.addInitScript((s) => { if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); localStorage.setItem("repere.visite", "1"); localStorage.setItem("repere.visite.seance", "1"); localStorage.setItem("repere.visite.creer", "1"); sessionStorage.vu = 1; } }, { ...base, A: { ...base.A, sexe: undefined, regularite: undefined }, HIST: [], SEANCES: [] });
 await ctx2.route(/supabase\.co/, (r) => r.abort());
 const pg2 = await ctx2.newPage();
 await pg2.goto(U + "/entrainement/");
