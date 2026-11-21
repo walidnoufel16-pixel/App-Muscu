@@ -87,6 +87,13 @@ et, s'il y a une leçon nouvelle, `docs/reseaux/enseignements.md`.
   Ne mets jamais l'historique réel d'un utilisateur dans un contenu.
 - Regarde chaque image produite avant de livrer : rien de coupé, rien qui dépasse, texte lisible
   sur téléphone, aucune faute.
+- **Vidéos libres de droits (horizontales) dans un format vertical** : ne jamais recadrer une bande
+  étroite au centre ni ajouter de zoom (on ne voit plus qu'un tiers de l'image, souvent un corps).
+  Mise en page par défaut : la vidéo presque entière dans une bande au centre (environ 800 px de haut),
+  le fond = la même vidéo floutée et assombrie, le texte au-dessus de la bande, jamais sur l'action
+  (modèle : `outils/reseaux/reel-textes-soulever-lourd.js`). Avant de livrer, extrais une image par plan
+  et vérifie toi-même : cadrage, ce qui est au centre (l'action, la charge, le visage, pas un corps),
+  pas deux plans identiques à la suite. Walid ne doit pas avoir à le signaler.
 
 ## Ce que tu livres
 Un dossier `docs/reseaux/semaine-N/` avec les MP4, les carrousels (`carrousel-…/1..6.png`),
