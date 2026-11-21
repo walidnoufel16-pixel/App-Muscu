@@ -11,7 +11,8 @@ Liens de bio : `https://oxafit.app/?src=tiktok`, `?src=instagram`, `?src=youtube
   le 18 novembre (ses fichiers ne sont pas dans le dépôt).
 - Meilleure publication : carrousel « Il faut soulever lourd pour prendre du muscle ? »
   (18 nov., TikTok : 1 129 vues, 4 enregistrements, 5 followers). Voir `stats/2026-11-21.md`.
-- Dernier relevé de stats : 21 novembre (ce carrousel seulement).
+- Moins bonne : vidéo « Tu stagnes ? 3 erreurs à éviter » (20 nov.) : 721 vues mais 1,6 s de visionnage moyen.
+- Dernier relevé de stats : 21 novembre (ces deux publications seulement).
 - Prochaine étape : mettre à jour ce bloc à la fin de chaque session.
 
 ## Les fichiers

@@ -18,6 +18,9 @@ avec la date et la source (fichier de stats). Rayer ou supprimer ce qui est cont
 - Aucun clic mesuré vers l'app (`?src=`). (stats 6 et 8 nov.)
 - Carrousel : on perd les gens après l'image 2 ou 3 (2,6 / 6 vues) quand les images intérieures sont
   blanches et chargées de petit texte. Zéro commentaire sans question finale. (stats 21 nov.)
+- Photo de personne en première image (« Tu stagnes ? ») : 721 vues mais 1,6 s de visionnage moyen et
+  0 follower. La photo attire un public (82 % de femmes) sans lui promettre de réponse ; on regarde et on passe.
+  L'heure de publication n'explique pas ce résultat. (stats 21 nov.)
 
 ## Règles pour les prochains packs
 1. Première image : phrase choc ou situation vécue, plein écran sombre, sans écran d'app.
@@ -30,6 +33,8 @@ avec la date et la source (fichier de stats). Rayer ou supprimer ce qui est cont
 8. Faire de « La science dit » une série régulière (un mythe par semaine).
 9. Carrousels : images intérieures sombres comme la couverture, une idée et gros texte par image,
    réponse courte dès l'image 2, question en un mot sur la dernière.
+10. Juger une vidéo d'abord sur le temps de visionnage moyen et le % regardé en entier, pas sur les vues.
+11. Pas de photo de personne en accroche : le texte de la question doit être l'élément principal.
 
 ## Chiffres à demander à chaque relevé
 - TikTok : durée moyenne de visionnage, % regardé en entier, visites du profil, nouveaux followers ;
