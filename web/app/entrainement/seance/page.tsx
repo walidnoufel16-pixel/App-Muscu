@@ -352,7 +352,7 @@ function SeanceLibre({ i }: { i: number }) {
 
   return (
     <Cadre
-      surtitre={tr("{a} · {length} exercice{a1}{a2} · environ {a3} min", { a: blocs.length ? tr("Séance combinée") : tr("Ma séance"), length: S.ex.length, a1: pluriel(S.ex.length) ? "s" : "", a2: blocs.length ? tr(" + {length} cardio", { length: blocs.length }) : "", a3: dureeSeance(S) })}
+      surtitre={tr("{a} · {length}\u00a0exercice{a1}{a2} · environ\u00a0{a3}\u00a0min", { a: blocs.length ? tr("Séance combinée") : tr("Ma séance"), length: S.ex.length, a1: pluriel(S.ex.length) ? "s" : "", a2: blocs.length ? tr(" + {length} cardio", { length: blocs.length }) : "", a3: dureeSeance(S) })}
       titre={S.nom}
       faits={faits} total={cles.length + blocs.length}
       sect={sect} setSect={setSect}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -31,6 +31,9 @@ export function EnTete({
     return !!prec && !["/", "/bienvenue", "/questionnaire"].includes(prec);
   });
   const ref = useRef<HTMLHeadingElement>(null);
+  /* le titre réduit de la barre : coupé, il n'est pas affiché */
+  const reduit = useRef<HTMLDivElement>(null);
+  const [coupe, setCoupe] = useState(false);
   const [replie, setReplie] = useState(false);
   const [fond, setFond] = useState(false);
   /* la barre est rendue hors de la page (dans <body>), comme la barre d'onglets : dans la page,
@@ -47,6 +50,15 @@ export function EnTete({
     window.addEventListener("scroll", defile, { passive: true });
     return () => { io.disconnect(); window.removeEventListener("scroll", defile); };
   }, []);
+  useLayoutEffect(() => {
+    const el = reduit.current;
+    if (!el) return;
+    const mesurer = () => setCoupe(el.scrollWidth > el.clientWidth + 1);
+    mesurer();
+    const ro = new ResizeObserver(mesurer);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [monte, titre, actions]);
   return (
     <>
       {/* Barre fixe (et non « sticky ») : sur iPhone, le contenu d'une barre sticky est dessiné flou.
@@ -69,10 +81,12 @@ export function EnTete({
         {/* retour à gauche, actions à droite, de même largeur : le titre réduit est centré sur l'écran (tronqué plutôt que chevauchant) */}
         <div className="relative grid h-11 grid-cols-[minmax(max-content,1fr)_minmax(0,auto)_minmax(max-content,1fr)] items-center gap-2 px-4">
           <div className="flex min-w-0 items-center">{gauche ?? (estRacine(chemin) ? <>{retourPossible && <Retour repli="/entrainement" />}<BoutonMenu /></> : null)}</div>
+          {/* pas la place pour le titre en entier (« F… » ne dirait rien) : on ne l'affiche pas */}
           <div
+            ref={reduit}
             className={cn(
               "pointer-events-none truncate text-center text-[15px] font-semibold",
-              !replie && "invisible",
+              (!replie || coupe) && "invisible",
             )}
             aria-hidden
           >
