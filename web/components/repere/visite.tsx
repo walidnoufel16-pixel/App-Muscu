@@ -201,6 +201,16 @@ export function Bulle({ b, i, total, onSuivant, onPasser, onAbsent = onSuivant, 
     return () => { vivant = false; clearTimeout(t); removeEventListener("resize", mesurer); removeEventListener("scroll", mesurer, true); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [b.cible]);
+  /* pendant une bulle, la page ne défile plus (sinon le repère glisse sous le voile et le cadre
+     éclaire autre chose) ; le défilement automatique vers le repère, lui, reste possible */
+  useEffect(() => {
+    const h = document.documentElement, bo = document.body, avant = [h.style.overflow, bo.style.overflow];
+    h.style.overflow = "hidden"; bo.style.overflow = "hidden";
+    const bloquer = (e: Event) => e.preventDefault();
+    addEventListener("touchmove", bloquer, { passive: false });
+    addEventListener("wheel", bloquer, { passive: false });
+    return () => { h.style.overflow = avant[0]; bo.style.overflow = avant[1]; removeEventListener("touchmove", bloquer); removeEventListener("wheel", bloquer); };
+  }, []);
   if (!r) return null;
   const pad = 6, rond = b.cible === "menu" || b.cible === "profil" ? 999 : 18;
   const enBas = r.top > innerHeight / 2;
@@ -208,7 +218,7 @@ export function Bulle({ b, i, total, onSuivant, onPasser, onAbsent = onSuivant, 
   return (
     <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label={b.t()}>
       {/* le voile, percé autour du repère */}
-      <div className="absolute transition-all duration-300 ease-out"
+      <div className="absolute"
         style={{ left: r.left - pad, top: r.top - pad, width: r.width + pad * 2, height: r.height + pad * 2, borderRadius: rond, boxShadow: "0 0 0 9999px rgba(10,10,12,.6)", outline: "3px solid var(--plate)" }} />
       <div className="absolute inset-x-4 animate-[monter_.35s_ease-out_both] rounded-[22px] bg-card p-4 shadow-[0_20px_40px_-12px_rgba(0,0,0,.5)]"
         style={enBas ? { bottom: innerHeight - r.top + pad + 14 } : { top: r.bottom + pad + 14 }}>
