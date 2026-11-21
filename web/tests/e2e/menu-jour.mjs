@@ -30,6 +30,14 @@ await pg.getByRole("button", { name: /^Programmer( une séance)?$/ }).first().wa
 await pg.waitForTimeout(800);
 ok(!(await pg.getByText("Oxa te propose").count()) && !(await pg.getByText("Repos ou cardio léger").count()), "accueil sans « Oxa te propose » ni « Repos ou cardio léger »");
 await cap(pg, "accueil");
+// « Comment as-tu connu Oxa ? » : pour qui n'y a jamais répondu, une seule fois ; « Passer » la retire
+const connu = pg.getByRole("region", { name: "Comment as-tu connu Oxa ?" });
+ok(await connu.count() === 1 && await connu.getByText("TikTok").count() === 1, "carte « Comment as-tu connu Oxa ? » (jamais répondu, sans ?src=)");
+await connu.getByRole("button", { name: "Passer" }).click();
+await pg.waitForTimeout(300);
+ok(await connu.count() === 0 && (await etat(pg)).A.connu === "passe", "« Passer » : la carte disparaît, A.connu = passe");
+await pg.reload(); await pg.getByRole("button", { name: /^Programmer( une séance)?$/ }).first().waitFor(); await pg.waitForTimeout(600);
+ok(await connu.count() === 0, "la carte ne revient pas");
 
 // le menu du jour
 await pg.getByRole("button", { name: /^Programmer( une séance)?$/ }).first().click();

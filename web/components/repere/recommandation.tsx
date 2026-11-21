@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { ArrowRightIcon, CheckIcon } from "@phosphor-icons/react";
 import { dateDe, decaler, jourDe } from "@/lib/logic/historique";
-import { lister, nomGroupe, phrase, nomZone, ZONES_ECARTABLES, basculerZone, ecartesDe, type ZoneEcartable } from "@/lib/logic/recommandation";
+import { nomGroupe, phrase, nomZone, ZONES_ECARTABLES, basculerZone, ecartesDe, type ZoneEcartable } from "@/lib/logic/recommandation";
 import { recoPour } from "@/lib/logic/agenda";
 import { jourCourt } from "./agenda";
 import { useRepere } from "@/lib/store";
