@@ -30,7 +30,7 @@ avec la date et la source (fichier de stats). Rayer ou supprimer ce qui est cont
 5. Finir par une question qui se répond en un mot.
 6. Alterner démos d'app et formats « astuce à enregistrer ».
 7. Juger sur 2 à 3 semaines, jamais sur une seule vidéo.
-8. Faire de « La science dit » une série régulière (un mythe par semaine).
+8. Faire de « La science dit » une série régulière (un mythe par semaine). Sans numéro (décision de Walid).
 9. Carrousels : images intérieures sombres comme la couverture, une idée et gros texte par image,
    réponse courte dès l'image 2, question en un mot sur la dernière.
 10. Juger une vidéo d'abord sur le temps de visionnage moyen et le % regardé en entier, pas sur les vues.
