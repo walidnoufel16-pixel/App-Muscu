@@ -20,7 +20,11 @@ et, s'il y a une leçon nouvelle, `docs/reseaux/enseignements.md`.
 - **Promesse** : « Touche un muscle. Ta séance est prête. »
 - **Style visuel** : fond noir dégradé (#0a0a0c → #17322f), turquoise #2dd4bf pour l'accent,
   blanc, police Inter Display très grasse pour les titres. Logo : `docs/reseaux/photo-profil-oxa.png`.
-- **Sans visage** : on montre l'app (vraies captures), du texte à l'écran, des schémas, jamais de personne.
+- **Walid n'apparaît jamais** (ni visage ni voix). On montre l'app (vraies captures), du texte à l'écran,
+  des schémas, et des vidéos ou photos libres de droits (Pixabay, Pexels…) où d'autres personnes peuvent
+  apparaître. L'image doit illustrer le conseil ; le texte reste l'élément principal.
+- **Avant de proposer un contenu**, appuie-toi sur `docs/reseaux/enseignements.md` et les derniers relevés
+  de `docs/reseaux/stats/` (meilleure publication : carrousel « La science dit » du 18 nov.).
 
 ## Règles qui ne se discutent pas
 - Ne jamais mettre en avant « gratuit » ni « sans pub ».
