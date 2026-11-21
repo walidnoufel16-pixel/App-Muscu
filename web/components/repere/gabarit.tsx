@@ -92,10 +92,10 @@ export function BandeauGabarit({ g, vides, onModifier, onDuree, onCompleter, onV
   const n = compte(g.cases), roles = (["b", "c", "i", "g"] as RoleEx[]).filter((r) => n[r]);
   const lien = "inline-flex h-11 items-center px-2 text-[13.5px] font-semibold text-muted-foreground active:opacity-70";
   return (
-    <section aria-label={tr("Ton plan de séance")} className="flex flex-col gap-3 rounded-[20px] border border-border/80 bg-card px-3.5 pt-3.5 shadow-[0_1px_2px_rgb(10_10_12/0.05)]">
+    <section data-visite="creer-cases" aria-label={tr("Ton plan de séance")} className="flex flex-col gap-3 rounded-[20px] border border-border/80 bg-card px-3.5 pt-3.5 shadow-[0_1px_2px_rgb(10_10_12/0.05)]">
       <div className="flex items-center gap-2">
         <h2 className="titre min-w-0 flex-1 text-[18px] leading-tight">{tr("Ton plan")} · <span className="num text-[20px]">{g.cases.length}</span> {tr("exercices")}</h2>
-        <button onClick={onModifier} className="-my-2.5 -mr-1.5 inline-flex h-11 shrink-0 items-center px-1.5 text-[14px] font-semibold text-plate-ink dark:text-plate">{tr("Muscles")}</button>
+        <button onClick={onModifier} data-visite="creer-muscles" className="-my-2.5 -mr-1.5 inline-flex h-11 shrink-0 items-center px-1.5 text-[14px] font-semibold text-plate-ink dark:text-plate">{tr("Muscles")}</button>
       </div>
       <Segmente label={tr("Durée de la séance")} valeur={g.d} onChange={(d) => { tactile(6); onDuree(d); }} options={[30, 45, 60].map((d) => ({ v: d, n: tr("{a} min", { a: d }) }))} />
       <p className="text-[14px] leading-snug text-muted-foreground">

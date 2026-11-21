@@ -7,8 +7,7 @@
 import { langue, tr } from "@/lib/i18n";
 import { usePathname, useRouter } from "next/navigation";
 import type { Route } from "next";
-import { BarbellIcon, BellIcon, CompassIcon, CaretRightIcon, ChatCircleTextIcon, CircleHalfIcon, DeviceMobileIcon, ForkKnifeIcon, ListIcon, NewspaperIcon, ToolboxIcon, UserPlusIcon, WrenchIcon, type Icon } from "@phosphor-icons/react";
-import { toast } from "sonner";
+import { BellIcon, CompassIcon, CaretRightIcon, ChatCircleTextIcon, CircleHalfIcon, DeviceMobileIcon, ForkKnifeIcon, ListIcon, NewspaperIcon, ToolboxIcon, UserPlusIcon, WrenchIcon, type Icon } from "@phosphor-icons/react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { useRepere } from "@/lib/store";
 import { useEstAdmin } from "@/lib/admin";
@@ -16,8 +15,7 @@ import { useMenu } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 import { appInstallee } from "./installer";
 import { inviterAmi } from "./inviter";
-import { revoirVisite } from "./visite";
-import { revoirVisiteSeance } from "./visite-seance";
+import { useVisitesNonVues } from "./visites";
 import { cn } from "@/lib/utils";
 
 /* Les écrans des quatre onglets, et « Compte et réglages » : le bouton ☰ y remplace le retour. */
@@ -55,10 +53,11 @@ export function MenuLateral() {
   const { pseudo, user, sync } = useRepere();
   const admin = useEstAdmin() === true;
   const fermer = () => useMenu.setState({ ouvert: false });
+  const nonVues = useVisitesNonVues();
   const va = (c: string, ancre?: string) => () => { tactile(5); fermer(); setTimeout(() => allerA(router, c, ancre), 180); };
   const initiale = (pseudo || "?").trim().charAt(0).toUpperCase();
 
-  type Ligne = { Icone: Icon; n: string; onClick: () => void; cache?: boolean };
+  type Ligne = { Icone: Icon; n: string; onClick: () => void; cache?: boolean; badge?: string };
   const ouvrir = (cle: "installer" | "avis") => () => { tactile(5); fermer(); setTimeout(() => useMenu.setState({ [cle]: true }), 250); };
   const blocs: { titre: string; l: Ligne[] }[] = [
     {
@@ -75,8 +74,7 @@ export function MenuLateral() {
       l: [
         { Icone: ChatCircleTextIcon, n: tr("Donner mon avis"), onClick: ouvrir("avis") },
         { Icone: NewspaperIcon, n: tr("Le blog Oxa"), onClick: va(langue() === "en" ? "/en/blog" : "/blog") },
-        { Icone: CompassIcon, n: tr("Revoir la visite"), onClick: () => { tactile(5); fermer(); setTimeout(revoirVisite, 300); } },
-        { Icone: BarbellIcon, n: tr("Revoir la visite de la séance"), onClick: () => { tactile(5); revoirVisiteSeance(); fermer(); toast(tr("C'est noté"), { description: tr("Elle s'affichera au début de ta prochaine séance.") }); } },
+        { Icone: CompassIcon, n: tr("Visites guidées"), badge: nonVues ? tr(nonVues > 1 ? "{n} nouvelles" : "{n} nouvelle", { n: nonVues }) : undefined, onClick: () => { tactile(5); fermer(); setTimeout(() => useMenu.setState({ visites: true }), 300); } },
         { Icone: DeviceMobileIcon, n: tr("Installer l'app"), onClick: ouvrir("installer"), cache: appInstallee() && !admin },
         { Icone: WrenchIcon, n: tr("Administration"), onClick: va("/admin"), cache: !admin },
       ],
@@ -120,6 +118,7 @@ export function MenuLateral() {
                     {/* même dessin que les icônes des onglets : trait fin, 22 px */}
                     <x.Icone className="size-[22px] shrink-0 text-foreground" aria-hidden />
                     <span className="flex-1 text-[15px] font-medium">{x.n}</span>
+                    {x.badge && <span className="rounded-full bg-plate px-2 py-0.5 text-[11px] font-bold text-plate-foreground">{x.badge}</span>}
                     <CaretRightIcon className="size-3.5 text-muted-foreground" />
                   </button>
                 ))}

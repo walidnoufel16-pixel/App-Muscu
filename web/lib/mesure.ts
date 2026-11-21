@@ -6,6 +6,7 @@
    protégé, et sans Supabase la file reste simplement en attente. */
 import { sb } from "@/lib/supabase";
 import { sourceNotee } from "@/lib/source";
+import { enDemo } from "@/lib/demo";
 
 export const NOMS = ["ouverture", "premiere_serie", "seance_terminee", "seance_arretee", "rubrique_ouverte", "plan_genere", "repas_note", "visite_finie", "seance_programmee", "chemin_choisi", "seance_prete"] as const;
 export type NomEvenement = (typeof NOMS)[number];
@@ -60,7 +61,7 @@ function dejaNote(nom: NomEvenement) {
 }
 
 export function noter(nom: NomEvenement, props?: Record<string, unknown>) {
-  if (!NOMS.includes(nom) || dejaNote(nom)) return;
+  if (!NOMS.includes(nom) || enDemo() || dejaNote(nom)) return;
   const e: Evenement = { nom, jour: jourLocal() };
   const p = nettoyerProps(props);
   if (p) e.props = p;

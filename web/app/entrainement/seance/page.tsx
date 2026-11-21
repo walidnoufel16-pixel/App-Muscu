@@ -3,7 +3,7 @@
 /* Une séance, en plein écran : la même pour le plan (semaine et séance en cours
    dans l'état) et pour une séance libre (?l=index). La barre d'onglets s'efface. */
 import { pluriel, tr } from "@/lib/i18n";
-import { Fragment, Suspense, useMemo, useState, ViewTransition } from "react";
+import { Fragment, Suspense, useEffect, useMemo, useState, ViewTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BookmarkSimpleIcon, BowlFoodIcon, ChartLineUpIcon, CheckIcon, FlameIcon, HeartbeatIcon, InfoIcon, PencilSimpleIcon, PlayIcon, PlusIcon } from "@phosphor-icons/react";
 import { FeuilleAjout } from "@/components/repere/ajout-exercice";
@@ -15,7 +15,7 @@ import { ExerciceCarte, Vignette } from "@/components/repere/exercice-carte";
 import { FormeDuJour } from "@/components/repere/forme";
 import { FicheExercice, type FicheOuverte } from "@/components/repere/fiche-exercice";
 import { Collation, Echauffement, Remplacer } from "@/components/repere/seance-vues";
-import { VisiteSeance } from "@/components/repere/visite-seance";
+import { BandeauDemo, finDemoEnQuittant, VisiteSeance } from "@/components/repere/visites";
 import { BarreSerie, TableauSeries } from "@/components/repere/tableau-series";
 import { avecSupersets, CadreSuperset, partenaire } from "@/components/repere/superset";
 import { CarteSport } from "@/components/repere/carte-sport";
@@ -456,11 +456,15 @@ function Introuvable() {
 }
 
 function Seance() {
-  const l = useSearchParams().get("l");
+  const q = useSearchParams(), l = q.get("l"), demo = q.get("demo") === "1" && !!useRepere.getState().avantDemo;
+  const router = useRouter();
+  /* démonstration (Visites guidées › Ta séance) : en quittant la page, l'état d'avant revient */
+  useEffect(() => (demo ? finDemoEnQuittant(() => location.pathname.includes("/entrainement/seance") && location.search.includes("demo=1")) : undefined), [demo]);
   return (
     <>
+      {demo && <BandeauDemo onQuitter={() => router.replace("/entrainement" as Route)} />}
       {l != null ? <SeanceLibre i={Number(l)} /> : <SeancePlan />}
-      <VisiteSeance />
+      <VisiteSeance force={demo} />
     </>
   );
 }
