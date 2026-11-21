@@ -15,5 +15,6 @@ Réseaux : TT = TikTok, IG = Instagram, YT = YouTube Shorts.
 | Sam. 14 nov. | Vidéo 5 · Muscles encore fatigués ? (ép. 5) | S2 | TT, IG, YT | à relever |
 | Dim. 15 nov. | Carrousel 4 · Pas de courbatures = séance ratée ? | S2 | IG, TT | à relever |
 | Mar. 17 nov. | Vidéo 6 · Lundi, mercredi, vendredi : tu fais quoi ? (ép. 6) | S2 | TT, IG, YT | à relever |
+| Mer. 18 nov. 12 h 18 | Carrousel · Il faut soulever lourd pour prendre du muscle ? (La science dit) | S3 | TT (photo) | **Record** : 1 129 vues, 9 j'aime, 4 enreg., 2 partages, 5 followers ; 2,6 / 6 photos vues. IG à relever |
 
 Dates prévues dans les packs : à corriger si une publication a été décalée ou annulée.

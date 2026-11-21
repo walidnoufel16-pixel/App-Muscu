@@ -7,9 +7,11 @@ Comptes : TikTok @oxafit.app · Instagram @oxafit.app · YouTube @oxafit
 Liens de bio : `https://oxafit.app/?src=tiktok`, `?src=instagram`, `?src=youtube` (mesurés dans Admin › Mesure).
 
 ## Où en est-on
-- Packs publiés : semaine 1 (6 au 10 novembre) et semaine 2 (11 au 17 novembre).
-- Pack 3 : prévu à partir du mercredi 18 novembre (épisode 7), pas encore dans le dépôt. À confirmer.
-- Dernier relevé de stats : 8 novembre.
+- Packs publiés : semaine 1 (6 au 10 novembre), semaine 2 (11 au 17 novembre), pack 3 commencé
+  le 18 novembre (ses fichiers ne sont pas dans le dépôt).
+- Meilleure publication : carrousel « Il faut soulever lourd pour prendre du muscle ? »
+  (18 nov., TikTok : 1 129 vues, 4 enregistrements, 5 followers). Voir `stats/2026-11-21.md`.
+- Dernier relevé de stats : 21 novembre (ce carrousel seulement).
 - Prochaine étape : mettre à jour ce bloc à la fin de chaque session.
 
 ## Les fichiers
