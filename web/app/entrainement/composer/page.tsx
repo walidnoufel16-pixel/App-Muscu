@@ -320,7 +320,9 @@ export default function PageComposer() {
         {!(choixM || (L.guide && !gab && !L.ex.length && !L.blocs?.length)) && pastille("mat", tr("Matériel · {n}", { n: nbMat }))}
         {pastille("nom", <><PencilSimpleIcon className="size-4" />{tr("Nom")}</>)}
       </div>
-      <div className="flex flex-col gap-5 px-4 pt-3 pb-28">
+      {/* de la place sous le dernier élément : la barre du bas (plus haute avec « Garder aussi dans Mes
+          séances ») ne cache rien */}
+      <div className={cn("flex flex-col gap-5 px-4 pt-3", (L.pour && L.gen && L.idx == null) || (L.idx != null && !!L.auto) ? "pb-[calc(12rem+env(safe-area-inset-bottom))]" : "pb-[calc(8rem+env(safe-area-inset-bottom))]")}>
         {panneau && (
           <section className="animate-in fade-in-0 -mt-1">
             {panneau === "jour" && L.pour && <ChoixJour valeur={L.pour} auj={aujHui} onChange={(d) => { tactile(6); majLibre((l) => { l.pour = d; }); setPanneau(null); }} />}
