@@ -68,7 +68,7 @@ function Contenu() {
           <div className="flex flex-col gap-6 pb-20">
             {/* tes séances d'abord, puis le corps pour en créer une sur les muscles touchés ; créer, composer et importer passent par le bouton + et les raccourcis de l'accueil (sans séance : ici aussi) */}
             {aDesSeances && <MesSeances />}
-            <CorpsDuJour titre={aDesSeances ? tr("Ou travaille autre chose aujourd'hui ?") : tr("Qu'est-ce que tu travailles aujourd'hui ?")} />
+            <CorpsDuJour titre={aDesSeances ? tr("Envie d'autre chose ? Choisis tes muscles du jour") : tr("Qu'est-ce que tu travailles aujourd'hui ?")} />
             {aDesSeances ? <FeuilleImport /> : <CreerSeance />}
           </div>
         ) : v === "programme" ? (
