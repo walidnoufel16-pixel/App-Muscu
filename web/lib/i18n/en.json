@@ -3503,6 +3503,7 @@
   "Mettre à jour la note": "Update the note",
   "Rien à regarder : tout est analysé.": "Nothing to check: everything is analysed.",
   "Script extérieur à l'appli (extension, traduction, bloqueur de pub) : le navigateur en cache le détail. Plus remontée depuis le 18 nov.": "Script from outside the app (extension, translation, ad blocker): the browser hides the details. No longer reported since Nov 18.",
+  "Robot qui exécute la page hors d'un vrai navigateur (moteur Deno), pas un utilisateur. Plus remontée depuis le 22 nov.": "A bot running the page outside a real browser (Deno engine), not a user. No longer reported since Nov 22.",
   "erreur à regarder": "error to check",
   "erreurs à regarder": "errors to check",
   "voir l'onglet Technique": "see the Technical tab",
