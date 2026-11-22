@@ -22,6 +22,9 @@ avec la date et la source (fichier de stats). Rayer ou supprimer ce qui est cont
   0 follower. La photo attire un public (82 % de femmes) sans lui promettre de réponse ; on regarde et on passe.
   L'heure de publication n'explique pas ce résultat. (stats 21 nov.)
 
+- Vidéos de démonstration d'une fonction de l'app (vidéo 1, partage par code du 22 nov.) : des vues mais aucune réaction ni
+  abonné. Le contenu utile fait réagir, la démo non. L'app doit arriver en solution à la fin, pas être le sujet. (stats 22 nov.)
+
 ## Règles pour les prochains packs
 1. Première image : phrase choc ou situation vécue, plein écran sombre, sans écran d'app.
 2. Mouvement dès la première demi-seconde.
@@ -34,6 +37,8 @@ avec la date et la source (fichier de stats). Rayer ou supprimer ce qui est cont
 9. Carrousels : images intérieures sombres comme la couverture, une idée et gros texte par image,
    réponse courte dès l'image 2, question en un mot sur la dernière.
 10. Juger une vidéo d'abord sur le temps de visionnage moyen et le % regardé en entier, pas sur les vues.
+14. Cohérence image / message : ce qu'on montre (exercice, muscle) doit correspondre à ce qu'on dit et à la séance
+    montrée dans l'app (retour de Walid du 22 nov. : jambes à l'image, séance pecs partagée). Vérifier avant de livrer.
 13. Couverture de Reel : texte seul sur fond sombre, comme une couverture de carrousel « La science dit »
     (bandeau, question en gros, trait turquoise, « Ce que disent les études → »). Pas d'extrait de la vidéo ni de photo.
 12. Vidéos horizontales en format vertical : vidéo presque entière au centre, fond flouté, texte au-dessus,

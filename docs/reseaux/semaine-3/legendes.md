@@ -34,3 +34,33 @@ Les études le montrent : lourd ou léger, ton muscle grossit pareil si tu fais 
 Tu soulèves lourd ? Oui ou non 👇
 #musculationfemme #fitgirl #musculation #lasciencedit #salledesport
 ```
+
+## Vidéo · Ton binôme te demande ta séance ? (conversation, partage par code)
+Fichier : `video-partage-code.mp4` (16,3 s, 1080×1920, muet : ajouter un son tendance). Couverture : `video-partage-code-couverture.png`.
+Où : Instagram Reels et TikTok. Quand : à choisir (18 h 30 conseillé).
+Déroulé : conversation de messages entre Léa et Inès (« Elle était trop bien ta séance jambes 🔥 Tu me l'envoies ? »),
+écrans de l'app (partage de la séance Jambes, code K7P2X), séance « Jambes (reçue) » chez Inès, qu'elle adapte (ses charges, son repos), « Reçue ✅ Même séance jeudi ? »,
+« Deal 💪 », fin Oxa. Écrans : compte de démonstration, aucune donnée réelle. Pas de vidéo de personnes : rien à contredire.
+Images : `outils/reseaux/video-partage-conversation-images.js`.
+
+**Légende**
+```
+Ton binôme te demande ce que tu fais comme séance ? 📲
+Avec Oxa, tu lui envoies un code et il récupère ta séance : mêmes exercices, mêmes séries. Ensuite, il l'adapte à lui : ses charges, son temps de repos.
+Identifie ton partenaire de salle 👇
+#musculation #salledesport #gymbuddy #programmemusculation #oxa
+```
+
+## Carrousel · Les 4 règles non écrites de la salle
+Dossier : `carrousel-regles-salle/` (6 images 1080×1350, sombres). Script : `outils/reseaux/carrousel-regles-salle.js`.
+Où : TikTok (mode photo) et Instagram. Quand : dimanche 22 novembre au soir.
+But : faire commenter (« 1, 2, 3 ou 4 », « d'accord ou pas ») et identifier un ami. Oxa seulement en solution sur la dernière image.
+
+**Légende (TikTok et Instagram)**
+```
+Les 4 règles non écrites de la salle 🏋️
+La n°4 divise tout le monde… d'accord ou pas ?
+Laquelle t'énerve le plus : 1, 2, 3 ou 4 ? 👇
+Identifie la personne qui ne range jamais ses disques 😅
+#salledesport #musculation #gymtok #gymlife #regledesalle
+```
