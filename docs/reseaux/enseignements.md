@@ -22,6 +22,9 @@ avec la date et la source (fichier de stats). Rayer ou supprimer ce qui est cont
   0 follower. La photo attire un public (82 % de femmes) sans lui promettre de réponse ; on regarde et on passe.
   L'heure de publication n'explique pas ce résultat. (stats 21 nov.)
 
+- Vidéos de démonstration d'une fonction de l'app (vidéo 1, partage par code du 22 nov.) : des vues mais aucune réaction ni
+  abonné. Le contenu utile fait réagir, la démo non. L'app doit arriver en solution à la fin, pas être le sujet. (stats 22 nov.)
+
 ## Règles pour les prochains packs
 1. Première image : phrase choc ou situation vécue, plein écran sombre, sans écran d'app.
 2. Mouvement dès la première demi-seconde.

@@ -19,5 +19,6 @@ Réseaux : TT = TikTok, IG = Instagram, YT = YouTube Shorts.
 | Ven. 20 nov. 15 h 25 | Vidéo · Tu stagnes ? 3 erreurs à éviter (photo d'une femme en gainage) | S3 | TT | 721 vues mais 1,6 s de visionnage moyen, 0,51 % en entier, 0 follower ; 82 % de femmes |
 | Sam. 21 nov. | Carrousel « La science dit » · Pas de courbatures = séance ratée ? | S3 | TT (photo) | à relever (pas publié sur IG) |
 | Sam. 21 nov. ~18 h 30 | Reel · Soulever lourd va me rendre trop musclée ? | S3 | IG | à relever |
+| Dim. 22 nov. 11 h 31 | Vidéo conversation · Ton binôme te demande ta séance ? (partage par code) | S3 | TT, IG | TT 614 vues, 1,6 s ; IG 125 vues, 4 s, 57 % d'abandon ; aucune réaction, 0 follower |
 
 Dates prévues dans les packs : à corriger si une publication a été décalée ou annulée.
