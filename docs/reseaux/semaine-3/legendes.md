@@ -34,3 +34,17 @@ Les études le montrent : lourd ou léger, ton muscle grossit pareil si tu fais 
 Tu soulèves lourd ? Oui ou non 👇
 #musculationfemme #fitgirl #musculation #lasciencedit #salledesport
 ```
+
+## Vidéo · Ton binôme te demande ta séance ? (partage par code)
+Fichier : `video-partage-code.mp4` (12,5 s, 1080×1920, muet : ajouter un son tendance). Couverture : `video-partage-code-couverture.png`.
+Où : Instagram Reels et TikTok. Quand : à choisir (18 h 30 conseillé).
+Plans : vidéo Pixabay n° 135159 (une femme et son partenaire d'entraînement), puis captures du compte de démonstration
+« Alex » (Mes séances, code K7P2X, séance reçue). Aucune donnée réelle. Images : `outils/reseaux/video-partage-code-images.js`.
+
+**Légende**
+```
+Ton binôme te demande ce que tu fais comme séance ? 📲
+Avec Oxa, tu lui envoies un code et il a exactement ta séance : mêmes exercices, mêmes séries.
+Identifie ton partenaire de salle 👇
+#musculation #salledesport #gymbuddy #programmemusculation #oxa
+```
