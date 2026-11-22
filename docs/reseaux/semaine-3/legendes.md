@@ -35,11 +35,13 @@ Tu soulèves lourd ? Oui ou non 👇
 #musculationfemme #fitgirl #musculation #lasciencedit #salledesport
 ```
 
-## Vidéo · Ton binôme te demande ta séance ? (partage par code)
-Fichier : `video-partage-code.mp4` (12,5 s, 1080×1920, muet : ajouter un son tendance). Couverture : `video-partage-code-couverture.png`.
+## Vidéo · Ton binôme te demande ta séance ? (conversation, partage par code)
+Fichier : `video-partage-code.mp4` (15,7 s, 1080×1920, muet : ajouter un son tendance). Couverture : `video-partage-code-couverture.png`.
 Où : Instagram Reels et TikTok. Quand : à choisir (18 h 30 conseillé).
-Plans : vidéo Pixabay n° 135159 (une femme et son partenaire d'entraînement), puis captures du compte de démonstration
-« Alex » (Mes séances, code K7P2X, séance reçue). Aucune donnée réelle. Images : `outils/reseaux/video-partage-code-images.js`.
+Déroulé : conversation de messages entre Léa et Inès (« Elle était trop bien ta séance jambes 🔥 Tu me l'envoies ? »),
+écrans de l'app (partage de la séance Jambes, code K7P2X), séance « Jambes (reçue) » chez Inès, « Reçue ✅ Même séance jeudi ? »,
+« Deal 💪 », fin Oxa. Écrans : compte de démonstration, aucune donnée réelle. Pas de vidéo de personnes : rien à contredire.
+Images : `outils/reseaux/video-partage-conversation-images.js`.
 
 **Légende**
 ```
