@@ -49,17 +49,17 @@ async function decoupe(pg, f, y0, y1) {
   const b = await chromium.launch(); const pg = await b.newPage();
   const liste = await decoupe(pg, __dirname + "/brut/1-liste.png", 380, 1300);
   const code = await decoupe(pg, __dirname + "/brut/2-code.png", 1380, 2290);
-  const recue = await decoupe(pg, __dirname + "/brut/5-recue-seance.png", 90, 860);
+  const recue = await decoupe(pg, __dirname + "/brut/5-recue-seance.png", 90, 1640);
   const img = (f) => `data:image/png;base64,${B(f)}`;
   const k = 940 / 1170;
-  const app = (h, carte, extra = "", p = "") => `<div class="fond"></div><div class="bloc"><h1>${h}</h1>${p ? `<p class="p">${p}</p>` : ""}</div><div class="carte"><img src="${img(carte)}">${extra}</div>`;
+  const app = (h, carte, extra = "", p = "", st = "") => `<div class="fond"></div><div class="bloc"><h1>${h}</h1>${p ? `<p class="p">${p}</p>` : ""}</div><div class="carte" style="${st}"><img src="${img(carte)}">${extra}</div>`;
   const V = {
     c1: conv(["i1"], 1), c2: conv(["i1", "i2"], 1), c3: conv(["i1", "i2", "tape"], 1), c4: conv(["i1", "i2", "l1"], 1),
     a1: app("Un code. <em>5&nbsp;caractères.</em>", liste),
     a2: app("Un code. <em>5&nbsp;caractères.</em>", liste, `<div class="tap" style="left:${1050 * k}px;top:${736 * k}px"></div>`),
     a3: app("Tu <em>l'envoies.</em>", code),
     c5: conv(["i1", "i2", "l1", "l2"]),
-    a4: app("Elle a <em>exactement</em> ta séance.", recue, "", "Mêmes exercices, mêmes séries."),
+    a4: app("Elle a ta séance… <em>à&nbsp;sa&nbsp;façon.</em>", recue, "", "Mêmes exercices. Ses charges, son repos&nbsp;: elle adapte tout.", "left:170px;right:170px;top:660px"),
     c6: conv(["l1", "l2", "i3"]), c7: conv(["l1", "l2", "i3", "l3"]),
     fin: `<div class="fond"></div><div class="bloc" style="top:430px"><div class="logo"><img src="data:image/png;base64,${LOGO}">Oxa</div><h1>Partage ta séance en <em>1&nbsp;seconde</em>.</h1><div class="q">Identifie ton partenaire de salle <em>👇</em></div></div><div class="cta"><div>Lien dans la bio</div><span>oxafit.app</span></div>`,
   };
