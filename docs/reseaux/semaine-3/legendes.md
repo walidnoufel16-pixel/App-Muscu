@@ -50,3 +50,17 @@ Avec Oxa, tu lui envoies un code et il récupère ta séance : mêmes exercices,
 Identifie ton partenaire de salle 👇
 #musculation #salledesport #gymbuddy #programmemusculation #oxa
 ```
+
+## Carrousel · Les 4 règles non écrites de la salle
+Dossier : `carrousel-regles-salle/` (6 images 1080×1350, sombres). Script : `outils/reseaux/carrousel-regles-salle.js`.
+Où : TikTok (mode photo) et Instagram. Quand : dimanche 22 novembre au soir.
+But : faire commenter (« 1, 2, 3 ou 4 », « d'accord ou pas ») et identifier un ami. Oxa seulement en solution sur la dernière image.
+
+**Légende (TikTok et Instagram)**
+```
+Les 4 règles non écrites de la salle 🏋️
+La n°4 divise tout le monde… d'accord ou pas ?
+Laquelle t'énerve le plus : 1, 2, 3 ou 4 ? 👇
+Identifie la personne qui ne range jamais ses disques 😅
+#salledesport #musculation #gymtok #gymlife #regledesalle
+```
