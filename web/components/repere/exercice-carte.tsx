@@ -2,7 +2,7 @@
 
 import { tr } from "@/lib/i18n";
 import { useState } from "react";
-import { ArrowsLeftRightIcon, BarbellIcon, CaretDownIcon, CheckIcon, CrosshairIcon, InfoIcon, ArrowUpIcon, ArrowDownIcon } from "@phosphor-icons/react";
+import { ArrowCounterClockwiseIcon, ArrowsLeftRightIcon, BarbellIcon, CaretDownIcon, CheckIcon, CrosshairIcon, InfoIcon, ArrowUpIcon, ArrowDownIcon } from "@phosphor-icons/react";
 import { EX } from "@/lib/data/exercices";
 import { musclesDe, nb, okDe, resumeDe } from "@/lib/logic/core";
 import { EtiquetteZone } from "./forme";
@@ -10,6 +10,7 @@ import { EtiquetteRole, PourquoiRole } from "./role-exercice";
 import type { Journal, RoleEx } from "@/lib/logic/types";
 import { useCelebrer } from "@/lib/celebrer";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 import { aUneImage, imgEx } from "@/lib/medias";
 
@@ -152,7 +153,12 @@ export function ExerciceCarte({
           <div className={cn("grid border-t border-border/70", onRemplacer ? "grid-cols-3" : "grid-cols-2")}>
             <OutilBtn onClick={onFiche} icone={<InfoIcon className="size-5" />} label={tr("Fiche")} />
             {onRemplacer && <OutilBtn visite="seance-remplacer" onClick={onRemplacer} icone={<ArrowsLeftRightIcon className="size-5" />} label={tr("Remplacer")} />}
-            <OutilBtn onClick={onTout} icone={<CheckIcon className="size-5" weight="bold" />} label={fait ? tr("Tout décocher") : tr("Tout valider")} accent />
+            {/* exercice validé : pas de coche verte (on la prenait pour « tout valider » et on perdait ses séries),
+                une flèche de retour en gris ; et « Annuler » remet tout d'un geste après un décochage involontaire */}
+            {fait
+              ? <OutilBtn onClick={() => { onTout(); toast(tr("Séries décochées"), { action: { label: tr("Annuler"), onClick: onTout } }); }}
+                  icone={<ArrowCounterClockwiseIcon className="size-5" />} label={tr("Décocher les séries")} />
+              : <OutilBtn onClick={onTout} icone={<CheckIcon className="size-5" weight="bold" />} label={tr("Tout valider")} accent />}
           </div>
         </div>
       )}
