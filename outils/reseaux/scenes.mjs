@@ -51,33 +51,18 @@ const S = process.env.PACK || "/tmp/pack", FPS = 30, GUIDES = process.env.GUIDES
 const LOGO = readFileSync(`${process.cwd()}/../docs/reseaux/photo-profil-oxa.png`).toString("base64");
 const b64 = (f) => readFileSync(`${S}/brut/${f}.png`).toString("base64");
 
-// Les vidéos de la semaine 1 (compte démo « Alex », DATE=2026-11-09). Réécris-les pour chaque semaine,
+// Les vidéos de la semaine 4 (compte démo « Alex », DATE=2026-11-23). Réécris-les pour chaque semaine,
 // en relevant les coordonnées sur les captures de $PACK/brut (px CSS : px de l'image / 3).
+// « progression-sq » : Progrès › Ma progression par exercice, Squat barre (?ex=sq), capture faite à part.
+// Durées données à la main, plus courtes que la règle de lecture : vidéo visée à 11-12 s (stats du 21 nov.).
 const V = {
-  seance: [
-    { img: "corps-vide", h: 120, bas: 660, d: 2.3, t: "Tu sais jamais <em>quoi faire</em> à la salle ?" },
-    { img: "corps-vide", h: 120, bas: 660, d: 2.6, t: "Touche les muscles<br>à <em>travailler</em>", suite: 1,
-      tap: [{ x: 172, y: 282, at: 0.55 }, { x: 246, y: 272, at: 1.15 }], apres: { img: "corps", at: 1.3 } },
-    { img: "composer-bas", h: 110, bas: 770, d: 4.2, t: "Ta séance est prête.<br><em>Charges comprises.</em>",
-      s: "Exercices, séries, charges. Avec ton matériel.",
-      surligne: [{ x: 110, y: 205, w: 136, h: 30, at: 0.7, jusqua: 2.1 }] },
-    { fin: 1, d: 2.6, t: "Touche un muscle.<br><em>Ta séance est prête.</em>" },
-  ],
-  pourquoi: [
-    { accroche: 1, k: "Épisode 2", t: "Tu ajoutes<br>du poids<br><em>au feeling ?</em>" },
-    { img: "s0-dc-ouvert", h: 205, bas: 650, t: "Oxa te dit<br><em>pourquoi.</em>",
-      surligne: [{ x: 24, y: 349, w: 330, h: 44, at: 1.2 }] },
-    { img: "s0-el-ouvert", h: 515, bas: 724, t: "Petit muscle :<br><em>+1 kg seulement.</em>",
-      surligne: [{ x: 26, y: 665, w: 330, h: 44, at: 1.2 }] },
-    { fin: 1, t: "Charges<br><em>expliquées.</em>", appel: "Suis Oxa ·<br>prochain épisode mardi" },
-  ],
-  regularite: [
-    { accroche: 1, k: "Épisode 3", t: "Une semaine<br>à fond.<br><em>Puis plus rien ?</em>" },
-    { img: "accueil", h: 105, bas: 325, t: "Ce qui paie :<br><em>revenir.</em>",
-      surligne: [{ x: 26, y: 120, w: 160, h: 28, at: 1.0, jusqua: 2.7 }, { x: 18, y: 245, w: 355, h: 72, at: 2.8 }] },
-    { img: "progres", h: 105, bas: 312, t: "Objectif tenu.<br><em>Et 14 records.</em>",
-      surligne: [{ x: 28, y: 243, w: 276, h: 24, at: 1.2 }] },
-    { fin: 1, t: "<em>Reviens.</em>", appel: "Suis Oxa ·<br>prochain épisode mercredi" },
+  "derniere-fois": [
+    { accroche: 1, d: 2.4, t: "Ta charge<br>de la dernière fois ?<br><em>Aucune idée.</em>" },
+    { img: "s2-sq-ouvert", h: 112, bas: 571, d: 3.0, t: "Oxa s'en <em>souvient.</em>",
+      surligne: [{ x: 56, y: 298, w: 88, h: 188, at: 0.7 }] },
+    { img: "progression-sq", h: 184, bas: 566, d: 3.4, t: "Et te montre<br><em>si tu progresses.</em>",
+      surligne: [{ x: 30, y: 484, w: 330, h: 70, at: 1.0 }] },
+    { fin: 1, d: 2.8, t: "Ton carnet de muscu,<br><em>dans ta poche.</em>", appel: "On cherche des testeurs" },
   ],
 };
 

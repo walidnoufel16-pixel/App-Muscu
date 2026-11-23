@@ -47,9 +47,14 @@ avec la date et la source (fichier de stats). Rayer ou supprimer ce qui est cont
 11. Vidéos libres de droits avec des personnes autorisées (Walid n'apparaît jamais), mais l'image doit illustrer
     le conseil et le texte de la question rester l'élément principal. Pas de couverture fixe au début.
 
+15. Depuis le 23 nov. (décision de Walid) : la comm sert à **ramener des testeurs** et parle du **suivi des séances**
+    (dernière fois, records, progression), plus du coaching ni de la création de séance. Chaque pack contient
+    un appel aux testeurs (« Commente TEST ») et chaque lien envoyé porte une étiquette `?src=`.
+
 ## Chiffres à demander à chaque relevé
 - TikTok : durée moyenne de visionnage, % regardé en entier, visites du profil, nouveaux followers ;
   pour un carrousel, photos vues sur 6 et temps de lecture total.
 - Instagram : taux d'abandon par Reel, enregistrements, partages.
 - YouTube : vues et j'aime par Short.
-- App : arrivées par source dans Admin › Mesure.
+- App : arrivées par source dans Admin › Mesure, chemin choisi « noter », premières séances notées.
+- Nombre de commentaires « TEST » et de liens envoyés en message privé.
