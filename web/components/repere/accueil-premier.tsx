@@ -4,17 +4,19 @@
    par écran (le même que Profil, pas le questionnaire Oxa Plan), « Tu t'es entraîné ces dernières
    48 h ? » (les muscles comptent dans la récupération, sans fausse séance dans l'historique), puis
    la fin : muscles prêts, et une première séance qui en tient compte (ou repos). Une seule fois ;
-   « Plus tard » le referme (le profil reste à compléter dans Profil). */
+   « Plus tard » le referme (le profil reste à compléter dans Profil). « Noter ma séance tout de suite » le
+   referme aussi et ouvre une séance vierge à noter (composeur), pour qui vient d'abord suivre ses séances. */
 import { tp, tr } from "@/lib/i18n";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { create } from "zustand";
-import { CaretLeftIcon } from "@phosphor-icons/react";
+import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
-import { preparerApercu } from "@/lib/brouillon";
+import { preparerApercu, useBrouillon } from "@/lib/brouillon";
+import { noter } from "@/lib/mesure";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 import { decaler, jourDe } from "@/lib/logic/historique";
@@ -48,12 +50,21 @@ export function AccueilPremier({ onFin }: { onFin: (etape: number) => void }) {
     muter((E) => { if (!E.A.accueil) E.A.accueilPasse = true; });
     useAccueil.setState({ ouvert: false });
   };
+  /* « J'ai déjà mon programme » : pas de questions, une séance vierge à remplir exercice par exercice
+     (sans le guide « Quels muscles aujourd'hui ? » : il sait ce qu'il fait) */
+  const router = useRouter();
+  const noterSeance = () => {
+    noter("chemin_choisi", { c: "noter" });
+    useBrouillon.getState().setLibre({ nom: tr("Séance libre"), ex: [], idx: null, pour: jourDe(Date.now()) });
+    fermer();
+    router.push("/entrainement/composer" as Route, AVANT);
+  };
   return (
     <Dialog open onOpenChange={(o) => !o && fermer()}>
       <DialogContent showCloseButton={false}
         className="flex h-dvh data-[state=open]:animate-none max-h-dvh w-screen max-w-none flex-col gap-0 rounded-none border-0 bg-background p-0 sm:max-w-none">
         <div className="mx-auto flex w-full max-w-[480px] flex-1 flex-col overflow-y-auto overscroll-contain px-5 pt-[max(env(safe-area-inset-top),20px)] pb-[max(env(safe-area-inset-bottom),16px)]">
-          {etape === 0 && !connu && <Bienvenue suivant={() => (demander ? setConnu(true) : setEtape(1))} plusTard={fermer} />}
+          {etape === 0 && !connu && <Bienvenue suivant={() => (demander ? setConnu(true) : setEtape(1))} plusTard={fermer} noterSeance={noterSeance} />}
           {etape === 0 && connu && <Source suivant={() => { setConnu(false); setEtape(1); }} />}
           {etape >= 1 && etape <= QUESTIONS.length && <Question i={etape} suivant={() => setEtape(etape + 1)} retour={() => setEtape(etape - 1)} />}
           {etape === QUESTIONS.length + 1 && <Avant48 suivant={() => setEtape(etape + 1)} retour={() => setEtape(etape - 1)} />}
@@ -79,7 +90,7 @@ function Bas({ ok = true, libelle, onOk, second, onSecond }: { ok?: boolean; lib
   );
 }
 
-function Bienvenue({ suivant, plusTard }: { suivant: () => void; plusTard: () => void }) {
+function Bienvenue({ suivant, plusTard, noterSeance }: { suivant: () => void; plusTard: () => void; noterSeance: () => void }) {
   const pseudo = useRepere((s) => s.pseudo);
   const etapes = [
     [tr("Ton profil sportif"), tr("{n} questions · 1 min", { n: QUESTIONS.length })],
@@ -99,6 +110,15 @@ function Bienvenue({ suivant, plusTard }: { suivant: () => void; plusTard: () =>
           </li>
         ))}
       </ol>
+      <div className="mt-6 px-1 text-[13px] font-bold text-muted-foreground">{tr("Tu as déjà ton programme ?")}</div>
+      <button onClick={() => { tactile(8); noterSeance(); }}
+        className="mt-2 flex w-full animate-[monter_.45s_ease-out_both] items-center gap-3 rounded-2xl border-[1.5px] border-border p-3 text-left active:scale-[.99]" style={{ animationDelay: "320ms" }}>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[15px] font-semibold">{tr("Noter ma séance tout de suite")}</span>
+          <span className="block text-[12.5px] text-muted-foreground">{tr("Sans questions. Oxa retient tes charges et tes répétitions.")}</span>
+        </span>
+        <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" weight="bold" />
+      </button>
       <Bas libelle={tr("Commencer · 1 min")} onOk={suivant} second={tr("Plus tard")} onSecond={plusTard} />
     </>
   );

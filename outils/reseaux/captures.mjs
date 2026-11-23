@@ -28,7 +28,7 @@ const U = "http://localhost:8902";
 const etat = JSON.parse(readFileSync(ETAT, "utf8"));
 const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 const ctx = await b.newContext({ locale: "fr-FR", viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, serviceWorkers: "block", colorScheme: SOMBRE ? "dark" : "light" });
-await ctx.addInitScript((s) => { if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); localStorage.setItem("palier.pseudo.v1", "Alex"); localStorage.setItem("repere.visite", "1"); sessionStorage.vu = 1; } }, etat);
+await ctx.addInitScript((s) => { if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); localStorage.setItem("palier.pseudo.v1", "Alex"); for (const k of ["repere.visite", "repere.visite.plan", "repere.visite.creer", "repere.visite.seance"]) localStorage.setItem(k, "1"); sessionStorage.vu = 1; } }, etat);
 await ctx.route(/supabase\.co/, (r) => r.abort());
 const pg = await ctx.newPage();
 const erreurs = []; pg.on("pageerror", (e) => erreurs.push(e.message));
