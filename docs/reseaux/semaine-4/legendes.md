@@ -6,9 +6,12 @@ Premier pack orienté **suivi des séances** et **recherche de testeurs** (voir 
 Calendrier conseillé :
 | Jour | Contenu | Réseaux |
 |---|---|---|
-| Mardi 24 nov., 18 h 30 | Carrousel « On cherche 30 testeurs » (à épingler sur le profil) | TikTok (photo), Instagram |
+| Mardi 24 nov., 18 h 30 | Carrousel « La science dit » · Noter ses séances, ça sert vraiment ? | TikTok (photo), Instagram |
 | Jeudi 26 nov., 18 h 30 | Vidéo « Ta charge de la dernière fois ? » | TikTok, Instagram Reels, YouTube Shorts |
-| Samedi 28 nov., 18 h | Carrousel « La science dit » · Noter ses séances, ça sert vraiment ? | TikTok (photo), Instagram |
+| Samedi 28 nov., 18 h | Carrousel « On cherche 30 testeurs » (à épingler sur le profil) | TikTok (photo), Instagram |
+
+Ordre choisi par Walid (23 nov.) : d'abord le contenu utile, le seul format qui a fait s'abonner, puis la vidéo
+qui annonce « On cherche des testeurs », et l'appel aux testeurs en dernier, devant un public déjà intéressé.
 
 Pour tous : répondre aux commentaires dans la première heure. À chaque « TEST », envoyer le lien en message privé :
 `https://oxafit.app/?src=tiktok-test` (TikTok) ou `https://oxafit.app/?src=insta-test` (Instagram).
@@ -16,7 +19,7 @@ Bio conseillée pendant la campagne : « On cherche des testeurs 👇 » au-dess
 
 À valider par Walid avant de publier : le chiffre « 30 testeurs » et la durée « 2 semaines » (ce sont des propositions).
 
-## Carrousel · On cherche 30 testeurs
+## Carrousel · On cherche 30 testeurs (samedi)
 Dossier : `carrousel-testeurs/` (6 images 1080×1350, sombres ; images 3 et 4 : la colonne « Précédent » d'une
 séance et Ma progression par exercice). Script : `outils/reseaux/carrousel-testeurs.js`.
 
@@ -44,7 +47,7 @@ On cherche des testeurs : commente TEST 👇
 #musculation #salledesport #gymtok #suiviseance #progression
 ```
 
-## Carrousel « La science dit » · Noter ses séances, ça sert vraiment ?
+## Carrousel « La science dit » · Noter ses séances, ça sert vraiment ? (mardi)
 Dossier : `carrousel-noter/` (6 images 1080×1350, toutes sombres). Script : `outils/reseaux/carrousel-science-noter.js`.
 Sources : ACSM, position officielle sur la progression en musculation (Med Sci Sports Exerc 2009) ;
 Glass & Stanton, JSCR 2004 (charges choisies seules par des débutants, environ 40 à 60 % du maximum) ;

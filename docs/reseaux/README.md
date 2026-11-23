@@ -27,8 +27,8 @@ ou création de séance (décision de Walid du 23 nov.).
   (18 nov., TikTok : 1 129 vues, 4 enregistrements, 5 followers). Voir `stats/2026-11-21.md`.
 - Moins bonne : vidéo « Tu stagnes ? 3 erreurs à éviter » (20 nov.) : 721 vues mais 1,6 s de visionnage moyen.
 - Dernier relevé de stats : 21 novembre (ces deux publications seulement).
-- Pack semaine 4 prêt (23 nov.), premier pack orienté suivi et testeurs : carrousel « On cherche 30 testeurs »,
-  vidéo « Ta charge de la dernière fois ? », carrousel « La science dit » sur le fait de noter ses séances.
+- Pack semaine 4 prêt (23 nov.), premier pack orienté suivi et testeurs : carrousel « La science dit » sur le fait
+  de noter ses séances (mardi), vidéo « Ta charge de la dernière fois ? » (jeudi), « On cherche 30 testeurs » (samedi).
   Voir `semaine-4/legendes.md`.
 - Prochaine étape : mettre à jour ce bloc à la fin de chaque session.
 
