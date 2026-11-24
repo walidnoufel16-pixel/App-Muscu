@@ -12,7 +12,7 @@ const nb = (t = "") => t.replace(/ ([?!:;%»])/g, "&nbsp;$1").replace(/« /g, "�
 const CAPTURE = process.env.CAPTURE; // capture de l'app (compte de démonstration), découpée sur la carte « Squat barre »
 const S = [
   { couv: 1, k: "POV", t: "T'arrives au <em>squat</em> et… c'était combien la dernière fois&nbsp;? 🤔", s: "Sois honnête 😅" },
-  { t: "«&nbsp;77,5&nbsp;? 80&nbsp;?… Bon, je mets <em>77,5</em>.&nbsp;»", a: "Toi, tu fais comment&nbsp;? 👇" },
+  { t: "«&nbsp;80&nbsp;? 85&nbsp;?… Bon, je mets <em>80</em>.&nbsp;»", a: "Toi, tu fais comment&nbsp;? 👇" },
   { t: "Résultat&nbsp;: <em>3&nbsp;semaines</em> à la même charge.", p: "Sans même le savoir." },
   { fin: 1, t: "Avec Oxa, ta charge d'avant et <em>ton&nbsp;max</em> s'affichent tout seuls.", img: CAPTURE, q: "Ça t'est déjà arrivé&nbsp;? 👇" },
 ];
