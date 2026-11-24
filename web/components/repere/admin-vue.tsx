@@ -11,13 +11,13 @@ import type { Route } from "next";
 import { CaretRightIcon } from "@phosphor-icons/react";
 import { analysesErreurs, entonnoirAdmin, mesureAdmin, vueAdmin, type EntonnoirAdmin, type VueAdmin } from "@/lib/admin";
 import { aRegarder } from "@/lib/logic/erreurs";
-import { court, etapesEntonnoir, jourIso, nomSource, pl, sourcesLisibles, vueTesteurs, type CompteAdmin, type StatsAdmin } from "@/lib/logic/admin";
+import { court, etapesEntonnoir, inscritsSurPeriode, jourIso, nomSource, pl, sourcesLisibles, surPeriode, TOUT, vueTesteurs, type CompteAdmin, type StatsAdmin } from "@/lib/logic/admin";
 import { jourDe } from "@/lib/logic/historique";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
 import { nomRubrique, RUBRIQUES, type Rubrique } from "./rubriques";
 
-const PERIODES: [number, () => string][] = [[1, () => tr("Aujourd'hui")], [7, () => tr("7 jours")], [30, () => tr("30 jours")], [3650, () => tr("Tout")]];
+const PERIODES: [number, () => string][] = [[1, () => tr("Aujourd'hui")], [7, () => tr("7 jours")], [30, () => tr("30 jours")], [TOUT, () => tr("Tout")]];
 const AUTRES_RUBRIQUES: Record<string, () => string> = { plus: () => tr("Plus d'entraînements"), cardio: () => tr("Cardio"), defis: () => tr("Défis") };
 const nomR = (r: string) => (RUBRIQUES.includes(r as Rubrique) ? nomRubrique(r as Rubrique) : AUTRES_RUBRIQUES[r]?.() ?? r);
 
@@ -40,6 +40,10 @@ export function VueEnsemble({ L, S, exclus, avecMoi, plus }: { L: CompteAdmin[];
   const T = useMemo(() => vueTesteurs(L, avecMoi ? [] : exclus, jours, auj), [L, exclus, avecMoi, jours, auj]);
   const aller = (q: string) => () => { tactile(5); router.push(`/admin?${q}` as Route); };
   const sans = T.inscrits - T.inscritsAvecSeance;
+  /* tout suit la période ; la ligne « sur 7 jours » n'a de sens que sur 30 jours ou tout */
+  const tout = jours === TOUT, sur7 = jours > 7;
+  const dont7 = (n: number) => (sur7 ? tr("dont {n} sur 7 jours", { n }) : "");
+  const avis = useMemo(() => (S.avis ?? []).filter((a) => surPeriode(a.cree, jours, auj)), [S.avis, jours, auj]);
   return (
     <>
       <div className="flex gap-1.5">
@@ -51,9 +55,9 @@ export function VueEnsemble({ L, S, exclus, avecMoi, plus }: { L: CompteAdmin[];
       {err && <p className="rounded-2xl bg-card p-4 text-[13.5px] text-destructive">{err}</p>}
 
       <div className="grid grid-cols-2 gap-2">
-        <Cle v={V?.visiteurs} n={tr("visiteurs")} d={V ? tr("{n} cette semaine", { n: V.visiteurs7 }) : ""} />
-        <Cle v={T.total} n={tr("testeurs")} d={tr("+{n} cette semaine", { n: T.nouveaux7 })} onClick={aller("v=u")} />
-        <Cle v={T.seances} n={tr("séances terminées")} d={tr("{n} cette semaine", { n: T.seances7 })} />
+        <Cle v={V?.visiteurs} n={tr("visiteurs")} d={V ? dont7(V.visiteurs7) : ""} />
+        <Cle v={tout ? T.total : T.inscrits} n={tout ? tr("testeurs") : tr("nouveaux testeurs")} d={tout ? dont7(T.nouveaux7) : tr("{n} au total", { n: T.total })} onClick={aller("v=u")} />
+        <Cle v={T.seances} n={tr("séances terminées")} d={dont7(T.seances7)} />
         <Cle v={nbErr ?? undefined} n={nbErr === 1 ? tr("erreur à regarder") : tr("erreurs à regarder")} d={nbErr == null ? "" : nbErr ? tr("voir l'onglet Technique") : tr("tout va bien")} alerte={!!nbErr} onClick={aller("v=m")} />
       </div>
 
@@ -74,7 +78,7 @@ export function VueEnsemble({ L, S, exclus, avecMoi, plus }: { L: CompteAdmin[];
         <p className="mt-2 text-[12.5px] text-muted-foreground">{tr("Ajoute ?src=tiktok (ou insta, yt…) au lien que tu publies.")}</p>
       </section>
 
-      <Declares L={L.filter((c) => !exclus.includes(c.id))} />
+      <Declares L={inscritsSurPeriode(L, avecMoi ? [] : exclus, jours, auj)} tout={tout} />
 
       <section className="rounded-[22px] bg-card p-4">
         <h2 className="eyebrow mb-1">{tr("Ce qu'ils ouvrent le plus")}</h2>
@@ -83,20 +87,21 @@ export function VueEnsemble({ L, S, exclus, avecMoi, plus }: { L: CompteAdmin[];
       </section>
 
       <section className="rounded-[22px] bg-card p-4">
-        <h2 className="eyebrow mb-1">{tr("Avis des testeurs · {n}", { n: S.avis?.length ?? 0 })}</h2>
-        {S.avis?.length ? S.avis.slice(0, 20).map((a, i) => (
+        <h2 className="eyebrow mb-1">{tr("Avis des testeurs · {n}", { n: avis.length })}</h2>
+        {/* les 50 derniers avis viennent du serveur (admin_stats), filtrés ici sur la période */}
+        {avis.length ? avis.slice(0, 20).map((a, i) => (
           <div key={i} className="border-t border-border/60 py-2 text-[14px] first:border-t-0">
             <p className="leading-snug">{a.texte}</p>
             <p className="mt-0.5 text-[12.5px] text-muted-foreground">{a.pseudo || "—"} · {jourIso(a.cree) ? court(jourIso(a.cree)!) : "—"}{a.seances ? ` · ${pl(a.seances, tr("séance"))}` : ""}</p>
           </div>
-        )) : <p className="text-[13.5px] text-muted-foreground">{tr("Aucun avis pour l'instant.")}</p>}
+        )) : <p className="text-[13.5px] text-muted-foreground">{tout ? tr("Aucun avis pour l'instant.") : tr("Aucun avis sur la période.")}</p>}
       </section>
 
       <details className="group rounded-[22px] bg-card p-4">
         <summary className="flex cursor-pointer list-none items-center justify-between text-[15px] font-semibold">
-          {tr("Plus de chiffres")}<CaretRightIcon className="size-4 text-muted-foreground transition-transform group-open:rotate-90" />
+          {tr("Plus de chiffres, depuis le début")}<CaretRightIcon className="size-4 text-muted-foreground transition-transform group-open:rotate-90" />
         </summary>
-        <p className="mt-1 text-[12.5px] text-muted-foreground">{tr("Exercices les plus faits, objectifs, matériel, défis, séances par semaine (tous les comptes).")}</p>
+        <p className="mt-1 text-[12.5px] text-muted-foreground">{tr("Ne suit pas la période choisie. Exercices les plus faits, objectifs, matériel, défis, séances par semaine (tous les comptes).")}</p>
         <div className="mt-3 flex flex-col gap-4">{plus}</div>
       </details>
     </>
@@ -180,7 +185,8 @@ const Ligne = ({ n, v }: { n: string; v: string }) => (
 
 /* « Comment as-tu connu Oxa ? » (questionnaire d'accueil, quand aucun lien ?src= ne le disait) : réponses
    des comptes, nombre de « passé » et détail de « Autre » */
-function Declares({ L }: { L: CompteAdmin[] }) {
+/* Réponses des comptes créés sur la période (même règle que « Comptes créés »). */
+function Declares({ L, tout }: { L: CompteAdmin[]; tout: boolean }) {
   const R = L.map((c) => c.etat?.A).filter((A) => A?.connu);
   const n = (k: string) => R.filter((A) => A!.connu === k).length;
   const lignes = CONNUS.map((o) => ({ n: o.n(), v: n(o.k) })).filter((x) => x.v).sort((a, b) => b.v - a.v);
@@ -189,7 +195,7 @@ function Declares({ L }: { L: CompteAdmin[] }) {
     <section className="rounded-[22px] bg-card p-4">
       <h2 className="eyebrow mb-1">{tr("Comment ils ont connu Oxa · {n}", { n: R.length - n("passe") })}</h2>
       {lignes.length ? lignes.map((x) => <Ligne key={x.n} n={x.n} v={String(x.v)} />)
-        : <p className="text-[13.5px] text-muted-foreground">{tr("Pas encore de réponse.")}</p>}
+        : <p className="text-[13.5px] text-muted-foreground">{tout ? tr("Pas encore de réponse.") : tr("Aucune réponse sur la période.")}</p>}
       {autres.length > 0 && <p className="mt-2 text-[13.5px]"><b>{tr("Autre :")}</b> {autres.slice(0, 30).join(" · ")}</p>}
       <p className="mt-2 text-[12.5px] text-muted-foreground">{tr("Déclaré au questionnaire d'accueil, quand aucun lien ne le disait · {n} passé", { n: n("passe") })}</p>
     </section>

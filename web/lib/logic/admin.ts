@@ -152,10 +152,17 @@ export function testeurs(L: CompteAdmin[], exclus: string[], f: FiltreTesteurs =
   return f === "seance" ? l.filter(aFaitUneSeance) : f === "sans" ? l.filter((c) => !aFaitUneSeance(c)) : l;
 }
 export type VueTesteurs = { total: number; nouveaux7: number; inscrits: number; inscritsAvecSeance: number; seances: number; seances7: number };
-/** Chiffres des testeurs sur la période (jours ; 3650 pour « tout »). */
+/* Période de la Vue d'ensemble : les « jours » derniers jours, aujourd'hui compris (1 : aujourd'hui ; 3650 : tout). */
+export const TOUT = 3650;
+/** Vrai si l'instant (ISO) tombe sur la période. */
+export const surPeriode = (cree: string | null, jours: number, auj = jourDe(Date.now())) => (jourIso(cree) || "") >= decaler(auj, -jours + 1);
+/** Les testeurs dont le compte a été créé sur la période. */
+export const inscritsSurPeriode = (L: CompteAdmin[], exclus: string[], jours: number, auj = jourDe(Date.now())) =>
+  testeurs(L, exclus).filter((c) => surPeriode(c.cree, jours, auj));
+/** Chiffres des testeurs sur la période (jours ; TOUT pour « tout »). */
 export function vueTesteurs(L: CompteAdmin[], exclus: string[], jours: number, auj = jourDe(Date.now())): VueTesteurs {
   const t = testeurs(L, exclus), d0 = decaler(auj, -jours + 1), d7 = decaler(auj, -6);
-  const inscrits = t.filter((c) => (jourIso(c.cree) || "") >= d0);
+  const inscrits = inscritsSurPeriode(L, exclus, jours, auj);
   const jSeances = t.flatMap((c) => [...H(c).map((l) => l.d), ...C(c).filter((x) => !x.ref).map((x) => jourDe(x.ts))]);
   return {
     total: t.length,
