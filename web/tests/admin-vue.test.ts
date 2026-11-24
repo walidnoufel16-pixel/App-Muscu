@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { etapesEntonnoir, nomSource, sourcesLisibles, testeurs, vueTesteurs, type CompteAdmin } from "@/lib/logic/admin";
+import { etapesEntonnoir, inscritsSurPeriode, nomSource, sourcesLisibles, surPeriode, testeurs, TOUT, vueTesteurs, type CompteAdmin } from "@/lib/logic/admin";
 import { raccourciDe } from "@/lib/logic/raccourcis";
 import { nomSeance } from "@/lib/logic/assistant";
 import { questionsManquantes } from "@/components/repere/premiers-pas";
@@ -20,6 +20,43 @@ describe("Admin › Vue d'ensemble", () => {
     const v = vueTesteurs(L, ["moi"], 30, "2026-11-18");
     expect(v).toEqual({ total: 3, nouveaux7: 1, inscrits: 2, inscritsAvecSeance: 0, seances: 2, seances7: 1 });
     expect(vueTesteurs(L, ["moi"], 3650, "2026-11-18").inscritsAvecSeance).toBe(1);
+  });
+  describe("suit la période choisie (Aujourd'hui, 7 jours, 30 jours, Tout)", () => {
+    const auj = "2026-11-18";
+    const P = [
+      c("a", "2026-11-18T12:00:00Z", ["2026-11-18"]),
+      c("b", "2026-11-15T12:00:00Z", ["2026-11-16", "2026-11-12"]),
+      c("f", "2026-11-11T12:00:00Z"),
+      c("d", "2026-11-01T12:00:00Z"),
+      c("e", "2025-01-10T12:00:00Z", ["2026-11-18", "2026-10-01"]),
+    ];
+    const sans = (j: number) => { const { total, nouveaux7, ...r } = vueTesteurs(P, [], j, auj); void total; void nouveaux7; return r; };
+    it("aujourd'hui : seulement les comptes créés et les séances du jour", () => {
+      expect(sans(1)).toEqual({ inscrits: 1, inscritsAvecSeance: 1, seances: 2, seances7: 4 });
+    });
+    it("7 jours : aujourd'hui compris, le 7e jour en arrière inclus, le 8e exclu", () => {
+      expect(sans(7)).toEqual({ inscrits: 2, inscritsAvecSeance: 2, seances: 4, seances7: 4 });
+      expect(inscritsSurPeriode(P, [], 7, auj).map((x) => x.id)).toEqual(["a", "b"]);
+      expect(surPeriode("2026-11-12T12:00:00Z", 7, auj)).toBe(true);
+      expect(surPeriode("2026-11-11T12:00:00Z", 7, auj)).toBe(false);
+    });
+    it("30 jours", () => {
+      expect(sans(30)).toEqual({ inscrits: 4, inscritsAvecSeance: 2, seances: 4, seances7: 4 });
+    });
+    it("tout : tous les comptes et toutes les séances", () => {
+      expect(sans(TOUT)).toEqual({ inscrits: 5, inscritsAvecSeance: 3, seances: 5, seances7: 4 });
+      expect(vueTesteurs(P, [], TOUT, auj).total).toBe(5);
+    });
+    it("le total et les 7 derniers jours ne dépendent pas de la période", () => {
+      for (const j of [1, 7, 30, TOUT]) expect(vueTesteurs(P, [], j, auj)).toMatchObject({ total: 5, nouveaux7: 2, seances7: 4 });
+    });
+    it("les comptes exclus ne comptent sur aucune période", () => {
+      expect(vueTesteurs(P, ["e"], 1, auj)).toMatchObject({ total: 4, seances: 1 });
+      expect(inscritsSurPeriode(P, ["e"], TOUT, auj).map((x) => x.id)).toEqual(["a", "b", "f", "d"]);
+    });
+    it("sans date de création : jamais sur la période", () => {
+      expect(surPeriode(null, TOUT, auj)).toBe(false);
+    });
   });
   it("donne des noms de source lisibles, regroupés", () => {
     expect(nomSource("")).toBe("Lien direct ou inconnu");
