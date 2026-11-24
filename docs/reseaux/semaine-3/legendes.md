@@ -67,13 +67,14 @@ Identifie la personne qui ne range jamais ses disques 😅
 
 ## Carrousel · POV : c'était combien la dernière fois ? (squat)
 Dossier : `carrousel-pov-squat/` (4 images 1080×1350). Script : `outils/reseaux/carrousel-pov-squat.js`
-(`CAPTURE=` la carte « Squat barre » du compte de démonstration : précédent 77,5 × 10, aujourd'hui 82,5 kg).
+(`CAPTURE=` la carte « Squat barre » du compte de démonstration : série 1 à 82,5 × 10 marquée « Record », série 2 avec le précédent 77,5 × 10).
 Où : TikTok (mode photo) et Instagram. Quand : mardi 24 novembre, 12 h 30. Positionnement : app de suivi de séances.
 
 **Légende (TikTok et Instagram)**
 ```
 POV : t'arrives au squat et… c'était combien la dernière fois ? 🤔
 77,5 ? 80 ? Bon, je mets 77,5… et 3 semaines plus tard, toujours 77,5 😅
+Avec Oxa, ta charge d'avant s'affiche, et quand tu la bats, c'est marqué record 🏆
 Ça t'est déjà arrivé ? 👇
 #musculation #squat #salledesport #gymtok #progression
 (4 images)

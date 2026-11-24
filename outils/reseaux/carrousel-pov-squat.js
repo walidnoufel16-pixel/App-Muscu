@@ -14,7 +14,7 @@ const S = [
   { couv: 1, k: "POV", t: "T'arrives au <em>squat</em> et… c'était combien la dernière fois&nbsp;? 🤔", s: "Sois honnête 😅" },
   { t: "«&nbsp;77,5&nbsp;? 80&nbsp;?… Bon, je mets <em>77,5</em>.&nbsp;»", a: "Toi, tu fais comment&nbsp;? 👇" },
   { t: "Résultat&nbsp;: <em>3&nbsp;semaines</em> à la même charge.", p: "Sans même le savoir." },
-  { fin: 1, t: "Avec Oxa, ta charge d'avant s'affiche <em>toute&nbsp;seule</em>.", img: CAPTURE, q: "Ça t'est déjà arrivé&nbsp;? 👇" },
+  { fin: 1, t: "Avec Oxa, ta charge d'avant s'affiche. Et quand tu la bats&nbsp;: <em>record</em>&nbsp;🏆", img: CAPTURE, q: "Ça t'est déjà arrivé&nbsp;? 👇" },
 ];
 
 const css = `*{margin:0;box-sizing:border-box}
@@ -48,7 +48,7 @@ h2{font-size:88px;line-height:1.06;font-weight:800;letter-spacing:-2.2px}
     const haut = `<div class="marque"><img src="data:image/png;base64,${LOGO}">Oxa</div><div class="page">${i + 1}/${S.length}</div>`;
     let corps;
     if (x.couv) corps = `<div class="bloc"><div class="etiq">${nb(x.k)}</div><h1>${nb(x.t)}</h1><div class="trait"></div><p class="s">${nb(x.s)}</p></div><div class="src" style="font-size:32px">@oxafit.app</div><div class="glisse">Glisse →</div>`;
-    else if (x.fin) corps = `<div class="bloc" style="bottom:190px;top:170px"><h2 style="font-size:60px">${nb(x.t)}</h2>${x.img ? `<img src="data:image/png;base64,${fs.readFileSync(x.img).toString("base64")}" style="margin-top:30px;width:100%;border-radius:32px;box-shadow:0 30px 80px rgba(0,0,0,.6)">` : `<p class="p" style="margin-top:44px">${nb(x.p)}</p>`}<div class="q" style="margin-top:30px;padding:30px 40px">${nb(x.q)}</div></div><div class="cta"><div style="color:#a1a1aa">Lien dans la bio</div><span>oxafit.app</span></div>`;
+    else if (x.fin) corps = `<div class="bloc" style="bottom:190px;top:170px"><h2 style="font-size:56px">${nb(x.t)}</h2>${x.img ? `<img src="data:image/png;base64,${fs.readFileSync(x.img).toString("base64")}" style="margin-top:28px;width:800px;align-self:center;border-radius:32px;box-shadow:0 30px 80px rgba(0,0,0,.6)">` : `<p class="p" style="margin-top:44px">${nb(x.p)}</p>`}<div class="q" style="margin-top:30px;padding:30px 40px">${nb(x.q)}</div></div><div class="cta"><div style="color:#a1a1aa">Lien dans la bio</div><span>oxafit.app</span></div>`;
     else corps = `<div class="bloc">${x.n ? `<div class="num">${x.n}</div>` : ""}<h2>${nb(x.t)}</h2><p class="p">${nb(x.p)}</p>${x.a ? `<p class="a">${nb(x.a)}</p>` : ""}${x.suite ? `<p class="suite">${nb(x.suite)}</p>` : ""}</div>${x.src ? `<div class="src">${nb(x.src)}</div>` : ""}<div class="glisse">${i === S.length - 2 ? "Partage-le 📤" : "→"}</div>`;
     await pg.setContent(`<html><head><meta charset="utf-8"><style>${css}</style></head><body>${haut}${corps}</body></html>`);
     await pg.waitForTimeout(150);
