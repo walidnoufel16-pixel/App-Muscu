@@ -39,6 +39,8 @@ avec la date et la source (fichier de stats). Rayer ou supprimer ce qui est cont
 10. Juger une vidéo d'abord sur le temps de visionnage moyen et le % regardé en entier, pas sur les vues.
 14. Cohérence image / message : ce qu'on montre (exercice, muscle) doit correspondre à ce qu'on dit et à la séance
     montrée dans l'app (retour de Walid du 22 nov. : jambes à l'image, séance pecs partagée). Vérifier avant de livrer.
+15. Carrousels en 4 images : couverture, réponse, détail, fin. On ne voit que 2 à 3 images en moyenne (2,6/6, 2,9/7, 1,7/6),
+    donc la question qui fait commenter apparaît dès l'image 2 ou 3, et 15 mots au plus par image intérieure. (décision du 24 nov.)
 13. Couverture de Reel : texte seul sur fond sombre, comme une couverture de carrousel « La science dit »
     (bandeau, question en gros, trait turquoise, « Ce que disent les études → »). Pas d'extrait de la vidéo ni de photo.
 12. Vidéos horizontales en format vertical : vidéo presque entière au centre, fond flouté, texte au-dessus,
