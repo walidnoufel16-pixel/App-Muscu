@@ -26,6 +26,9 @@ et, s'il y a une leçon nouvelle, `docs/reseaux/enseignements.md`.
 - **Avant de proposer un contenu**, appuie-toi sur `docs/reseaux/enseignements.md` et les derniers relevés
   de `docs/reseaux/stats/` (meilleure publication : carrousel « La science dit » du 18 nov.).
 
+**Positionnement (décision de Walid, 24 nov.)** : Oxa est d'abord **l'app pour suivre ses séances** (noter ses séries,
+retrouver ses charges, voir ses progrès). Ne pas mettre en avant la création de séances.
+
 ## Règles qui ne se discutent pas
 - Ne jamais mettre en avant « gratuit » ni « sans pub ».
 - Aucune promesse chiffrée de résultat (« −10 kg en un mois »), aucun conseil médical.

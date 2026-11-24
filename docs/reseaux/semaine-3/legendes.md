@@ -64,3 +64,17 @@ Laquelle t'énerve le plus : 1, 2, 3 ou 4 ? 👇
 Identifie la personne qui ne range jamais ses disques 😅
 #salledesport #musculation #gymtok #gymlife #regledesalle
 ```
+
+## Carrousel · POV : c'était combien la dernière fois ? (squat)
+Dossier : `carrousel-pov-squat/` (4 images 1080×1350). Script : `outils/reseaux/carrousel-pov-squat.js`
+(`CAPTURE=` la carte « Squat barre » du compte de démonstration : précédent 77,5 × 10, aujourd'hui 82,5 kg).
+Où : TikTok (mode photo) et Instagram. Quand : mardi 24 novembre, 12 h 30. Positionnement : app de suivi de séances.
+
+**Légende (TikTok et Instagram)**
+```
+POV : t'arrives au squat et… c'était combien la dernière fois ? 🤔
+77,5 ? 80 ? Bon, je mets 77,5… et 3 semaines plus tard, toujours 77,5 😅
+Ça t'est déjà arrivé ? 👇
+#musculation #squat #salledesport #gymtok #progression
+(4 images)
+```
