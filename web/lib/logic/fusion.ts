@@ -60,3 +60,19 @@ export function fusionner(a: Sauvegarde, b: Sauvegarde): Sauvegarde {
     ts: Math.max(a.ts || 0, b.ts || 0),
   };
 }
+
+/** Reconnexion à un compte existant sur un appareil où l'on s'entraînait sans y être connecté :
+ *  le compte garde ses réglages (profil, programme, séances enregistrées), mais tout ce qui a été
+ *  fait sur l'appareil s'y ajoute, ainsi que les séances créées sur l'appareil absentes du compte.
+ *  Avant : la sauvegarde du compte remplaçait l'appareil, et ses séances étaient perdues. */
+export function recuperer(compte: Sauvegarde, appareil: Sauvegarde): Sauvegarde {
+  /* l'appareil passe pour le plus ancien : à clé égale, c'est le compte qui l'emporte */
+  const f = fusionner({ ...appareil, ts: 0 }, compte);
+  const libre = (s: NonNullable<Etat["SEANCES"]>[number]) => `${s.nom}|${(s.ex || []).map((e) => e.id).join(",")}`;
+  return {
+    ...f,
+    SEANCES: reunir(compte.SEANCES, appareil.SEANCES, libre, (x) => x),
+    ...(compte.SEANCES_CARDIO || appareil.SEANCES_CARDIO ? { SEANCES_CARDIO: reunir(compte.SEANCES_CARDIO, appareil.SEANCES_CARDIO, (s) => JSON.stringify(s), (x) => x) } : {}),
+    ts: Math.max(compte.ts || 0, appareil.ts || 0),
+  };
+}

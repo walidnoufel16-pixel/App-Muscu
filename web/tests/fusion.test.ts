@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fusionner } from "@/lib/logic/fusion";
+import { fusionner, recuperer } from "@/lib/logic/fusion";
 import type { LigneHist } from "@/lib/logic/historique";
 
 const ligne = (d: string, s: string, ser = 10): LigneHist => ({ d, s, nom: "Séance", vol: 1000, ser, ex: {} });
@@ -33,5 +33,41 @@ describe("fusion de deux appareils", () => {
     expect(f.CARDIO).toHaveLength(2);
     expect(f.SORTIES).toHaveLength(1);
     expect(f.A!.testsStreet!.map((t) => t.d)).toEqual(["2026-09-01", "2026-10-15"]);
+  });
+});
+
+describe("reconnexion à un compte sur un téléphone où l'on s'entraînait sans être connecté", () => {
+  const j = (ok: number, ts: number) => ({ done: ok === 3, feel: null, ex: "dc", ts, series: Array.from({ length: 3 }, (_, i) => ({ v: 40, reps: 8, ok: i < ok })) });
+  /* le compte : créé puis presque vide ; le téléphone : plusieurs séances faites hors connexion */
+  const compte = { ts: 100, A: { objectif: 1, materiel: 2 }, SEANCES: [{ nom: "Haut", ex: [{ id: "dc", s: 3, r: 8, p: "2 min" }] }], HIST: [] };
+  const telephone = {
+    ts: 900, A: { objectif: 0, materiel: 0 },
+    HIST: [ligne("2026-11-19", "L|0"), ligne("2026-11-21", "L|1"), ligne("2026-11-23", "L|0")],
+    LOG: { "L|0|0": j(3, 800) },
+    CARDIO: [{ nom: "a", f: "fractionne", m: "tapis", min: 20, effort: 7, ts: 5 }],
+    SORTIES: [{ d: "2026-11-20", km: 5, sec: 1800, rpe: 4 }],
+    SEANCES: [{ nom: "Haut", ex: [{ id: "dc", s: 3, r: 8, p: "2 min" }] }, { nom: "Jambes", ex: [{ id: "sqpc", s: 4, r: 10, p: "2 min" }] }],
+  } as Parameters<typeof recuperer>[1];
+  const f = recuperer(compte as Parameters<typeof recuperer>[0], telephone);
+  it("les séances faites sur le téléphone ne sont pas perdues", () => {
+    expect(f.HIST!.map((l) => l.d)).toEqual(["2026-11-19", "2026-11-21", "2026-11-23"]);
+    expect(Object.keys(f.LOG!)).toEqual(["L|0|0"]);
+    expect(f.CARDIO).toHaveLength(1);
+    expect(f.SORTIES).toHaveLength(1);
+  });
+  it("les réglages du compte l'emportent, même si le téléphone est plus récent", () => {
+    expect(f.A).toMatchObject({ objectif: 1, materiel: 2 });
+  });
+  it("les séances créées sur le téléphone s'ajoutent à celles du compte, sans doublon", () => {
+    expect(f.SEANCES!.map((s) => s.nom)).toEqual(["Haut", "Jambes"]);
+  });
+  it("la sauvegarde garde le moment le plus récent, pour être envoyée", () => {
+    expect(f.ts).toBe(900);
+  });
+  it("téléphone vierge : rien ne change pour le compte", () => {
+    const g = recuperer(compte as Parameters<typeof recuperer>[0], { ts: 950, A: { objectif: 3 }, SEANCES: [] });
+    expect(g.HIST).toEqual([]);
+    expect(g.A).toMatchObject({ objectif: 1, materiel: 2 });
+    expect(g.SEANCES!.map((s) => s.nom)).toEqual(["Haut"]);
   });
 });
