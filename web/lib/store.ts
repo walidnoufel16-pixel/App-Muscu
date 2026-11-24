@@ -20,7 +20,7 @@ import { jourDe, MAX_HIST, reconstruire, redater } from "@/lib/logic/historique"
 import type { Prevu } from "@/lib/logic/agenda";
 import { ROUTINES_SOIN } from "@/lib/data/soin";
 import { rattacherJournaux } from "@/lib/logic/actions";
-import { fusionner } from "@/lib/logic/fusion";
+import { fusionner, recuperer } from "@/lib/logic/fusion";
 import { sourceNotee } from "@/lib/source";
 import { enDemo, marquerDemo } from "@/lib/demo";
 
@@ -129,14 +129,14 @@ type Store = {
   entrerDemo: () => void;
   sortirDemo: () => void;
   demarrer: () => Promise<void>;
-  apresConnexion: (forcerDistant?: boolean) => Promise<string | null>;
+  apresConnexion: (forcerDistant?: boolean, ajouterLocal?: boolean) => Promise<string | null>;
   creerCompte: (pseudo: string, mail?: string) => Promise<{ ok: boolean; message?: string }>;
   pousser: () => Promise<void>;
   tirer: () => Promise<void>;
   setUser: (u: User | null) => void;
   /** false si le serveur n'a pas confirmé la suppression : rien n'est alors effacé ici. */
   toutEffacer: () => Promise<boolean>;
-  changerDeCompte: () => Promise<void>;
+  changerDeCompte: (garderLocal?: boolean) => Promise<void>;
   partager: (i: number) => Promise<{ code?: string; erreur?: string; avertissement?: string }>;
   partagerCardio: (i: number) => Promise<{ code?: string; erreur?: string }>;
   importer: (code: string) => Promise<{ nom?: string; absents?: number; erreur?: string; cardio?: boolean }>;
@@ -262,7 +262,8 @@ export const useRepere = create<Store>((set, get) => ({
   },
 
   /* forcerDistant : à la récupération sur un nouvel appareil, le compte a raison. */
-  async apresConnexion(forcerDistant) {
+  /* ajouterLocal (récupération) : ce qui a été fait sur cet appareil s'ajoute au compte ; sinon le compte remplace */
+  async apresConnexion(forcerDistant, ajouterLocal = true) {
     const c = await sb(), u = get().user;
     let distant: Stocke | null = null, info: string | null = null;
     if (c && u) {
@@ -274,7 +275,9 @@ export const useRepere = create<Store>((set, get) => ({
     const local = lireLocal();
     /* même compte des deux côtés : on fusionne (rien de fait ne se perd) ; récupération sur un
        nouvel appareil : le compte a raison */
-    const choisi = forcerDistant ? distant || local : distant && local ? fusionner(distant, local) : distant || local;
+    /* récupération sur un appareil : le compte garde ses réglages, mais ce qui a été fait ici s'y ajoute */
+    const choisi = distant && local ? (forcerDistant ? (ajouterLocal ? recuperer(distant, local) : distant) : fusionner(distant, local)) : distant || local;
+    const ajoutees = forcerDistant && distant ? (choisi?.HIST?.length || 0) - (distant.HIST?.length || 0) : 0;
     if (distant) noterBase(distant.ts || 0);
     set({ etat: versEtat(choisi), pret: true, sync: true });
     /* Compte retrouvé sur un appareil où la langue n'a jamais été choisie : on reprend celle du compte. */
@@ -282,11 +285,12 @@ export const useRepere = create<Store>((set, get) => ({
     if ((l === "fr" || l === "en") && l !== langue() && !choixExplicite()) changerLangue(l);
     if (forcerDistant && !distant)
       info = tr("Compte ouvert, mais il ne contenait aucune sauvegarde. Ce qui était sur cet appareil a été conservé et lui est maintenant rattaché.");
+    else if (ajoutees > 0)
+      info = ajoutees === 1 ? tr("Compte ouvert. La séance faite sur ce téléphone a été ajoutée à ton compte.") : tr("Compte ouvert. Les {n} séances faites sur ce téléphone ont été ajoutées à ton compte.", { n: ajoutees });
     try { if (get().pseudo) localStorage.setItem(PKEY, get().pseudo); } catch {}
-    if (choisi !== distant) {
-      try { localStorage.setItem(SKEY, JSON.stringify(instantane(get().etat))); } catch {}
-      await get().pousser();
-    }
+    /* toujours réécrit : sinon, quand le compte remplace l'appareil, l'ancien contenu revenait au lancement suivant */
+    try { localStorage.setItem(SKEY, JSON.stringify(instantane(get().etat))); } catch {}
+    if (choisi !== distant) await get().pousser();
     return info;
   },
 
@@ -345,7 +349,9 @@ export const useRepere = create<Store>((set, get) => ({
   /* Changer de compte : dernière synchronisation, déconnexion, puis le
      téléphone est vidé. Les données restent sur le serveur, rattachées au
      compte qu'on quitte ; elles reviennent en s'y reconnectant. */
-  async changerDeCompte() {
+  /* garderLocal : l'appareil n'a pas de compte à adresse, on garde ce qu'il contient pour pouvoir
+     l'ajouter au compte retrouvé (Bienvenue › code) au lieu de l'effacer */
+  async changerDeCompte(garderLocal = false) {
     if (minuteurPush) { clearTimeout(minuteurPush); minuteurPush = null; }
     const c = await sb();
     if (get().user) {
@@ -353,6 +359,11 @@ export const useRepere = create<Store>((set, get) => ({
       /* les rappels de ce compte ne doivent plus arriver sur ce téléphone */
       try { await (await import("@/lib/rappels")).couperRappels(); } catch {}
       try { await c?.auth.signOut(); } catch {}
+    }
+    if (garderLocal) {
+      try { localStorage.setItem(SKEY, JSON.stringify(instantane(get().etat))); localStorage.removeItem(PKEY); localStorage.removeItem(BKEY); } catch {}
+      set({ user: null, pseudo: "", sync: null, session: "aucune" });
+      return;
     }
     try { localStorage.removeItem(SKEY); localStorage.removeItem(PKEY); localStorage.removeItem(BKEY); localStorage.removeItem("repere.cycle.v1"); } catch {}
     set({ etat: vide(), user: null, pseudo: "", sync: null, session: "aucune" });

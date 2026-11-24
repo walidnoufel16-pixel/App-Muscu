@@ -20,6 +20,9 @@ function Bienvenue() {
   const router = useRouter();
   const recup = useSearchParams().get("recup");
   const { user, creerCompte, setUser, apresConnexion } = useRepere();
+  /* séances faites sur cet appareil : proposées à l'ajout au compte retrouvé (cochées par défaut) */
+  const faites = useRepere((s) => (s.etat.HIST?.length || 0) + (s.etat.CARDIO?.length || 0) + (s.etat.SORTIES?.length || 0));
+  const [ajouter, setAjouter] = useState(true);
   const [etape, setEtape] = useState<Etape>(recup ? "recup" : user ? "entrer" : "accueil");
   const [pseudo, setPseudo] = useState(() => (typeof window !== "undefined" && localStorage.getItem("palier.pseudo.v1")) || "");
   const [mail, setMail] = useState("");
@@ -64,7 +67,8 @@ function Bienvenue() {
     const { data, error } = await c.auth.verifyOtp({ email: mail.trim().toLowerCase(), token: k, type: "email" });
     if (error || !data.user) { setOccupe(false); setErr(messageErreur(error, "code")); return; }
     setUser(data.user);
-    await apresConnexion(true);
+    const info = await apresConnexion(true, ajouter);
+    if (info) toast(info, { duration: 8000 });
     setOccupe(false);
     router.replace("/");
   };
@@ -104,7 +108,15 @@ function Bienvenue() {
       {etape === "code" && (
         <Form titre={tr("Ton code")} texte={tr("Six chiffres viennent d'être envoyés à {mail}. Il reste valable une heure. Pense à regarder tes indésirables.", { mail })} bouton={occupe ? tr("Vérification…") : tr("Ouvrir mon compte")} onValider={validerCode} occupe={occupe} err={err}>
           <Input autoFocus value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))} onKeyDown={(e) => e.key === "Enter" && validerCode()} inputMode="numeric" autoComplete="one-time-code" placeholder="000000" aria-label={tr("Code à six chiffres")} className="num h-16 rounded-2xl bg-card text-center text-[34px] font-bold tracking-[0.4em]" />
-          <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">{tr("En validant, les données de ton compte remplaceront celles de cet appareil. Si le compte est vide, rien ne sera perdu.")}</p>
+          {faites > 0 ? (
+            <label className="mt-4 flex items-start gap-3 rounded-2xl bg-card p-4 text-[14.5px] leading-snug">
+              <input type="checkbox" checked={ajouter} onChange={(e) => setAjouter(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[var(--plate)]" />
+              <span>
+                {faites === 1 ? tr("Ajouter à ce compte la séance faite sur ce téléphone") : tr("Ajouter à ce compte les {n} séances faites sur ce téléphone", { n: faites })}
+                <span className="mt-1 block text-[13px] text-muted-foreground">{ajouter ? tr("Rien ne sera perdu. Les réglages du compte sont gardés.") : tr("Décoché : le compte remplacera ce qui est sur ce téléphone.")}</span>
+              </span>
+            </label>
+          ) : <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">{tr("En validant, les données de ton compte remplaceront celles de cet appareil. Si le compte est vide, rien ne sera perdu.")}</p>}
         </Form>
       )}
 

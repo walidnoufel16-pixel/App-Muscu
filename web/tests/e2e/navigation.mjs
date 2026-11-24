@@ -168,14 +168,14 @@ for (const c of ["/entrainement/", "/progres/", "/profil/", "/entrainement/seanc
   ok(d <= 2, `${c} : titre réduit centré (écart ${d.toFixed(1)} px)`);
 }
 
-// changer de compte (mode local : les données du téléphone seront effacées, on le dit)
+// changer de compte (mode local : rien n'est effacé, ce qui est sur le téléphone pourra s'ajouter au compte retrouvé)
 await pg.goto(U + "/profil/?p=compte");
 await pg.getByRole("button", { name: "Changer de compte" }).click();
-await pg.getByText("ce sera effacé").waitFor({ timeout: 3000 });
-ok(true, "avertissement avant de quitter des données non rattachées");
-await pg.getByRole("button", { name: "Effacer et changer" }).click();
+await pg.getByText("Rien n'est effacé").waitFor({ timeout: 3000 });
+ok(true, "on annonce que les données non rattachées sont gardées");
+await pg.getByRole("button", { name: "Continuer" }).click();
 await pg.waitForURL(/\/bienvenue\/\?recup=1/);
-ok(await pg.evaluate(() => localStorage.getItem("palier.state.v1")) === null, "téléphone vidé, écran de connexion");
+ok(await pg.evaluate(() => localStorage.getItem("palier.state.v1")) !== null, "téléphone gardé, écran de connexion");
 ok(await pg.locator("h1", { hasText: "Retrouver mon compte" }).isVisible(), "on peut se connecter à un autre compte");
 
 ok(!errs.length, "aucune erreur JS" + (errs.length ? " : " + errs.join(" / ") : ""));

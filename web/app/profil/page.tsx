@@ -91,7 +91,7 @@ function Profil() {
       toast.error(tr("La suppression n'a pas pu être confirmée par le serveur : rien n'a été effacé. Vérifie ta connexion et réessaie."));
   };
 
-  /* Quitter ce compte sans rien perdre ; un compte sans adresse, lui, serait perdu. */
+  /* Quitter ce compte sans rien perdre ; un compte sans adresse, lui, serait perdu (son contenu reste sur le téléphone). */
   const changer = async () => {
     const ok = adresse
       ? await confirmer({
@@ -102,16 +102,17 @@ function Profil() {
       : user
         ? await confirmer({
             titre: tr("Ce compte n'a pas d'adresse e-mail"),
-            texte: tr("Si tu le quittes maintenant, il sera impossible de le retrouver, avec tout ce qu'il contient : cycle, séances, charges.\n\nRattache d'abord une adresse ci-dessus pour pouvoir y revenir."),
+            texte: tr("Si tu le quittes maintenant, ce compte ne pourra plus être retrouvé.\n\nCe qu'il contient (cycle, séances, charges) reste sur ce téléphone : à l'étape suivante, tu pourras l'ajouter au compte que tu ouvres. Sinon, rattache d'abord une adresse ci-dessus."),
             ok: tr("Le quitter quand même"), danger: true,
           })
         : await confirmer({
-            titre: tr("Changer de compte ?"),
-            texte: tr("Ce qui est sur ce téléphone n'est rattaché à aucun compte : ce sera effacé."),
-            ok: tr("Effacer et changer"), danger: true,
+            titre: tr("Ouvrir ton compte ?"),
+            texte: tr("Ce qui est sur ce téléphone n'est rattaché à aucun compte. Rien n'est effacé : à l'étape suivante, tu pourras l'ajouter au compte que tu ouvres."),
+            ok: tr("Continuer"),
           });
     if (!ok) return;
-    await changerDeCompte();
+    /* sans adresse, rien ne reste sur un serveur : on garde ce qui est sur le téléphone pour l'ajouter au compte retrouvé */
+    await changerDeCompte(!adresse);
     router.replace("/bienvenue?recup=1", ARRIERE);
   };
   const plan = etat.FINI || !!etat.PLAN;
@@ -214,7 +215,7 @@ function Profil() {
                 {!adresse && (
                   <div className="mb-4 flex items-start gap-2.5 rounded-2xl bg-amber-500/12 px-3.5 py-3 text-[14px] leading-snug">
                     <WarningIcon className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-300" weight="fill" />
-                    <span>{tr("Sans adresse, ton compte ne vit que sur ce téléphone : en changer te ferait tout perdre.")}</span>
+                    <span>{tr("Sans adresse, ton compte ne vit que sur ce téléphone : rattache une adresse pour le retrouver ailleurs.")}</span>
                   </div>
                 )}
                 <h3 className="eyebrow mb-2 px-1">{adresse ? tr("Adresse du compte") : tr("Sauvegarder mon compte")}</h3>
