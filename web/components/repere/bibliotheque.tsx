@@ -12,7 +12,7 @@ import { PAT2GRP, PAT2MUSC, PATN, ZONES } from "@/lib/data/referentiels";
 import { exoFiltre, nomPat } from "@/lib/logic/core";
 import { exosDe, exosZone, patsZone, sansAccent } from "@/lib/logic/assistant";
 import { roleDe } from "@/lib/logic/roles";
-import { nomRole } from "./role-exercice";
+import { courtRole, nomRole } from "./role-exercice";
 import type { RoleEx } from "@/lib/logic/types";
 import { cn } from "@/lib/utils";
 
@@ -64,7 +64,7 @@ export function Bibliotheque({
             <div className="flex flex-col gap-4">
               {parRole(l, zone.p ? PAT2MUSC[zone.p] : undefined).map(({ ro, ids }) => (
                 <div key={ro ?? "-"} className="flex flex-col gap-1.5">
-                  <h4 className="eyebrow px-1">{ro ? nomRole(ro) : tr("Autres")}{` · ${ids.length}`}</h4>
+                  <TitreRole ro={ro} n={ids.length} />
                   {ids.map((o) => <LigneExercice key={o} id={o} ro={ro} pris={pris?.(o)} onOuvrir={() => onFiche(o)} onAjouter={onAjouter ? () => onAjouter(o) : undefined} />)}
                 </div>
               ))}
@@ -90,10 +90,20 @@ export function Bibliotheque({
   );
 }
 
+/* « Base · 3 », et à côté ce que ça veut dire, en une ligne */
+export function TitreRole({ ro, n }: { ro?: RoleEx; n: number }) {
+  return (
+    <h4 className="flex flex-wrap items-baseline gap-x-2 px-1">
+      <span className="eyebrow">{ro ? nomRole(ro) : tr("Autres")}{` · ${n}`}</span>
+      {ro && <span className="text-[12px] leading-snug text-muted-foreground">{courtRole(ro)}</span>}
+    </h4>
+  );
+}
+
 /* Exercices regroupés par rôle (Base, Complément, Isolation, Gainage, puis les autres), relatif au
    muscle affiché : un exercice de base qui ne le travaille qu'en second y compte comme complément. */
 const ORDRE_ROLES: (RoleEx | undefined)[] = ["b", "c", "i", "g", undefined];
-function parRole(l: string[], muscle?: string) {
+export function parRole(l: string[], muscle?: string) {
   return ORDRE_ROLES.map((ro) => ({ ro, ids: l.filter((o) => roleDe(o, muscle) === ro) })).filter((g) => g.ids.length);
 }
 

@@ -14,6 +14,14 @@ const ROLES: Record<RoleEx, { n: () => string; pourquoi: () => string }> = {
   i: { n: () => tr("Isolation"), pourquoi: () => tr("Un seul muscle, une charge plus légère : pour finir le travail.") },
   g: { n: () => tr("Gainage"), pourquoi: () => tr("Abdos et bas du dos : en fin de séance, pour ne pas les fatiguer avant.") },
 };
+/* En une ligne, à côté des titres Base, Complément, Isolation, Gainage de la bibliothèque */
+const COURTS: Record<RoleEx, () => string> = {
+  b: () => tr("Plusieurs muscles, le plus lourd : en premier"),
+  c: () => tr("Le même muscle, sous un autre angle : après la base"),
+  i: () => tr("Un seul muscle, plus léger : pour finir"),
+  g: () => tr("Abdos et bas du dos : en fin de séance"),
+};
+export const courtRole = (ro: RoleEx) => COURTS[ro]();
 export const nomRole = (ro: RoleEx) => ROLES[ro].n();
 export const pourquoiRole = (ro: RoleEx) => ROLES[ro].pourquoi();
 
