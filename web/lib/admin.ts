@@ -74,6 +74,10 @@ export const fiche = (id: string) => appel<FicheAdmin | null>("admin_etat", { p_
 /** Ouvre ou ferme le programme sur 8 semaines pour un compte (noté au journal admin). */
 export const accesProgramme = (id: string, acces: boolean) => appel<boolean>("admin_acces_programme", { p_user: id, p_acces: acces });
 
+/** Mode Guidé (migration 20261125090000_acces_guide.sql) : les comptes ouverts, et l'interrupteur. */
+export const comptesGuide = () => appel<string[]>("admin_comptes_guide").then((l) => l || []);
+export const accesGuide = (id: string, acces: boolean) => appel<boolean>("admin_acces_guide", { p_user: id, p_acces: acces });
+
 /** null tant qu'on ne sait pas, puis vrai ou faux. Revérifié à chaque changement de compte. */
 export function useEstAdmin() {
   /* On attend que la session soit restaurée : au rechargement d'une page admin,

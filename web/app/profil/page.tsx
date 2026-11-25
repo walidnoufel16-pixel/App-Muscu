@@ -28,7 +28,7 @@ import { useEstAdmin } from "@/lib/admin";
 import { CREDITS } from "@/lib/medias";
 import { ARRIERE, AVANT } from "@/lib/nav";
 import { recap } from "@/lib/logic/questionnaire";
-import { useProgrammeActif } from "@/lib/fonctionnalites";
+import { useProgrammeActif, useSuiviSeul } from "@/lib/fonctionnalites";
 import { MonMateriel } from "@/components/repere/mon-materiel";
 import { ReglageRappels } from "@/components/repere/rappels";
 import { cn } from "@/lib/utils";
@@ -41,6 +41,7 @@ export default function PageProfil() {
 function Profil() {
   const router = useRouter();
   const prog = useProgrammeActif();
+  const suiviSeul = useSuiviSeul();
   const { user, pseudo, sync, etat, muter, setUser, pousser, toutEffacer, changerDeCompte } = useRepere();
   const { theme, setTheme } = useTheme();
   const changerLangue = useChangerLangue();
@@ -310,7 +311,8 @@ function Profil() {
         </div>
 
         {/* le mode (docs/produit/mode-suivi) : changer ne perd rien, les données sont les mêmes */}
-        <section id="mode" aria-label={tr("Mode")}>
+        {/* compte limité au mode Suivi (mode Guidé pas ouvert par l'admin) : pas de choix à montrer */}
+        {!suiviSeul && <section id="mode" aria-label={tr("Mode")}>
           <h2 className="eyebrow mb-2 px-1">{tr("Mode")}</h2>
           <Segmente label={tr("Mode")} valeur={modeDe(A)} onChange={(m) => { tactile(6); muter((E) => { E.A.mode = m; E.A.carteSuivi = true; }); toast.success(m === "suivi" ? tr("Mode Suivi") : tr("Mode Guidé"), { description: m === "suivi" ? tr("Tu notes tes séances, sans charge proposée.") : tr("Oxa te prépare tes séances selon ta récup et ton matériel.") }); }}
             options={[{ v: "suivi", n: tr("Suivi") }, { v: "guide", n: tr("Guidé") }]} />
@@ -318,7 +320,7 @@ function Profil() {
             {modeDe(A) === "suivi" ? tr("Tu notes tes séries. Oxa garde ta charge d'avant, ton max, ta récup et tes progrès.") : tr("Oxa te prépare tes séances selon ta récup et ton matériel, et te propose tes charges.")}
             {" "}{tr("Tu peux changer quand tu veux : rien n'est perdu.")}
           </p>
-        </section>
+        </section>}
         <Rubriques titre={tr("Moi")} l={[
           { k: "sportif", n: tr("Profil sportif"), v: resumeSportif, fond: "#5e5ce6", icone: <UserIcon className="size-4" weight="bold" /> },
           { k: "zones", n: tr("Zones à ménager"), v: zones.length ? zones.join(", ") : tr("Aucune"), fond: "#e5484d", icone: <BandaidsIcon className="size-4" weight="bold" /> },

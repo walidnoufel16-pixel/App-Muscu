@@ -16,7 +16,7 @@ async function contexte(etat, extra = {}) {
   const ctx = await b.newContext({ locale: "fr-FR", viewport: { width: 393, height: 852 }, deviceScaleFactor: 2, serviceWorkers: "block" });
   await ctx.addInitScript(([s, x]) => {
     if (!sessionStorage.vu) { localStorage.setItem("palier.state.v1", JSON.stringify(s)); localStorage.setItem("palier.pseudo.v1", "Walid"); for (const [k, v] of Object.entries(x)) localStorage.setItem(k, v); sessionStorage.vu = 1; }
-  }, [etat, extra]);
+  }, [etat, { "repere.guide": "1", ...extra }]); // mode Guidé ouvert (les nouveaux comptes n'ont sinon que Suivi)
   await ctx.route(/supabase\.co/, (r) => r.abort());
   const pg = await ctx.newPage();
   pg.on("pageerror", (x) => errs.push(x.message));

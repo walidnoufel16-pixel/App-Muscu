@@ -1,6 +1,8 @@
-/* Modes Suivi et Guidé (docs/produit/mode-suivi) : la question d'arrivée (présélection par le lien
-   ?mode=suivi), la première séance « Comme dans ton carnet », l'accueil du mode Suivi, la séance sans
-   charge proposée, le changement de mode dans Profil, et la carte unique des comptes d'avant.
+/* Modes Suivi et Guidé (docs/produit/mode-suivi) : nouveau compte sans le mode Guidé (Suivi direct,
+   aucun choix de mode), la question d'arrivée quand le Guidé est ouvert (présélection par le lien
+   ?mode=suivi), la première séance « Comme dans ton carnet », l'accueil du mode Suivi (récupération,
+   corps → exercices au choix), la séance sans charge proposée, le changement de mode dans Profil, et la
+   carte unique des comptes d'avant.
    CAPTURES=dossier pour garder des captures (390 px de large). */
 import { chromium } from "@playwright/test";
 import { servir } from "./serveur.mjs";
@@ -25,7 +27,7 @@ async function contexte(etat, extra = {}) {
 const neuf = { A: { materiel: 0, acc: [], blessure: [], prio: [] }, LOG: {}, SWAP: {}, SWAPP: {}, PLAN: null, FINI: false, wk: 0, day: 0, HIST: [], SEANCES: [], ts: Date.now() };
 const ts = (d) => new Date(d + "T18:00").getTime();
 const avecSeances = (A) => ({
-  ...neuf, A: { ...neuf.A, accueil: true, objHebdo: 3, ...A },
+  ...neuf, A: { ...neuf.A, accueil: true, objHebdo: 3, sexe: 0, ...A },
   SEANCES: [
     { nom: "Pecs · Épaules · Triceps", ex: [{ id: "dc", s: 3, r: 8, p: "2 min" }, { id: "el", s: 3, r: 12, p: "60 s" }] },
     { nom: "Jambes", ex: [{ id: "sq", s: 4, r: 8, p: "2 min 30" }] },
@@ -39,9 +41,27 @@ const avecSeances = (A) => ({
   },
 });
 
-/* 1. lien des réseaux (?mode=suivi) : la question, Suivi présélectionné, puis la première séance */
+/* 0. nouveau compte, mode Guidé pas ouvert par l'admin : pas de question, Suivi seulement */
 {
-  const [ctx, pg] = await contexte(neuf);
+  const [ctx, pg] = await contexte(neuf, { "repere.source": "tiktok" });
+  await pg.goto(U + "/entrainement/");
+  await pg.waitForURL(/\/entrainement\/composer/, { timeout: 10000 });
+  await pg.getByRole("heading", { name: "Comme dans ton carnet." }).waitFor();
+  ok(await pg.getByText("Tu as déjà ton programme ?").count() === 0, "sans accès au Guidé : pas de question, la première séance directement");
+  const A = await pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")).A);
+  ok(A.mode === "suivi" && A.suiviSeul === true, "compte limité au mode Suivi");
+  await pg.goto(U + "/profil/");
+  await pg.getByText("Compte et réglages").waitFor();
+  ok(await pg.getByRole("tab", { name: "Guidé" }).count() === 0, "Profil : pas de choix de mode");
+  await pg.getByRole("button", { name: "Menu" }).first().click();
+  await pg.getByText("Plus d'entraînements").waitFor();
+  ok(await pg.getByText("Créer une séance pour moi").count() === 0, "menu : pas de séance créée par Oxa");
+  await ctx.close();
+}
+
+/* 1. mode Guidé ouvert, lien des réseaux (?mode=suivi) : la question, Suivi présélectionné, puis la première séance */
+{
+  const [ctx, pg] = await contexte(neuf, { "repere.guide": "1" });
   await pg.goto(U + "/?mode=suivi&src=tiktok");
   await pg.waitForTimeout(600);
   await pg.goto(U + "/entrainement/");
@@ -63,7 +83,7 @@ const avecSeances = (A) => ({
 
 /* 2. sans lien : rien de présélectionné ; « Non, guide-moi » mène au parcours d'avant */
 {
-  const [ctx, pg] = await contexte(neuf, { "repere.source": "insta" });
+  const [ctx, pg] = await contexte(neuf, { "repere.source": "insta", "repere.guide": "1" });
   await pg.goto(U + "/entrainement/");
   const dlg = pg.getByRole("dialog");
   await dlg.getByText("Tu as déjà ton programme ?").waitFor({ timeout: 8000 });
@@ -84,10 +104,31 @@ const avecSeances = (A) => ({
   ok(/Séances/.test(onglets) && /Progrès/.test(onglets) && /Profil/.test(onglets) && !/Repas/.test(onglets), "onglets : Séances, Progrès, Profil");
   const carte = pg.locator("[data-seance-prochaine]");
   ok(/Jambes/.test(await carte.innerText()) && /Dernière fois .* · squat barre 80 × 10/.test(await carte.innerText()), "prochaine : Jambes, « Dernière fois … · squat barre 80 × 10 »");
-  ok(await pg.getByText("Récupération").count() >= 1 && await pg.getByText("Voir", { exact: true }).count() === 1, "récupération gardée, en carte courte");
+  ok(await pg.getByText("Récupération").count() >= 1, "récupération, comme en Guidé");
   ok(await pg.getByText("Oxa te propose").count() === 0 && await pg.getByText("Plus d'entraînements").count() === 0, "ni séance proposée ni rubriques sur l'accueil");
   await cap(pg, "3-accueil-suivi");
-  await carte.getByRole("button", { name: "Commencer" }).click();
+  /* la feuille de récupération, sans « Séance avec les muscles prêts » */
+  await pg.getByText("Récupération").first().click();
+  await pg.getByRole("dialog").getByText("D'après tes séances des 14 derniers jours.").waitFor();
+  ok(await pg.getByText("Séance avec les muscles prêts").count() === 0, "récupération : pas de séance construite par Oxa");
+  await pg.keyboard.press("Escape");
+  await pg.waitForTimeout(500);
+  /* le corps : toucher les pectoraux propose leurs exercices */
+  const corps = pg.locator('svg[aria-label="Schéma du corps"]').first();
+  await corps.scrollIntoViewIfNeeded();
+  await corps.locator("path", { has: pg.locator("title", { hasText: "Pectoraux" }) }).first().click();
+  await pg.getByRole("button", { name: /Choisir mes exercices · Pectoraux/ }).click();
+  await pg.waitForURL(/\/entrainement\/composer/);
+  await pg.getByText("Choisis tes exercices").waitFor();
+  ok(await pg.locator('[aria-label="Exercices des muscles choisis"] h3').first().innerText() === "Pectoraux", "corps → les exercices des pectoraux, au choix");
+  await pg.locator('[aria-label="Exercices des muscles choisis"] button[aria-label^="Ajouter "]').first().click();
+  await pg.waitForTimeout(300);
+  ok(/1 exercice/i.test(await pg.getByText(/Ta séance · /).innerText()), "un toucher l'ajoute à la séance");
+  ok(await pg.getByText(/Pourquoi .* kg/).count() === 0 && !/ kg/.test(await pg.locator("[data-carte]").first().innerText()), "aucune charge proposée");
+  await cap(pg, "3b-corps-exercices");
+  await pg.goto(U + "/entrainement/");
+  await pg.locator("[data-seance-prochaine]").waitFor();
+  await pg.locator("[data-seance-prochaine]").getByRole("button", { name: "Commencer" }).click();
   await pg.waitForURL(/\/entrainement\/seance/);
   await pg.locator('[data-ex="sq"]').first().waitFor();
   if (!(await pg.locator('input[aria-label="kg série 1"]').count())) await pg.locator('[data-ex="sq"] button').first().click();

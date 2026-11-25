@@ -44,6 +44,8 @@ import { BandeauDemo, finDemoEnQuittant, VisiteCreer } from "@/components/repere
 import { decaler } from "@/lib/logic/historique";
 import { toast } from "sonner";
 import { AvisSeance } from "@/components/repere/avis-seance";
+import { exosParMuscle } from "@/components/repere/bibliotheque-muscles";
+import { LigneExercice } from "@/components/repere/ligne-exercice";
 import { enSuivi } from "@/lib/logic/mode";
 import { estPoly } from "@/lib/logic/avis-seance";
 import { lienRubrique } from "@/components/repere/rubriques";
@@ -377,6 +379,13 @@ export default function PageComposer() {
           <BandeauGabarit g={gab} vides={vides} onModifier={() => setChoixM(true)} onDuree={(d) => preparerCases(gab.m, d)} onCompleter={completer} onVider={vider} onSans={() => majLibre((l) => { delete l.gab; l.guide = false; })} />
         )}
 
+        {/* mode Suivi, séance partie du corps : les exercices des muscles touchés, au choix */}
+        {suivi && !!L.muscles?.length && (
+          <ExosDesMuscles m={L.muscles} sel={sel} pris={pris} onAjouter={ajouter}
+            onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") })}
+            onFermer={() => majLibre((l) => { delete l.muscles; })} />
+        )}
+
         <section>
           <div className="eyebrow mb-2 px-1">{tr("Ta séance · {length} exercice{a} {a1} {a2}", { length: L.ex.length, a: pluriel(L.ex.length) ? "s" : "", a1: L.blocs?.length ? tr(" + {length} bloc{a} cardio", { length: L.blocs.length, a: pluriel(L.blocs.length) ? "s" : "" }) : "", a2: L.ex.length ? tr(" · environ {a} min", { a: dureeSeance(L) }) : "" })}</div>
           {/* séance d'Oxa nettement plus courte que la durée choisie : on le dit, et pourquoi */}
@@ -524,6 +533,40 @@ export default function PageComposer() {
         }}
       />
     </>
+  );
+}
+
+/* Mode Suivi : les exercices des muscles touchés sur le corps, rangés par muscle (six d'abord,
+   « Voir les {n} » pour le reste). Toucher + les ajoute à la séance ; rien n'est choisi par Oxa. */
+function ExosDesMuscles({ m, sel, pris, onAjouter, onFiche, onFermer }: { m: string[]; sel: string[]; pris: (o: string) => boolean; onAjouter: (o: string) => void; onFiche: (o: string) => void; onFermer: () => void }) {
+  const [tout, setTout] = useState<string[]>([]);
+  const groupes = exosParMuscle(m, sel);
+  return (
+    <section aria-label={tr("Exercices des muscles choisis")} className="flex flex-col gap-4">
+      <div className="flex items-baseline justify-between px-1">
+        <span className="eyebrow">{tr("Choisis tes exercices")}</span>
+        <button onClick={() => { tactile(5); onFermer(); }} className="text-[13px] font-medium text-muted-foreground">{tr("Masquer")}</button>
+      </div>
+      {groupes.map(({ g, l, aussi }) => {
+        const voir = tout.includes(g.k) ? l : l.slice(0, 6);
+        return (
+          <div key={g.k} className="flex flex-col gap-1.5">
+            <div className="flex items-baseline justify-between px-1">
+              <h3 className="text-[17px] font-bold">{g.n}</h3>
+              <span className="text-[12.5px] text-muted-foreground">{l.length}</span>
+            </div>
+            {aussi && l.length > 0 && <p className="px-1 text-[12.5px] leading-snug text-muted-foreground">{tr("Pas d'exercice d'isolation avec ce matériel : ceux-ci le travaillent aussi.")}</p>}
+            {voir.map((o) => <LigneExercice key={o} id={o} pris={pris(o)} onOuvrir={() => onFiche(o)} onAjouter={() => { onAjouter(o); toast.success(tr("Ajouté : {a}", { a: EX[o]?.n || o }), { duration: 1400 }); }} />)}
+            {!l.length && <p className="px-1 text-[13.5px] text-muted-foreground">{tr("Aucun exercice avec ce matériel.")}</p>}
+            {l.length > voir.length && (
+              <button onClick={() => { tactile(5); setTout((t) => [...t, g.k]); }} className="self-start px-1 py-1 text-[13.5px] font-semibold text-plate-ink dark:text-plate">
+                {tr("Voir les {n} exercices", { n: l.length })}
+              </button>
+            )}
+          </div>
+        );
+      })}
+    </section>
   );
 }
 

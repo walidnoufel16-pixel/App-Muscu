@@ -3567,5 +3567,17 @@
   "Par mode · comptes créés sur la période": "By mode · accounts created in the period",
   "{n} comptes · {p} % avec une séance": "{n} accounts · {p}% with a workout",
   "aucun compte": "no accounts",
-  "Voir": "See"
+  "Voir": "See",
+  "Mode Guidé ouvert pour ce compte": "Guided mode opened for this account",
+  "Mode Guidé fermé pour ce compte": "Guided mode closed for this account",
+  "Indisponible : {message}": "Unavailable: {message}",
+  "Ouvert : ce compte peut choisir Suivi ou Guidé dans Profil.": "Open: this account can choose Log or Guided in Profile.",
+  "Compte d'avant le verrou : il garde le choix des deux modes.": "Account from before the lock: it keeps the choice of both modes.",
+  "Fermé : ce compte n'a que le mode Suivi.": "Closed: this account only has Log mode.",
+  "Accès au mode Guidé": "Access to Guided mode",
+  "Exercices des muscles choisis": "Exercises for the chosen muscles",
+  "Choisis tes exercices": "Pick your exercises",
+  "Masquer": "Hide",
+  "Voir les {n} exercices": "See all {n} exercises",
+  "Choisir mes exercices · {a}": "Pick my exercises · {a}"
 }

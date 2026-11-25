@@ -26,7 +26,7 @@ import { noter as mesurer } from "@/lib/mesure";
 import { usePile, useSens } from "@/lib/nav";
 import { suivreHistorique } from "@/lib/suivi";
 import { suivreDefis } from "@/lib/defis";
-import { useVerifierAccesProgramme } from "@/lib/fonctionnalites";
+import { useVerifierAccesGuide, useVerifierAccesProgramme } from "@/lib/fonctionnalites";
 import { memoriserPhotosAuRepos } from "@/lib/photos-hors-ligne";
 import { MiseAJour } from "./mise-a-jour";
 import { Demenagement } from "./demenagement";
@@ -56,6 +56,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [demarrer]);
   /* programme sur 8 semaines : ouvert compte par compte par l'admin */
   useVerifierAccesProgramme();
+  /* mode Guidé : ouvert compte par compte par l'admin (les nouveaux comptes n'ont que Suivi) */
+  useVerifierAccesGuide();
   /* Pile des écrans (bouton retour) ; le sens d'un retour ne sert qu'une fois. */
   useEffect(() => {
     usePile.getState().noter(chemin + location.search);

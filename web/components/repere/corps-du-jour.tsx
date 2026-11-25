@@ -2,7 +2,9 @@
 
 /* Le corps humain en tête d'Entraînement : « Qu'est-ce que tu travailles aujourd'hui ? ».
    Teinté selon les 7 derniers jours (plus c'est bleu, plus le muscle a travaillé) ; toucher des
-   muscles fait apparaître « Créer ma séance », qui ouvre l'assistant avec ces muscles cochés. */
+   muscles fait apparaître « Créer ma séance », qui ouvre l'assistant avec ces muscles cochés.
+   Mode Suivi : pas de séance construite par Oxa ; « Choisir mes exercices » ouvre une séance vide
+   à ces muscles, avec leurs exercices proposés au choix (composeur). */
 import { tr } from "@/lib/i18n";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -14,12 +16,16 @@ import { decaler, jourDe, seriesParMuscle } from "@/lib/logic/historique";
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
+import { useBrouillon } from "@/lib/brouillon";
+import { enSuivi } from "@/lib/logic/mode";
 
 /* les grands groupes, pour « pas encore cette semaine » (les petits muscles n'y figurent pas) */
 const PRINCIPAUX = ["pec", "dos", "epa", "bic", "tri", "qua", "isc", "mol", "abd"];
 
 export function CorpsDuJour({ titre }: { titre: string }) {
   const router = useRouter();
+  const suivi = useRepere((s) => enSuivi(s.etat));
+  const setLibre = useBrouillon((s) => s.setLibre);
   const H = useRepere((s) => s.etat.HIST);
   const [m, setM] = useState<string[]>([]);
   const [auj] = useState(() => jourDe(Date.now()));
@@ -57,9 +63,14 @@ export function CorpsDuJour({ titre }: { titre: string }) {
       {m.length > 0 && (
         /* au-dessus de la barre d'onglets, tant que des muscles sont touchés */
         <div className="fixed inset-x-0 bottom-[calc(max(env(safe-area-inset-bottom),10px)+82px)] z-40 mx-auto max-w-[480px] px-4">
-          <button onClick={() => router.push(`/entrainement/assistant?m=${m.join(",")}` as Route, AVANT)}
+          <button onClick={() => {
+            tactile(8);
+            if (!suivi) { router.push(`/entrainement/assistant?m=${m.join(",")}` as Route, AVANT); return; }
+            setLibre({ nom: m.map(nom).join(" · "), ex: [], idx: null, muscles: [...m] });
+            router.push("/entrainement/composer", AVANT);
+          }}
             className="flex h-14 w-full animate-[monter_.3s_ease-out_both] items-center justify-center gap-2 rounded-full bg-plate px-5 text-[15px] font-semibold text-plate-foreground shadow-[0_12px_28px_-10px_var(--plate)] active:scale-[.98]">
-            <span className="truncate">{tr("Créer ma séance · {a}", { a: m.map(nom).join(", ") })}</span><ArrowRightIcon className="size-4 shrink-0" weight="bold" />
+            <span className="truncate">{suivi ? tr("Choisir mes exercices · {a}", { a: m.map(nom).join(", ") }) : tr("Créer ma séance · {a}", { a: m.map(nom).join(", ") })}</span><ArrowRightIcon className="size-4 shrink-0" weight="bold" />
           </button>
         </div>
       )}

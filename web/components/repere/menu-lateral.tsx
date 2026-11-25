@@ -18,6 +18,7 @@ import { inviterAmi } from "./inviter";
 import { useVisitesNonVues } from "./visites";
 import { cn } from "@/lib/utils";
 import { enSuivi } from "@/lib/logic/mode";
+import { useSuiviSeul } from "@/lib/fonctionnalites";
 import { lienRubrique } from "./rubriques";
 
 /* Les écrans des quatre onglets, et « Compte et réglages » : le bouton ☰ y remplace le retour. */
@@ -63,6 +64,8 @@ export function MenuLateral() {
   const ouvrir = (cle: "installer" | "avis") => () => { tactile(5); fermer(); setTimeout(() => useMenu.setState({ [cle]: true }), 250); };
   /* mode Suivi : ce qui n'est pas sur l'accueil (Repas, Street, Course, la séance créée par Oxa) */
   const suivi = useRepere((s) => enSuivi(s.etat));
+  /* compte limité au mode Suivi : pas de séance créée par Oxa */
+  const suiviSeul = useSuiviSeul();
   const blocs: { titre: string; l: Ligne[] }[] = [
     ...(suivi ? [{
       titre: tr("Plus d'entraînements"),
@@ -70,7 +73,7 @@ export function MenuLateral() {
         { Icone: ForkKnifeIcon, n: tr("Repas"), onClick: va("/repas") },
         { Icone: PersonSimpleTaiChiIcon, n: tr("Street workout"), onClick: va(lienRubrique("street")) },
         { Icone: PersonSimpleRunIcon, n: tr("Course à pied"), onClick: va(lienRubrique("course")) },
-        { Icone: SparkleIcon, n: tr("Créer une séance pour moi"), onClick: va("/entrainement/assistant") },
+        { Icone: SparkleIcon, n: tr("Créer une séance pour moi"), onClick: va("/entrainement/assistant"), cache: suiviSeul },
         { Icone: DownloadSimpleIcon, n: tr("Importer une séance avec un code"), onClick: () => { tactile(5); fermer(); setTimeout(() => { allerA(router, "/entrainement"); setTimeout(() => useMenu.setState({ importer: true }), 350); }, 180); } },
       ] as Ligne[],
     }] : []),
