@@ -26,8 +26,9 @@ et, s'il y a une leçon nouvelle, `docs/reseaux/enseignements.md`.
 - **Avant de proposer un contenu**, appuie-toi sur `docs/reseaux/enseignements.md` et les derniers relevés
   de `docs/reseaux/stats/` (meilleure publication : carrousel « La science dit » du 18 nov.).
 
-**Positionnement (décision de Walid, 24 nov.)** : Oxa est d'abord **l'app pour suivre ses séances** (noter ses séries,
-retrouver ses charges, voir ses progrès). Ne pas mettre en avant la création de séances.
+**Positionnement (décisions de Walid, 24 et 25 nov.)** : Oxa est **l'app pour suivre ses séances**. Les nouveaux comptes
+n'ont que le mode Suivi : ne promettre que ce qu'il fait (liste « Ce que la comm promet » dans `docs/reseaux/README.md`).
+Jamais de charge proposée, de « séance prête » ni du mot « coach ». Captures toujours en mode Suivi.
 
 ## Règles qui ne se discutent pas
 - Ne jamais mettre en avant « gratuit » ni « sans pub ».
