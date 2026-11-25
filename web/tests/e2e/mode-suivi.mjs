@@ -157,6 +157,8 @@ const avecSeances = (A) => ({
   await feuille.locator('section[aria-label="Triceps"] button[aria-label^="Ajouter "]').first().click();
   await feuille.getByRole("button", { name: /^Terminé/ }).click();
   await pg.waitForTimeout(500);
+  /* la feuille refermée (animation finie) : la page redevient accessible */
+  await pg.getByRole("button", { name: "Juste aujourd'hui, sans l'enregistrer" }).waitFor({ timeout: 8000 });
   ok(/2 exercices/i.test(await pg.getByText(/Ta séance · /).innerText()), "un toucher par exercice l'ajoute à la séance");
   ok(await pg.getByRole("button", { name: "Enregistrer", exact: true }).count() === 1 && await pg.getByRole("button", { name: "Commencer", exact: true }).count() === 1 && await pg.getByRole("button", { name: "Juste aujourd'hui, sans l'enregistrer" }).count() === 1, "trois choix : Enregistrer, Commencer, Juste aujourd'hui");
   ok(/ kg/.test(await pg.locator("[data-carte]").first().innerText()), "composeur : la charge proposée, comme en Guidé");
