@@ -11,6 +11,12 @@ avec la date et la source (fichier de stats). Rayer ou supprimer ce qui est cont
   lourd pour prendre du muscle ? »), couverture sombre avec la question en grand. 1 129 vues, 4 enregistrements,
   5 followers sur TikTok : le contenu utile fait s'abonner, la démo d'app non. (stats 21 nov.)
 
+- **Le suivi en sondage avec humour marche** : « Tu suis comment tes séances ? » (25 nov.) : 7 j'aime et 3 enregistrements
+  pour 686 vues, 1,8 image vue sur 4 (45 %), contre 0 réaction pour « Noter ses séances, ça sert vraiment ? » (même sujet
+  en argument). On se reconnaît dans le carnet, Notes, la tête : c'est ça qui fait réagir. (stats 25 nov.)
+- Toujours **0 commentaire**, même avec une question en un mot : lancer soi-même la discussion (commentaire épinglé
+  qui donne sa propre réponse), et proposer des réponses toutes faites (« 1, 2 ou 3 »). (stats 25 nov.)
+
 ## Ce qui ne marche pas
 - Accroche faible : 77,5 % d'abandon en 3 s sur Instagram ; un écran d'app en première image se lit
   comme une publicité. (stats 8 nov.)
