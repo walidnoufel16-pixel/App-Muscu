@@ -25,4 +25,4 @@ Réseaux : TT = TikTok, IG = Instagram, YT = YouTube Shorts.
 
 Dates prévues dans les packs : à corriger si une publication a été décalée ou annulée.
 | Lun. 23 nov. | Carrousel « La science dit » · Noter ses séances, ça sert vraiment ? | S4 | TT (photo) | 649 vues, 1,7 image vue sur 6, aucune réaction ; masqué le 25 nov. |
-| Mer. 25 nov. | Carrousel sondage · Tu suis comment tes séances ? (4 images) | S4 | TT (photo), IG | à relever |
+| Mer. 25 nov. 14 h 17 | Carrousel sondage · Tu suis comment tes séances ? (4 images) | S4 | TT (photo), IG | TT : 686 vues, 7 j'aime, 3 enreg., 0 comm., 1,8 / 4 images, ~6,6 s par vue ; meilleur contenu « suivi » à ce jour |
