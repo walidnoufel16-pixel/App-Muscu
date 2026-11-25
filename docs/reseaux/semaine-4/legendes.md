@@ -86,3 +86,20 @@ Tes charges, ton max, tes progrès
 ```
 - Le lien écrit dans la bio n'est pas cliquable : dans les légendes, écrire « tape oxafit.app dans ton navigateur ».
 - À passer en privé : « Arrive à la salle. Ta séance est prête » et « Choisis tes muscles. Oxa prépare ta séance ».
+
+## Carrousel · Tu suis comment tes séances ? (sondage)
+Dossier : `carrousel-tu-suis-comment/` (4 images 1080×1350, sombres ; image 4 : séance Squat barre en mode Suivi,
+précédent 80 × 10, « Ton record : 90 kg × 5 »). Script : `outils/reseaux/carrousel-tu-suis-comment.js` (`CAPTURE=`).
+Où : TikTok (mode photo), Instagram. Remplace « Noter ses séances, ça sert vraiment ? » (masqué : 649 vues, 1,7 image
+vue sur 6, aucune réaction).
+
+**Légende**
+```
+Tu suis comment tes séances ? Sois honnête 😅
+📓 Carnet · 📱 Notes · 🧠 Dans ta tête · 📲 App
+Dis-le en commentaire 👇
+Avec Oxa, tu notes en une touche, et ta charge d'avant, ton max et ta progression sont toujours là.
+Pas (encore) sur les stores : tape oxafit.app dans ton navigateur
+#musculation #salledesport #suiviseance #gymtok #progression
+(4 images)
+```
