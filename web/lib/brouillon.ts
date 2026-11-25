@@ -13,8 +13,9 @@ import { avecSalle, selDeclare } from "@/lib/logic/core";
 
 /* agenda : modification lancée depuis « Mon agenda » (jour et séance programmée concernés) */
 /* pour : le jour à venir où la séance créée sera programmée (menu du jour, ?jour=) */
+/* premiere : la première séance d'un compte en mode Suivi (« Comme dans ton carnet ») */
 /* guide : « Exercice par exercice » (Oxa propose de préparer les cases) ; gab : le gabarit en cases */
-export type Brouillon = SeanceLibre & { idx: number | null; agenda?: { d: string; id?: string }; pour?: string; garder?: boolean; guide?: boolean; gab?: Gabarit; demo?: boolean };
+export type Brouillon = SeanceLibre & { idx: number | null; agenda?: { d: string; id?: string }; pour?: string; garder?: boolean; guide?: boolean; gab?: Gabarit; demo?: boolean; premiere?: boolean };
 
 type B = {
   libre: Brouillon | null;

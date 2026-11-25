@@ -1,17 +1,18 @@
 "use client";
 
-/* Accueil d'un nouveau compte, à la place de la visite : bienvenue, le profil sportif une question
+/* Accueil d'un nouveau compte, à la place de la visite. D'abord « Tu as déjà ton programme ? »
+   (docs/produit/mode-suivi) : mode Suivi, pas de questions, on arrive sur sa première séance à noter
+   (composeur, « Comme dans ton carnet ») ; mode Guidé, la suite : bienvenue, le profil sportif une question
    par écran (le même que Profil, pas le questionnaire Oxa Plan), « Tu t'es entraîné ces dernières
    48 h ? » (les muscles comptent dans la récupération, sans fausse séance dans l'historique), puis
    la fin : muscles prêts, et une première séance qui en tient compte (ou repos). Une seule fois ;
-   « Plus tard » le referme (le profil reste à compléter dans Profil). « Noter ma séance tout de suite » le
-   referme aussi et ouvre une séance vierge à noter (composeur), pour qui vient d'abord suivre ses séances. */
+   « Plus tard » le referme (le profil reste à compléter dans Profil). */
 import { tp, tr } from "@/lib/i18n";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { create } from "zustand";
-import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
+import { CaretLeftIcon } from "@phosphor-icons/react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
@@ -24,7 +25,9 @@ import { effortsEndurance, etatGroupes, GROUPES, nomMuscle, nomZone, phrase, ZON
 import { recoPour } from "@/lib/logic/agenda";
 import { EditeurProfil, profilMinimal, type Ligne } from "./profil-sportif";
 import { MonMateriel } from "./mon-materiel";
-import { sourceNotee } from "@/lib/source";
+import { modeLienNote, sourceNotee } from "@/lib/source";
+import type { Mode } from "@/lib/logic/mode";
+import { LogoTuile } from "./logo";
 import type { Connu } from "@/lib/logic/types";
 
 export const useAccueil = create<{ ouvert: boolean }>(() => ({ ouvert: false }));
@@ -44,28 +47,39 @@ export function AccueilPremier({ onFin }: { onFin: (etape: number) => void }) {
   /* « Comment as-tu connu Oxa ? », entre la bienvenue et le profil : seulement si aucun lien ?src= ne l'a dit */
   const [demander] = useState(() => !sourceNotee() && !useRepere.getState().etat.A.connu);
   const [connu, setConnu] = useState(false);
+  /* « Tu as déjà ton programme ? » : tant que le mode n'est pas choisi */
+  const [question, setQuestion] = useState(() => !useRepere.getState().etat.A.mode);
+  const [suivi, setSuivi] = useState(false);
   const fermer = () => {
     onFin(etape);
     /* pas terminé : il ne se rouvre plus tout seul, la carte d'Entraînement y ramène */
     muter((E) => { if (!E.A.accueil) E.A.accueilPasse = true; });
     useAccueil.setState({ ouvert: false });
   };
-  /* « J'ai déjà mon programme » : pas de questions, une séance vierge à remplir exercice par exercice
-     (sans le guide « Quels muscles aujourd'hui ? » : il sait ce qu'il fait) */
+  /* mode Suivi : pas de questions, sa première séance à écrire exercice par exercice
+     (sans le guide « Quels muscles aujourd'hui ? » : il a son programme) */
   const router = useRouter();
-  const noterSeance = () => {
-    noter("chemin_choisi", { c: "noter" });
-    useBrouillon.getState().setLibre({ nom: tr("Séance libre"), ex: [], idx: null, pour: jourDe(Date.now()) });
+  const premiereSeance = () => {
+    useBrouillon.getState().setLibre({ nom: "", ex: [], idx: null, premiere: true });
     fermer();
     router.push("/entrainement/composer" as Route, AVANT);
+  };
+  const choisir = (m: Mode) => {
+    noter("chemin_choisi", { c: m });
+    muter((E) => { E.A.mode = m; });
+    setQuestion(false);
+    if (m === "guide") return;
+    /* « Comment as-tu connu Oxa ? » reste posée, puis la première séance */
+    if (demander) { setSuivi(true); setConnu(true); } else premiereSeance();
   };
   return (
     <Dialog open onOpenChange={(o) => !o && fermer()}>
       <DialogContent showCloseButton={false}
         className="flex h-dvh data-[state=open]:animate-none max-h-dvh w-screen max-w-none flex-col gap-0 rounded-none border-0 bg-background p-0 sm:max-w-none">
         <div className="mx-auto flex w-full max-w-[480px] flex-1 flex-col overflow-y-auto overscroll-contain px-5 pt-[max(env(safe-area-inset-top),20px)] pb-[max(env(safe-area-inset-bottom),16px)]">
-          {etape === 0 && !connu && <Bienvenue suivant={() => (demander ? setConnu(true) : setEtape(1))} plusTard={fermer} noterSeance={noterSeance} />}
-          {etape === 0 && connu && <Source suivant={() => { setConnu(false); setEtape(1); }} />}
+          {question && <ChoixMode choisir={choisir} />}
+          {!question && etape === 0 && !connu && <Bienvenue suivant={() => (demander ? setConnu(true) : setEtape(1))} plusTard={fermer} />}
+          {!question && etape === 0 && connu && <Source suivant={() => { if (suivi) { premiereSeance(); return; } setConnu(false); setEtape(1); }} />}
           {etape >= 1 && etape <= QUESTIONS.length && <Question i={etape} suivant={() => setEtape(etape + 1)} retour={() => setEtape(etape - 1)} />}
           {etape === QUESTIONS.length + 1 && <Avant48 suivant={() => setEtape(etape + 1)} retour={() => setEtape(etape - 1)} />}
           {etape === QUESTIONS.length + 2 && <Fin fermer={fermer} />}
@@ -90,7 +104,7 @@ function Bas({ ok = true, libelle, onOk, second, onSecond }: { ok?: boolean; lib
   );
 }
 
-function Bienvenue({ suivant, plusTard, noterSeance }: { suivant: () => void; plusTard: () => void; noterSeance: () => void }) {
+function Bienvenue({ suivant, plusTard }: { suivant: () => void; plusTard: () => void }) {
   const pseudo = useRepere((s) => s.pseudo);
   const etapes = [
     [tr("Ton profil sportif"), tr("{n} questions · 1 min", { n: QUESTIONS.length })],
@@ -110,16 +124,38 @@ function Bienvenue({ suivant, plusTard, noterSeance }: { suivant: () => void; pl
           </li>
         ))}
       </ol>
-      <div className="mt-6 px-1 text-[13px] font-bold text-muted-foreground">{tr("Tu as déjà ton programme ?")}</div>
-      <button onClick={() => { tactile(8); noterSeance(); }}
-        className="mt-2 flex w-full animate-[monter_.45s_ease-out_both] items-center gap-3 rounded-2xl border-[1.5px] border-border p-3 text-left active:scale-[.99]" style={{ animationDelay: "320ms" }}>
-        <span className="min-w-0 flex-1">
-          <span className="block text-[15px] font-semibold">{tr("Noter ma séance tout de suite")}</span>
-          <span className="block text-[12.5px] text-muted-foreground">{tr("Sans questions. Oxa retient tes charges et tes répétitions.")}</span>
-        </span>
-        <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" weight="bold" />
-      </button>
       <Bas libelle={tr("Commencer · 1 min")} onOk={suivant} second={tr("Plus tard")} onSecond={plusTard} />
+    </>
+  );
+}
+
+/* « Tu as déjà ton programme ? » : mode Suivi ou mode Guidé (changeable dans Profil). Un lien
+   ?mode=suivi (réseaux) présélectionne le mode Suivi. */
+function ChoixMode({ choisir }: { choisir: (m: Mode) => void }) {
+  const [m, setM] = useState<Mode | null>(() => modeLienNote());
+  const options: { v: Mode; badge: string; titre: string; texte: string }[] = [
+    { v: "suivi", badge: tr("Mode Suivi"), titre: tr("Oui, je veux suivre mes séances"), texte: tr("Tu notes tes séries. Oxa garde ta charge d'avant, ton max, ta récup et tes progrès.") },
+    { v: "guide", badge: tr("Mode Guidé"), titre: tr("Non, guide-moi"), texte: tr("Quelques questions, puis Oxa te prépare tes séances selon ta récup et ton matériel.") },
+  ];
+  return (
+    <>
+      <div className="mt-3 flex items-center gap-2.5"><LogoTuile className="size-10" /><span className="text-[17px] font-bold">Oxa</span></div>
+      <DialogTitle className="mt-8 text-[30px] leading-[1.1] font-extrabold tracking-[-0.02em]">{tr("Tu as déjà ton programme ?")}</DialogTitle>
+      <DialogDescription className="mt-2.5 text-[15px] leading-snug text-muted-foreground">{tr("Oxa s'adapte à toi. Tu pourras changer à tout moment dans Profil.")}</DialogDescription>
+      <div role="radiogroup" aria-label={tr("Mode")} className="mt-6 flex flex-col gap-3">
+        {options.map((o, k) => (
+          <button key={o.v} role="radio" aria-checked={m === o.v} data-mode={o.v} onClick={() => { tactile(5); setM(o.v); }}
+            className={cn("animate-[monter_.45s_ease-out_both] rounded-[20px] border-[2.5px] bg-card p-[18px] text-left active:scale-[.99]", m === o.v ? "border-plate" : "border-transparent")}
+            style={{ animationDelay: 60 + k * 70 + "ms" }}>
+            <span className={cn("inline-block rounded-full px-2.5 py-1 text-[11px] font-extrabold tracking-[0.04em] uppercase", m === o.v ? "bg-plate text-plate-foreground" : "bg-muted text-muted-foreground")}>{o.badge}</span>
+            <span className="mt-2.5 block text-[19px] leading-tight font-extrabold">{o.titre}</span>
+            <span className="mt-1.5 block text-[14px] leading-snug text-muted-foreground">{o.texte}</span>
+          </button>
+        ))}
+      </div>
+      <div className="sticky bottom-0 mt-auto bg-background pt-4">
+        <button disabled={!m} onClick={() => { if (m) { tactile(8); choisir(m); } }} className="h-12 w-full rounded-full bg-plate text-[16px] font-semibold text-plate-foreground active:scale-[.98] disabled:opacity-40">{tr("Continuer")}</button>
+      </div>
     </>
   );
 }

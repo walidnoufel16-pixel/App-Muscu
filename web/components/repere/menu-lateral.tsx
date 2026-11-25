@@ -7,7 +7,7 @@
 import { langue, tr } from "@/lib/i18n";
 import { usePathname, useRouter } from "next/navigation";
 import type { Route } from "next";
-import { BellIcon, CompassIcon, CaretRightIcon, ChatCircleTextIcon, CircleHalfIcon, DeviceMobileIcon, ForkKnifeIcon, ListIcon, NewspaperIcon, ToolboxIcon, UserPlusIcon, WrenchIcon, type Icon } from "@phosphor-icons/react";
+import { DownloadSimpleIcon, PersonSimpleRunIcon, PersonSimpleTaiChiIcon, SparkleIcon, BellIcon, CompassIcon, CaretRightIcon, ChatCircleTextIcon, CircleHalfIcon, DeviceMobileIcon, ForkKnifeIcon, ListIcon, NewspaperIcon, ToolboxIcon, UserPlusIcon, WrenchIcon, type Icon } from "@phosphor-icons/react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { useRepere } from "@/lib/store";
 import { useEstAdmin } from "@/lib/admin";
@@ -17,6 +17,8 @@ import { appInstallee } from "./installer";
 import { inviterAmi } from "./inviter";
 import { useVisitesNonVues } from "./visites";
 import { cn } from "@/lib/utils";
+import { enSuivi } from "@/lib/logic/mode";
+import { lienRubrique } from "./rubriques";
 
 /* Les écrans des quatre onglets, et « Compte et réglages » : le bouton ☰ y remplace le retour. */
 export const RACINES = ["/entrainement", "/repas", "/progres", "/profil"];
@@ -59,7 +61,19 @@ export function MenuLateral() {
 
   type Ligne = { Icone: Icon; n: string; onClick: () => void; cache?: boolean; badge?: string };
   const ouvrir = (cle: "installer" | "avis") => () => { tactile(5); fermer(); setTimeout(() => useMenu.setState({ [cle]: true }), 250); };
+  /* mode Suivi : ce qui n'est pas sur l'accueil (Repas, Street, Course, la séance créée par Oxa) */
+  const suivi = useRepere((s) => enSuivi(s.etat));
   const blocs: { titre: string; l: Ligne[] }[] = [
+    ...(suivi ? [{
+      titre: tr("Plus d'entraînements"),
+      l: [
+        { Icone: ForkKnifeIcon, n: tr("Repas"), onClick: va("/repas") },
+        { Icone: PersonSimpleTaiChiIcon, n: tr("Street workout"), onClick: va(lienRubrique("street")) },
+        { Icone: PersonSimpleRunIcon, n: tr("Course à pied"), onClick: va(lienRubrique("course")) },
+        { Icone: SparkleIcon, n: tr("Créer une séance pour moi"), onClick: va("/entrainement/assistant") },
+        { Icone: DownloadSimpleIcon, n: tr("Importer une séance avec un code"), onClick: () => { tactile(5); fermer(); setTimeout(() => { allerA(router, "/entrainement"); setTimeout(() => useMenu.setState({ importer: true }), 350); }, 180); } },
+      ] as Ligne[],
+    }] : []),
     {
       titre: tr("Mes réglages"),
       l: [

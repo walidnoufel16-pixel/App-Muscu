@@ -13,6 +13,7 @@ import { POSTE_DE } from "@/lib/data/salle";
 import { ajuster, formeDuJour, zonesDe } from "./forme";
 import type { Etat, ExLibre, Journal, Reponses, SeanceIA, SeanceSemaine, Serie } from "./types";
 import type { LigneHist } from "./historique";
+import { enSuivi, seriesDepart } from "./mode";
 
 /* ---------------- petits utilitaires ---------------- */
 export const nb = (v: number | string) => (langue() === "en" ? String(v) : String(v).replace(".", ","));
@@ -429,6 +430,8 @@ export function chargeDepart(E: Etat, id: string, reps: number): Suggestion | nu
 export type Ctx = {
   k: string; id: string; n: number;
   base: { v: number; reps: number };
+  /** mode Suivi : les séries de départ, une par une (celles de la dernière fois) */
+  series?: { v: number; reps: number }[];
   why?: string; repos: string;
   prev: Journal | null;
   /** meilleure performance passée sur l'exercice, si elle dépasse le précédent */
@@ -673,7 +676,14 @@ export function propositionLibre(E: Etat, e: ExLibre, o: { obj?: number; k: stri
 export function ctxLibre(E: Etat, idx: number, j: number): Ctx | null {
   const S = E.SEANCES[idx], e = S?.ex[j];
   if (!e || !EX[e.id]) return null;
-  const k = kLibre(idx, j), p = propositionLibre(E, e, { obj: S.obj ?? S.gen?.obj, k })!;
+  const k = kLibre(idx, j);
+  /* mode Suivi : aucune charge proposée ; on repart de ce qui a été fait la dernière fois */
+  if (enSuivi(E)) {
+    const prev = precedent(E, e.id, k), series = seriesDepart(prev, e.s, e.r);
+    const max = maxAuDessus(e.id, maxHist(E, e.id, k), prev);
+    return { k, id: e.id, n: e.s, base: series[0], series, repos: e.p, prev, ...(max ? { max } : {}) };
+  }
+  const p = propositionLibre(E, e, { obj: S.obj ?? S.gen?.obj, k })!;
   return {
     k, id: e.id, n: e.s,
     base: p.base,
@@ -712,7 +722,7 @@ export function journal(LOG: Record<string, Journal>, c: Ctx): Journal {
   if (!L) {
     L = LOG[c.k] = {
       done: false, ...c.base, nb: c.n, feel: null, ex: c.id, ts: Date.now(), why: c.why,
-      series: Array.from({ length: c.n }, () => ({ ...c.base, ok: false })),
+      series: Array.from({ length: c.n }, (_, n) => ({ ...(c.series?.[n] ?? c.base), ok: false })),
     };
     /* Lest de la dernière fois repris d'office. */
     if (LESTABLE.has(c.id) && c.prev && c.prev.lest) {
