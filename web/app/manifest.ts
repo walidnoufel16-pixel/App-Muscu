@@ -7,7 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: process.env.NEXT_PUBLIC_APP_TEST === "1" ? "Oxa test" : tr("Oxa"),
     short_name: process.env.NEXT_PUBLIC_APP_TEST === "1" ? "Oxa test" : tr("Oxa"),
-    description: tr("Programme de musculation personnalisé, piloté à l'effort ressenti."),
+    description: tr("L'app pour suivre tes séances de muscu : tes charges, ton max, ta récup et tes progrès."),
     start_url: "/",
     scope: "/",
     display: "standalone",

@@ -93,7 +93,7 @@ const NOUVEAUX: Article[] = [
         ],
       },
     ],
-    cta: "Vois quels muscles sont prêts aujourd'hui et lance une séance qui laisse les autres récupérer",
+    cta: "Note tes séances dans Oxa : tu vois chaque jour quels muscles sont prêts et lesquels récupèrent encore",
     lien: "/entrainement/?src=blog-courbatures",
   },
   {
@@ -135,7 +135,7 @@ const NOUVEAUX: Article[] = [
         ],
       },
     ],
-    cta: "Ta séance du jour, ta série de semaines et des rappels si tu décroches : Oxa t'accompagne tout l'hiver",
+    cta: "Tes séances notées, ta série de semaines et des rappels si tu décroches : Oxa t'accompagne tout l'hiver",
     lien: "/entrainement/rubrique/?v=libre&src=blog-winter-arc",
   },
   {
@@ -214,7 +214,7 @@ const NOUVEAUX: Article[] = [
       },
       { h: "Pour qui ?", p: ["Elle a un intérêt pour qui fait de la musculation, du street workout ou des sports à efforts répétés et s'entraîne déjà régulièrement. Elle ne remplace ni l'entraînement, ni le sommeil, ni assez de protéines. Elle n'est pas conseillée avant 18 ans, et en cas de grossesse ou de traitement, demande l'avis d'un professionnel de santé. Choisis un produit qui indique sa composition, idéalement contrôlé contre le dopage."] },
     ],
-    cta: "Ce qui fait vraiment la différence, c'est la régularité : Oxa construit tes séances et suit ta progression",
+    cta: "Ce qui fait vraiment la différence, c'est la régularité : note tes séances dans Oxa et suis ta progression",
     lien: "/?src=blog-creatine",
   },
   {
@@ -248,7 +248,7 @@ const NOUVEAUX: Article[] = [
       },
       { h: "Et les poudres ?", p: ["Une poudre de protéines n'est qu'un aliment pratique, pas une obligation. Elle peut dépanner pour atteindre ton total, mais des œufs, du fromage blanc, des légumineuses et un peu de viande ou de poisson font aussi bien, souvent pour moins cher. Pense aussi aux calories : sans manger assez au total, même avec beaucoup de protéines, le muscle progresse mal."] },
     ],
-    cta: "Suis tes protéines du jour dans Oxa : scanne tes produits, l'app compte pour toi",
+    cta: "Trouve dans Oxa des recettes riches en protéines, selon tes goûts et ton matériel",
     lien: "/?src=blog-proteines",
   },
   {
@@ -279,8 +279,8 @@ const NOUVEAUX: Article[] = [
       },
       { h: "Et la séance combinée ?", p: ["Quand le temps manque, une séance qui enchaîne musculation et bloc cardio fonctionne aussi : la musculation d'abord si tu veux surtout gagner en force, le cardio d'abord si tu prépares une course. Garde-la pour les semaines chargées plutôt que d'en faire la règle."] },
     ],
-    cta: "Combine tes séances dans Oxa : muscu, course et séance combinée au même endroit",
-    lien: "/entrainement/assistant/?type=mixte&src=blog-hybride",
+    cta: "Note tes séances de muscu, tes blocs cardio et tes sorties de course au même endroit dans Oxa",
+    lien: "/?src=blog-hybride",
   },
 ];
 
@@ -377,7 +377,7 @@ const LISTE: Article[] = [
         ],
       },
     ],
-    cta: "Crée ta séance sur mesure dans Oxa",
+    cta: "Note ta séance dans Oxa : il retient tes répétitions et te propose la suite",
     lien: "/?src=guide-fullbody",
   },
   {
@@ -410,7 +410,7 @@ const LISTE: Article[] = [
       },
       { h: "Planifier pour dépenser moins", p: ["Cuisiner en grande quantité deux fois par semaine et acheter en gros conditionnement fait la plus grosse différence. Oxa prépare tes repas de la semaine selon ton budget, avec la liste de courses et le coût estimé de chaque jour."] },
     ],
-    cta: "Planifie tes repas avec ton budget dans Oxa",
+    cta: "Trouve des recettes petit budget, selon tes goûts, dans Oxa",
     lien: "/?src=guide-repas",
   },
   ...NOUVEAUX,

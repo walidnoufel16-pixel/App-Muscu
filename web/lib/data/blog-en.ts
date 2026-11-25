@@ -76,7 +76,7 @@ export const BLOG_EN: Record<string, Texte> = {
         ],
       },
     ],
-    cta: "See which muscles are ready today and start a workout that lets the others recover",
+    cta: "Log your workouts in Oxa: see every day which muscles are ready and which are still recovering",
   },
   "winter-arc-programme-8-semaines": {
     slug: "winter-arc-8-week-plan",
@@ -115,7 +115,7 @@ export const BLOG_EN: Record<string, Texte> = {
         ],
       },
     ],
-    cta: "Today's workout, your weekly streak and reminders if you slip: Oxa has your back all winter",
+    cta: "Your logged workouts, your weekly streak and reminders if you slip: Oxa has your back all winter",
   },
   "preparer-premier-hyrox": {
     slug: "hyrox-training-plan-beginners",
@@ -188,7 +188,7 @@ export const BLOG_EN: Record<string, Texte> = {
       },
       { h: "Who is it for?", p: ["It's useful if you lift, do calisthenics or play sports with repeated efforts, and already train regularly. It doesn't replace training, sleep or enough protein. It isn't recommended under 18, and if you're pregnant or on medication, ask a health professional. Choose a product that lists its composition, ideally tested for banned substances."] },
     ],
-    cta: "What really makes the difference is consistency: Oxa builds your sessions and tracks your progress",
+    cta: "What really makes the difference is consistency: log your workouts in Oxa and track your progress",
   },
   "combien-de-proteines-par-jour": {
     slug: "how-much-protein-per-day-build-muscle",
@@ -219,7 +219,7 @@ export const BLOG_EN: Record<string, Texte> = {
       },
       { h: "What about protein powder?", p: ["Protein powder is just a convenient food, not a must. It can help you hit your total, but eggs, dairy, beans and lentils, and some meat or fish do the job just as well, often for less. Calories matter too: if you don't eat enough overall, muscle grows poorly, even with plenty of protein."] },
     ],
-    cta: "Track today's protein in Oxa: scan your products and the app adds it up for you",
+    cta: "Find high-protein recipes in Oxa, to your taste and with your equipment",
   },
   "entrainement-hybride-muscu-course": {
     slug: "hybrid-training-lifting-and-running",
@@ -247,7 +247,7 @@ export const BLOG_EN: Record<string, Texte> = {
       },
       { h: "What about combined sessions?", p: ["When time is short, a session that chains lifting and a cardio block works too: lift first if strength is your goal, cardio first if you're training for a race. Keep it for busy weeks rather than making it the rule."] },
     ],
-    cta: "Combine your sessions in Oxa: lifting, running and combined workouts in one place",
+    cta: "Log your lifting, cardio blocks and runs in one place with Oxa",
   },
   "programme-street-workout-debutant": {
     slug: "calisthenics-workout-plan-beginners",
@@ -333,7 +333,7 @@ export const BLOG_EN: Record<string, Texte> = {
         ],
       },
     ],
-    cta: "Create your custom workout in Oxa",
+    cta: "Log your workout in Oxa: it remembers your reps and suggests what's next",
   },
   "repas-prise-de-muscle-petit-budget": {
     slug: "cheap-high-protein-meals-build-muscle",
@@ -363,6 +363,6 @@ export const BLOG_EN: Record<string, Texte> = {
       },
       { h: "Plan to spend less", p: ["Batch cooking twice a week and buying in bulk make the biggest difference. Oxa plans your meals for the week within your budget, with a shopping list and the estimated cost of each day."] },
     ],
-    cta: "Plan your meals on a budget in Oxa",
+    cta: "Find budget recipes to your taste in Oxa",
   },
 };

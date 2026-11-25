@@ -27,19 +27,19 @@ const titres = localFont({
 
 /* Adresse publique : aperçus de partage (WhatsApp, Instagram…) et référencement. */
 const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "https://repere-soz5.onrender.com").trim();
-const ACCROCHE = "Quels exercices, combien de séries, quel poids : Oxa décide avec toi, et ajoute du poids quand tu es prêt. Muscu, street workout, course et Hyrox.";
+const ACCROCHE = "Note tes séances de muscu comme dans un carnet : Oxa garde ta charge d'avant, ton max, ta récup et tes progrès, et te propose la charge suivante. Sans questionnaire, sans store.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
-  title: { default: "Oxa · Touche un muscle, ta séance est prête", template: "%s · Oxa" },
+  title: { default: "Oxa · L'app pour suivre tes séances de muscu", template: "%s · Oxa" },
   description: ACCROCHE,
   openGraph: {
     type: "website", locale: "fr_FR", siteName: "Oxa", url: "/",
-    title: "Oxa · Touche un muscle, ta séance est prête",
+    title: "Oxa · L'app pour suivre tes séances de muscu",
     description: ACCROCHE,
-    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "Oxa : touche un muscle, ta séance est prête" }],
+    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "Oxa : l'app pour suivre tes séances de muscu" }],
   },
-  twitter: { card: "summary_large_image", title: "Oxa · Touche un muscle, ta séance est prête", description: ACCROCHE, images: ["/og.jpg"] },
+  twitter: { card: "summary_large_image", title: "Oxa · L'app pour suivre tes séances de muscu", description: ACCROCHE, images: ["/og.jpg"] },
   applicationName: "Oxa",
   /* « default » : sur iPhone, l'appli installée commence sous la barre d'état (colorée par
      themeColor) au lieu de passer dessous. Avec « black-translucent », iOS 26 floute le haut de

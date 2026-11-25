@@ -22,7 +22,8 @@ import { enSuivi } from "@/lib/logic/mode";
 /* les grands groupes, pour « pas encore cette semaine » (les petits muscles n'y figurent pas) */
 const PRINCIPAUX = ["pec", "dos", "epa", "bic", "tri", "qua", "isc", "mol", "abd"];
 
-export function CorpsDuJour({ titre }: { titre: string }) {
+/* `visite` : repère de la visite guidée, posé sur le titre (le corps entier dépasse l'écran) */
+export function CorpsDuJour({ titre, visite }: { titre: string; visite?: string }) {
   const router = useRouter();
   const suivi = useRepere((s) => enSuivi(s.etat));
   const setLibre = useBrouillon((s) => s.setLibre);
@@ -39,7 +40,7 @@ export function CorpsDuJour({ titre }: { titre: string }) {
 
   return (
     <section>
-      <h2 className="mb-2 px-1 text-[20px] leading-tight font-bold tracking-[-0.01em]">{titre}</h2>
+      <h2 data-visite={visite} className="mb-2 px-1 text-[20px] leading-tight font-bold tracking-[-0.01em]">{titre}</h2>
       {travaille && (
         <div className="mb-2 flex items-center gap-3 px-1 text-[12px] text-muted-foreground">
           <span className="flex items-center gap-1"><i className="size-3 rounded-[4px] bg-plate" />{tr("beaucoup")}</span>
