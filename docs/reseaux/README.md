@@ -24,7 +24,8 @@ ou création de séance (décision de Walid du 23 nov.).
 L'app a deux modes (`docs/produit/mode-suivi/`). Les nouveaux comptes n'ont **que le mode Suivi** ; le mode Guidé
 est ouvert compte par compte par l'admin. **La comm ne parle donc que du suivi.**
 - **On peut promettre** : noter ses séances comme dans un carnet ; la charge et les répétitions de la dernière fois
-  (colonne « Précédent », champs préremplis) ; la pastille « 🏆 Ton record » ; le minuteur de repos ; la récupération
+  (colonne « Précédent ») ; **la charge suivante proposée, que l'utilisateur suit ou non** (« ↑ 5 kg »,
+  « Pourquoi 85 kg ? », décision du 26 nov.) ; la pastille « 🏆 Ton record » ; le minuteur de repos ; la récupération
   par muscle ; Progrès (courbe de chaque exercice, historique, records, semaines d'affilée) ; le partage de séance par code ;
   l'installation sans store.
 - **On ne promet plus** : « ta séance est prête », « touche un muscle, Oxa prépare ta séance », la charge proposée
