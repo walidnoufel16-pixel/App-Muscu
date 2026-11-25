@@ -65,7 +65,7 @@ export function AccueilSuivi({ auj, setF }: { auj: string; setF: (f: Feuille) =>
         {p == null ? (
           <button onClick={nouvelle} className="rounded-[20px] border-2 border-dashed border-plate/60 bg-card/60 p-5 text-left active:scale-[.99]">
             <span className="block text-[17px] font-bold">{tr("Écris ta première séance")}</span>
-            <span className="mt-1 block text-[13.5px] leading-snug text-muted-foreground">{tr("Comme dans ton carnet : tes exercices, tes séries, tes répétitions. Tes charges, tu les notes pendant la séance.")}</span>
+            <span className="mt-1 block text-[13.5px] leading-snug text-muted-foreground">{tr("Comme dans ton carnet : tes exercices, tes séries, tes répétitions. Pendant la séance, Oxa te propose ta charge.")}</span>
           </button>
         ) : (
           <div data-seance-prochaine className="rounded-[20px] border-2 border-plate bg-card p-3">

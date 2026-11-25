@@ -124,7 +124,8 @@ const avecSeances = (A) => ({
   await pg.locator('[aria-label="Exercices des muscles choisis"] button[aria-label^="Ajouter "]').first().click();
   await pg.waitForTimeout(300);
   ok(/1 exercice/i.test(await pg.getByText(/Ta séance · /).innerText()), "un toucher l'ajoute à la séance");
-  ok(await pg.getByText(/Pourquoi .* kg/).count() === 0 && !/ kg/.test(await pg.locator("[data-carte]").first().innerText()), "aucune charge proposée");
+  ok(/ kg/.test(await pg.locator("[data-carte]").first().innerText()), "composeur : la charge proposée, comme en Guidé");
+  ok(await pg.getByRole("button", { name: /^Objectif/ }).count() === 0, "aucun réglage en plus");
   await cap(pg, "3b-corps-exercices");
   await pg.goto(U + "/entrainement/");
   await pg.locator("[data-seance-prochaine]").waitFor();
@@ -135,8 +136,10 @@ const avecSeances = (A) => ({
   await pg.locator('input[aria-label="kg série 1"]').waitFor();
   const kg = await Promise.all([1, 2, 3, 4].map((n) => pg.locator(`input[aria-label="kg série ${n}"]`).inputValue()));
   const reps = await Promise.all([1, 2, 3, 4].map((n) => pg.locator(`input[aria-label="répétitions série ${n}"]`).inputValue()));
-  ok(kg.join() === "80,80,80,75" && reps.join() === "10,9,8,8", "champs préremplis avec la dernière fois : " + kg.join("/") + " × " + reps.join("/"));
-  ok(await pg.getByText(/Pourquoi .* kg/).count() === 0 && await pg.getByText("RPE", { exact: false }).count() === 0, "ni « Pourquoi x kg ? » ni RPE");
+  /* la charge suivante, proposée comme en Guidé : la même dans chaque case, au moins celle de la dernière fois */
+  ok(new Set(kg).size === 1 && +kg[0].replace(",", ".") >= 80 && new Set(reps).size === 1 && +reps[0] > 0, "cases préremplies avec la proposition : " + kg.join("/") + " × " + reps.join("/"));
+  ok(await pg.getByText(/Pourquoi .* kg/).count() === 1, "« Pourquoi x kg ? » affiché");
+  ok(await pg.getByText("RPE", { exact: false }).count() === 0, "pas d'effort (RPE) conseillé");
   ok(await pg.getByText("Comment tu te sens", { exact: false }).count() === 0, "pas de « Comment tu te sens ? »");
   ok(await pg.getByText("Précédent").count() >= 1, "colonne « Précédent » gardée");
   await cap(pg, "4-seance-suivi");

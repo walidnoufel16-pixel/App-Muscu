@@ -60,7 +60,7 @@ export default function PageComposer() {
   const router = useRouter();
   const { etat, muter } = useRepere();
   const { libre, majLibre, sel: selB, setSel, setLibre } = useBrouillon();
-  /* mode Suivi : aucune charge proposée, ni avis sur la séance ; les charges se notent pendant la séance */
+  /* mode Suivi : la charge proposée comme en Guidé, mais ni avis sur la séance ni objectif à régler */
   const suivi = enSuivi(etat);
   /* la feuille d'ajout part sans matériel coché ; remplacements et « Autre » suivent le matériel coché, sinon celui du Profil */
   const selFeuille = avecSalle(selB ?? [], etat.A);
@@ -293,7 +293,11 @@ export default function PageComposer() {
                     key={x.e.id}
                     e={x.e} i={x.i} n={L.ex.length}
                     /* la charge proposée et son pourquoi, comme dans la séance (clé du journal si la séance existe déjà) */
-                    prop={suivi ? undefined : propositionLibre(etat, x.e, { obj: L.obj ?? L.gen?.obj, k: L.idx != null && x.e.o != null ? kLibre(L.idx, x.e.o) : "L|nouvelle|" + x.i })}
+                    prop={(() => {
+                      const p = propositionLibre(etat, x.e, { obj: L.obj ?? L.gen?.obj, k: L.idx != null && x.e.o != null ? kLibre(L.idx, x.e.o) : "L|nouvelle|" + x.i });
+                      /* mode Suivi : rien de proposé pour un exercice jamais fait */
+                      return suivi && !p?.prev ? undefined : p;
+                    })()}
                     ouvert={ouv === x.e.id}
                     glisse={glisse === x.e.id}
                     onToggle={() => setOuv(ouv === x.e.id ? null : x.e.id)}
@@ -325,7 +329,7 @@ export default function PageComposer() {
           suivent), l'objectif, le matériel, le nom ; chacune déplie son réglage dessous */}
       <div className="no-scrollbar -mt-1 flex gap-2 overflow-x-auto px-4 pb-1">
         {L.pour && pastille("jour", <><CalendarDotsIcon className="size-4" weight="bold" />{maj(jourCourt(L.pour))}</>, true)}
-        {/* l'objectif règle les charges proposées : rien à régler en mode Suivi */}
+        {/* mode Suivi : aucun réglage en plus (la charge proposée suit la progression par défaut) */}
         {!suivi && pastille("obj", L.obj != null ? OBJS[L.obj] : tr("Objectif"))}
         {!(choixM || (L.guide && !gab && !L.ex.length && !L.blocs?.length)) && pastille("mat", tr("Matériel · {n}", { n: nbMat }))}
         {pastille("nom", <><PencilSimpleIcon className="size-4" />{tr("Nom")}</>)}
@@ -431,7 +435,7 @@ export default function PageComposer() {
               <PlusIcon className="size-4" weight="bold" />{tr("Bloc cardio")}
             </button>
           </div>
-          {suivi && <p className="mt-3 px-1 text-[13px] leading-snug text-muted-foreground">{tr("Séries, répétitions et repos se modifient en un geste. Tes charges, tu les notes pendant la séance.")}</p>}
+          {suivi && <p className="mt-3 px-1 text-[13px] leading-snug text-muted-foreground">{tr("Séries, répétitions et repos se modifient en un geste. Pendant la séance, Oxa te propose ta charge : tu corriges si tu fais autre chose.")}</p>}
         </section>
       </div>
 

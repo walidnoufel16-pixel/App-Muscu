@@ -314,10 +314,10 @@ function Profil() {
         {/* compte limité au mode Suivi (mode Guidé pas ouvert par l'admin) : pas de choix à montrer */}
         {!suiviSeul && <section id="mode" aria-label={tr("Mode")}>
           <h2 className="eyebrow mb-2 px-1">{tr("Mode")}</h2>
-          <Segmente label={tr("Mode")} valeur={modeDe(A)} onChange={(m) => { tactile(6); muter((E) => { E.A.mode = m; E.A.carteSuivi = true; }); toast.success(m === "suivi" ? tr("Mode Suivi") : tr("Mode Guidé"), { description: m === "suivi" ? tr("Tu notes tes séances, sans charge proposée.") : tr("Oxa te prépare tes séances selon ta récup et ton matériel.") }); }}
+          <Segmente label={tr("Mode")} valeur={modeDe(A)} onChange={(m) => { tactile(6); muter((E) => { E.A.mode = m; E.A.carteSuivi = true; }); toast.success(m === "suivi" ? tr("Mode Suivi") : tr("Mode Guidé"), { description: m === "suivi" ? tr("Tu notes tes séances, sans questionnaire ni séance proposée.") : tr("Oxa te prépare tes séances selon ta récup et ton matériel.") }); }}
             options={[{ v: "suivi", n: tr("Suivi") }, { v: "guide", n: tr("Guidé") }]} />
           <p className="mt-2 px-1 text-[12.5px] leading-snug text-muted-foreground">
-            {modeDe(A) === "suivi" ? tr("Tu notes tes séries. Oxa garde ta charge d'avant, ton max, ta récup et tes progrès.") : tr("Oxa te prépare tes séances selon ta récup et ton matériel, et te propose tes charges.")}
+            {modeDe(A) === "suivi" ? tr("Tu notes tes séries. Oxa garde ta charge d'avant, ton max, ta récup et tes progrès.") : tr("Quelques questions, puis Oxa te prépare tes séances selon ta récup et ton matériel.")}
             {" "}{tr("Tu peux changer quand tu veux : rien n'est perdu.")}
           </p>
         </section>}
