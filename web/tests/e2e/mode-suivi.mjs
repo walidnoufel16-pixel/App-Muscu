@@ -34,7 +34,7 @@ const avecSeances = (A) => ({
   ],
   HIST: [
     { d: jour(8), s: "L|1", nom: "Jambes", vol: 3200, ser: 4, ex: { sq: [80, 3200, 80, 10, 4] } },
-    { d: jour(2), s: "L|0", nom: "Pecs · Épaules · Triceps", vol: 2000, ser: 6, ex: { dc: [70, 1600, 70, 8, 3], el: [10, 400, 10, 12, 3] } },
+    { d: jour(2), s: "L|0", nom: "Pecs · Épaules · Triceps", vol: 2000, ser: 6, ex: { dc: [70, 1600, 70, 8, 3], el: [10, 400, 10, 12, 3] }, det: [{ id: "dc", s: [[70, 8], [70, 8], [70, 8]] }, { id: "el", s: [[10, 12], [10, 12], [10, 12]] }] },
   ],
   LOG: {
     "L|1|a0": { ex: "sq", done: true, feel: null, ts: ts(jour(8)), series: [{ v: 80, reps: 10, ok: true }, { v: 80, reps: 9, ok: true }, { v: 80, reps: 8, ok: true }, { v: 75, reps: 8, ok: true }] },
@@ -143,6 +143,24 @@ const avecSeances = (A) => ({
   ok(await pg.getByText("Comment tu te sens", { exact: false }).count() === 0, "pas de « Comment tu te sens ? »");
   ok(await pg.getByText("Précédent").count() >= 1, "colonne « Précédent » gardée");
   await cap(pg, "4-seance-suivi");
+  await ctx.close();
+}
+
+/* 3 ter. première fois sur un exercice, en mode Suivi : rien à suivre, la case KG part vide */
+{
+  const [ctx, pg] = await contexte({ ...neuf, A: { ...neuf.A, accueil: true, mode: "suivi", sexe: 0 }, SEANCES: [{ nom: "Jambes", ex: [{ id: "sq", s: 3, r: 8, p: "2 min" }] }] });
+  await pg.goto(U + "/entrainement/seance/?l=0");
+  await pg.locator('[data-ex="sq"]').first().waitFor({ timeout: 8000 });
+  if (!(await pg.locator('input[aria-label="kg série 1"]').count())) await pg.locator('[data-ex="sq"] button').first().click();
+  await pg.locator('input[aria-label="kg série 1"]').waitFor();
+  const kg = await pg.locator('input[aria-label="kg série 1"]').inputValue(), reps = await pg.locator('input[aria-label="répétitions série 1"]').inputValue();
+  ok(kg === "" && reps === "8", "première fois : case KG vide, répétitions de la séance (" + JSON.stringify([kg, reps]) + ")");
+  ok(await pg.getByText(/Pourquoi .* kg/).count() === 0, "première fois : pas de « Pourquoi x kg ? »");
+  await pg.locator('input[aria-label="kg série 1"]').fill("60");
+  await pg.locator('input[aria-label="kg série 1"]').blur();
+  await pg.waitForTimeout(300);
+  ok(await pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")).LOG["L|0|0"]?.series?.[0]?.v) === 60, "la charge notée est gardée");
+  await cap(pg, "4b-premiere-fois");
   await ctx.close();
 }
 
