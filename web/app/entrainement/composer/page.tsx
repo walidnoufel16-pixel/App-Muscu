@@ -44,8 +44,6 @@ import { BandeauDemo, finDemoEnQuittant, VisiteCreer } from "@/components/repere
 import { decaler } from "@/lib/logic/historique";
 import { toast } from "sonner";
 import { AvisSeance } from "@/components/repere/avis-seance";
-import { exosParMuscle } from "@/components/repere/bibliotheque-muscles";
-import { LigneExercice } from "@/components/repere/ligne-exercice";
 import { enSuivi } from "@/lib/logic/mode";
 import { estPoly } from "@/lib/logic/avis-seance";
 import { lienRubrique } from "@/components/repere/rubriques";
@@ -71,7 +69,8 @@ export default function PageComposer() {
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);
   const [aujHui] = useState(() => jourDe(Date.now()));
   const [remp, setRemp] = useState<number | null>(null);
-  const [ajout, setAjout] = useState(false);
+  /* mode Suivi, nouvelle séance vide : le corps tout de suite (feuille « Ajouter un exercice ») */
+  const [ajout, setAjout] = useState(() => { const l = useBrouillon.getState().libre; return enSuivi(useRepere.getState().etat) && !!l && l.idx == null && !l.ex.length && !l.demo; });
   const liste = useRef<HTMLDivElement>(null);
   const [glisse, setGlisse] = useState<string | null>(null);
   const [blocOuvert, setBlocOuvert] = useState<string | null>(null); // id du bloc cardio dont les réglages sont ouverts
@@ -209,13 +208,15 @@ export default function PageComposer() {
   const retirerBloc = (id: string) => { majLibre((l) => { l.blocs = (l.blocs || []).filter((x) => x.id !== id); }); setBlocOuvert(null); };
 
   /* cible : « Plus tard », un autre jour (et son rappel) que celui du brouillon */
-  const enregistrer = async (commencer = false, garder = !!L.garder, cible?: { d: string; rappel: Rappel | null }) => {
+  /* `jour` (mode Suivi, « Juste aujourd'hui ») : la séance est faite aujourd'hui sans entrer dans « Mes
+     séances » (comme une séance d'Oxa pas gardée : jouable depuis la semaine, « Garder » dans la séance) */
+  const enregistrer = async (commencer = false, garder = !!L.garder, cible?: { d: string; rappel: Rappel | null }, jour = false) => {
     if (L.demo) { toast(tr("Démonstration"), { description: tr("Rien n'est enregistré : quitte la démonstration pour créer ta séance.") }); return; }
-    const pour = cible?.d ?? L.pour;
+    const pour = cible?.d ?? L.pour ?? (jour ? aujHui : undefined);
     let nom = L.nom.trim() || tr("Séance libre");
     /* une séance construite par Oxa ne va dans « Mes séances » que si on le décide : « Enregistrer »
        (la garder), ou la case « Garder dans Mes séances » ; sinon elle reste jouable depuis l'agenda */
-    const auto = L.idx == null ? !!L.gen && (!!L.pour || commencer) && !garder : !!L.auto && !garder;
+    const auto = jour || (L.idx == null ? !!L.gen && (!!L.pour || commencer) && !garder : !!L.auto && !garder);
     const s = { nom, ex: L.ex.map((e) => { const c = { ...e }; delete c.o; delete c.k; return c; }), ...(L.blocs?.length ? { blocs: L.blocs } : {}), ...(L.obj != null ? { obj: L.obj } : {}), ...(L.colObj != null ? { colObj: L.colObj } : {}), ...(L.gen ? { gen: L.gen } : {}), ...(L.code ? { code: L.code } : {}), ...(L.avisIgnores?.length ? { avisIgnores: L.avisIgnores } : {}), ...(auto ? { auto: true } : {}) };
     /* modifiée depuis « Mon agenda » : la séance elle-même, ou une variante pour ce jour-là seulement */
     const ag = L.agenda;
@@ -318,7 +319,7 @@ export default function PageComposer() {
   return (
     <>
       {L.demo && <BandeauDemo onQuitter={quitterDemo} />}
-      <VisiteCreer pret={L.ex.length > 0} force={!!L.demo} />
+      <VisiteCreer pret={L.ex.length > 0 && !ajout} force={!!L.demo} />
       <EnTete
         surtitre={L.idx != null ? tr("Modifier la séance") : L.premiere ? tr("Ta première séance") : tr("Nouvelle séance")}
         titre={L.premiere ? tr("Comme dans ton carnet.") : L.nom || tr("Séance libre")}
@@ -383,13 +384,6 @@ export default function PageComposer() {
           <BandeauGabarit g={gab} vides={vides} onModifier={() => setChoixM(true)} onDuree={(d) => preparerCases(gab.m, d)} onCompleter={completer} onVider={vider} onSans={() => majLibre((l) => { delete l.gab; l.guide = false; })} />
         )}
 
-        {/* mode Suivi, séance partie du corps : les exercices des muscles touchés, au choix */}
-        {suivi && !!L.muscles?.length && (
-          <ExosDesMuscles m={L.muscles} sel={sel} pris={pris} onAjouter={ajouter}
-            onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") })}
-            onFermer={() => majLibre((l) => { delete l.muscles; })} />
-        )}
-
         <section>
           <div className="eyebrow mb-2 px-1">{tr("Ta séance · {length} exercice{a} {a1} {a2}", { length: L.ex.length, a: pluriel(L.ex.length) ? "s" : "", a1: L.blocs?.length ? tr(" + {length} bloc{a} cardio", { length: L.blocs.length, a: pluriel(L.blocs.length) ? "s" : "" }) : "", a2: L.ex.length ? tr(" · environ {a} min", { a: dureeSeance(L) }) : "" })}</div>
           {/* séance d'Oxa nettement plus courte que la durée choisie : on le dit, et pourquoi */}
@@ -449,7 +443,8 @@ export default function PageComposer() {
         />
       )}
       <FeuilleAjout
-        ouvert={ajout} onClose={() => setAjout(false)} onAjouter={ajouter} pris={pris} sel={selFeuille} onSel={setSel}
+        /* mode Suivi : le matériel du Profil d'emblée, pour voir les exercices dès qu'on touche un muscle */
+        ouvert={ajout} onClose={() => setAjout(false)} onAjouter={ajouter} pris={pris} sel={suivi && !selB ? sel : selFeuille} onSel={setSel} muscles={L.muscles}
         onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") })}
       />
       {/* fond opaque sous les boutons : désactivés (semi-transparents), ils ne laissent pas voir la liste derrière */}
@@ -473,6 +468,16 @@ export default function PageComposer() {
           </div>
         ) : L.pour ? (
           <Button variant="plate" size="xl" className="w-full" disabled={!L.ex.length} onClick={() => enregistrer()}>{tr("Programmer pour {j}", { j: jourCourt(L.pour) })}</Button>
+        ) : L.idx == null && !L.agenda && suivi ? (
+          /* mode Suivi : la garder, la garder et la commencer, ou la faire juste aujourd'hui (hors « Mes séances ») */
+          <div className="flex flex-col gap-1.5">
+            <div className="flex gap-2">
+              <Button variant="outline" size="xl" className="flex-1 bg-background" disabled={!L.ex.length} onClick={() => enregistrer(false, true)}>{tr("Enregistrer")}</Button>
+              <Button variant="plate" size="xl" className="flex-[1.4]" disabled={!L.ex.length} onClick={() => enregistrer(true, true)}>{tr("Commencer")}</Button>
+            </div>
+            <button disabled={!L.ex.length} onClick={() => { tactile(6); void enregistrer(true, false, undefined, true); }}
+              className="h-10 rounded-full text-[14.5px] font-semibold text-plate-ink disabled:opacity-40 dark:text-plate">{tr("Juste aujourd'hui, sans l'enregistrer")}</button>
+          </div>
         ) : L.idx == null && !L.agenda ? (
           <div className="flex gap-2">
             <Button variant="outline" size="xl" className="flex-1 bg-background" disabled={!L.ex.length} onClick={() => enregistrer(false, true)}>{tr("Enregistrer")}</Button>
@@ -537,40 +542,6 @@ export default function PageComposer() {
         }}
       />
     </>
-  );
-}
-
-/* Mode Suivi : les exercices des muscles touchés sur le corps, rangés par muscle (six d'abord,
-   « Voir les {n} » pour le reste). Toucher + les ajoute à la séance ; rien n'est choisi par Oxa. */
-function ExosDesMuscles({ m, sel, pris, onAjouter, onFiche, onFermer }: { m: string[]; sel: string[]; pris: (o: string) => boolean; onAjouter: (o: string) => void; onFiche: (o: string) => void; onFermer: () => void }) {
-  const [tout, setTout] = useState<string[]>([]);
-  const groupes = exosParMuscle(m, sel);
-  return (
-    <section aria-label={tr("Exercices des muscles choisis")} className="flex flex-col gap-4">
-      <div className="flex items-baseline justify-between px-1">
-        <span className="eyebrow">{tr("Choisis tes exercices")}</span>
-        <button onClick={() => { tactile(5); onFermer(); }} className="text-[13px] font-medium text-muted-foreground">{tr("Masquer")}</button>
-      </div>
-      {groupes.map(({ g, l, aussi }) => {
-        const voir = tout.includes(g.k) ? l : l.slice(0, 6);
-        return (
-          <div key={g.k} className="flex flex-col gap-1.5">
-            <div className="flex items-baseline justify-between px-1">
-              <h3 className="text-[17px] font-bold">{g.n}</h3>
-              <span className="text-[12.5px] text-muted-foreground">{l.length}</span>
-            </div>
-            {aussi && l.length > 0 && <p className="px-1 text-[12.5px] leading-snug text-muted-foreground">{tr("Pas d'exercice d'isolation avec ce matériel : ceux-ci le travaillent aussi.")}</p>}
-            {voir.map((o) => <LigneExercice key={o} id={o} pris={pris(o)} onOuvrir={() => onFiche(o)} onAjouter={() => { onAjouter(o); toast.success(tr("Ajouté : {a}", { a: EX[o]?.n || o }), { duration: 1400 }); }} />)}
-            {!l.length && <p className="px-1 text-[13.5px] text-muted-foreground">{tr("Aucun exercice avec ce matériel.")}</p>}
-            {l.length > voir.length && (
-              <button onClick={() => { tactile(5); setTout((t) => [...t, g.k]); }} className="self-start px-1 py-1 text-[13.5px] font-semibold text-plate-ink dark:text-plate">
-                {tr("Voir les {n} exercices", { n: l.length })}
-              </button>
-            )}
-          </div>
-        );
-      })}
-    </section>
   );
 }
 
