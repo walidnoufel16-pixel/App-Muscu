@@ -53,6 +53,10 @@ avec la date et la source (fichier de stats). Rayer ou supprimer ce qui est cont
     (dernière fois, records, progression), plus du coaching ni de la création de séance. Chaque pack contient
     un appel aux testeurs (« Commente TEST ») et chaque lien envoyé porte une étiquette `?src=`.
 
+- Captures de l'app : TikTok compresse les images et efface les gris très pâles (les barres grises de Progrès, #ECECEF
+  sur blanc, ont disparu sur l'épinglée du 25 nov.). Foncer les gris pâles (vers #C4C4C8) avant de publier, et vérifier
+  l'image après une forte compression JPEG.
+
 ## Chiffres à demander à chaque relevé
 - TikTok : durée moyenne de visionnage, % regardé en entier, visites du profil, nouveaux followers ;
   pour un carrousel, photos vues sur 6 et temps de lecture total.
