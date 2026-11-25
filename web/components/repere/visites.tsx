@@ -7,7 +7,9 @@
    - « Ta séance » : 5 bulles sur la séance, d'elle-même à la première séance lancée.
    Lancées depuis la liste, « Créer ta séance » et « Ta séance » s'ouvrent sur une démonstration
    (lib/demo.ts) : on essaie tout, rien n'est enregistré, l'état d'avant revient à la sortie.
-   Les bulles sont celles de la visite générale (repères data-visite) ; un repère absent est sauté. */
+   Les bulles sont celles de la visite générale (repères data-visite) ; un repère absent est sauté.
+   Mode Suivi : « Créer ta séance » sans les cases d'Oxa (on choisit ses exercices), « Ta séance » avec
+   la colonne « Précédent » et la charge proposée qu'on corrige. */
 import { tr } from "@/lib/i18n";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -24,6 +26,7 @@ import { AVANT, useMenu } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 import { useRepere } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { enSuivi } from "@/lib/logic/mode";
 import { Bulle, revoirVisite, useVisite, type BulleDef } from "./visite";
 
 export type CleVisite = "decouvrir" | "creer" | "seance";
@@ -46,6 +49,17 @@ export const BULLES_CREER: BulleDef[] = [
   { cible: "creer-lancer", k: () => tr("Créer ta séance"), t: () => tr("Commence ou programme"), d: () => tr("« Commencer » lance la séance ; « Plus tard » la programme pour un autre jour, avec un rappel.") },
 ];
 
+/* mode Suivi (docs/produit/mode-suivi) */
+export const BULLES_SEANCE_SUIVI: BulleDef[] = [
+  { cible: "seance-serie", k: () => tr("Ta séance"), t: () => tr("Note ta série"), d: () => tr("« Précédent » rappelle la dernière fois ; Oxa propose la suite. Touche un chiffre pour mettre ce que tu fais vraiment.") },
+  ...BULLES_SEANCE.slice(1),
+];
+export const BULLES_CREER_SUIVI: BulleDef[] = [
+  { cible: "creer-ajouter", k: () => tr("Créer ta séance"), t: () => tr("Ajoute tes exercices"), d: () => tr("Sur le corps ou en liste, avec ton matériel : touche + sur chaque exercice de ta séance.") },
+  { cible: "creer-exercice", k: () => tr("Créer ta séance"), t: () => tr("Règle séries, répétitions et repos"), d: () => tr("Touche un exercice pour régler ses séries, ses répétitions et son repos.") },
+  { cible: "creer-lancer", k: () => tr("Créer ta séance"), t: () => tr("Garde-la ou commence"), d: () => tr("« Enregistrer » la range dans Mes séances ; « Commencer » la lance tout de suite.") },
+];
+
 /** Une suite de bulles : d'elle-même une seule fois quand `pret`, ou tout de suite avec `force`. */
 function VisiteBulles({ k, bulles, pret = true, force = false, onFin }: { k: CleVisite; bulles: BulleDef[]; pret?: boolean; force?: boolean; onFin?: () => void }) {
   const [i, setI] = useState<number | null>(null);
@@ -66,8 +80,14 @@ function VisiteBulles({ k, bulles, pret = true, force = false, onFin }: { k: Cle
   );
 }
 
-export const VisiteSeance = ({ force }: { force?: boolean }) => <VisiteBulles k="seance" bulles={BULLES_SEANCE} force={force} />;
-export const VisiteCreer = ({ pret, force }: { pret: boolean; force?: boolean }) => <VisiteBulles k="creer" bulles={BULLES_CREER} pret={pret} force={force} />;
+export function VisiteSeance({ force }: { force?: boolean }) {
+  const suivi = useRepere((s) => enSuivi(s.etat));
+  return <VisiteBulles k="seance" bulles={suivi ? BULLES_SEANCE_SUIVI : BULLES_SEANCE} force={force} />;
+}
+export function VisiteCreer({ pret, force }: { pret: boolean; force?: boolean }) {
+  const suivi = useRepere((s) => enSuivi(s.etat));
+  return <VisiteBulles k="creer" bulles={suivi ? BULLES_CREER_SUIVI : BULLES_CREER} pret={pret} force={force} />;
+}
 
 /** Bandeau des démonstrations, fixé en haut : on essaie tout, rien n'est enregistré ; « Quitter »
     rend l'état d'avant. */
@@ -112,12 +132,21 @@ export function FeuilleVisites() {
   const router = useRouter();
   const ouvert = useMenu((s) => s.visites), fermer = () => useMenu.setState({ visites: false });
   const setLibre = useBrouillon((s) => s.setLibre);
+  const suivi = useRepere((s) => enSuivi(s.etat));
   const vues: Record<CleVisite, boolean> = { decouvrir: vueVisite("decouvrir"), creer: vueVisite("creer"), seance: vueVisite("seance") };
 
   const lancer = (k: CleVisite) => {
     tactile(8); fermer();
     if (k === "decouvrir") { setTimeout(revoirVisite, 300); return; }
     const { E, sel, auj, m, nom } = demoHaut();
+    /* mode Suivi : une séance à soi, sans cases ni séance construite par Oxa */
+    if (k === "creer" && suivi) {
+      const ex = seancePour(E, m, 30, 0, sel, auj).slice(0, 3);
+      useRepere.getState().entrerDemo();
+      setLibre({ nom, ex, idx: null, demo: true });
+      router.push("/entrainement/composer" as Route, AVANT);
+      return;
+    }
     if (k === "creer") {
       const gab = gabaritPour(E, m, 30, 0, sel, auj), ex = casesPour(E, m, 30, 0, sel, auj).slice(0, 3);
       useRepere.getState().entrerDemo();
@@ -134,7 +163,7 @@ export function FeuilleVisites() {
 
   const L: { k: CleVisite; icone: React.ReactNode; n: string; d: string }[] = [
     { k: "decouvrir", icone: <CompassIcon className="size-5" weight="bold" />, n: tr("Découvrir l'app"), d: tr("Les grandes parties d'Oxa · 1 min") },
-    { k: "creer", icone: <PlusIcon className="size-5" weight="bold" />, n: tr("Créer ta séance"), d: tr("Muscles, exercices, séries et repos · 5 étapes") },
+    { k: "creer", icone: <PlusIcon className="size-5" weight="bold" />, n: tr("Créer ta séance"), d: suivi ? tr("Exercices, séries, répétitions et repos · 3 étapes") : tr("Muscles, exercices, séries et repos · 5 étapes") },
     { k: "seance", icone: <BarbellIcon className="size-5" weight="bold" />, n: tr("Ta séance"), d: tr("Noter, valider, repos, remplacer · 5 étapes") },
   ];
   return (

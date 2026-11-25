@@ -181,6 +181,31 @@ const avecSeances = (A) => ({
   await ctx.close();
 }
 
+/* 3 quinquies. la visite guidée du mode Suivi : ses propres bulles, puis la prochaine séance */
+{
+  const [ctx, pg] = await contexte({ ...avecSeances({ mode: "suivi" }), HIST: [], LOG: {} });
+  await pg.goto(U + "/entrainement/");
+  await pg.getByText("Noter tes séances").waitFor({ timeout: 8000 });
+  ok(await pg.getByText("Ta séance du jour, prête selon tes muscles récupérés").count() === 0, "visite Suivi : pas de séance du jour promise");
+  await cap(pg, "8-visite-bienvenue");
+  await pg.getByRole("button", { name: "Faire la visite · 30 s" }).click();
+  const vus = [];
+  for (let i = 0; i < 10; i++) {
+    const d = pg.locator('[role="dialog"][aria-modal="true"]').filter({ has: pg.getByRole("button", { name: "Suivant" }) });
+    if (!(await d.count())) { await pg.waitForTimeout(1500); if (!(await d.count())) break; }
+    vus.push(await d.getAttribute("aria-label"));
+    if (i === 0) await cap(pg, "8b-visite-bulle");
+    await d.getByRole("button", { name: "Suivant" }).click();
+    await pg.waitForTimeout(700);
+  }
+  ok(vus[0] === "Tes séances, comme dans ton carnet" && vus.includes("Choisis tes muscles") && vus.includes("Des recettes pour toi") && !vus.includes("Tes séances à toi"), "bulles du mode Suivi : " + vus.join(" › "));
+  await pg.getByText("Ta prochaine séance t'attend").waitFor();
+  await pg.getByRole("button", { name: "Commencer", exact: true }).last().click();
+  await pg.waitForURL(/\/entrainement\/seance/);
+  ok(true, "fin de la visite : « Commencer » ouvre la prochaine séance");
+  await ctx.close();
+}
+
 /* 4. Profil : changer de mode, sans rien perdre */
 {
   const [ctx, pg] = await contexte(avecSeances({ mode: "suivi" }));

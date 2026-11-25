@@ -1,12 +1,13 @@
 "use client";
 
 /* Page d'accueil des visiteurs sans compte (écran « accueil » de /bienvenue), maquette B validée
-   le 14 novembre 2026 : une grande photo et la promesse, puis une séance racontée en quatre temps
-   (avant, pendant, après chaque exercice, la semaine suivante) avec des aperçus de l'app dessinés
-   au design v2, « Pour qui ? », le blog et l'appel à commencer. La musculation d'abord : street,
-   course et mobilité sont cités dans « Et aussi ». */
+   le 14 novembre 2026, passée au mode Suivi le 26 novembre (les nouveaux comptes n'ont que lui ;
+   promesses : « Ce que la comm promet », docs/reseaux/README.md) : une grande photo et la promesse,
+   puis une séance racontée en quatre temps (tes séances, pendant, ta récupération, les semaines
+   suivantes) avec des aperçus de l'app dessinés au design v2, « Pour qui ? », le blog et l'appel à
+   commencer. Jamais « coach », ni séance préparée par Oxa. */
 import { tr, langue } from "@/lib/i18n";
-import { ArrowRightIcon, CheckIcon, NewspaperIcon, PlayIcon, SparkleIcon } from "@phosphor-icons/react";
+import { ArrowRightIcon, CheckIcon, NewspaperIcon, PlayIcon } from "@phosphor-icons/react";
 import { ARTICLES, texte } from "@/lib/data/blog";
 import { nb } from "@/lib/logic/core";
 import { Button } from "@/components/ui/button";
@@ -16,17 +17,28 @@ import { Reseaux } from "./reseaux";
 
 /* ---------- aperçus de l'app (décoratifs : le texte de chaque étape dit la même chose) ---------- */
 
-function CarteJour() {
+/* « Mes séances » : la prochaine, avec ce qui a été fait la dernière fois */
+function CarteSeances() {
   return (
-    <div className="relative h-[190px] overflow-hidden rounded-[22px] bg-[#222] text-white">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/img/grand/seance-pecs.avif" alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
-      <span className="absolute inset-0 bg-gradient-to-b from-transparent from-25% to-black/85" />
-      <div className="absolute inset-x-3.5 bottom-3.5">
-        <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-[10.5px] font-bold tracking-[0.06em] uppercase"><SparkleIcon className="size-3" weight="fill" />{tr("Ta séance du jour")}</span>
-        <div className="titre mt-1.5 text-[23px] leading-tight">{tr("Haut du corps")}</div>
-        <div className="text-[12.5px] opacity-85">{tr("Pecs, épaules, triceps · 6 exercices")}</div>
-        <div className="mt-2.5 flex h-10 items-center justify-center gap-1.5 rounded-full bg-white text-[14px] font-bold text-[#0a0a0c]"><PlayIcon className="size-3.5" weight="fill" />{tr("Voir la séance")}</div>
+    <div className="flex flex-col gap-2">
+      <div className="rounded-[20px] border-2 border-plate bg-[#17171b] p-3">
+        <div className="flex items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/img/grand/seance-jambes.avif" alt="" loading="lazy" className="size-11 rounded-[12px] object-cover" />
+          <span className="min-w-0">
+            <span className="titre block text-[17px]">{tr("Jambes")}</span>
+            <span className="block truncate text-[12.5px] text-[#9d9da7]">{tr("Dernière fois jeudi · squat barre 80 × 10")}</span>
+          </span>
+        </div>
+        <div className="mt-2.5 flex h-10 items-center justify-center gap-1.5 rounded-full bg-plate text-[14px] font-bold text-[#0a0a0c]"><PlayIcon className="size-3.5" weight="fill" />{tr("Commencer")}</div>
+      </div>
+      <div className="flex items-center gap-3 rounded-[20px] bg-[#17171b] p-3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/img/grand/seance-pecs.avif" alt="" loading="lazy" className="size-10 rounded-[12px] object-cover" />
+        <span className="min-w-0">
+          <span className="block text-[15px] font-semibold">{tr("Pecs · Épaules · Triceps")}</span>
+          <span className="block text-[12.5px] text-[#9d9da7]">{tr("Dernière fois lundi")}</span>
+        </span>
       </div>
     </div>
   );
@@ -39,7 +51,7 @@ function CarteExercice() {
       <div className="px-3.5 pt-3 pb-2">
         <div className="text-[10px] font-semibold tracking-[0.1em] text-plate uppercase">{tr("En cours")}</div>
         <div className="titre text-[19px]">{tr("Développé couché barre")}</div>
-        <div className="text-[12px] text-[#9d9da7]">{tr("Pectoraux · Triceps")} <span className="ml-1 rounded-md bg-[#303038] px-1.5 py-0.5 text-[10px] font-semibold text-[#f5f5f7]">{tr("Base")}</span></div>
+        <div className="text-[12px] text-[#9d9da7]">{tr("Pectoraux · Triceps")}</div>
       </div>
       <div className="border-t border-[#303038] px-3 pt-2.5 pb-3">
         <div className="text-[13px] font-semibold text-plate">ⓘ {tr("Pourquoi {v} kg ?", { v: nb(32.5) })}</div>
@@ -72,14 +84,18 @@ function BarreValider() {
   );
 }
 
-function Ressenti() {
+/* La récupération, muscle par muscle, d'après les séances notées */
+function Recuperation() {
+  const p = (t: string, ok: boolean) => (
+    <span key={t} className={cn("flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12.5px] font-semibold", ok ? "bg-plate/15 text-plate" : "bg-[#3a2410] text-[#fb923c]")}>
+      <i className="size-2 rounded-full bg-current" />{t}
+    </span>
+  );
   return (
     <div className="rounded-[18px] border border-[#303038] bg-[#17171b] p-3">
-      <div className="text-[13.5px] font-semibold">{tr("C'était comment pour un RPE {rpe} ?", { rpe: 8 })}</div>
-      <div className="mt-2 flex gap-1.5">
-        {[tr("Facile"), tr("Juste"), tr("Trop dur")].map((t, i) => (
-          <span key={t} className={cn("grid h-[34px] flex-1 place-items-center rounded-full border text-[12.5px] font-semibold", i === 1 ? "border-plate bg-plate text-[#0a0a0c]" : "border-[#303038]")}>{t}</span>
-        ))}
+      <div className="text-[10.5px] font-semibold tracking-[0.08em] text-[#9d9da7] uppercase">{tr("Récupération")}</div>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {[p(tr("Pecs · prêt"), true), p(tr("Dos · prêt"), true), p(tr("Quadriceps · demain"), false)]}
       </div>
     </div>
   );
@@ -110,15 +126,15 @@ function Progression() {
 /* ---------- la page ---------- */
 
 const ETAPES = [
-  { quand: "Avant", titre: "Ta séance est prête", texte: "Selon tes muscles récupérés, ton objectif et ton matériel. Pas convaincu ? « Autre idée ».", Visuel: CarteJour },
-  { quand: "Pendant", titre: "Un geste par série", texte: "La série à faire en bas de l'écran, la charge déjà remplie, le repos qui se lance seul.", Visuel: () => <div className="flex flex-col gap-2.5"><CarteExercice /><BarreValider /></div> },
-  { quand: "Après chaque exercice", titre: "Ton ressenti compte", texte: "Facile, juste ou trop dur : Oxa ajuste la charge de la prochaine fois.", Visuel: Ressenti },
-  { quand: "Les semaines suivantes", titre: "Tu progresses", texte: "Quand tu réussis, Oxa ajoute du poids ou une répétition. Un exemple réel :", Visuel: Progression },
+  { quand: "Avant", titre: "Tes séances, comme dans ton carnet", texte: "Écris-les une fois : tes exercices, tes séries, ton repos. Ensuite, « Commencer » et c'est parti.", Visuel: CarteSeances },
+  { quand: "Pendant", titre: "Un geste par série", texte: "« Précédent » te rappelle la dernière fois, Oxa te propose la suite : tu valides, ou tu corriges. Le repos se lance seul.", Visuel: () => <div className="flex flex-col gap-2.5"><CarteExercice /><BarreValider /></div> },
+  { quand: "Entre deux séances", titre: "Ta récupération, muscle par muscle", texte: "D'après les séances que tu notes : tu sais ce qui est prêt et ce qui récupère encore.", Visuel: Recuperation },
+  { quand: "Les semaines suivantes", titre: "Tu progresses", texte: "La courbe de chaque exercice, tes records, tes semaines d'affilée. Un exemple réel :", Visuel: Progression },
 ];
 const POUR_QUI = [
-  { t: "Tu débutes", d: "Des séances guidées, les bons gestes en photo, des charges prudentes au départ." },
-  { t: "Tu t'entraînes déjà", d: "Compose tes séances, garde tes exercices : Oxa calcule les charges." },
-  { t: "Tu es coach", d: "Désactive les cases guidées : la page blanche, tes exercices, tes règles." },
+  { t: "Tu as déjà ton programme", d: "Pas de questionnaire : tu notes tes séances, Oxa garde ta charge d'avant, ton max et tes progrès." },
+  { t: "Tu débutes", d: "Plus de 250 exercices en photo, avec les bons gestes, et une charge proposée à chaque série." },
+  { t: "Tu t'entraînes à plusieurs", d: "Partage ta séance avec un code : ton partenaire la retrouve en un geste." },
 ];
 
 export function Vitrine({ onCommencer, onCompte }: { onCommencer: () => void; onCompte: () => void }) {
@@ -138,8 +154,8 @@ export function Vitrine({ onCommencer, onCompte }: { onCommencer: () => void; on
           <button onClick={onCompte} className="text-[14px] font-semibold opacity-90">{tr("Connexion")}</button>
         </div>
         <div className="mt-auto text-white">
-          <h1 className="titre text-[40px] leading-none font-extrabold">{tr("Arrive à la salle.")}<span className="block text-plate">{tr("Oxa a déjà prévu.")}</span></h1>
-          <p className="mt-3 text-[16px] leading-snug opacity-90">{tr("Les exercices, les séries, la charge de chaque série. Et pourquoi.")}</p>
+          <h1 className="titre text-[40px] leading-none font-extrabold">{tr("Note tes séances.")}<span className="block text-plate">{tr("Oxa garde le fil.")}</span></h1>
+          <p className="mt-3 text-[16px] leading-snug opacity-90">{tr("Ta charge d'avant, ton max, ta récup et tes progrès. Et la charge suivante, proposée.")}</p>
           <Button variant="plate" size="xl" onClick={onCommencer} className="mt-5 w-full">{tr("Commencer")}<ArrowRightIcon /></Button>
           <p className="mt-3 text-center text-[14px] font-semibold">{tr("+250 exercices de musculation, chacun en photo")}</p>
           <p className="mt-1 text-center text-[13px] font-medium opacity-80">{tr("Pas d'App Store : ajoute-la à ton écran d'accueil en 2 gestes")}</p>
@@ -148,7 +164,7 @@ export function Vitrine({ onCommencer, onCompte }: { onCommencer: () => void; on
 
       <section className="px-5 pt-4">
         <div className="text-[11.5px] font-semibold tracking-[0.1em] text-[#9d9da7] uppercase">{tr("Une séance avec Oxa")}</div>
-        <h2 className="titre mt-1 text-[27px] leading-tight">{tr("Du début à la fin, sans réfléchir")}</h2>
+        <h2 className="titre mt-1 text-[27px] leading-tight">{tr("Ton carnet de muscu, en mieux")}</h2>
         <ol className="mt-6">
           {ETAPES.map(({ quand, titre, texte: t, Visuel }, i) => (
             <li key={quand} className="relative pb-8 pl-9">
@@ -176,7 +192,7 @@ export function Vitrine({ onCommencer, onCompte }: { onCommencer: () => void; on
         </div>
 
         <div className="eyebrow mt-7">{tr("Et aussi")}</div>
-        <p className="mt-2 text-[14.5px] leading-relaxed">{tr("Protéines du jour · bilan du lundi · street workout, course et Hyrox, mobilité · hors connexion à la salle")}</p>
+        <p className="mt-2 text-[14.5px] leading-relaxed">{tr("Recettes selon tes goûts · street workout, course et Hyrox · partage de séance par code · hors connexion à la salle")}</p>
 
         {articles.length > 0 && (
           <section className="pt-7">
@@ -200,13 +216,13 @@ export function Vitrine({ onCommencer, onCompte }: { onCommencer: () => void; on
         )}
 
         <section className="mt-8 rounded-[28px] bg-[#0f1218] px-5.5 py-6.5 text-white">
-          <h2 className="titre text-[27px] leading-tight">{tr("Ta prochaine séance est déjà prête.")}</h2>
-          <p className="mt-2 text-[15px] opacity-75">{tr("Réponds à 3 questions, Oxa s'occupe du reste.")}</p>
+          <h2 className="titre text-[27px] leading-tight">{tr("Ta prochaine séance, notée en un geste.")}</h2>
+          <p className="mt-2 text-[15px] opacity-75">{tr("Pas de questionnaire : écris ta séance, Oxa garde le fil.")}</p>
           <Button variant="plate" size="xl" onClick={onCommencer} className="mt-5 w-full">{tr("Commencer")}<ArrowRightIcon /></Button>
         </section>
         <Reseaux titre={tr("Suis Oxa")} className="mt-8" />
         <p className="pt-4 pb-2 text-center text-[12.5px] text-muted-foreground">
-          {tr("Oxa · ton coach de poche")} · <a href={blog} className="font-semibold text-plate-ink underline-offset-2 hover:underline dark:text-plate">{tr("Le blog Oxa")}</a>
+          {tr("Oxa · le suivi de tes séances de muscu")} · <a href={blog} className="font-semibold text-plate-ink underline-offset-2 hover:underline dark:text-plate">{tr("Le blog Oxa")}</a>
         </p>
       </div>
     </div>

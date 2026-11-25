@@ -60,7 +60,7 @@ export function LigneRecuperation({ auj }: { auj: string }) {
   };
   return (
     <>
-      <button onClick={() => { tactile(5); setOuvert(true); }} className="flex items-center gap-3 rounded-[20px] bg-card py-2 pr-3 pl-2 text-left active:scale-[.99]">
+      <button data-visite="recuperation" onClick={() => { tactile(5); setOuvert(true); }} className="flex items-center gap-3 rounded-[20px] bg-card py-2 pr-3 pl-2 text-left active:scale-[.99]">
         <span className="flex shrink-0 items-center"><Corps cote="front" E={E} h={60} /><Corps cote="back" E={E} h={60} /></span>
         <span className="min-w-0 flex-1 leading-tight">
           <span className="block text-[11px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">{tr("Récupération")}</span>

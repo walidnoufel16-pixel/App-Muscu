@@ -60,7 +60,7 @@ export function AccueilSuivi({ auj, setF }: { auj: string; setF: (f: Feuille) =>
       {/* la récupération, comme en Guidé */}
       {!debutant && <LigneRecuperation auj={auj} />}
 
-      <section aria-label={tr("Mes séances")} className="mt-1 flex flex-col gap-2">
+      <section aria-label={tr("Mes séances")} data-visite="suivi-seances" className="mt-1 flex flex-col gap-2">
         <h2 className="eyebrow px-1">{tr("Mes séances")}</h2>
         {p == null ? (
           <button onClick={nouvelle} className="rounded-[20px] border-2 border-dashed border-plate/60 bg-card/60 p-5 text-left active:scale-[.99]">
@@ -76,7 +76,7 @@ export function AccueilSuivi({ auj, setF }: { auj: string; setF: (f: Feuille) =>
                 <span className="block truncate text-[12.5px] text-muted-foreground">{texteDerniere(etat, p, auj, true)}</span>
               </span>
             </button>
-            <button onClick={() => ouvrir(p)} className="mt-2.5 h-11 w-full rounded-full bg-plate text-[15.5px] font-semibold text-plate-foreground active:scale-[.98]">{tr("Commencer")}</button>
+            <button data-principal onClick={() => ouvrir(p)} className="mt-2.5 h-11 w-full rounded-full bg-plate text-[15.5px] font-semibold text-plate-foreground active:scale-[.98]">{tr("Commencer")}</button>
           </div>
         )}
         {autres.map((i) => (
@@ -90,7 +90,7 @@ export function AccueilSuivi({ auj, setF }: { auj: string; setF: (f: Feuille) =>
           </button>
         ))}
         <div className="flex items-center justify-between px-1 pt-0.5">
-          <button onClick={nouvelle} className="flex items-center gap-1.5 py-1.5 text-[14.5px] font-semibold text-plate-ink dark:text-plate">
+          <button data-visite="suivi-nouvelle" onClick={nouvelle} className="flex items-center gap-1.5 py-1.5 text-[14.5px] font-semibold text-plate-ink dark:text-plate">
             <PlusIcon className="size-4" weight="bold" />{tr("Nouvelle séance")}
           </button>
           {/* partager une séance, en importer une avec un code : dans la liste complète */}
@@ -101,7 +101,7 @@ export function AccueilSuivi({ auj, setF }: { auj: string; setF: (f: Feuille) =>
       </section>
 
       {/* le corps : toucher des muscles propose leurs exercices pour composer sa séance */}
-      <div className="mt-3"><CorpsDuJour titre={liste.length ? tr("Envie d'autre chose ? Choisis tes muscles du jour") : tr("Qu'est-ce que tu travailles aujourd'hui ?")} /></div>
+      <div className="mt-3"><CorpsDuJour visite="suivi-corps" titre={liste.length ? tr("Envie d'autre chose ? Choisis tes muscles du jour") : tr("Qu'est-ce que tu travailles aujourd'hui ?")} /></div>
     </>
   );
 }
