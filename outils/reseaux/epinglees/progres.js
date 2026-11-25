@@ -30,7 +30,7 @@ const P = {
   "epinglee-2-seance": { pill: "Suivi de séance", titre: "Note ta séance<br><em>sans y penser.</em>", sous: "Fini le carnet et les notes&nbsp;: Oxa garde tes charges, tes répétitions et ton max.", cap: "cap-seance.png",
     pts: [["Ta charge d'avant s'affiche", "Tu sais tout de suite quoi battre."], ["Une touche par série", "Charge et répétitions déjà remplies."], ["🏆 Ton max toujours visible", ""]], bio: "Ta séance suivie en 1 touche" },
   "epinglee-3-progres": { pill: "Tes progrès", titre: "Tu progresses&nbsp;?<br><em>Oxa te le montre.</em>", sous: "Chaque série validée s'ajoute à ton historique, sans rien faire de plus.", cap: "cap-progres.png",
-    pts: [["La courbe de chaque exercice", "De 75 kg × 8 à 80 kg × 10, en un coup d'œil."], ["La prochaine charge, proposée", ""], ["Tes records et ta régularité", "Semaines d'affilée, calendrier, records."]], bio: "Tes progrès, d'un coup d'œil" },
+    pts: [["La courbe de chaque exercice", "De 75 kg × 8 à 80 kg × 10, en un coup d'œil."], ["Ton historique, séance par séance", ""], ["Tes records et ta régularité", "Semaines d'affilée, calendrier, records."]], bio: "Tes progrès, d'un coup d'œil" },
 };
 (async () => {
   const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1080, height: 1920 } });
