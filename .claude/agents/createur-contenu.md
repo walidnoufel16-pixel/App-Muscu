@@ -28,7 +28,8 @@ et, s'il y a une leçon nouvelle, `docs/reseaux/enseignements.md`.
 
 **Positionnement (décisions de Walid, 24 et 25 nov.)** : Oxa est **l'app pour suivre ses séances**. Les nouveaux comptes
 n'ont que le mode Suivi : ne promettre que ce qu'il fait (liste « Ce que la comm promet » dans `docs/reseaux/README.md`).
-Jamais de charge proposée, de « séance prête » ni du mot « coach ». Captures toujours en mode Suivi.
+La charge suivante proposée est permise, comme une suggestion que l'utilisateur suit ou non (26 nov.).
+Jamais de « séance prête » ni du mot « coach ». Captures toujours en mode Suivi.
 
 ## Règles qui ne se discutent pas
 - Ne jamais mettre en avant « gratuit » ni « sans pub ».

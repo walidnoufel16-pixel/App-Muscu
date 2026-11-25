@@ -33,9 +33,12 @@ Enregistrer / Commencer).
 
 ## 4. La séance en mode Suivi
 - Gardé : la colonne « Précédent », la pastille « Ton record », le minuteur de repos, l'historique et Progrès.
-- **Aucune charge proposée** (décision de Walid) : pas de « ↑ x kg », pas de « Pourquoi x kg ? », pas de
-  « Comment tu te sens ? », pas de RPE conseillé.
-- Champs préremplis avec la charge et les répétitions **de la dernière fois** (vides la première fois).
+- **Charge proposée gardée** (décision de Walid du 26 nov., remplace celle du 25) : Oxa propose la charge suivante
+  (« ↑ 5 kg », « Pourquoi 85 kg ? », carte « Prochaine fois » dans Progrès). L'utilisateur la suit ou non : **aucun
+  réglage ni case en plus**, il corrige simplement la charge s'il veut faire autre chose.
+- Champs préremplis avec **la charge proposée** (on valide d'une touche si on la suit) ; la colonne « Précédent »
+  montre la dernière fois. Première séance : champs vides.
+- Toujours retirés en mode Suivi : « Comment tu te sens ? » et l'effort (RPE) conseillé.
 
 ## 5. Profil
 Choix du mode (Suivi / Guidé), changement sans perte de données.
