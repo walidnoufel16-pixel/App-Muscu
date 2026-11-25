@@ -1,6 +1,6 @@
 # Passage de la comm au mode Suivi (25 novembre 2026)
 
-Les nouveaux comptes n'ont que le mode Suivi : tout ce qui promet la création de séance ou une charge proposée
+Les nouveaux comptes n'ont que le mode Suivi : tout ce qui promet la création de séance
 doit disparaître des profils. Règles détaillées : « Ce que la comm promet » dans `README.md`.
 
 ## Épinglées (TikTok et Instagram)
@@ -43,10 +43,6 @@ promet le mode Guidé : à remplacer.
 ## Liens
 Ajouter `mode=suivi` n'est plus utile (les nouveaux comptes sont en Suivi) ; garder `?src=` pour la mesure.
 
-## Écart repéré dans l'app (à corriger dans une session sur l'app)
-En mode Suivi, Progrès affiche encore « Prochaine fois · Oxa te proposera 85 kg × 6 » : c'est une charge proposée,
-contraire au cahier des charges (`docs/produit/mode-suivi/cahier-des-charges.md`, point 4).
-
 ## Deuxième passe (26 nov., d'après les captures des grilles TikTok et Instagram du 24 nov.)
 Déjà supprimés par Walid : « Arrive à la salle. Ta séance est prête » et « Choisis tes muscles. Oxa prépare ta séance ».
 
@@ -78,3 +74,14 @@ Déjà supprimés par Walid : « Arrive à la salle. Ta séance est prête » et
 **À garder** : « La muscu va me rendre massive ? », « Les 4 règles de la salle », « Lundi à fond », « Pas de courbatures »,
 Reel « Soulever lourd », « Ta récupération, muscle par muscle » (la récup fait partie du mode Suivi), vidéo du partage
 par code, vidéo d'installation, les 3 épinglées.
+
+## Mise à jour du 26 nov. : la charge proposée revient en mode Suivi
+Walid garde la charge suivante proposée en mode Suivi (suggestion, champs préremplis, l'utilisateur corrige s'il veut).
+Conséquences :
+- Plus besoin de masquer ce qui montre une charge proposée : « Bloqué au même poids », « Tu stagnes ? » (« te dit quand
+  monter »), « Tu ajoutes du poids au feeling ? » (« Oxa écrit la raison »), « Chaque charge expliquée », POV squat
+  peuvent rester (s'ils ont déjà été masqués, on peut les remettre en public).
+- La carte « Prochaine fois » de Progrès n'est plus un écart.
+- Restent à masquer : tout ce qui promet la création de séance (« séance prête », « Oxa prépare ta séance »,
+  « Touche les muscles »), « Ce qui fait vraiment progresser » (« Oxa te dit quoi faire »), le compteur de protéines
+  (« L'app compte pour toi »), et « Coche, Oxa suit » seulement si « ajuste la séance suivante » vise la séance entière.

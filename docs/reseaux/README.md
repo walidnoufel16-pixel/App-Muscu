@@ -28,11 +28,10 @@ est ouvert compte par compte par l'admin. **La comm ne parle donc que du suivi.*
   « Pourquoi 85 kg ? », décision du 26 nov.) ; la pastille « 🏆 Ton record » ; le minuteur de repos ; la récupération
   par muscle ; Progrès (courbe de chaque exercice, historique, records, semaines d'affilée) ; le partage de séance par code ;
   l'installation sans store.
-- **On ne promet plus** : « ta séance est prête », « touche un muscle, Oxa prépare ta séance », la charge proposée
-  (« ↑ 5 kg », « Pourquoi 85 kg ? », « Oxa te dit quand monter »), « Comment tu te sens ? », le questionnaire,
+- **On ne promet plus** : « ta séance est prête », « touche un muscle, Oxa prépare ta séance », « Comment tu te sens ? », le questionnaire,
   le programme sur 8 semaines, le mot « coach ».
-- **Captures** : toujours en mode Suivi (`A.mode = "suivi"` dans l'état de démonstration). Vérifier qu'aucune charge
-  proposée n'apparaît avant de livrer.
+- **Captures** : toujours en mode Suivi (`A.mode = "suivi"` dans l'état de démonstration). Toujours présenter la charge
+  proposée comme une suggestion (« Oxa te propose… tu décides »), jamais comme une obligation.
 
 ## Où en est-on
 - Packs publiés : semaine 1 (6 au 10 novembre), semaine 2 (11 au 17 novembre), pack 3 commencé
