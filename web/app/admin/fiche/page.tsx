@@ -6,7 +6,7 @@ import { loc, pluriel, tr } from "@/lib/i18n";
 import { Component, Suspense, useEffect, useMemo, useState } from "react";
 import { CaretDownIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
-import { CalendarDotsIcon, TrashIcon } from "@phosphor-icons/react";
+import { CalendarDotsIcon, CompassIcon, TrashIcon } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { EnTete } from "@/components/repere/en-tete";
 import { Retour } from "@/components/repere/retour";
@@ -26,7 +26,7 @@ import { jourDe, nomMuscle, records, semaines } from "@/lib/logic/historique";
 import { BADGES, stats } from "@/lib/logic/motivation";
 import { objectifProteines, poidsDe } from "@/lib/logic/nutrition";
 import { recap } from "@/lib/logic/questionnaire";
-import { accesProgramme, fiche, supprimer, useEstAdmin } from "@/lib/admin";
+import { accesGuide, accesProgramme, comptesGuide, fiche, supprimer, useEstAdmin } from "@/lib/admin";
 import { Button } from "@/components/ui/button";
 import { confirmer } from "@/components/repere/confirmer";
 import { useRepere, versEtat } from "@/lib/store";
@@ -70,6 +70,7 @@ function Fiche() {
       <EnTete surtitre={F.email || tr("Sans adresse")} titre={F.pseudo || tr("Sans surnom")} gauche={<Retour repli="/admin" />} />
       <div className="flex flex-col gap-5 px-4 pb-10">
         <AccesProgramme F={F} onChange={(programme) => setF({ ...F, programme })} />
+        <AccesGuide F={F} />
         <Garde><Contenu F={F} E={E} /></Garde>
         <Suppression F={F} seances={(E.HIST || []).length + (E.CARDIO || []).length + (E.SORTIES || []).length} />
       </div>
@@ -111,6 +112,45 @@ function AccesProgramme({ F, onChange }: { F: FicheAdmin; onChange: (v: boolean)
         <span className="block text-[12.5px] text-muted-foreground">{on ? tr("Ouvert : ce compte voit et suit le programme.") : tr("Fermé : « Bientôt disponible » pour ce compte.")}</span>
       </span>
       <button role="switch" aria-checked={on} aria-label={tr("Accès au programme sur 8 semaines")} disabled={occupe} onClick={basculer}
+        className={cn("relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-60", on ? "bg-plate" : "bg-muted-foreground/30")}>
+        <span className={cn("absolute top-0.5 left-0.5 size-6 rounded-full bg-white shadow transition-transform", on && "translate-x-5")} />
+      </button>
+    </section>
+  );
+}
+
+/* Mode Guidé : les nouveaux comptes n'ont que le mode Suivi, ouvert ici compte par compte. */
+function AccesGuide({ F }: { F: FicheAdmin }) {
+  const [on, setOn] = useState<boolean | null>(null);
+  const [occupe, setOccupe] = useState(false);
+  const [err, setErr] = useState("");
+  useEffect(() => { comptesGuide().then((l) => setOn(l.includes(F.id))).catch((e) => setErr((e as Error).message)); }, [F.id]);
+  /* compte d'avant le verrou : il a déjà le choix des deux modes */
+  const libre = !F.etat?.A?.suiviSeul;
+  const basculer = async () => {
+    setOccupe(true);
+    try {
+      const v = await accesGuide(F.id, !on);
+      setOn(v);
+      toast.success(v ? tr("Mode Guidé ouvert pour ce compte") : tr("Mode Guidé fermé pour ce compte"));
+    } catch (e) {
+      toast.error(tr("Changement impossible"), { description: (e as Error).message });
+    }
+    setOccupe(false);
+  };
+  return (
+    <section className="flex items-center gap-3 rounded-[22px] bg-card p-4">
+      <CompassIcon className="size-5 shrink-0 text-plate" />
+      <span className="min-w-0 flex-1">
+        <span className="block text-[15px] font-semibold">{tr("Mode Guidé")}</span>
+        <span className="block text-[12.5px] text-muted-foreground">
+          {err ? tr("Indisponible : {message}", { message: err })
+            : on ? tr("Ouvert : ce compte peut choisir Suivi ou Guidé dans Profil.")
+            : libre ? tr("Compte d'avant le verrou : il garde le choix des deux modes.")
+            : tr("Fermé : ce compte n'a que le mode Suivi.")}
+        </span>
+      </span>
+      <button role="switch" aria-checked={!!on} aria-label={tr("Accès au mode Guidé")} disabled={occupe || on == null} onClick={basculer}
         className={cn("relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-60", on ? "bg-plate" : "bg-muted-foreground/30")}>
         <span className={cn("absolute top-0.5 left-0.5 size-6 rounded-full bg-white shadow transition-transform", on && "translate-x-5")} />
       </button>

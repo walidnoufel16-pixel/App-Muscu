@@ -19,6 +19,16 @@ import { useBrouillon } from "@/lib/brouillon";
 import { useOngletsExercices } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 
+/** Les exercices de chaque muscle touché, avec ce matériel. Rien en isolation (biceps au poids du
+    corps) : les exercices qui travaillent aussi ce muscle (`aussi`). */
+export function exosParMuscle(m: string[], sel: string[]) {
+  return MUSC.filter((g) => m.includes(g.k)).map((g) => {
+    const de = (cle: "pat" | "pat2") => Object.keys(EX).filter((o) => { const p = EX[o][cle]; return !!p && PAT2MUSC[p] === g.k && !estSoin(o) && exoFiltre(o, sel); });
+    const l = de("pat");
+    return l.length ? { g, l, aussi: false } : { g, l: de("pat2"), aussi: true };
+  });
+}
+
 /* `outils` : le matériel proposé seulement (street workout : poids du corps, barre, élastiques, TRX). */
 export function BibliothequeMuscles({ outils, depart }: { outils?: string[]; depart?: string[] } = {}) {
   const A = useRepere((s) => s.etat.A);
@@ -30,12 +40,7 @@ export function BibliothequeMuscles({ outils, depart }: { outils?: string[]; dep
   const m = memo ? memo.split(",").filter(Boolean) : [];
   const basculer = (k: string) => { tactile(6); useOngletsExercices.setState({ muscles: (m.includes(k) ? m.filter((x) => x !== k) : [...m, k]).join(",") }); };
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);
-  /* rien en isolation avec ce matériel (biceps au poids du corps) : les exercices qui travaillent aussi ce muscle */
-  const groupes = MUSC.filter((g) => m.includes(g.k)).map((g) => {
-    const de = (cle: "pat" | "pat2") => Object.keys(EX).filter((o) => { const p = EX[o][cle]; return !!p && PAT2MUSC[p] === g.k && !estSoin(o) && exoFiltre(o, sel); });
-    const l = de("pat");
-    return l.length ? { g, l, aussi: false } : { g, l: de("pat2"), aussi: true };
-  });
+  const groupes = exosParMuscle(m, sel);
   /* Full body : tous les muscles d'un geste, donc tous les exercices faisables avec le matériel coché */
   const choisir = (l: string[]) => { tactile(6); useOngletsExercices.setState({ muscles: l.join(",") }); };
   return (

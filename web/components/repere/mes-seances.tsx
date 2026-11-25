@@ -23,6 +23,7 @@ import { construireSeance, dureeTotale, FORMATS, MACHINES } from "@/lib/logic/ca
 import { dureeTotale as dureeSeance, estCombinee } from "@/lib/logic/combinee";
 import { ICONE_FORMAT } from "./reglages-cardio";
 import { cn } from "@/lib/utils";
+import { useSuiviSeul } from "@/lib/fonctionnalites";
 
 /* La consigne « fais glisser pour supprimer » : seulement les premières fois. */
 const CLE_ASTUCE = "repere.astuce.balayer";
@@ -170,11 +171,12 @@ export function MesSeances() {
 export function CreerSeance() {
   const router = useRouter();
   const sansCases = useRepere((s) => !!s.etat.A.sansCases);
+  const suiviSeul = useSuiviSeul();
   const setLibre = useBrouillon((s) => s.setLibre);
   return (
     <>
       <div className="overflow-hidden rounded-[20px] bg-card">
-        <Action accent icone={<SparkleIcon className="size-5" weight="fill" />} label={tr("Créer une séance pour moi")} onClick={() => router.push("/entrainement/assistant", AVANT)} />
+        {!suiviSeul && <Action accent icone={<SparkleIcon className="size-5" weight="fill" />} label={tr("Créer une séance pour moi")} onClick={() => router.push("/entrainement/assistant", AVANT)} />}
         <Action icone={<PlusIcon className="size-5" />} label={tr("Composer exercice par exercice")} onClick={() => { setLibre({ nom: tr("Séance libre"), ex: [], idx: null, guide: !sansCases }); router.push("/entrainement/composer", AVANT); }} />
         <Action icone={<DownloadSimpleIcon className="size-5" />} label={tr("Importer une séance avec un code")} onClick={() => useMenu.setState({ importer: true })} />
       </div>

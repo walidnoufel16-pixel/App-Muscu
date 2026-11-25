@@ -8,7 +8,7 @@
    la fin : muscles prêts, et une première séance qui en tient compte (ou repos). Une seule fois ;
    « Plus tard » le referme (le profil reste à compléter dans Profil). */
 import { tp, tr } from "@/lib/i18n";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { create } from "zustand";
@@ -26,6 +26,7 @@ import { recoPour } from "@/lib/logic/agenda";
 import { EditeurProfil, profilMinimal, type Ligne } from "./profil-sportif";
 import { MonMateriel } from "./mon-materiel";
 import { modeLienNote, sourceNotee } from "@/lib/source";
+import { useGuideAutorise } from "@/lib/fonctionnalites";
 import type { Mode } from "@/lib/logic/mode";
 import { LogoTuile } from "./logo";
 import type { Connu } from "@/lib/logic/types";
@@ -50,6 +51,7 @@ export function AccueilPremier({ onFin }: { onFin: (etape: number) => void }) {
   /* « Tu as déjà ton programme ? » : tant que le mode n'est pas choisi */
   const [question, setQuestion] = useState(() => !useRepere.getState().etat.A.mode);
   const [suivi, setSuivi] = useState(false);
+  const autorise = useGuideAutorise();
   const fermer = () => {
     onFin(etape);
     /* pas terminé : il ne se rouvre plus tout seul, la carte d'Entraînement y ramène */
@@ -64,20 +66,29 @@ export function AccueilPremier({ onFin }: { onFin: (etape: number) => void }) {
     fermer();
     router.push("/entrainement/composer" as Route, AVANT);
   };
-  const choisir = (m: Mode) => {
+  /* verrou : compte sans accès au mode Guidé, il n'a que Suivi (et le gardera tant que l'admin n'ouvre pas le Guidé) */
+  const choisir = (m: Mode, verrou = false) => {
     noter("chemin_choisi", { c: m });
-    muter((E) => { E.A.mode = m; });
+    muter((E) => { E.A.mode = m; if (verrou) E.A.suiviSeul = true; });
     setQuestion(false);
     if (m === "guide") return;
     /* « Comment as-tu connu Oxa ? » reste posée, puis la première séance */
     if (demander) { setSuivi(true); setConnu(true); } else premiereSeance();
   };
+  /* nouveau compte sans le mode Guidé : pas de question, la première séance du mode Suivi */
+  const auto = useRef(false);
+  useEffect(() => {
+    if (!question || autorise || auto.current) return;
+    auto.current = true;
+    choisir("suivi", true);
+  });
   return (
     <Dialog open onOpenChange={(o) => !o && fermer()}>
       <DialogContent showCloseButton={false}
         className="flex h-dvh data-[state=open]:animate-none max-h-dvh w-screen max-w-none flex-col gap-0 rounded-none border-0 bg-background p-0 sm:max-w-none">
         <div className="mx-auto flex w-full max-w-[480px] flex-1 flex-col overflow-y-auto overscroll-contain px-5 pt-[max(env(safe-area-inset-top),20px)] pb-[max(env(safe-area-inset-bottom),16px)]">
-          {question && <ChoixMode choisir={choisir} />}
+          {/* la question seulement si le mode Guidé est ouvert pour ce compte ; sinon, Suivi directement */}
+          {question && autorise && <ChoixMode choisir={choisir} />}
           {!question && etape === 0 && !connu && <Bienvenue suivant={() => (demander ? setConnu(true) : setEtape(1))} plusTard={fermer} />}
           {!question && etape === 0 && connu && <Source suivant={() => { if (suivi) { premiereSeance(); return; } setConnu(false); setEtape(1); }} />}
           {etape >= 1 && etape <= QUESTIONS.length && <Question i={etape} suivant={() => setEtape(etape + 1)} retour={() => setEtape(etape - 1)} />}

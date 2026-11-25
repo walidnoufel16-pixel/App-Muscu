@@ -113,6 +113,8 @@ export type Reponses = {
   actuel?: number;
   /** Mode de l'app (lib/logic/mode.ts) : « suivi » (on note ses séances) ou « guide » ; absent = guidé. */
   mode?: "suivi" | "guide";
+  /** Compte arrivé après le verrou du mode Guidé : Suivi seulement, sauf si l'admin ouvre le Guidé (lib/fonctionnalites.ts). */
+  suiviSeul?: boolean;
   /** Carte « Passer en mode Suivi » de l'accueil refermée (comptes d'avant le réglage). */
   carteSuivi?: boolean;
   /** Langue choisie dans Profil (suit le compte sur un autre appareil). */

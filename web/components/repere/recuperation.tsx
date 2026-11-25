@@ -15,6 +15,7 @@ import { effortsEndurance, etatGroupes, GROUPES, MUSCLES_RECUP, nomGroupe, nomMu
 import { useRepere } from "@/lib/store";
 import { AVANT } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
+import { enSuivi } from "@/lib/logic/mode";
 
 export const ORANGE = "#ff9f0a";
 /* les muscles qu'on propose de travailler (mollets et abdos se récupèrent en un jour, on ne les cite pas en tête) */
@@ -39,8 +40,9 @@ function Corps({ cote, E, h }: { cote: "front" | "back"; E: Record<MuscleRecup, 
 const delai = (e: EtatGroupe) => (e.reste === 1 ? tr("demain") : tr("dans {n} jours", { n: e.reste }));
 
 /** La ligne sous la semaine, et sa feuille. Rien sans séance sur les 14 derniers jours.
-    `court` (accueil du mode Suivi) : une carte courte, muscles prêts et à venir en pastilles, « Voir › ». */
-export function LigneRecuperation({ auj, court }: { auj: string; court?: boolean }) {
+    Mode Suivi : la même, sans le bouton qui fait construire une séance par Oxa. */
+export function LigneRecuperation({ auj }: { auj: string }) {
+  const suivi = useRepere((s) => enSuivi(s.etat));
   const router = useRouter();
   const H = useRepere((s) => s.etat.HIST);
   const S = useRepere((s) => s.etat.SORTIES), C = useRepere((s) => s.etat.CARDIO), AV = useRepere((s) => s.etat.A.avant), ACT = useRepere((s) => s.etat.ACTIVITES);
@@ -56,30 +58,8 @@ export function LigneRecuperation({ auj, court }: { auj: string; court?: boolean
     tactile(10); setOuvert(false);
     router.push(`/entrainement/assistant?m=${prets.join(",")}` as Route, AVANT);
   };
-  /* carte courte : au plus trois muscles au repos (les plus proches d'être prêts), et quelques prêts */
-  const aVenir = [...repos].sort((a, b) => E[a].reste - E[b].reste).slice(0, 3);
-  const puces = [
-    ...(prets.length === EN_TETE.length ? [{ g: "tous", t: tr("Tous tes muscles sont prêts"), ok: true }]
-      : prets.slice(0, Math.max(2, 5 - aVenir.length)).map((g) => ({ g, t: `${nomGroupe(g)} · ${tr("prêt")}`, ok: true }))),
-    ...aVenir.map((g) => ({ g, t: `${nomMuscle(g)} · ${delai(E[g])}`, ok: false })),
-  ];
   return (
     <>
-      {court ? (
-        <button onClick={() => { tactile(5); setOuvert(true); }} className="rounded-[20px] bg-card px-3.5 py-3 text-left active:scale-[.99]">
-          <span className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">{tr("Récupération")}</span>
-            <span className="flex items-center gap-0.5 text-[13px] font-semibold text-plate-ink dark:text-plate">{tr("Voir")}<CaretRightIcon className="size-3.5" weight="bold" /></span>
-          </span>
-          <span className="mt-2 flex flex-wrap gap-1.5">
-            {puces.map((p) => (
-              <span key={p.g} className={p.ok ? "flex items-center gap-1.5 rounded-full bg-plate-soft px-2.5 py-1 text-[12.5px] font-semibold text-plate-ink dark:text-plate" : "flex items-center gap-1.5 rounded-full bg-[#fff1e6] px-2.5 py-1 text-[12.5px] font-semibold text-[#b45309] dark:bg-[#3a2410] dark:text-[#fb923c]"}>
-                <i aria-hidden className="size-2 rounded-full bg-current" />{p.t}
-              </span>
-            ))}
-          </span>
-        </button>
-      ) : (
       <button onClick={() => { tactile(5); setOuvert(true); }} className="flex items-center gap-3 rounded-[20px] bg-card py-2 pr-3 pl-2 text-left active:scale-[.99]">
         <span className="flex shrink-0 items-center"><Corps cote="front" E={E} h={60} /><Corps cote="back" E={E} h={60} /></span>
         <span className="min-w-0 flex-1 leading-tight">
@@ -95,7 +75,6 @@ export function LigneRecuperation({ auj, court }: { auj: string; court?: boolean
         </span>
         <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" />
       </button>
-      )}
 
       <Drawer open={ouvert} onOpenChange={setOuvert}>
         <DrawerContent className="max-h-[92dvh]">
@@ -118,7 +97,7 @@ export function LigneRecuperation({ auj, court }: { auj: string; court?: boolean
                 </li>
               ))}
             </ul>
-            {prets.length > 0 && (
+            {prets.length > 0 && !suivi && (
               <button onClick={lancer} className="mt-4 h-12 w-full rounded-full bg-plate text-[16px] font-semibold text-plate-foreground active:scale-[.98]">
                 {tr("Séance avec les muscles prêts")}
               </button>

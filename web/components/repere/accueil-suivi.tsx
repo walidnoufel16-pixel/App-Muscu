@@ -1,8 +1,8 @@
 "use client";
 
-/* Accueil du mode Suivi (docs/produit/mode-suivi, maquette 3-accueil-suivi.png) : la semaine, Mes
-   séances (« Commencer » sur la prochaine, « Dernière fois jeudi · squat 80 × 10 »), « + Nouvelle
-   séance », et la récupération en carte courte. Ni séance proposée, ni rubriques : Repas, Street,
+/* Accueil du mode Suivi (docs/produit/mode-suivi, maquette 3-accueil-suivi.png) : la semaine et la
+   récupération (comme en Guidé), Mes séances (« Commencer » sur la prochaine, « Dernière fois jeudi ·
+   squat 80 × 10 »), « + Nouvelle séance », puis le corps pour composer une séance par muscles. Ni séance proposée, ni rubriques : Repas, Street,
    Course et la création automatique restent dans le menu (☰). */
 import { loc, tr } from "@/lib/i18n";
 import { useMemo } from "react";
@@ -12,6 +12,7 @@ import { CaretRightIcon, PlusIcon } from "@phosphor-icons/react";
 import { Vignette } from "./exercice-carte";
 import { SemaineAnneaux } from "./accueil-entrainement";
 import { LigneRecuperation } from "./recuperation";
+import { CorpsDuJour } from "./corps-du-jour";
 import { lienRubrique } from "./rubriques";
 import type { Feuille } from "./agenda";
 import { EX } from "@/lib/data/exercices";
@@ -56,6 +57,8 @@ export function AccueilSuivi({ auj, setF }: { auj: string; setF: (f: Feuille) =>
   return (
     <>
       {!debutant && <SemaineAnneaux auj={auj} setF={setF} />}
+      {/* la récupération, comme en Guidé */}
+      {!debutant && <LigneRecuperation auj={auj} />}
 
       <section aria-label={tr("Mes séances")} className="mt-1 flex flex-col gap-2">
         <h2 className="eyebrow px-1">{tr("Mes séances")}</h2>
@@ -97,7 +100,8 @@ export function AccueilSuivi({ auj, setF }: { auj: string; setF: (f: Feuille) =>
         </div>
       </section>
 
-      <div className="mt-1 flex flex-col"><LigneRecuperation auj={auj} court /></div>
+      {/* le corps : toucher des muscles propose leurs exercices pour composer sa séance */}
+      <div className="mt-3"><CorpsDuJour titre={liste.length ? tr("Envie d'autre chose ? Choisis tes muscles du jour") : tr("Qu'est-ce que tu travailles aujourd'hui ?")} /></div>
     </>
   );
 }
