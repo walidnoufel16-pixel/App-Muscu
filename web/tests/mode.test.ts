@@ -1,6 +1,6 @@
 /* Modes Suivi et Guidé (lib/logic/mode.ts, docs/produit/mode-suivi/cahier-des-charges.md). */
 import { describe, expect, it } from "vitest";
-import { derniereFois, modeDe, modeDuLien, parMode, prochaineSeance, quandRelatif, seancesSuivies, seriesDepart } from "@/lib/logic/mode";
+import { derniereFois, modeDe, modeDuLien, parMode, prochaineSeance, quandRelatif, seancesSuivies } from "@/lib/logic/mode";
 import { ctxLibre, journal } from "@/lib/logic/core";
 import type { Etat, Journal } from "@/lib/logic/types";
 import type { LigneHist, PerfEx } from "@/lib/logic/historique";
@@ -53,31 +53,32 @@ describe("l'accueil du mode Suivi", () => {
   });
 });
 
-describe("la séance en mode Suivi", () => {
+describe("la séance en mode Suivi (décision du 26 novembre)", () => {
   const prev = (series: [number, number][]): Journal => ({ ex: "sq", done: true, feel: null, ts: 1, series: series.map(([v, reps]) => ({ v, reps, ok: true })) });
-  it("départ : les séries de la dernière fois, une par une ; la première fois, charge vide", () => {
-    expect(seriesDepart(prev([[80, 10], [80, 9], [75, 8]]), 4, 8)).toEqual([{ v: 80, reps: 10 }, { v: 80, reps: 9 }, { v: 75, reps: 8 }, { v: 75, reps: 8 }]);
-    expect(seriesDepart(null, 3, 8)).toEqual([{ v: 0, reps: 8 }, { v: 0, reps: 8 }, { v: 0, reps: 8 }]);
-  });
-  it("aucune charge proposée ni pourquoi : la charge de la dernière fois, sans « ↑ »", () => {
-    const H = [ligne("2026-11-20", "L|0", { sq: [0, 0, 80, 10, 4] })];
-    const LOG = { "L|0|a0": { ...prev([[80, 10], [80, 10], [80, 9], [77.5, 8]]), ts: Date.parse("2026-11-20T18:00") } };
+  const H = [ligne("2026-11-20", "L|0", { sq: [0, 0, 80, 10, 4] })];
+  const LOG = { "L|0|a0": { ...prev([[80, 10], [80, 10], [80, 10], [80, 10]]), ts: Date.parse("2026-11-20T18:00") } };
+  it("la charge suivante est proposée comme en Guidé, avec son pourquoi", () => {
     const suivi = ctxLibre(etat({ A: { mode: "suivi" }, HIST: H, LOG }), 0, 0)!;
-    expect(suivi.why).toBeUndefined();
-    expect(suivi.base).toEqual({ v: 80, reps: 10 });
-    expect(suivi.series?.map((s) => s.v)).toEqual([80, 80, 80, 77.5]);
-    /* en mode Guidé, la proposition d'Oxa reste */
     const guide = ctxLibre(etat({ HIST: H, LOG }), 0, 0)!;
-    expect(guide.why).toBeTruthy();
-    expect(guide.series).toBeUndefined();
+    expect(suivi.base).toEqual(guide.base);
+    expect(suivi.why).toBe(guide.why);
+    expect(suivi.why).toBeTruthy();
+    expect(suivi.base.v).toBeGreaterThanOrEqual(80);
   });
-  it("le journal reprend les séries de la dernière fois, série par série", () => {
-    const LOG = { "L|0|a0": { ...prev([[80, 10], [70, 12]]), ts: Date.parse("2026-11-20T18:00") } };
-    const E = etat({ A: { mode: "suivi" }, LOG });
+  it("première fois : rien à suivre, la case KG part vide (répétitions de la séance)", () => {
+    const suivi = ctxLibre(etat({ A: { mode: "suivi" } }), 0, 0)!;
+    expect(suivi).toMatchObject({ base: { v: 0, reps: 8 }, vide: true, prev: null });
+    expect(suivi.why).toBeUndefined();
+    /* en Guidé, Oxa estime une charge de départ */
+    const guide = ctxLibre(etat(), 0, 0)!;
+    expect(guide.vide).toBeUndefined();
+    expect(guide.base.v).toBeGreaterThan(0);
+  });
+  it("les cases KG / RÉPS partent de cette proposition", () => {
+    const E = etat({ A: { mode: "suivi" }, HIST: H, LOG });
     const c = ctxLibre(E, 0, 0)!;
     const L = journal(E.LOG, c);
-    expect(L.series.map((s) => [s.v, s.reps])).toEqual([[80, 10], [70, 12], [70, 12], [70, 12]]);
-    expect(L.why).toBeUndefined();
+    expect(L.series.every((s) => s.v === c.base.v && s.reps === c.base.reps)).toBe(true);
   });
   it("changer de mode ne perd rien : mêmes séances, même historique", () => {
     const E = etat({ HIST: [ligne("2026-11-20", "L|0", { sq: [0, 0, 80, 10, 4] })] });

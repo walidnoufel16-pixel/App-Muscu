@@ -1,6 +1,7 @@
 /* Deux modes, une seule app (docs/produit/mode-suivi/cahier-des-charges.md).
-   - Suivi : on note ses séances, comme dans un carnet. Oxa garde la charge d'avant, le max, la récup
-     et les progrès, mais ne propose aucune charge ni ne demande le ressenti.
+   - Suivi : on note ses séances, comme dans un carnet, sans questionnaire ni séance proposée. Oxa
+     propose la charge suivante comme en Guidé (décision du 26 novembre), sans demander le ressenti
+     ni conseiller d'effort (RPE).
    - Guidé : le parcours d'Oxa (profil sportif, séances préparées selon la récup et le matériel).
    Le réglage vit dans les réponses (A.mode) : il suit le compte, et changer de mode ne perd rien.
    Logique pure, sans interface. */
@@ -60,17 +61,6 @@ export function quandRelatif(d: string, auj: string): "auj" | "hier" | number | 
   if (d === decaler(auj, -1)) return "hier";
   if (d >= decaler(auj, -6) && d < auj) return dateDe(d).getDay(); // 0 dimanche … 6 samedi
   return null;
-}
-
-/** Séries de départ en mode Suivi : celles de la dernière fois, série par série (la dernière se
-    répète s'il y en a plus aujourd'hui) ; la première fois, charge vide et répétitions de la séance. */
-export function seriesDepart(prev: { series?: { v: number; reps: number; lest?: number }[]; v?: number; reps?: number } | null, n: number, reps: number): { v: number; reps: number }[] {
-  const P = (prev?.series || []).filter((s) => s && (+s.v > 0 || +s.reps > 0));
-  if (!P.length && prev && (prev.v || prev.reps)) P.push({ v: +(prev.v || 0), reps: +(prev.reps || reps) });
-  return Array.from({ length: Math.max(1, n) }, (_, k) => {
-    const s = P[k] ?? P[P.length - 1];
-    return s ? { v: +s.v || 0, reps: +s.reps || reps } : { v: 0, reps };
-  });
 }
 
 /** Admin : comptes par mode, et part de ceux qui ont fait au moins une séance. */

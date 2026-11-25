@@ -336,7 +336,7 @@ function SeanceLibre({ i }: { i: number }) {
     /* mode Suivi : ni effort visé ni « C'était comment ? » */
     const x = EX[e.id], L = etat.LOG[c.k]?.ex === e.id ? journalActif(etat.LOG[c.k]) : undefined, r = suivi || noRPE(e.id) ? 0 : 8;
     const fini = () => enchainer({ k: c.k, cles, titre: S.nom, setOuvert });
-    const prescr = prescription(x, e.s, L ? e.r : (c.base?.reps || e.r), L || !+c.base?.v ? undefined : c.base?.v);
+    const prescr = prescription(x, e.s, L ? e.r : (c.base?.reps || e.r), L || c.vide ? undefined : c.base?.v);
     return (
       <ExerciceCarte
         key={c.k} ancre={c.k}
