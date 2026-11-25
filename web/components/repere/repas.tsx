@@ -26,7 +26,8 @@ const puce = (on: boolean) => cn("h-9 rounded-full border px-3.5 text-[13.5px] f
 const EN = () => langue() === "en";
 
 /* ---------------- préférences ---------------- */
-export function FormPrefs({ p, onChange }: { p: PrefsRepas; onChange: (p: PrefsRepas) => void }) {
+/* `recettes` (mode Suivi : Repas réduit aux recettes) : sans le budget courses, qui sert à la semaine */
+export function FormPrefs({ p, onChange, recettes }: { p: PrefsRepas; onChange: (p: PrefsRepas) => void; recettes?: boolean }) {
   const bascule = (l: string[], x: string) => (l.includes(x) ? l.filter((y) => y !== x) : [...l, x]);
   const liste = (l: string[], vide: string) => (l.length ? l.join(", ") : vide);
   const nomAllergie = (k: string) => ALLERGIES.find((x) => x[0] === k)?.[1] ?? k;
@@ -55,12 +56,14 @@ export function FormPrefs({ p, onChange }: { p: PrefsRepas; onChange: (p: PrefsR
       <Groupe titre={tr("6 · Ton matériel")} resume={liste(p.mat.map(nomMat), tr("Aucun"))}>
         {MATERIELS.map(([k, n]) => <button key={k} aria-pressed={p.mat.includes(k)} onClick={() => onChange({ ...p, mat: bascule(p.mat, k) })} className={puce(p.mat.includes(k))}>{n}</button>)}
       </Groupe>
+{!recettes && (
       <Groupe titre={tr("7 · Ton budget courses")} resume={p.budget ? tr("{e} par semaine", { e: euros(p.budget) }) : tr("Pas de budget")}>
         <button aria-pressed={!p.budget} onClick={() => onChange({ ...p, budget: undefined })} className={puce(!p.budget)}>{tr("Pas de budget")}</button>
         {[30, 50, 70, 100].map((x) => <button key={x} aria-pressed={p.budget === x} onClick={() => onChange({ ...p, budget: x })} className={puce(p.budget === x)}>{euros(x)}</button>)}
         <ChampBudget v={p.budget} onChange={(budget) => onChange({ ...p, budget })} />
         <p className="mt-1 w-full text-[12.5px] leading-relaxed text-muted-foreground">{tr("Pour la liste de courses de la semaine. L'app estime ce qu'elle coûte et te propose des recettes moins chères si tu dépasses.")}</p>
       </Groupe>
+      )}
       <label className="mt-2 flex items-center justify-between gap-3 rounded-2xl bg-card px-4 py-3 text-[14.5px]">
         <span>
           <span className="block font-medium">{tr("Afficher les calories")}</span>
@@ -185,16 +188,18 @@ export function resumePrefs(p: PrefsRepas) {
 }
 
 /** Première ouverture : les questions, puis la partie Repas. */
-export function AccueilRepas() {
+export function AccueilRepas({ recettes }: { recettes?: boolean } = {}) {
   const A = useRepere((s) => s.etat.A), muter = useRepere((s) => s.muter);
   const [p, setP] = useState(() => prefsDe(A));
   return (
     <div className="flex flex-col gap-5 px-4">
       <div className="rounded-[22px] bg-plate-soft p-4">
         <p className="text-[16px] font-semibold text-plate-ink">{tr("Des repas pensés pour ton entraînement")}</p>
-        <p className="mt-1 text-[13.5px] leading-relaxed text-muted-foreground">{tr("Quelques réponses, et je te propose des recettes à ta portion, avec ou sans ce que tu as déjà, et la liste de courses qui va avec, au prix estimé.")}</p>
+        <p className="mt-1 text-[13.5px] leading-relaxed text-muted-foreground">{recettes
+          ? tr("Quelques réponses, et je te propose des recettes à ton goût et à ta portion, avec ou sans ce que tu as déjà.")
+          : tr("Quelques réponses, et je te propose des recettes à ta portion, avec ou sans ce que tu as déjà, et la liste de courses qui va avec, au prix estimé.")}</p>
       </div>
-      <FormPrefs p={p} onChange={setP} />
+      <FormPrefs p={p} onChange={setP} recettes={recettes} />
       <Button variant="plate" size="xl" className="w-full" onClick={() => { tactile(10); muter((E) => { E.A.repas = { ...p, fait: true }; }); }}>{tr("C'est parti")}</Button>
       <Prudence />
     </div>

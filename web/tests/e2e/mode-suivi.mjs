@@ -101,7 +101,8 @@ const avecSeances = (A) => ({
   await pg.goto(U + "/entrainement/");
   await pg.getByText("Mes séances", { exact: true }).first().waitFor({ timeout: 8000 });
   const onglets = await pg.getByRole("navigation", { name: "Navigation principale" }).innerText();
-  ok(/Séances/.test(onglets) && /Progrès/.test(onglets) && /Profil/.test(onglets) && !/Repas/.test(onglets), "onglets : Séances, Progrès, Profil");
+  ok(/Séances/.test(onglets) && /Repas/.test(onglets) && /Progrès/.test(onglets) && !/Profil/.test(onglets), "onglets : Séances, Repas, Progrès (Profil par l'avatar)");
+  ok(await pg.getByRole("button", { name: "Profil", exact: true }).count() >= 1, "Profil accessible par l'avatar");
   const carte = pg.locator("[data-seance-prochaine]");
   ok(/Jambes/.test(await carte.innerText()) && /Dernière fois .* · squat barre 80 × 10/.test(await carte.innerText()), "prochaine : Jambes, « Dernière fois … · squat barre 80 × 10 »");
   ok(await pg.getByText("Récupération").count() >= 1, "récupération, comme en Guidé");
@@ -161,6 +162,22 @@ const avecSeances = (A) => ({
   await pg.waitForTimeout(300);
   ok(await pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")).LOG["L|0|0"]?.series?.[0]?.v) === 60, "la charge notée est gardée");
   await cap(pg, "4b-premiere-fois");
+  await ctx.close();
+}
+
+/* 3 quater. Repas en mode Suivi : les recettes seulement, selon les préférences */
+{
+  const [ctx, pg] = await contexte(avecSeances({ mode: "suivi" }));
+  await pg.goto(U + "/repas/");
+  await pg.getByText("Des repas pensés pour ton entraînement").waitFor({ timeout: 8000 });
+  ok(await pg.getByText("7 · Ton budget courses").count() === 0, "préférences : sans budget courses");
+  await pg.getByRole("button", { name: "C'est parti" }).click();
+  await pg.getByText(/recettes? pour toi/).waitFor();
+  ok(await pg.getByRole("tab", { name: "Aujourd'hui" }).count() === 0 && await pg.getByRole("tab", { name: "Ma semaine" }).count() === 0, "ni Aujourd'hui ni Ma semaine : les recettes seulement");
+  await pg.goto(U + "/repas/?v=semaine");
+  await pg.getByText(/recettes? pour toi/).waitFor();
+  ok(await pg.getByText("Ma semaine", { exact: true }).count() === 0, "un lien vers Ma semaine mène aux recettes");
+  await cap(pg, "7-repas-recettes");
   await ctx.close();
 }
 
