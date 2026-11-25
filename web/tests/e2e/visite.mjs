@@ -23,6 +23,12 @@ async function contexte(etat, extra = {}) {
   return [ctx, pg];
 }
 const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(700); await pg.screenshot({ path: `${CAP}/${nom}.png` }); } };
+/* « Tu as déjà ton programme ? » (docs/produit/mode-suivi) : le mode Guidé mène à l'accueil d'avant */
+async function guide(dlg) {
+  await dlg.getByText("Tu as déjà ton programme ?").waitFor({ timeout: 8000 });
+  await dlg.getByRole("radio", { name: /Non, guide-moi/ }).click();
+  await dlg.getByRole("button", { name: "Continuer" }).click();
+}
 async function bulles(pg, prefixe) {
   const vus = [];
   for (let i = 0; i < 12; i++) {
@@ -41,6 +47,7 @@ async function bulles(pg, prefixe) {
   const [ctx, pg] = await contexte(neuf);
   await pg.goto(U + "/entrainement/");
   const dlg = pg.getByRole("dialog");
+  await guide(dlg);
   await dlg.getByText("Commencer · 1 min").waitFor({ timeout: 8000 });
   ok(await dlg.getByText("Bienvenue sur Oxa, Walid").count() === 1 && await dlg.getByText("Tes dernières 48 h").count() === 1, "accueil : bienvenue, 3 étapes");
   ok(await pg.getByText("Voir ma première séance").count() === 0 && await pg.getByText("Repas", { exact: true }).count() === 0, "l'app n'est pas visible derrière le questionnaire");
@@ -103,6 +110,7 @@ async function bulles(pg, prefixe) {
   const [ctx, pg] = await contexte(neuf, { "repere.visite": "1" });
   await pg.goto(U + "/entrainement/");
   const dlg = pg.getByRole("dialog");
+  await guide(dlg);
   await dlg.getByText("Commencer · 1 min").waitFor({ timeout: 8000 });
   ok(true, "nouveau profil, visite déjà vue sur l'appareil : l'accueil s'ouvre");
   await dlg.getByRole("button", { name: "Plus tard" }).click();

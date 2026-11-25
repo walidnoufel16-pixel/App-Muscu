@@ -28,10 +28,11 @@ const CONSEIL = [
 ];
 
 /* Champ numérique : texte local pendant la saisie, validé à la sortie. */
-function Champ({ valeur, onValide, label, mode, depuis }: { valeur: string; onValide: (v: string) => void; label: string; mode: "decimal" | "numeric"; depuis: number }) {
+function Champ({ valeur, onValide, label, mode, depuis, vide }: { valeur: string; onValide: (v: string) => void; label: string; mode: "decimal" | "numeric"; depuis: number; vide?: boolean }) {
   /* Monté avec key={valeur} : une valeur venue d'ailleurs (report sur les séries suivantes) réinitialise le champ.
      Ce remontage fait « rouler » le chiffre, sauf à l'ouverture de la carte. */
-  const [t, setT] = useState(valeur);
+  /* mode Suivi, première fois : la charge est à noter, le champ part vide */
+  const [t, setT] = useState(vide ? "" : valeur);
   const rouler = useCallback((el: HTMLInputElement | null) => {
     if (el && performance.now() - depuis > 500 && !mouvementReduit())
       el.animate([{ transform: "translateY(-40%)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 280, easing: "cubic-bezier(.2,.9,.25,1.15)" });
@@ -45,7 +46,8 @@ function Champ({ valeur, onValide, label, mode, depuis }: { valeur: string; onVa
       aria-label={label}
       onFocus={(e) => e.currentTarget.select()}
       onChange={(e) => setT(e.target.value)}
-      onBlur={() => { if (t !== valeur) onValide(t); }}
+      placeholder={vide ? "–" : undefined}
+      onBlur={() => { if (t !== (vide ? "" : valeur)) onValide(t); }}
       onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
       className="num h-11 w-full min-w-0 rounded-[10px] border border-champ-bord bg-champ text-center text-[22px] font-bold outline-none transition-colors focus:border-plate focus:bg-background focus:ring-2 focus:ring-plate"
     />
@@ -72,7 +74,7 @@ function seriesAffichees(c: Ctx, L: Journal | undefined): Serie[] {
   const Pp = c.prev?.series || [];
   return L
     ? seriesDe(structuredClone(L), c.n)
-    : Array.from({ length: c.n }, (_, n) => ({ ...c.base, lest: avecLest ? +((Pp[n] || Pp[Pp.length - 1] || ({} as Serie)).lest ?? 0) || 0 : undefined }));
+    : Array.from({ length: c.n }, (_, n) => ({ ...(c.series?.[n] ?? c.base), lest: avecLest ? +((Pp[n] || Pp[Pp.length - 1] || ({} as Serie)).lest ?? 0) || 0 : undefined }));
 }
 
 /* Valider (ou décocher) la série n : journal, repos, record. Partagé par le tableau et la barre du bas. */
@@ -114,7 +116,7 @@ export function BarreSerie({ c, onFini, etiquette, rpe = 0, ...o }: { c: Ctx | n
   const S = seriesAffichees(c, L), n = S.findIndex((t) => !(L && okDe(L, t)));
   if (n < 0) return null;
   const unite = x.ch === "kg" ? " kg" : x.ch === "lest" ? tr(" kg de lest") : "";
-  const quoi = (["kg", "lest"].includes(x.ch) ? `${nb(S[n].v)}${unite} × ${S[n].reps}` : fmtSerie(x, S[n]) + (x.ch === "aucune" ? tr(" réps") : "")) + (x.cote ? tr(" / côté") : "");
+  const quoi = (["kg", "lest"].includes(x.ch) ? `${c.series && !+S[n].v ? "–" : nb(S[n].v)}${unite} × ${S[n].reps}` : fmtSerie(x, S[n]) + (x.ch === "aucune" ? tr(" réps") : "")) + (x.cote ? tr(" / côté") : "");
   return (
     <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),12px)] z-30 mx-auto max-w-[480px] px-3 animate-in slide-in-from-bottom-4 fade-in-0 duration-300">
       {/* noire en clair ; en sombre, une carte surélevée plutôt qu'un bloc blanc qui éblouit */}
@@ -206,7 +208,7 @@ export function TableauSeries({ c, rpe, onReplier, onFini, ...o }: { c: Ctx; rpe
               ) : (
                 <span className="num truncate text-[16px] font-semibold text-muted-foreground">{fmtSerie(x, P2[n] || P2[P2.length - 1])}</span>
               )}
-              <Champ depuis={depuis} key={"v" + s.v} valeur={nb(s.v)} mode="decimal" label={tr("{tete} série {a}", { tete, a: n + 1 })} onValide={(v) => muter((E) => act.serVal(E, c, n, "v", v))} />
+              <Champ depuis={depuis} key={"v" + s.v} valeur={nb(s.v)} vide={!!c.series && !c.prev && !+s.v && !ok} mode="decimal" label={tr("{tete} série {a}", { tete, a: n + 1 })} onValide={(v) => muter((E) => act.serVal(E, c, n, "v", v))} />
               {dbl && <Champ depuis={depuis} key={"r" + s.reps} valeur={String(s.reps)} mode="numeric" label={tr("répétitions série {a}", { a: n + 1 })} onValide={(v) => muter((E) => act.serVal(E, c, n, "reps", v))} />}
               {!dbl && avecLest && <Champ depuis={depuis} key={"l" + s.lest} valeur={nb(+(s.lest ?? 0) || 0)} mode="decimal" label={tr("lest série {a}", { a: n + 1 })} onValide={(v) => muter((E) => act.serVal(E, c, n, "lest", v))} />}
               {temps && (ok ? <span /> : (

@@ -11,7 +11,8 @@ import type { Route } from "next";
 import { CaretRightIcon } from "@phosphor-icons/react";
 import { analysesErreurs, entonnoirAdmin, mesureAdmin, vueAdmin, type EntonnoirAdmin, type VueAdmin } from "@/lib/admin";
 import { aRegarder } from "@/lib/logic/erreurs";
-import { court, etapesEntonnoir, inscritsSurPeriode, jourIso, nomSource, pl, sourcesLisibles, surPeriode, TOUT, vueTesteurs, type CompteAdmin, type StatsAdmin } from "@/lib/logic/admin";
+import { parMode } from "@/lib/logic/mode";
+import { aFaitUneSeance, court, etapesEntonnoir, inscritsSurPeriode, jourIso, nomSource, pl, sourcesLisibles, surPeriode, TOUT, vueTesteurs, type CompteAdmin, type StatsAdmin } from "@/lib/logic/admin";
 import { jourDe } from "@/lib/logic/historique";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
@@ -78,6 +79,8 @@ export function VueEnsemble({ L, S, exclus, avecMoi, plus }: { L: CompteAdmin[];
         <p className="mt-2 text-[12.5px] text-muted-foreground">{tr("Ajoute ?src=tiktok (ou insta, yt…) au lien que tu publies.")}</p>
       </section>
 
+      <ParMode L={inscritsSurPeriode(L, avecMoi ? [] : exclus, jours, auj)} tout={tout} />
+
       <Declares L={inscritsSurPeriode(L, avecMoi ? [] : exclus, jours, auj)} tout={tout} />
 
       <section className="rounded-[22px] bg-card p-4">
@@ -108,6 +111,21 @@ export function VueEnsemble({ L, S, exclus, avecMoi, plus }: { L: CompteAdmin[];
   );
 }
 
+/* Mode Suivi ou Guidé (docs/produit/mode-suivi) : comptes de la période, et part de ceux qui ont
+   fait au moins une séance. Les comptes d'avant le réglage comptent en Guidé. */
+function ParMode({ L, tout }: { L: CompteAdmin[]; tout: boolean }) {
+  const M = useMemo(() => parMode(L, aFaitUneSeance), [L]);
+  return (
+    <section className="rounded-[22px] bg-card p-4">
+      <h2 className="eyebrow mb-1">{tout ? tr("Par mode") : tr("Par mode · comptes créés sur la période")}</h2>
+      {M.map((x) => (
+        <Ligne key={x.m} n={x.m === "suivi" ? tr("Mode Suivi") : tr("Mode Guidé")}
+          v={x.comptes ? tr("{n} comptes · {p} % avec une séance", { n: x.comptes, p: x.part }) : tr("aucun compte")} />
+      ))}
+    </section>
+  );
+}
+
 function Cle({ v, n, d, onClick, alerte }: { v?: number; n: string; d: string; onClick?: () => void; alerte?: boolean }) {
   const Corps = onClick ? "button" : "div";
   return (
@@ -123,7 +141,7 @@ function Cle({ v, n, d, onClick, alerte }: { v?: number; n: string; d: string; o
 /* L'entonnoir des nouveaux visiteurs (appareils apparus sur la période), filtrable par source.
    Une étape n'exige pas la précédente : on peut lancer une séance sans remplir le profil. */
 const NOMS_ETAPES = { ouverture: () => tr("ouvrent Oxa pour la première fois"), visite: () => tr("finissent la visite guidée"), chemin: () => tr("choisissent un chemin"), prete: () => tr("voient leur séance prête"), agit: () => tr("programment une séance ou font une série"), seance: () => tr("terminent une séance"), deux: () => tr("terminent une 2e séance") };
-const NOMS_CHEMINS: Record<string, () => string> = { oxa: () => tr("Oxa prépare"), compose: () => tr("Je compose"), decouvrir: () => tr("Découvrir") };
+const NOMS_CHEMINS: Record<string, () => string> = { oxa: () => tr("Oxa prépare"), compose: () => tr("Je compose"), decouvrir: () => tr("Découvrir"), suivi: () => tr("Mode Suivi"), guide: () => tr("Mode Guidé") };
 function Entonnoir({ jours, avecMoi }: { jours: number; avecMoi: boolean }) {
   const [src, setSrc] = useState<string | null>(null);
   const [chemin, setChemin] = useState<string | null>(null);

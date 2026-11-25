@@ -12,6 +12,7 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/compone
 import { EnTete } from "@/components/repere/en-tete";
 import { Retour } from "@/components/repere/retour";
 import { ExerciceCarte, Vignette } from "@/components/repere/exercice-carte";
+import { enSuivi } from "@/lib/logic/mode";
 import { FormeDuJour } from "@/components/repere/forme";
 import { FicheExercice, type FicheOuverte } from "@/components/repere/fiche-exercice";
 import { Collation, Echauffement, Remplacer } from "@/components/repere/seance-vues";
@@ -267,6 +268,7 @@ function Repere({ titre, texte }: { titre: string; texte: string }) {
 function SeanceLibre({ i }: { i: number }) {
   const router = useRouter();
   const { etat, muter } = useRepere();
+  const suivi = enSuivi(etat);
   const setLibre = useBrouillon((s) => s.setLibre);
   const premiere = usePremiereVisite();
   const [sect, setSect] = useState<Partie>(1);
@@ -331,9 +333,10 @@ function SeanceLibre({ i }: { i: number }) {
     const c = ctxLibre(etat, i, j);
     if (!c) return null;
     /* un journal laissé là par un autre exercice n'est pas le sien */
-    const x = EX[e.id], L = etat.LOG[c.k]?.ex === e.id ? journalActif(etat.LOG[c.k]) : undefined, r = noRPE(e.id) ? 0 : 8;
+    /* mode Suivi : ni effort visé ni « C'était comment ? » */
+    const x = EX[e.id], L = etat.LOG[c.k]?.ex === e.id ? journalActif(etat.LOG[c.k]) : undefined, r = suivi || noRPE(e.id) ? 0 : 8;
     const fini = () => enchainer({ k: c.k, cles, titre: S.nom, setOuvert });
-    const prescr = prescription(x, e.s, L ? e.r : (c.base?.reps || e.r), L ? undefined : c.base?.v);
+    const prescr = prescription(x, e.s, L ? e.r : (c.base?.reps || e.r), L || !+c.base?.v ? undefined : c.base?.v);
     return (
       <ExerciceCarte
         key={c.k} ancre={c.k}
@@ -380,7 +383,7 @@ function SeanceLibre({ i }: { i: number }) {
       </PartieEnFeuille>
       {(
         <div className={cn("flex flex-col gap-2.5 px-4", premiere && "entree")}>
-          <FormeDuJour cles={cles} />
+          {!suivi && <FormeDuJour cles={cles} />}
           {parts.map((sec) => (
             /* titre de partie (soin & mobilité, musculation, cardio) quand la séance en a plusieurs ;
                les deux exercices d'un superset dans un même cadre */
@@ -392,9 +395,9 @@ function SeanceLibre({ i }: { i: number }) {
           <button onClick={() => { tactile(6); setAjout(true); }} className="flex items-center justify-center gap-2 rounded-[18px] border border-dashed border-plate/60 py-3 text-[14.5px] font-semibold text-plate-ink active:scale-[.99]">
             <PlusIcon className="size-4" weight="bold" />{tr("Ajouter un exercice")}
           </button>
-          <p className="px-2 pt-1 text-center text-[12.5px] text-muted-foreground">
+          {!suivi && <p className="px-2 pt-1 text-center text-[12.5px] text-muted-foreground">
             {tr("Effort visé")}{" "}<b className="font-semibold text-foreground">{tr("RPE 8")}</b> : {rirTxt(8)}{" "}{tr("à la fin de chaque série.")}
-          </p>
+          </p>}
           {!entamee && <div className="h-24" aria-hidden />}
           {entamee && (
             <section className="mt-2 mb-28 rounded-[22px] bg-card p-4 text-center" aria-label={tr("Ajouter à mon suivi")}>
@@ -413,7 +416,7 @@ function SeanceLibre({ i }: { i: number }) {
       {ouvert && (() => {
         const m = S.ex.findIndex((_, j) => ctxLibre(etat, i, j)?.k === ouvert), c = m >= 0 ? ctxLibre(etat, i, m) : null;
         const ss = m >= 0 && partenaire(S.ex, m) >= 0 ? tr("Superset · {l}", { l: S.ex[m].sup ? "A" : "B" }) : undefined;
-        return <BarreSerie c={c ?? null} rpe={c && !noRPE(c.id) ? 8 : 0} garder={() => setOuvert(ouvert)} etiquette={ss} {...(m >= 0 ? enchainement(m) : {})} onFini={() => enchainer({ k: ouvert, cles, titre: S.nom, setOuvert })} />;
+        return <BarreSerie c={c ?? null} rpe={c && !suivi && !noRPE(c.id) ? 8 : 0} garder={() => setOuvert(ouvert)} etiquette={ss} {...(m >= 0 ? enchainement(m) : {})} onFini={() => enchainer({ k: ouvert, cles, titre: S.nom, setOuvert })} />;
       })()}
       <FicheExercice fiche={fiche} onClose={() => setFiche(null)} />
       {(() => {

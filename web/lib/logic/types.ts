@@ -111,6 +111,10 @@ export type Reponses = {
   recoMasquee?: string;
   recoOff?: boolean;
   actuel?: number;
+  /** Mode de l'app (lib/logic/mode.ts) : « suivi » (on note ses séances) ou « guide » ; absent = guidé. */
+  mode?: "suivi" | "guide";
+  /** Carte « Passer en mode Suivi » de l'accueil refermée (comptes d'avant le réglage). */
+  carteSuivi?: boolean;
   /** Langue choisie dans Profil (suit le compte sur un autre appareil). */
   langue?: "fr" | "en";
   profil?: Record<string, number>;

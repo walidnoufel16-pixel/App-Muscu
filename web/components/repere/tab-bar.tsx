@@ -5,22 +5,31 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import type { Route } from "next";
-import { BarbellIcon, ChartLineUpIcon, ForkKnifeIcon } from "@phosphor-icons/react";
+import { BarbellIcon, ChartLineUpIcon, ForkKnifeIcon, UserIcon } from "@phosphor-icons/react";
+import { useRepere } from "@/lib/store";
+import { modeDe } from "@/lib/logic/mode";
 import { noterPosition, oublierPosition, parOnglet, positionDe } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
 /* Trois onglets, un rôle chacun : s'entraîner (séances et rubriques d'exercices), manger, mesurer. */
-const ONGLETS = [
+const GUIDE: { href: Route; nom: string; Icone: typeof BarbellIcon }[] = [
   { href: "/entrainement", nom: tr("Entraînement"), Icone: BarbellIcon },
   { href: "/repas", nom: tr("Repas"), Icone: ForkKnifeIcon },
   { href: "/progres", nom: tr("Progrès"), Icone: ChartLineUpIcon },
-] as const;
+];
+/* mode Suivi : Séances, Progrès, Profil ; Repas passe dans le menu (☰) */
+const SUIVI: { href: Route; nom: string; Icone: typeof BarbellIcon }[] = [
+  { href: "/entrainement", nom: tr("Séances"), Icone: BarbellIcon },
+  { href: "/progres", nom: tr("Progrès"), Icone: ChartLineUpIcon },
+  { href: "/profil", nom: tr("Profil"), Icone: UserIcon },
+];
 
 /* Barre d'onglets flottante, translucide, au-dessus de la zone sûre.
    Comme sur iOS : le contenu change d'un coup, c'est la pastille de sélection qui glisse. */
 export function TabBar() {
   const chemin = usePathname().replace(/(.)\/$/, "$1");
   const router = useRouter();
+  const ONGLETS = useRepere((s) => modeDe(s.etat.A)) === "suivi" ? SUIVI : GUIDE;
   const est = (href: string) => chemin === href || chemin.startsWith(href + "/");
   const courant = ONGLETS.findIndex((o) => est(o.href));
 

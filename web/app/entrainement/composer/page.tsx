@@ -44,6 +44,7 @@ import { BandeauDemo, finDemoEnQuittant, VisiteCreer } from "@/components/repere
 import { decaler } from "@/lib/logic/historique";
 import { toast } from "sonner";
 import { AvisSeance } from "@/components/repere/avis-seance";
+import { enSuivi } from "@/lib/logic/mode";
 import { estPoly } from "@/lib/logic/avis-seance";
 import { lienRubrique } from "@/components/repere/rubriques";
 import { tactile } from "@/lib/repos";
@@ -57,6 +58,8 @@ export default function PageComposer() {
   const router = useRouter();
   const { etat, muter } = useRepere();
   const { libre, majLibre, sel: selB, setSel, setLibre } = useBrouillon();
+  /* mode Suivi : aucune charge proposée, ni avis sur la séance ; les charges se notent pendant la séance */
+  const suivi = enSuivi(etat);
   /* la feuille d'ajout part sans matériel coché ; remplacements et « Autre » suivent le matériel coché, sinon celui du Profil */
   const selFeuille = avecSalle(selB ?? [], etat.A);
   const sel = selFeuille.some((t) => !t.startsWith("x:")) ? selFeuille : avecSalle(selDeclare(etat.A), etat.A);
@@ -72,7 +75,8 @@ export default function PageComposer() {
   const [blocOuvert, setBlocOuvert] = useState<string | null>(null); // id du bloc cardio dont les réglages sont ouverts
   const [caseOuverte, setCaseOuverte] = useState<number | null>(null); // séance guidée : la case en cours de choix
   const [choixM, setChoixM] = useState(false); // séance guidée : muscles en cours de modification
-  const [panneau, setPanneau] = useState<null | "jour" | "obj" | "mat" | "nom">(null); // la pastille dépliée
+  /* première séance en mode Suivi : le nom d'abord, comme en haut d'une page de carnet */
+  const [panneau, setPanneau] = useState<null | "jour" | "obj" | "mat" | "nom">(() => (useBrouillon.getState().libre?.premiere ? "nom" : null)); // la pastille dépliée
   /* « Plus tard » : le jour et le rappel choisis pour une séance créée pour aujourd'hui */
   const [plusTard, setPlusTard] = useState<{ d: string; rappel: Rappel | null } | null>(null);
 
@@ -263,7 +267,10 @@ export default function PageComposer() {
       return;
     }
     /* modification : retour à la séance ; création : retour à Entraînement, où elle apparaît */
-    if (L.idx != null) retour(); else versEntrainement();
+    if (L.idx != null) retour();
+    /* mode Suivi : la séance rejoint « Mes séances », sur l'accueil */
+    else if (suivi) revenirA("/entrainement", () => router.replace("/entrainement" as Route, ARRIERE));
+    else versEntrainement();
   };
   const supprimer = async () => {
     if (L.idx == null) { part.current = true; setLibre(null); retour(); return; }
@@ -284,7 +291,7 @@ export default function PageComposer() {
                     key={x.e.id}
                     e={x.e} i={x.i} n={L.ex.length}
                     /* la charge proposée et son pourquoi, comme dans la séance (clé du journal si la séance existe déjà) */
-                    prop={propositionLibre(etat, x.e, { obj: L.obj ?? L.gen?.obj, k: L.idx != null && x.e.o != null ? kLibre(L.idx, x.e.o) : "L|nouvelle|" + x.i })}
+                    prop={suivi ? undefined : propositionLibre(etat, x.e, { obj: L.obj ?? L.gen?.obj, k: L.idx != null && x.e.o != null ? kLibre(L.idx, x.e.o) : "L|nouvelle|" + x.i })}
                     ouvert={ouv === x.e.id}
                     glisse={glisse === x.e.id}
                     onToggle={() => setOuv(ouv === x.e.id ? null : x.e.id)}
@@ -307,8 +314,8 @@ export default function PageComposer() {
       {L.demo && <BandeauDemo onQuitter={quitterDemo} />}
       <VisiteCreer pret={L.ex.length > 0} force={!!L.demo} />
       <EnTete
-        surtitre={L.idx != null ? tr("Modifier la séance") : tr("Nouvelle séance")}
-        titre={L.nom || tr("Séance libre")}
+        surtitre={L.idx != null ? tr("Modifier la séance") : L.premiere ? tr("Ta première séance") : tr("Nouvelle séance")}
+        titre={L.premiere ? tr("Comme dans ton carnet.") : L.nom || tr("Séance libre")}
         gauche={<Retour repli="/entrainement" />}
         actions={<Button variant="ghost" size="icon" aria-label={tr("Supprimer")} onClick={supprimer}><TrashIcon className="size-5 text-destructive" /></Button>}
       />
@@ -316,7 +323,8 @@ export default function PageComposer() {
           suivent), l'objectif, le matériel, le nom ; chacune déplie son réglage dessous */}
       <div className="no-scrollbar -mt-1 flex gap-2 overflow-x-auto px-4 pb-1">
         {L.pour && pastille("jour", <><CalendarDotsIcon className="size-4" weight="bold" />{maj(jourCourt(L.pour))}</>, true)}
-        {pastille("obj", L.obj != null ? OBJS[L.obj] : tr("Objectif"))}
+        {/* l'objectif règle les charges proposées : rien à régler en mode Suivi */}
+        {!suivi && pastille("obj", L.obj != null ? OBJS[L.obj] : tr("Objectif"))}
         {!(choixM || (L.guide && !gab && !L.ex.length && !L.blocs?.length)) && pastille("mat", tr("Matériel · {n}", { n: nbMat }))}
         {pastille("nom", <><PencilSimpleIcon className="size-4" />{tr("Nom")}</>)}
       </div>
@@ -405,7 +413,7 @@ export default function PageComposer() {
             )}
           </div>
           {/* l'avis d'Oxa : ce qu'un coach changerait (volume, équilibre, ordre, réglages) */}
-          <div className="mt-3 empty:hidden"><AvisSeance L={L} sel={sel} /></div>
+          {!suivi && <div className="mt-3 empty:hidden"><AvisSeance L={L} sel={sel} /></div>}
           <div className="mt-2 grid grid-cols-2 gap-2">
             <button data-visite="creer-ajouter" onClick={() => { tactile(6); setAjout(true); }} className="flex items-center justify-center gap-2 rounded-[18px] bg-plate py-3 text-[14.5px] font-semibold text-plate-foreground active:scale-[.98]">
               <PlusIcon className="size-4" weight="bold" />{tr("Exercice")}
@@ -414,6 +422,7 @@ export default function PageComposer() {
               <PlusIcon className="size-4" weight="bold" />{tr("Bloc cardio")}
             </button>
           </div>
+          {suivi && <p className="mt-3 px-1 text-[13px] leading-snug text-muted-foreground">{tr("Séries, répétitions et repos se modifient en un geste. Tes charges, tu les notes pendant la séance.")}</p>}
         </section>
       </div>
 
@@ -454,7 +463,7 @@ export default function PageComposer() {
         ) : L.idx == null && !L.agenda ? (
           <div className="flex gap-2">
             <Button variant="outline" size="xl" className="flex-1 bg-background" disabled={!L.ex.length} onClick={() => enregistrer(false, true)}>{tr("Enregistrer")}</Button>
-            <Button variant="plate" size="xl" className="flex-[1.6]" disabled={!L.ex.length} onClick={() => enregistrer(true)}>{L.gen ? tr("Commencer") : tr("Enregistrer et commencer")}</Button>
+            <Button variant="plate" size="xl" className="flex-[1.6]" disabled={!L.ex.length} onClick={() => enregistrer(true)}>{L.gen || L.premiere ? tr("Commencer") : tr("Enregistrer et commencer")}</Button>
           </div>
         ) : (
           <Button variant="plate" size="xl" className="w-full" disabled={!L.ex.length} onClick={() => enregistrer()}>{tr("Enregistrer la séance")}</Button>

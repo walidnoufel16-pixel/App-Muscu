@@ -23,6 +23,8 @@ import { usePremiereVisite } from "@/lib/entree";
 import { cn } from "@/lib/utils";
 import { useProgrammeActif } from "@/lib/fonctionnalites";
 import { LigneRecuperation } from "@/components/repere/recuperation";
+import { AccueilSuivi, CarteModeSuivi } from "@/components/repere/accueil-suivi";
+import { enSuivi } from "@/lib/logic/mode";
 
 export default function PageEntrainement() {
   const etat = useRepere((s) => s.etat);
@@ -39,6 +41,21 @@ export default function PageEntrainement() {
   const epingles = useEpingles();
   const detail = enProgramme && !etat.FINI ? { programme: tr("Semaine {a} sur 8 · {b}/{c}", { a: wk + 1, b: faites, c: socle.length }) } : {};
   const date = new Date(auj + "T12:00").toLocaleDateString(loc(), { weekday: "long", day: "numeric", month: "long" });
+  const pseudo = useRepere((s) => s.pseudo);
+
+  /* mode Suivi (docs/produit/mode-suivi) : la semaine, Mes séances, la récupération */
+  if (enSuivi(etat))
+    return (
+      <>
+        <EnTete surtitre={date} titre={pseudo && pseudo !== "toi" ? tr("Salut {p} 👋", { p: pseudo }) : tr("Mes séances")} actions={<AvatarProfil />} />
+        <div className={cn("flex flex-col gap-3 px-4", premiere && "entree")}>
+          <AccueilSuivi auj={auj} setF={setF} />
+          <CarteConnu />
+        </div>
+        <FeuillesAgenda f={f} setF={setF} auj={auj} />
+        <FeuilleImport />
+      </>
+    );
 
   return (
     <>
@@ -50,6 +67,7 @@ export default function PageEntrainement() {
       <div className={cn("flex flex-col gap-3 px-4", premiere && "entree")}>
         {!debutant && <SemaineAnneaux auj={auj} setF={setF} />}
         {!debutant && <LigneRecuperation auj={auj} />}
+        <CarteModeSuivi />
         <CarteDuJour auj={auj} setF={setF} />
         <Reprise />
         {/* « Comment as-tu connu Oxa ? » pour qui n'y a jamais répondu (une seule fois) */}
