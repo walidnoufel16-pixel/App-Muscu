@@ -11,6 +11,8 @@ export type Statut = { etat: "a_regarder" | "analysee" | "ignoree"; note: string
 const BRUIT: { re: RegExp; note: () => string }[] = [
   { re: /^Error: Script error\.?$/, note: () => tr("Script extérieur à l'appli (extension, traduction, bloqueur de pub) : le navigateur en cache le détail. Plus remontée depuis le 18 nov.") },
   { re: /Transition was aborted|Transition was skipped|Skipping view transition/i, note: () => tr("Animation de changement d'écran annulée quand l'appli passe en arrière-plan, sans effet visible. Plus remontée depuis le 9 nov.") },
+  /* Brave injecte son portefeuille crypto dans chaque page ; son script plante seul, Oxa n'y touche pas */
+  { re: /window\.ethereum|\bethereum\./, note: () => tr("Portefeuille crypto injecté par le navigateur Brave (window.ethereum), pas le code de l'appli. Plus remontée depuis le 25 nov.") },
   { re: /ResizeObserver loop/i, note: () => tr("Avertissement du navigateur sans effet visible.") },
   /* pile « ext:core/… » : moteur Deno, pas un navigateur (robot d'exploration qui se fait passer pour Chrome) */
   { re: /\bext:(core|deno_)/, note: () => tr("Robot qui exécute la page hors d'un vrai navigateur (moteur Deno), pas un utilisateur. Plus remontée depuis le 22 nov.") },

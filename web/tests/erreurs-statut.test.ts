@@ -6,6 +6,7 @@ describe("Admin › statut des erreurs", () => {
   it("reconnaît le bruit connu, les analysées et le reste", () => {
     expect(statutErreur("Error: Script error.", A).etat).toBe("ignoree");
     expect(statutErreur("InvalidStateError: Transition was aborted because of invalid state. Document hidden", A).etat).toBe("ignoree");
+    expect(statutErreur("TypeError: undefined is not an object (evaluating 'window.ethereum.selectedAddress = undefined')", A).etat).toBe("ignoree");
     expect(statutErreur("TypeError: x is undefined", A)).toEqual({ etat: "analysee", note: "Corrigé le 18/11" });
     expect(statutErreur("RangeError: boom", A).etat).toBe("a_regarder");
     const deno = "TypeError: Cannot read properties of undefined (reading 'getReader')\n    at ev (script:2:88857)\n    at ext:core/01_core.js:294:9";
