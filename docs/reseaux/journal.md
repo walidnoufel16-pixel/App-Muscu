@@ -24,3 +24,5 @@ Réseaux : TT = TikTok, IG = Instagram, YT = YouTube Shorts.
 | Mar. 24 nov. 12 h 30 | Carrousel · POV : c'était combien la dernière fois ? (squat, 4 images) | S3 | TT (photo), IG | à relever |
 
 Dates prévues dans les packs : à corriger si une publication a été décalée ou annulée.
+| Lun. 23 nov. | Carrousel « La science dit » · Noter ses séances, ça sert vraiment ? | S4 | TT (photo) | 649 vues, 1,7 image vue sur 6, aucune réaction ; masqué le 25 nov. |
+| Mer. 25 nov. | Carrousel sondage · Tu suis comment tes séances ? (4 images) | S4 | TT (photo), IG | à relever |
