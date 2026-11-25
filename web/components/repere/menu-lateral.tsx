@@ -62,7 +62,7 @@ export function MenuLateral() {
 
   type Ligne = { Icone: Icon; n: string; onClick: () => void; cache?: boolean; badge?: string };
   const ouvrir = (cle: "installer" | "avis") => () => { tactile(5); fermer(); setTimeout(() => useMenu.setState({ [cle]: true }), 250); };
-  /* mode Suivi : ce qui n'est pas sur l'accueil (Repas, Street, Course, la séance créée par Oxa) */
+  /* mode Suivi : ce qui n'est pas sur l'accueil (Street, Course, la séance créée par Oxa) ; Repas est un onglet */
   const suivi = useRepere((s) => enSuivi(s.etat));
   /* compte limité au mode Suivi : pas de séance créée par Oxa */
   const suiviSeul = useSuiviSeul();
@@ -70,7 +70,6 @@ export function MenuLateral() {
     ...(suivi ? [{
       titre: tr("Plus d'entraînements"),
       l: [
-        { Icone: ForkKnifeIcon, n: tr("Repas"), onClick: va("/repas") },
         { Icone: PersonSimpleTaiChiIcon, n: tr("Street workout"), onClick: va(lienRubrique("street")) },
         { Icone: PersonSimpleRunIcon, n: tr("Course à pied"), onClick: va(lienRubrique("course")) },
         { Icone: SparkleIcon, n: tr("Créer une séance pour moi"), onClick: va("/entrainement/assistant"), cache: suiviSeul },

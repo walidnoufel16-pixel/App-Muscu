@@ -6,6 +6,7 @@
      qui s'ouvre en grand (bouton fixe en bas). Les réglages de la semaine et du budget sont
      dans une feuille (« Paramétrer »).
    - Recettes : un seul rang de filtres, dont « Mon frigo » (ce que j'ai déjà).
+   Mode Suivi : les recettes seulement (selon les préférences), sans Aujourd'hui ni Ma semaine.
    Les préférences s'ouvrent depuis la roue de l'en-tête. Module en orange : une nuance par onglet. Première ouverture : le questionnaire. */
 import { noter } from "@/lib/mesure";
 import { AvatarProfil } from "@/components/repere/avatar-profil";
@@ -33,6 +34,7 @@ import { useRepere } from "@/lib/store";
 import { remplacement, useVueRepas, type VueRepas } from "@/lib/nav";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
+import { enSuivi } from "@/lib/logic/mode";
 
 const puce = (on: boolean) => cn("h-8 shrink-0 rounded-full border px-3 text-[13px] font-medium transition-colors", on ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground");
 type Besoins = ReturnType<typeof besoins>;
@@ -43,7 +45,8 @@ function Repas() {
   /* la vue suit l'adresse (?v=semaine…) : le retour la retrouve, un lien ou un rappel y mène directement */
   const vueUrl = useSearchParams().get("v");
   const vueMemo = useVueRepas((s) => s.vue);
-  const vue: VueRepas = vueUrl === "jour" || vueUrl === "semaine" || vueUrl === "recettes" ? vueUrl : vueMemo;
+  const suivi = useRepere((s) => enSuivi(s.etat));
+  const vue: VueRepas = suivi ? "recettes" : vueUrl === "jour" || vueUrl === "semaine" || vueUrl === "recettes" ? vueUrl : vueMemo;
   const router = useRouter();
   const changerVue = (v: VueRepas) => { tactile(4); useVueRepas.setState({ vue: v }); remplacement(); router.replace(`/repas?v=${v}` as Route); };
   const [auj] = useState(() => jourDe(Date.now()));
@@ -81,10 +84,10 @@ function Repas() {
           </span>
         )}
       />
-      {!p.fait ? <AccueilRepas /> : (
+      {!p.fait ? <AccueilRepas recettes={suivi} /> : (
         <div className="flex flex-col gap-3 px-4">
-          <Segmente label={tr("Rubrique repas")} valeur={vue} onChange={changerVue}
-            options={[{ v: "jour", n: tr("Aujourd'hui"), t: "#f7b14a" }, { v: "semaine", n: tr("Ma semaine"), t: "#f08a24" }, { v: "recettes", n: tr("Recettes"), t: "#e2611c" }]} />
+          {!suivi && <Segmente label={tr("Rubrique repas")} valeur={vue} onChange={changerVue}
+            options={[{ v: "jour", n: tr("Aujourd'hui"), t: "#f7b14a" }, { v: "semaine", n: tr("Ma semaine"), t: "#f08a24" }, { v: "recettes", n: tr("Recettes"), t: "#e2611c" }]} />}
           {vue === "jour" && <Jour p={p} seance={seance} setSeance={setSeance} b={b} kcal={kcal} auj={auj} ouvrir={(r, c) => setFiche({ r, c })} />}
           {vue === "semaine" && <Semaine p={p} b={b} kcal={kcal} ouvrir={(r, c) => setFiche({ r, c })} />}
           {vue === "recettes" && <Recettes p={p} b={b} kcal={kcal} majPrefs={majPrefs} ouvrir={(r) => setFiche({ r })} reglages={() => setBrouillon(p)} />}
@@ -100,7 +103,7 @@ function Repas() {
             <div className="overflow-y-auto overscroll-contain px-4 pb-[max(env(safe-area-inset-bottom),20px)]">
               <DrawerTitle className="mt-2 px-1 text-[22px] font-bold">{tr("Préférences repas")}</DrawerTitle>
               <DrawerDescription className="mt-1 mb-4 px-1 text-[13.5px] text-muted-foreground">{tr("Les recettes proposées en tiennent compte partout.")}</DrawerDescription>
-              <FormPrefs p={brouillon} onChange={setBrouillon} />
+              <FormPrefs p={brouillon} onChange={setBrouillon} recettes={suivi} />
               <Button variant="plate" size="lg" className="mt-5 w-full rounded-xl" onClick={() => { tactile(10); majPrefs(brouillon); setBrouillon(null); }}>{tr("Enregistrer")}</Button>
             </div>
           )}

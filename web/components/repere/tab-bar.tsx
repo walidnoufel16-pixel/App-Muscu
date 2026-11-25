@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import type { Route } from "next";
-import { BarbellIcon, ChartLineUpIcon, ForkKnifeIcon, UserIcon } from "@phosphor-icons/react";
+import { BarbellIcon, ChartLineUpIcon, ForkKnifeIcon } from "@phosphor-icons/react";
 import { useRepere } from "@/lib/store";
 import { modeDe } from "@/lib/logic/mode";
 import { noterPosition, oublierPosition, parOnglet, positionDe } from "@/lib/nav";
@@ -17,11 +17,11 @@ const GUIDE: { href: Route; nom: string; Icone: typeof BarbellIcon }[] = [
   { href: "/repas", nom: tr("Repas"), Icone: ForkKnifeIcon },
   { href: "/progres", nom: tr("Progrès"), Icone: ChartLineUpIcon },
 ];
-/* mode Suivi : Séances, Progrès, Profil ; Repas passe dans le menu (☰) */
+/* mode Suivi : comme en Guidé (Profil par l'avatar et le menu), Repas réduit aux recettes */
 const SUIVI: { href: Route; nom: string; Icone: typeof BarbellIcon }[] = [
   { href: "/entrainement", nom: tr("Séances"), Icone: BarbellIcon },
+  { href: "/repas", nom: tr("Repas"), Icone: ForkKnifeIcon },
   { href: "/progres", nom: tr("Progrès"), Icone: ChartLineUpIcon },
-  { href: "/profil", nom: tr("Profil"), Icone: UserIcon },
 ];
 
 /* Barre d'onglets flottante, translucide, au-dessus de la zone sûre.
