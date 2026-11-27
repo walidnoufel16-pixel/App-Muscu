@@ -188,24 +188,6 @@ export function resumePrefs(p: PrefsRepas) {
 }
 
 /** Première ouverture : les questions, puis la partie Repas. */
-export function AccueilRepas({ recettes }: { recettes?: boolean } = {}) {
-  const A = useRepere((s) => s.etat.A), muter = useRepere((s) => s.muter);
-  const [p, setP] = useState(() => prefsDe(A));
-  return (
-    <div className="flex flex-col gap-5 px-4">
-      <div className="rounded-[22px] bg-plate-soft p-4">
-        <p className="text-[16px] font-semibold text-plate-ink">{tr("Des repas pensés pour ton entraînement")}</p>
-        <p className="mt-1 text-[13.5px] leading-relaxed text-muted-foreground">{recettes
-          ? tr("Quelques réponses, et je te propose des recettes à ton goût et à ta portion, avec ou sans ce que tu as déjà.")
-          : tr("Quelques réponses, et je te propose des recettes à ta portion, avec ou sans ce que tu as déjà, et la liste de courses qui va avec, au prix estimé.")}</p>
-      </div>
-      <FormPrefs p={p} onChange={setP} recettes={recettes} />
-      <Button variant="plate" size="xl" className="w-full" onClick={() => { tactile(10); muter((E) => { E.A.repas = { ...p, fait: true }; }); }}>{tr("C'est parti")}</Button>
-      <Prudence />
-    </div>
-  );
-}
-
 export function Prudence() {
   return <p className="px-2 text-center text-[11.5px] leading-relaxed text-muted-foreground">{tr("Des repères généraux, pas un avis médical. En cas de pathologie, de grossesse ou de trouble alimentaire, parles-en à un médecin ou à un diététicien.")}</p>;
 }

@@ -12,7 +12,7 @@ import { useCelebrer } from "@/lib/celebrer";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-import { aUneImage, imgEx } from "@/lib/medias";
+import { aUneImage, cadrageEx, imgEx } from "@/lib/medias";
 
 const UNITE_RESUME: Record<string, string> = { kg: "kg", lest: tr("kg de lest"), aucune: "", temps: "s", dist: "m" };
 
@@ -28,6 +28,7 @@ export function Vignette({ id, num, fait, trace, className }: { id: string; num?
           alt=""
           loading="lazy"
           className={cn("size-full object-cover transition-opacity", fait && "opacity-70")}
+          style={{ objectPosition: cadrageEx(id) }}
           onError={(e) => (e.currentTarget.style.visibility = "hidden")}
         />
       ) : <BarbellIcon className="absolute inset-0 m-auto size-1/2 text-muted-foreground/60" />}

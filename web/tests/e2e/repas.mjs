@@ -28,12 +28,15 @@ const cap = async (pg, nom, plein = false) => { if (CAP) { await pg.waitForTimeo
 const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")));
 
 {
-  /* Première ouverture : cinq questions, puis la partie Repas. */
+  /* Première ouverture : les recettes tout de suite ; « Choisis tes préférences culinaires » ouvre les questions. */
   const [ctx, pg] = await contexte(etat());
   await pg.goto(U + "/entrainement/");
   ok(await pg.locator("nav a").count() === 4 && (await pg.locator("nav a").allTextContents()).join(",") === "Entraînement,Exercices,Repas,Progrès", "quatre onglets : Entraînement, Exercices, Repas, Progrès");
   await pg.locator("nav a", { hasText: "Repas" }).click();
-  await pg.getByText("Des repas pensés pour ton entraînement").waitFor({ timeout: 8000 });
+  await pg.getByRole("region", { name: "Tes besoins du jour" }).waitFor({ timeout: 8000 });
+  ok(await pg.getByText("C'est parti").count() === 0, "pas de questionnaire avant la partie Repas");
+  await pg.getByRole("button", { name: /^Choisis tes préférences culinaires/ }).click();
+  await pg.getByRole("dialog").getByText("Préférences repas").first().waitFor();
   const q = (n) => pg.getByRole("region", { name: n });
   const entetes = pg.locator("section[aria-label] > button[aria-expanded]");
   ok(await entetes.count() === 6 && (await entetes.evaluateAll((l) => l.map((x) => x.getAttribute("aria-expanded")))).every((x) => x === "false"), "premier passage : les 6 questions repliées");
@@ -58,8 +61,9 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
   await q("1 · Ton régime").locator("button[aria-expanded]").click();
   ok(await pg.getByRole("button", { name: "Omnivore", exact: true }).count() === 0 && await pg.getByRole("button", { name: "Lactose", exact: true }).isVisible(), "régime refermé d'un toucher, allergies toujours ouvertes");
   await cap(pg, "repas-questions");
-  await pg.getByRole("button", { name: "C'est parti" }).click();
-  await pg.getByRole("region", { name: "Tes besoins du jour" }).waitFor();
+  await pg.getByRole("dialog").getByRole("button", { name: "Enregistrer" }).click();
+  await pg.waitForTimeout(500);
+  ok(await pg.getByRole("button", { name: /^Choisis tes préférences culinaires/ }).count() === 0, "préférences réglées : la carte d'invitation disparaît");
   const A = (await etatLu(pg)).A;
   ok(A.repas?.fait && A.repas.regime === 2 && A.repas.culte === 1 && A.repas.allergies.includes("l") && A.repas.exclus.includes("brocoli"), "préférences notées (végétarien, halal, sans lactose, sans brocoli)");
   const couleur = await pg.evaluate(() => getComputedStyle(document.querySelector(".theme-repas")).getPropertyValue("--plate").trim());

@@ -7,7 +7,10 @@
      dans une feuille (« Paramétrer »).
    - Recettes : un seul rang de filtres, dont « Mon frigo » (ce que j'ai déjà).
    Mode Suivi : les recettes seulement (selon les préférences), sans Aujourd'hui ni Ma semaine.
-   Les préférences s'ouvrent depuis la roue de l'en-tête. Module en orange : une nuance par onglet. Première ouverture : le questionnaire. */
+   Les préférences s'ouvrent depuis la roue de l'en-tête. Module en orange : une nuance par onglet.
+   Première ouverture (27/11/2026) : plus de questionnaire avant les recettes ; elles s'affichent tout
+   de suite (préférences par défaut), avec en haut « Choisis tes préférences culinaires » tant qu'elles
+   ne sont pas réglées. */
 import { noter } from "@/lib/mesure";
 import { AvatarProfil } from "@/components/repere/avatar-profil";
 import { tr } from "@/lib/i18n";
@@ -18,7 +21,7 @@ import { ArrowsClockwiseIcon, BarbellIcon, CheckIcon, CaretDownIcon, CaretRightI
 import { toast } from "sonner";
 import { EnTete } from "@/components/repere/en-tete";
 import { Segmente } from "@/components/repere/segmente";
-import { AccueilRepas, BoutonAutre, ConseilsNutrition, ChampBudget, ChoixAliments, CarteBesoins, CarteBilanProteines, CarteRecette, Coche, FicheRecette, FormPrefs, Prudence } from "@/components/repere/repas";
+import { BoutonAutre, ConseilsNutrition, ChampBudget, ChoixAliments, CarteBesoins, CarteBilanProteines, CarteRecette, Coche, FicheRecette, FormPrefs, Prudence } from "@/components/repere/repas";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { RECETTES, type Recette } from "@/lib/data/recettes";
@@ -58,15 +61,16 @@ function Repas() {
   const kcal = !!p.kcal;
   const params = useSearchParams(), lien = params.get("r");
   const [fiche, setFiche] = useState<{ r: Recette; c?: CreneauRepas } | null>(() => (lien && R[lien] ? { r: R[lien] } : null));
-  /* le questionnaire, rouvert depuis la roue de l'en-tête ou depuis le menu (?prefs=1) */
-  const [brouillon, setBrouillon] = useState<PrefsRepas | null>(() => (params.get("prefs") && p.fait ? p : null));
+  /* les préférences, ouvertes depuis la roue de l'en-tête, la carte « Choisis tes préférences
+     culinaires » ou le menu (?prefs=1) */
+  const [brouillon, setBrouillon] = useState<PrefsRepas | null>(() => (params.get("prefs") ? p : null));
   const majPrefs = (q: PrefsRepas) => muter((E) => { E.A.repas = { ...q, fait: true }; });
   /* tout l'écran passe aux couleurs du module (fond, barre d'onglets, feuilles), une nuance par onglet */
   useEffect(() => {
-    const c = document.body.classList, onglet = `repas-${p.fait ? vue : "semaine"}`;
+    const c = document.body.classList, onglet = `repas-${vue}`;
     c.add("theme-repas", onglet);
     return () => c.remove("theme-repas", onglet);
-  }, [vue, p.fait]);
+  }, [vue]);
 
   return (
     <div className="theme-repas">
@@ -74,26 +78,34 @@ function Repas() {
         surtitre={tr("Repas")} titre="Oxa Meal"
         actions={(
           <span className="flex items-center gap-1.5">
-            {p.fait && (
-              <button onClick={() => { tactile(6); setBrouillon(p); }} aria-label={tr("Préférences repas")}
-                className="grid size-8 place-items-center rounded-full bg-muted active:scale-95">
-                <GearSixIcon className="size-[18px]" weight="bold" />
-              </button>
-            )}
+            <button onClick={() => { tactile(6); setBrouillon(p); }} aria-label={tr("Préférences repas")}
+              className="grid size-8 place-items-center rounded-full bg-muted active:scale-95">
+              <GearSixIcon className="size-[18px]" weight="bold" />
+            </button>
             <AvatarProfil />
           </span>
         )}
       />
-      {!p.fait ? <AccueilRepas recettes={suivi} /> : (
-        <div className="flex flex-col gap-3 px-4">
+      <div className="flex flex-col gap-3 px-4">
+          {/* préférences jamais réglées : une invitation, pas un passage obligé */}
+          {!p.fait && (
+            <button onClick={() => { tactile(6); setBrouillon(p); }}
+              className="flex items-center gap-3 rounded-[20px] bg-plate-soft p-3.5 text-left active:scale-[.99]">
+              <span className="grid size-10 shrink-0 place-items-center rounded-[12px] bg-plate text-plate-foreground"><SlidersHorizontalIcon className="size-5" weight="bold" /></span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[15.5px] font-bold text-plate-ink">{tr("Choisis tes préférences culinaires")}</span>
+                <span className="block text-[13px] leading-snug text-muted-foreground">{tr("Régime, allergies, ce que tu n'aimes pas, ton temps : les recettes s'adaptent.")}</span>
+              </span>
+              <CaretRightIcon className="size-4 shrink-0 text-plate-ink" />
+            </button>
+          )}
           {!suivi && <Segmente label={tr("Rubrique repas")} valeur={vue} onChange={changerVue}
             options={[{ v: "jour", n: tr("Aujourd'hui"), t: "#f7b14a" }, { v: "semaine", n: tr("Ma semaine"), t: "#f08a24" }, { v: "recettes", n: tr("Recettes"), t: "#e2611c" }]} />}
           {vue === "jour" && <Jour p={p} seance={seance} setSeance={setSeance} b={b} kcal={kcal} auj={auj} ouvrir={(r, c) => setFiche({ r, c })} />}
           {vue === "semaine" && <Semaine p={p} b={b} kcal={kcal} ouvrir={(r, c) => setFiche({ r, c })} />}
           {vue === "recettes" && <Recettes p={p} b={b} kcal={kcal} majPrefs={majPrefs} ouvrir={(r) => setFiche({ r })} reglages={() => setBrouillon(p)} />}
           <Prudence />
-        </div>
-      )}
+      </div>
       <FicheRecette r={fiche?.r ?? null} c={fiche?.c} b={b} kcal={kcal} pers0={vue === "semaine" ? p.pers ?? 1 : 1} onClose={() => setFiche(null)} />
       {/* grande feuille qui défile : pas de repositionnement au clavier (sur iPhone, elle remontait
           hors de l'écran et cachait le champ en cours de saisie) ; c'est la page qui fait défiler le champ */}
