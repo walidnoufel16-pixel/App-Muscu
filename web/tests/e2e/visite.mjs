@@ -1,4 +1,5 @@
-/* Accueil sans Oxa Plan (profil sportif, dernières 48 h, première séance), visite avec Oxa Plan
+/* Accueil sans Oxa Plan (profil sportif, dernières 48 h, première séance), visite (lancée du menu : elle
+   ne démarre plus d'elle-même) avec Oxa Plan
    (9 bulles dont la tuile du programme, « Construisons ton programme »), visite sans Oxa Plan après
    le questionnaire d'accueil (8 bulles, « Ta première séance est prête » ouvre la séance proposée), et la mini-visite quand
    Oxa Plan s'ouvre pour un compte qui a déjà vu la visite. CAPTURES=dossier pour garder des captures. */
@@ -28,6 +29,14 @@ async function guide(dlg) {
   await dlg.getByText("Tu as déjà ton programme ?").waitFor({ timeout: 8000 });
   await dlg.getByRole("radio", { name: /Non, guide-moi/ }).click();
   await dlg.getByRole("button", { name: "Continuer" }).click();
+}
+/* la visite ne démarre plus d'elle-même : menu ☰ › Visites guidées › « Découvrir l'app » */
+async function lancerVisite(pg) {
+  await pg.getByRole("button", { name: "Menu" }).first().click();
+  await pg.getByRole("button", { name: /^Visites guidées/ }).click();
+  const f = pg.getByRole("dialog").filter({ hasText: "Visites guidées" });
+  await f.getByText("Découvrir l'app", { exact: true }).waitFor();
+  await f.getByRole("button", { name: /^(Lancer|Revoir)$/ }).first().click();
 }
 async function bulles(pg, prefixe) {
   const vus = [];
@@ -130,6 +139,9 @@ async function bulles(pg, prefixe) {
 {
   const [ctx, pg] = await contexte(neuf, { "repere.programme": "1" });
   await pg.goto(U + "/entrainement/");
+  await pg.waitForTimeout(2500);
+  ok(await pg.getByText("Faire la visite · 30 s").count() === 0, "la visite ne démarre plus d'elle-même");
+  await lancerVisite(pg);
   await pg.getByText("Faire la visite · 30 s").waitFor({ timeout: 8000 });
   ok(await pg.getByText("Ton programme de 8 semaines, et des séances libres quand tu veux").count() === 1, "bienvenue : axe programme");
   await cap(pg, "plan-bienvenue");
@@ -147,13 +159,16 @@ async function bulles(pg, prefixe) {
   await ctx.close();
 }
 
-/* 2 bis. sans Oxa Plan, questionnaire d'accueil fait : la visite démarre d'elle-même, sans 2e bienvenue */
+/* 2 bis. sans Oxa Plan, questionnaire d'accueil fait : la visite ne démarre pas d'elle-même ; lancée du menu */
 {
   const pret = { ...neuf, A: { ...neuf.A, objectif: 0, regularite: 2, objHebdo: 3, sexe: 0, accueil: Date.now(), miseEnRoute: true } };
   const [ctx, pg] = await contexte(pret);
   await pg.goto(U + "/entrainement/");
-  await pg.locator('[role="dialog"][aria-modal="true"]').filter({ has: pg.getByRole("button", { name: "Suivant" }) }).waitFor({ timeout: 8000 });
-  ok(await pg.getByText("Faire la visite · 30 s").count() === 0, "sans Oxa Plan : pas de seconde feuille de bienvenue");
+  await pg.waitForTimeout(2500);
+  ok(await pg.locator('[role="dialog"][aria-modal="true"]').count() === 0, "sans Oxa Plan : rien ne s'ouvre tout seul");
+  await lancerVisite(pg);
+  await pg.getByText("Faire la visite · 30 s").click({ timeout: 8000 });
+  await pg.waitForTimeout(900);
   const vus = await bulles(pg, "sans");
   ok(JSON.stringify(vus) === JSON.stringify(["Tes séances", "Tes séances à toi", "Et au-delà de la salle", "Nos articles", "Tes repas", "Tes progrès", "Ton profil sportif", "Tes réglages"]), "8 bulles sans Oxa Plan : " + vus.join(", "));
   await pg.getByText("Ta première séance est prête").waitFor({ timeout: 4000 }).catch(() => {});
