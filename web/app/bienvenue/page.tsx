@@ -13,6 +13,7 @@ import { AVANT } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 import { SaisieCodeMail } from "@/components/repere/code-mail";
 import { Vitrine } from "@/components/repere/vitrine";
+import { ecranVirtuel, noter } from "@/lib/mesure";
 
 type Etape = "accueil" | "compte" | "confirmer" | "entrer" | "recup" | "code";
 
@@ -31,6 +32,8 @@ function Bienvenue() {
   const [occupe, setOccupe] = useState(false);
   /* compte prêt : on arrive directement dans Entraînement, sur les rubriques */
   useEffect(() => { if (etape === "entrer") router.replace("/entrainement", AVANT); }, [etape, router]);
+  /* mesure : chaque étape (vitrine, formulaire, retrouver son compte…) compte comme un écran à part */
+  useEffect(() => { if (etape !== "entrer") ecranVirtuel(`/bienvenue/${etape}`); return () => ecranVirtuel(null); }, [etape]);
 
   const creer = async () => {
     const p = pseudo.trim(), m = mail.trim().toLowerCase();
@@ -39,6 +42,7 @@ function Bienvenue() {
     setErr(""); setOccupe(true);
     try {
       const r = await creerCompte(p, m || undefined);
+      if (r.ok) noter("compte_cree", { mail: !!m });
       if (!r.ok) setErr(messageErreur({ message: r.message }, "connexion") + tr(" Tes données resteront sur ce téléphone."));
       else if (r.message) { toast(r.message, { duration: 8000 }); setEtape("entrer"); }
       /* Le code part tout de suite : on le fait saisir ici, pas dans Profil. */

@@ -10,6 +10,7 @@ import { appareil } from "@/lib/mesure";
 import { nettoieArbre, useRepere, versEtat } from "@/lib/store";
 import type { CompteAdmin, FicheAdmin, StatsAdmin } from "@/lib/logic/admin";
 import type { Analyse } from "@/lib/logic/erreurs";
+import type { EvenementVisiteur, ResumeVisiteur } from "@/lib/logic/visiteurs";
 
 async function appel<T>(nom: string, args?: Record<string, unknown>): Promise<T> {
   const c = await sb();
@@ -52,6 +53,12 @@ export type EntonnoirAdmin = {
 };
 export const entonnoirAdmin = (jours: number, avecMoi: boolean, src: string | null, chemin: string | null = null) =>
   appel<EntonnoirAdmin>("admin_parcours", { p_jours: jours, p_avec_moi: avecMoi, p_src: src, ...(chemin ? { p_chemin: chemin } : {}) }).then(nettoieArbre);
+/* Admin › Visiteurs : un résumé par appareil, et le parcours complet d'un appareil
+   (migration 20261127180000_suivi_visiteurs.sql) */
+export const visiteursAdmin = (jours: number, avecMoi: boolean) =>
+  appel<ResumeVisiteur[]>("admin_visiteurs", { p_jours: jours, p_avec_moi: avecMoi }).then((l) => nettoieArbre(l || []));
+export const parcoursVisiteur = (appareilId: string) =>
+  appel<EvenementVisiteur[]>("admin_visiteur", { p_appareil: appareilId }).then((l) => nettoieArbre(l || []));
 /** Comptes écartés des chiffres (l'admin, ses comptes de test) ; vide tant que la migration n'est pas passée. */
 export const comptesExclus = () => appel<string[]>("admin_comptes_exclus").then((l) => l || []).catch(() => [] as string[]);
 export const compteTest = (id: string, test: boolean) => appel<void>("admin_compte_test", { p_user: id, p_test: test });
