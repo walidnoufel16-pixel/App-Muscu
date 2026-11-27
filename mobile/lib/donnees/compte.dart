@@ -13,6 +13,7 @@ import '../logique/enregistrer.dart';
 import '../logique/inscription.dart';
 import '../logique/mode.dart';
 import '../logique/modele.dart';
+import '../logique/retirer.dart' as retirer;
 import '../logique/seances.dart' as seances;
 import '../ecrans/vignette.dart' show Photo;
 import 'brouillon.dart';
@@ -299,6 +300,16 @@ class Compte extends ChangeNotifier {
       return err;
     } catch (e) {
       return 'Suppression impossible : vérifie ta connexion et réessaie.';
+    }
+  }
+
+  /// Retire la séance `s` du jour `d` de l'historique (« Retirer de mon historique » du site).
+  /// Le document est relu juste avant : seule cette séance change.
+  Future<String?> retirerDeHistorique(String d, String s) async {
+    try {
+      return await _modifier((doc) => retirer.retirerDeHistorique(doc, d, s));
+    } catch (e) {
+      return 'Retrait impossible : vérifie ta connexion et réessaie.';
     }
   }
 

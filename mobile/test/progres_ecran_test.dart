@@ -46,4 +46,29 @@ void main() {
     await t.pump();
     expect(find.text('Toutes tes séries, séance par séance · 3 séances'), findsOneWidget);
   });
+
+  testWidgets('toucher un jour : ses séances relues, puis « Retirer » demande confirmation', (t) async {
+    await t.pumpWidget(app(compteDe({
+      'SEANCES': [{'nom': 'Push', 'ex': []}],
+      'HIST': [
+        {'d': '2026-10-06', 's': 'L|0', 'nom': 'Push', 'ser': 2, 'min': 45, 'ex': {'dc': [90, 1000, 75, 6, 2]},
+          'det': [{'id': 'dc', 's': [[75, 6], [70, 8]]}]},
+      ],
+    })));
+    await t.tap(find.byKey(const ValueKey('jour-2026-10-06')));
+    await t.pumpAndSettle();
+    expect(find.text('Mardi 6 octobre'), findsOneWidget);
+    expect(find.text('2 séries · 45 min'), findsOneWidget);
+    expect(find.text('75 kg × 6, 70 kg × 8'), findsOneWidget);
+    await t.tap(find.text('75 kg × 6, 70 kg × 8'));
+    await t.pumpAndSettle();
+    expect(find.text('70 kg × 8'), findsOneWidget);
+    await t.tap(find.text('Retirer de mon historique'));
+    await t.pumpAndSettle();
+    expect(find.text('Retirer « Push » de ton historique ?'), findsOneWidget);
+    expect(find.textContaining('La séance reste dans Mes séances.'), findsOneWidget);
+    await t.tap(find.text('Annuler'));
+    await t.pumpAndSettle();
+    expect(find.text('Mardi 6 octobre'), findsOneWidget);
+  });
 }

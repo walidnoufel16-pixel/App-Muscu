@@ -10,6 +10,7 @@ import '../donnees/compte.dart';
 import '../logique/mode.dart';
 import '../logique/modele.dart';
 import '../logique/progres.dart';
+import 'jour.dart';
 
 const _feu = Color(0xFFFF7A1A);
 const _succes = Color(0xFF16A34A);
@@ -44,7 +45,7 @@ class EcranProgres extends StatelessWidget {
                     if (compte.charge)
                       const Padding(padding: EdgeInsets.only(top: 80), child: Center(child: CircularProgressIndicator())),
                   ])
-                : _Contenu(e: e, cat: compte.catalogue, auj: jour),
+                : _Contenu(e: e, compte: compte, auj: jour),
           ),
         );
       },
@@ -53,9 +54,10 @@ class EcranProgres extends StatelessWidget {
 }
 
 class _Contenu extends StatefulWidget {
-  const _Contenu({required this.e, required this.cat, required this.auj});
+  const _Contenu({required this.e, required this.compte, required this.auj});
   final Etat e;
-  final Map<String, Exercice> cat;
+  final Compte compte;
+  Map<String, Exercice> get cat => compte.catalogue;
   final String auj;
 
   @override
@@ -86,7 +88,11 @@ class _ContenuState extends State<_Contenu> {
                 const SizedBox(height: 8),
                 _Series(h: e.hist, auj: widget.auj),
                 const SizedBox(height: 8),
-                _Calendrier(act: activite(e.hist, e.joursCardio), auj: widget.auj),
+                _Calendrier(
+                  act: activite(e.hist, e.joursCardio),
+                  auj: widget.auj,
+                  onJour: (j) => ouvrirJour(context, widget.compte, j),
+                ),
               ]),
               _Section(titre: 'Muscles travaillés · 7 derniers jours', enfants: [
                 _Muscles(parM: seriesParMuscle(e.hist, decaler(widget.auj, -6), widget.auj, widget.cat)),
@@ -282,9 +288,11 @@ class _Series extends StatelessWidget {
 
 /// Les 4 dernières semaines, une par ligne (lundi → dimanche).
 class _Calendrier extends StatelessWidget {
-  const _Calendrier({required this.act, required this.auj});
+  const _Calendrier({required this.act, required this.auj, required this.onJour});
   final Map<String, ({bool muscu, bool cardio})> act;
   final String auj;
+  /// Toucher un jour d'entraînement ouvre ses séances.
+  final void Function(String jour) onJour;
 
   @override
   Widget build(BuildContext context) {
@@ -322,7 +330,7 @@ class _Calendrier extends StatelessWidget {
   Widget _case(BuildContext context, String j, Color cardio) {
     final a = act[j], futur = j.compareTo(auj) > 0;
     final plate = _plate(context);
-    return Padding(
+    final c = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2),
       child: Container(
         height: 20,
@@ -335,6 +343,12 @@ class _Calendrier extends StatelessWidget {
           border: j == auj ? Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), width: 2) : null,
         ),
       ),
+    );
+    if (a == null || futur) return c;
+    return Semantics(
+      button: true,
+      label: 'Revoir les séances du $j',
+      child: GestureDetector(key: ValueKey('jour-$j'), behavior: HitTestBehavior.opaque, onTap: () => onJour(j), child: c),
     );
   }
 }
