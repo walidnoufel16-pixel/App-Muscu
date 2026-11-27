@@ -11,6 +11,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../logique/enregistrer.dart';
 import '../logique/modele.dart';
+import '../ecrans/vignette.dart' show Photo;
 
 /* La clé publishable est publique par nature (la sécurité repose sur les règles RLS).
    Surchargeable à la construction : --dart-define=SUPABASE_URL=… --dart-define=SUPABASE_KEY=… */
@@ -47,6 +48,7 @@ class Compte extends ChangeNotifier {
   bool charge = false;
   String? erreur;
   Map<String, Exercice> catalogue = const {};
+  Map<String, Photo> photos = const {};
 
   Session? get session => _c.auth.currentSession;
   Stream<AuthState> get changements => _c.auth.onAuthStateChange;
@@ -54,6 +56,8 @@ class Compte extends ChangeNotifier {
   Future<void> chargerCatalogue() async {
     final j = jsonDecode(await rootBundle.loadString('assets/exercices.json')) as Map<String, dynamic>;
     catalogue = {for (final e in j.entries) e.key: Exercice.depuis(Map<String, dynamic>.from(e.value as Map))};
+    final ph = jsonDecode(await rootBundle.loadString('assets/photos.json')) as Map<String, dynamic>;
+    photos = {for (final e in ph.entries) e.key: Photo.depuis(Map<String, dynamic>.from(e.value as Map))};
   }
 
   /// Envoie le code à six chiffres. Pas de création de compte ici : on retrouve celui du site.
