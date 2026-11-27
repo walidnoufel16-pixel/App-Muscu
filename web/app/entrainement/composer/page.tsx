@@ -13,10 +13,11 @@ import { EtiquetteRole, Pourquoi, PourquoiRole } from "@/components/repere/role-
 import { FicheExercice, type FicheOuverte } from "@/components/repere/fiche-exercice";
 import { Remplacer } from "@/components/repere/seance-vues";
 import { FeuilleAjout } from "@/components/repere/ajout-exercice";
+import { MUSCLES_PREMIERE, PremiereSeance } from "@/components/repere/premiere-seance";
 import { FiltreMateriel, MaterielRepliable } from "@/components/repere/filtre-materiel";
 import { confirmer } from "@/components/repere/confirmer";
 import { EX } from "@/lib/data/exercices";
-import { OBJS, PAS_REPOS, TYPES } from "@/lib/data/referentiels";
+import { OBJS, PAS_REPOS, PAT2MUSC, TYPES } from "@/lib/data/referentiels";
 import { exoFiltre, kLibre, musclesDe, nb, nomPat, propositionLibre, selDeclare, avecSalle, variationDe } from "@/lib/logic/core";
 import { exPourRole } from "@/lib/logic/assistant";
 import { convientA, placer, roleDe } from "@/lib/logic/roles";
@@ -69,15 +70,16 @@ export default function PageComposer() {
   const [fiche, setFiche] = useState<FicheOuverte | null>(null);
   const [aujHui] = useState(() => jourDe(Date.now()));
   const [remp, setRemp] = useState<number | null>(null);
-  /* mode Suivi, nouvelle séance vide : le corps tout de suite (feuille « Ajouter un exercice ») */
-  const [ajout, setAjout] = useState(() => { const l = useBrouillon.getState().libre; return enSuivi(useRepere.getState().etat) && !!l && l.idx == null && !l.ex.length && !l.demo; });
+  /* mode Suivi, nouvelle séance vide : le corps tout de suite (feuille « Ajouter un exercice ») ;
+     la première séance a son propre écran plein (premiere-seance.tsx), sans feuille par-dessus */
+  const [ajout, setAjout] = useState(() => { const l = useBrouillon.getState().libre; return enSuivi(useRepere.getState().etat) && !!l && l.idx == null && !l.ex.length && !l.demo && !l.premiere; });
+  const [choix, setChoix] = useState(() => { const l = useBrouillon.getState().libre; return !!l?.premiere && l.idx == null && !l.ex.length && !l.demo; });
   const liste = useRef<HTMLDivElement>(null);
   const [glisse, setGlisse] = useState<string | null>(null);
   const [blocOuvert, setBlocOuvert] = useState<string | null>(null); // id du bloc cardio dont les réglages sont ouverts
   const [caseOuverte, setCaseOuverte] = useState<number | null>(null); // séance guidée : la case en cours de choix
   const [choixM, setChoixM] = useState(false); // séance guidée : muscles en cours de modification
-  /* première séance en mode Suivi : le nom d'abord, comme en haut d'une page de carnet */
-  const [panneau, setPanneau] = useState<null | "jour" | "obj" | "mat" | "nom">(() => (useBrouillon.getState().libre?.premiere ? "nom" : null)); // la pastille dépliée
+  const [panneau, setPanneau] = useState<null | "jour" | "obj" | "mat" | "nom">(null); // la pastille dépliée
   /* « Plus tard » : le jour et le rappel choisis pour une séance créée pour aujourd'hui */
   const [plusTard, setPlusTard] = useState<{ d: string; rappel: Rappel | null } | null>(null);
 
@@ -315,14 +317,35 @@ export default function PageComposer() {
   const secs = sections(L);
   if (gab && !secs.some((x) => x.p === "muscu")) secs.unshift({ p: "muscu", el: [], debut: 0 });
 
+  /* première séance : on coche ses exercices sur un écran plein ; le nom suit les muscles cochés */
+  if (choix) {
+    const basculer = (o: string) => majLibre((l) => {
+      if (l.ex.some((e) => e.id === o)) l.ex = l.ex.filter((e) => e.id !== o);
+      else { placer(l.ex, exPourRole(o, objL, etat.A.regularite)); rangerLibre(l); }
+      const m = MUSCLES_PREMIERE.filter((k) => l.ex.some((e) => PAT2MUSC[EX[e.id]?.pat] === k));
+      l.nom = m.length ? nomMuscles([...m]) : "";
+    });
+    return (
+      <>
+        <PremiereSeance
+          sel={selB ? selFeuille : sel} setSel={setSel} muscles={L.muscles ?? []} setMuscles={(m) => majLibre((l) => { l.muscles = m; })}
+          pris={pris} basculer={basculer} ajouter={(o) => { if (!pris(o)) basculer(o); }} nb={L.ex.length}
+          onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") })}
+          onCommencer={() => void enregistrer(true, true)} onDetail={() => setChoix(false)}
+        />
+        <FicheExercice fiche={fiche} onClose={() => setFiche(null)} />
+      </>
+    );
+  }
   const quitterDemo = () => { part.current = true; setLibre(null); router.replace("/entrainement" as Route); };
   return (
     <>
       {L.demo && <BandeauDemo onQuitter={quitterDemo} />}
-      <VisiteCreer pret={L.ex.length > 0 && !ajout} force={!!L.demo} />
+      {/* la visite « Créer ta séance » ne se lance plus d'elle-même : seulement en démonstration (menu) */}
+      {L.demo && <VisiteCreer pret={L.ex.length > 0 && !ajout} force />}
       <EnTete
         surtitre={L.idx != null ? tr("Modifier la séance") : L.premiere ? tr("Ta première séance") : tr("Nouvelle séance")}
-        titre={L.premiere ? tr("Comme dans ton carnet.") : L.nom || tr("Séance libre")}
+        titre={L.premiere ? L.nom || tr("Comme dans ton carnet.") : L.nom || tr("Séance libre")}
         gauche={<Retour repli="/entrainement" />}
         actions={<Button variant="ghost" size="icon" aria-label={tr("Supprimer")} onClick={supprimer}><TrashIcon className="size-5 text-destructive" /></Button>}
       />

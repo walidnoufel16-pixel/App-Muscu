@@ -1,6 +1,6 @@
 /* Modes Suivi et Guidé (docs/produit/mode-suivi) : nouveau compte sans le mode Guidé (Suivi direct,
    aucun choix de mode), la question d'arrivée quand le Guidé est ouvert (présélection par le lien
-   ?mode=suivi), la première séance « Comme dans ton carnet », l'accueil du mode Suivi (récupération,
+   ?mode=suivi), la première séance (écran « Crée ta séance »), l'accueil du mode Suivi (récupération,
    corps → exercices au choix), la séance sans charge proposée, le changement de mode dans Profil, et la
    carte unique des comptes d'avant.
    CAPTURES=dossier pour garder des captures (390 px de large). */
@@ -12,13 +12,6 @@ const CAP = process.env.CAPTURES;
 const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 const ok = (c, m) => { console.log(c ? "OK  " : "ÉCHEC", m); if (!c) process.exitCode = 1; };
 const errs = [];
-/* nouvelle séance en mode Suivi : la feuille « Ajouter un exercice » s'ouvre d'elle-même sur le corps */
-const fermerFeuille = async (pg) => {
-  const f = pg.getByRole("dialog", { name: "Ajouter un exercice" });
-  await f.getByRole("button", { name: /^Terminé/ }).waitFor({ timeout: 10000 });
-  await f.getByRole("button", { name: /^Terminé/ }).click();
-  await pg.waitForTimeout(500);
-};
 const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(700); await pg.screenshot({ path: `${CAP}/${nom}.png` }); } };
 const jour = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 async function contexte(etat, extra = {}) {
@@ -53,15 +46,12 @@ const avecSeances = (A) => ({
   const [ctx, pg] = await contexte(neuf, { "repere.source": "tiktok" });
   await pg.goto(U + "/entrainement/");
   await pg.waitForURL(/\/entrainement\/composer/, { timeout: 10000 });
-  /* premier utilisateur : le corps demande d'abord homme ou femme, puis montre les muscles */
-  const f0 = pg.getByRole("dialog", { name: "Ajouter un exercice" });
-  await f0.getByText("Sur quel corps afficher tes muscles ?").waitFor({ timeout: 10000 });
-  await cap(pg, "0-silhouette");
-  await f0.getByRole("button", { name: "Homme" }).click();
-  await f0.locator('svg[aria-label="Schéma du corps"]').first().waitFor();
-  ok(true, "nouvelle séance, premier utilisateur : homme ou femme, puis le corps");
-  await fermerFeuille(pg);
-  await pg.getByRole("heading", { name: "Comme dans ton carnet." }).waitFor();
+  /* première séance : un écran plein, sans feuille par-dessus ni question homme ou femme */
+  await pg.getByRole("heading", { name: "Crée ta séance" }).waitFor({ timeout: 10000 });
+  await pg.waitForTimeout(1200);
+  ok(await pg.getByRole("dialog", { name: "Ajouter un exercice" }).count() === 0 && await pg.getByText("Sur quel corps afficher tes muscles ?").count() === 0, "première séance : écran plein, ni feuille ni question homme ou femme");
+  ok(await pg.getByText("Choisis ton matériel disponible").count() === 1 && await pg.getByRole("dialog").count() === 0, "le matériel d'abord, et aucune visite ni bulle par-dessus");
+  await cap(pg, "0-premiere-seance");
   ok(await pg.getByText("Tu as déjà ton programme ?").count() === 0, "sans accès au Guidé : pas de question, la première séance directement");
   const A = await pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")).A);
   ok(A.mode === "suivi" && A.suiviSeul === true, "compte limité au mode Suivi");
@@ -88,18 +78,18 @@ const avecSeances = (A) => ({
   await cap(pg, "1-question");
   await dlg.getByRole("button", { name: "Continuer" }).click();
   await pg.waitForURL(/\/entrainement\/composer/);
-  /* le corps tout de suite (feuille « Ajouter un exercice ») ; « Terminé » la referme */
-  const feuille = pg.getByRole("dialog", { name: "Ajouter un exercice" });
-  await feuille.getByRole("button", { name: "Femme" }).click({ timeout: 8000 });
-  await feuille.locator('svg[aria-label="Schéma du corps"]').first().waitFor({ timeout: 8000 });
-  ok(await feuille.getByRole("tab", { name: "Liste d'exercices" }).count() === 1, "nouvelle séance : le corps directement, « Liste d'exercices » à côté");
-  await cap(pg, "2a-nouvelle-corps");
-  await feuille.getByRole("button", { name: /^Terminé/ }).click();
-  await pg.waitForTimeout(500);
-  await pg.getByRole("heading", { name: "Comme dans ton carnet." }).waitFor();
-  ok(await pg.getByText("Ta première séance").count() >= 1, "Suivi : pas de questionnaire, la première séance à écrire");
-  await pg.getByLabel("Nom de la séance").fill("Jambes");
+  /* « Crée ta séance » : le matériel, les muscles, les exercices courants à cocher */
+  await pg.getByRole("heading", { name: "Crée ta séance" }).waitFor({ timeout: 8000 });
+  await pg.getByRole("button", { name: "Quadriceps", exact: true }).click();
+  const quad = pg.locator('section[aria-label="Quadriceps"]');
+  await quad.waitFor();
+  ok(await quad.getByRole("checkbox").count() <= 6 && /Voir les \d+ autres/.test(await quad.innerText()), "les exercices courants d'abord (6 au plus), « Voir les autres »");
+  await quad.getByRole("checkbox", { name: /^Squat barre/ }).first().click();
   await cap(pg, "2-premiere-seance");
+  ok(await pg.getByRole("button", { name: "Commencer · 1 exercice" }).isEnabled(), "un exercice coché : « Commencer · 1 exercice »");
+  await pg.getByRole("button", { name: "Régler séries et repos avant" }).click();
+  await pg.getByRole("heading", { name: "Quadriceps", exact: true }).waitFor();
+  ok(await pg.getByText("Ta première séance").count() >= 1 && /1 exercice/i.test(await pg.getByText(/Ta séance · /).innerText()), "Suivi : pas de questionnaire ; la séance porte le nom de ses muscles");
   const A = await pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")).A);
   ok(A.mode === "suivi" && !A.accueil, "mode Suivi enregistré, profil sportif non demandé");
   await ctx.close();
@@ -228,6 +218,11 @@ const avecSeances = (A) => ({
 {
   const [ctx, pg] = await contexte({ ...avecSeances({ mode: "suivi" }), HIST: [], LOG: {} });
   await pg.goto(U + "/entrainement/");
+  /* elle ne démarre plus d'elle-même : le bouton « Découvrir l'app » la propose */
+  await pg.getByRole("button", { name: /^Découvrir l'app/ }).waitFor({ timeout: 8000 });
+  await pg.waitForTimeout(1500);
+  ok(await pg.getByText("Faire la visite · 30 s").count() === 0, "visite : pas de feuille qui s'ouvre toute seule");
+  await pg.getByRole("button", { name: /^Découvrir l'app/ }).click();
   await pg.getByText("Noter tes séances").waitFor({ timeout: 8000 });
   ok(await pg.getByText("Ta séance du jour, prête selon tes muscles récupérés").count() === 0, "visite Suivi : pas de séance du jour promise");
   await cap(pg, "8-visite-bienvenue");

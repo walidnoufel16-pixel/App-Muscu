@@ -8,12 +8,14 @@ import { loc, tr } from "@/lib/i18n";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { CaretRightIcon, PlusIcon } from "@phosphor-icons/react";
+import { CaretRightIcon, CompassIcon, PlusIcon } from "@phosphor-icons/react";
 import { Vignette } from "./exercice-carte";
 import { SemaineAnneaux } from "./accueil-entrainement";
 import { LigneRecuperation } from "./recuperation";
 import { CorpsDuJour } from "./corps-du-jour";
 import { lienRubrique } from "./rubriques";
+import { revoirVisite, useVisite } from "./visite";
+import { vueVisite } from "./visites";
 import type { Feuille } from "./agenda";
 import { EX } from "@/lib/data/exercices";
 import { nb } from "@/lib/logic/core";
@@ -100,9 +102,28 @@ export function AccueilSuivi({ auj, setF }: { auj: string; setF: (f: Feuille) =>
         </div>
       </section>
 
+      <BoutonVisite />
       {/* le corps : toucher des muscles propose leurs exercices pour composer sa séance */}
       <div className="mt-3"><CorpsDuJour visite="suivi-corps" titre={liste.length ? tr("Envie d'autre chose ? Choisis tes muscles du jour") : tr("Qu'est-ce que tu travailles aujourd'hui ?")} /></div>
     </>
+  );
+}
+
+/** « Découvrir l'app » : la visite guidée, proposée explicitement (elle ne démarre plus d'elle-même),
+    tant qu'elle n'a pas été faite. */
+function BoutonVisite() {
+  /* relu à la fin d'une visite (le composant se redessine alors), comme la pastille du menu */
+  useVisite((s) => s.etape);
+  if (vueVisite("decouvrir")) return null;
+  return (
+    <button onClick={() => { tactile(6); revoirVisite(); }} className="mt-3 flex w-full items-center gap-3 rounded-[20px] bg-card p-3 text-left active:scale-[.99]">
+      <span className="grid size-10 shrink-0 place-items-center rounded-[12px] bg-plate-soft text-plate-ink dark:text-plate"><CompassIcon className="size-5" weight="bold" /></span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[15.5px] font-semibold">{tr("Découvrir l'app")}</span>
+        <span className="block text-[12.5px] text-muted-foreground">{tr("Visite guidée · 30 s")}</span>
+      </span>
+      <CaretRightIcon className="size-4 shrink-0 text-muted-foreground" />
+    </button>
   );
 }
 

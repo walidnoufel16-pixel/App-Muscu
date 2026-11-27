@@ -7,11 +7,10 @@
    - sans Oxa Plan : la mise en route en 3 questions si le profil est vide, sinon « Ta séance du jour
      est prête », qui ouvre la séance proposée sur l'accueil ;
    - avec Oxa Plan : « Construisons ton programme » (ou « Ta séance du jour » s'il est déjà construit).
-   Elle démarre d'elle-même pour tout nouveau compte (sans Oxa Plan : après le questionnaire
-   d'accueil, dont elle saute la feuille de bienvenue), une seule fois (repere.visite) ; jamais
-   pendant une séance ni sur l'ancienne adresse. Revoir : menu ☰ › Aide.
+   Elle ne démarre plus d'elle-même : bouton « Découvrir l'app » sur l'accueil, et menu ☰ › Visites
+   guidées.
    Mode Suivi (docs/produit/mode-suivi) : sa propre visite (noter ses séances, récupération, le corps,
-   Repas réduit aux recettes, Progrès, Profil, Menu), qui démarre tant qu'aucune séance n'est faite,
+   Repas réduit aux recettes, Progrès, Profil, Menu),
    et finit sur la première séance (à écrire, ou la prochaine de Mes séances).
    Mini-visite : quand Oxa Plan s'ouvre plus tard pour un compte, une bulle unique sur sa tuile,
    une seule fois (repere.visite.plan). */
@@ -88,17 +87,9 @@ export function Visite() {
   const n = bulles.length, fin = etape !== null && etape > n;
   const besoinProfil = !A.miseEnRoute && !profilMinimal(A);
 
-  /* première ouverture d'un compte qui n'a encore rien fait : la visite démarre d'elle-même */
-  useEffect(() => {
-    /* sans Oxa Plan, le questionnaire d'accueil passe avant l'app (AppShell, accueil-premier.tsx) et
-       souhaite déjà la bienvenue : la visite commence alors directement aux bulles */
-    /* mode Suivi : pas de questionnaire avant (on arrive sur sa première séance à écrire) ; la visite
-       démarre sur l'accueil, avec sa feuille de bienvenue, tant qu'aucune séance n'est faite */
-    if (!pret || !pseudo || !(suivi ? jamais : neuf) || bilan || etape !== null || mini || ancienne) return;
-    if (!RACINE.test(chemin) || lu(CLE)) return;
-    const t = setTimeout(() => useVisite.setState({ etape: prog || suivi ? 0 : 1 }), 700);
-    return () => clearTimeout(t);
-  }, [pret, pseudo, neuf, jamais, suivi, bilan, etape, mini, chemin, ancienne, prog]);
+  /* La visite ne démarre plus d'elle-même (27/11/2026 : la feuille de bienvenue gênait l'arrivée sur
+     la première séance) : un bouton explicite « Découvrir l'app » la propose sur l'accueil
+     (accueil-suivi.tsx), et le menu › Visites guidées la relance. */
 
   /* Oxa Plan ouvert plus tard : une bulle sur sa tuile, une fois, tant que le programme n'est pas construit */
   useEffect(() => {

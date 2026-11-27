@@ -28,7 +28,8 @@ const cap = async (pg, nom) => { if (CAP) { await pg.waitForTimeout(900); await 
 const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier.state.v1")));
 
 {
-  /* Première séance sur l'appareil : la visite de la séance, 5 bulles posées sur la vraie séance */
+  /* Première séance sur l'appareil : une seule bulle, sur la validation de la série (la visite
+     complète reste dans le menu › Visites guidées) */
   const [ctx, pg] = await contexte(etat([PUSH]), null, true);
   await pg.goto(U + "/entrainement/seance?l=0");
   const bulle = pg.locator('[role="dialog"][aria-modal="true"]');
@@ -40,7 +41,7 @@ const etatLu = (pg) => pg.evaluate(() => JSON.parse(localStorage.getItem("palier
     await bulle.getByRole("button", { name: /^(Suivant|C'est parti)$/ }).click();
     await pg.waitForTimeout(450);
   }
-  ok(JSON.stringify(titres) === JSON.stringify(["Note ta série", "Valide-la", "Ajuste ton repos", "Remplace un exercice", "Regarde comment faire"]), "visite de la séance : " + titres.join(", "));
+  ok(JSON.stringify(titres) === JSON.stringify(["Touche ✓ quand ta série est faite"]), "visite de la séance, une bulle : " + titres.join(", "));
   await pg.reload();
   await pg.waitForTimeout(1800);
   ok(await bulle.count() === 0, "visite de la séance : une seule fois");
