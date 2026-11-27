@@ -190,16 +190,18 @@ class Etat {
 /// ch : kg, lest, aucune (poids du corps), temps, dist. eq : 0 machine · 1 barre · 2 haltères · 3 corps.
 class Exercice {
   final String n;
+  final String m; // muscles, texte libre
   final String ch;
   final String pat;
   final String? pat2;
   final int eq;
   final num d;
-  const Exercice(this.n, this.ch, {this.pat = '', this.pat2, this.eq = 0, this.d = 0});
+  const Exercice(this.n, this.ch, {this.m = '', this.pat = '', this.pat2, this.eq = 0, this.d = 0});
 
   factory Exercice.depuis(Map<String, dynamic> j) => Exercice(
         j['n'] as String? ?? '',
         j['ch'] as String? ?? 'kg',
+        m: j['m'] as String? ?? '',
         pat: j['pat'] as String? ?? '',
         pat2: j['pat2'] as String?,
         eq: (j['eq'] as num?)?.toInt() ?? 0,

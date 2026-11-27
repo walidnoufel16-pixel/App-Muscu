@@ -4,6 +4,7 @@
    - les cases KG / RÉPS préremplies avec la proposition : on valide d'une touche si on la suit,
      on corrige sinon. Première fois sur un exercice à charge : case KG vide ;
    - le minuteur de repos après chaque série validée ;
+   - toucher un exercice ouvre sa fiche (photos départ / fin animées, exécution, erreurs) ;
    - « Terminer la séance » range la séance dans le compte (historique et Progrès du site).
    Pas de « Comment tu te sens ? » ni d'effort conseillé (RPE) en mode Suivi. */
 import 'dart:async';
@@ -17,6 +18,7 @@ import '../donnees/compte.dart';
 import '../logique/charge.dart';
 import '../logique/mode.dart' show nb;
 import '../logique/modele.dart';
+import 'fiche.dart';
 import 'vignette.dart';
 
 num? _lire(String t) => num.tryParse(t.trim().replaceAll(',', '.'));
@@ -299,9 +301,18 @@ class _EcranSeanceState extends State<EcranSeance> {
       decoration: BoxDecoration(color: c.surfaceContainer, borderRadius: BorderRadius.circular(20)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Vignette(photo: _compte.photos[e.ex.id], taille: 48),
-          const SizedBox(width: 12),
-          Expanded(child: Text(e.x.n, style: const TextStyle(fontSize: 16.5, fontWeight: FontWeight.w700))),
+          /* toucher la photo ou le nom ouvre la fiche (animation du mouvement, exécution) */
+          Expanded(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () => ouvrirFiche(context, _compte, e.ex.id),
+              child: Row(children: [
+                Vignette(photo: _compte.photos[e.ex.id], taille: 48),
+                const SizedBox(width: 12),
+                Expanded(child: Text(e.x.n, style: const TextStyle(fontSize: 16.5, fontWeight: FontWeight.w700))),
+              ]),
+            ),
+          ),
           if (var_ != 0) _pastille('${var_ > 0 ? '↑' : '↓'} ${nb(var_.abs())} kg', c.primary.withValues(alpha: 0.16), c.secondary),
         ]),
         const SizedBox(height: 3),
