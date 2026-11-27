@@ -3,6 +3,10 @@
 // anthracite, les autres couleurs sont calmées, puis tout est exporté en AVIF.
 // Source : medias/originaux/*.jpg → public/img/*.avif. À relancer seulement si
 // le traitement change : node scripts/photos.mjs
+// Contre l'effet pixelisé (27/11/2026) : les JPEG d'origine ont des blocs de compression que
+// l'ancien réglage (renforcement de netteté, AVIF qualité 52) faisait ressortir sur les murs unis.
+// Un léger lissage d'abord, une netteté plus douce, et la qualité réglable (PHOTOS_Q, 60 par défaut ;
+// 75 pour les photos en grand).
 // Pour ne traiter que de nouvelles photos : node scripts/photos.mjs Nom_A Nom_B …
 import { readdirSync, mkdirSync, statSync } from "node:fs";
 import sharp from "sharp";
@@ -13,7 +17,7 @@ const OUT = process.env.PHOTOS_OUT || new URL("../public/img/", import.meta.url)
 mkdirSync(OUT, { recursive: true });
 
 async function studio(fichier) {
-  const { data, info } = await sharp(fichier).normalise({ lower: 1, upper: 99 }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const { data, info } = await sharp(fichier).blur(0.6).normalise({ lower: 1, upper: 99 }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const n = info.width * info.height, ch = info.channels, out = Buffer.alloc(n * 3);
   for (let i = 0; i < n; i++) {
     const r = data[i * ch] / 255, g = data[i * ch + 1] / 255, b = data[i * ch + 2] / 255;
@@ -26,7 +30,7 @@ async function studio(fichier) {
     const gr = 0.3 * r + 0.59 * g + 0.11 * b;
     for (const [c, v] of [[0, r], [1, g], [2, b]]) out[i * 3 + c] = Math.max(0, Math.min(255, (gr + (v - gr) * k) * sombre * 255));
   }
-  return sharp(out, { raw: { width: info.width, height: info.height, channels: 3 } }).linear(1.06, -4).sharpen({ sigma: 0.8 });
+  return sharp(out, { raw: { width: info.width, height: info.height, channels: 3 } }).linear(1.06, -4).sharpen({ sigma: 0.5 });
 }
 
 let avant = 0, apres = 0;
@@ -34,7 +38,7 @@ const seules = process.argv.slice(2);
 const liste = readdirSync(SRC).filter((f) => f.endsWith(".jpg") && (!seules.length || seules.some((n) => f.startsWith(n + "_"))));
 for (const f of liste) {
   const dest = OUT + f.replace(/\.jpg$/, ".avif");
-  await (await studio(SRC + f)).avif({ quality: 52, effort: 6 }).toFile(dest);
+  await (await studio(SRC + f)).avif({ quality: Number(process.env.PHOTOS_Q) || 60, effort: 6 }).toFile(dest);
   avant += statSync(SRC + f).size; apres += statSync(dest).size;
 }
 console.log(`${liste.length} photos : ${(avant / 1048576).toFixed(1)} Mo en JPEG → ${(apres / 1048576).toFixed(1)} Mo en AVIF`);

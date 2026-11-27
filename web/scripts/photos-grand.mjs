@@ -28,5 +28,5 @@ for (let i = 0; i < liste.length; i += 8) {
   }));
 }
 console.log(`${ok} originaux en 850 px téléchargés`);
-execFileSync("node", [new URL("./photos.mjs", import.meta.url).pathname], { stdio: "inherit", env: { ...process.env, PHOTOS_SRC: tmp + "/", PHOTOS_OUT: OUT } });
+execFileSync("node", [new URL("./photos.mjs", import.meta.url).pathname], { stdio: "inherit", env: { PHOTOS_Q: "75", ...process.env, PHOTOS_SRC: tmp + "/", PHOTOS_OUT: OUT } });
 rmSync(tmp, { recursive: true, force: true });

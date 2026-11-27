@@ -53,13 +53,27 @@ export const PHOTOS_EX: Record<string, { auteur: string; lien: string; us?: stri
   /* machines de Ma salle (leg extension, traîneau) : la photo de leur exercice */
   lext: { auteur: "eduardoonef", lien: "https://pixabay.com/photos/woman-gym-leg-day-exercise-fitness-7200528/" },
   trpush: { auteur: "tsquaredlab", lien: "https://pixabay.com/photos/trainer-gym-sled-training-fitness-7808159/" },
-  /* Unsplash : affichées depuis leurs serveurs (règles d'Unsplash, comme les machines et les recettes) */
-  fe: { auteur: "Walter O", lien: "https://unsplash.com/photos/EWV_N-B5GwY", us: "photo-1617085606353-75ba20310b8c" },
+  /* Unsplash : affichées depuis leurs serveurs (règles d'Unsplash, comme les machines et les recettes).
+     Fentes haltères et soulevé de terre (27/11/2026) reviennent aux démonstrations : leurs photos
+     montraient un visage, pas le mouvement. */
   pr: { auteur: "Jonathan Borba", lien: "https://unsplash.com/photos/JD6RMKGwSCQ", us: "photo-1571019613723-c7e5b75bd4c6" },
   pont: { auteur: "Margaret Young", lien: "https://unsplash.com/photos/Je4hwBwCWlQ", us: "photo-1767611086180-6b1176976371" },
-  sdt: { auteur: "Rodrigo Rodrigues | WOLF Λ R T", lien: "https://unsplash.com/photos/Q2sunZ-GwqU", us: "photo-1772450014713-19bc36041593" },
   sqpc: { auteur: "SUNDAY II SUNDAY", lien: "https://unsplash.com/photos/snM3yEpvklU", us: "photo-1649887974297-4be052375a67" },
 };
+/* Cadrage des vignettes carrées (27/11/2026) : la photo est plus large que haute et la vignette en
+   garde le centre ; quand la personne est sur un côté, elle était coupée ou absente. Position
+   horizontale de la vignette dans la photo, en % (0 = bord gauche, 100 = bord droit ; 50 par défaut),
+   relevée photo par photo. */
+const CADRAGE: Record<string, number> = {
+  dip: 70, dmh: 70, tp: 100, ra: 80, fp: 0, tpn: 100, tps: 20, lext: 35, rmf: 100, arn: 65,
+  nuq: 80, molA: 100, add: 90, molp: 0, pal: 100, russ: 80, fepc: 0, velo: 10, abd: 95,
+  stair: 75, elgm: 25, dmhd: 35, cuban: 80, rotp: 80, eloi: 100, tp1: 5, tbtc: 0, tps1: 35,
+  lext1: 100, addp: 80, buch: 35, crinvp: 20, rintel: 100, chd: 35, trxrows: 100, trxfp: 0,
+  trxlc: 80, trxfo: 20, trxpl: 70, dipan: 35, sautl: 5, trpull: 0,
+};
+/** Position de la vignette carrée dans la photo de l'exercice (CSS object-position), si elle n'est pas centrée. */
+export const cadrageEx = (id: string) => (CADRAGE[id] != null ? `${CADRAGE[id]}% 50%` : undefined);
+
 /** L'exercice a-t-il une illustration (duo de démonstration ou photo unique) ? */
 export const aUneImage = (id: string) => !!PHOTOS_EX[id] || !!EX[id]?.img;
 const SOURCE_EX: Partial<Record<string, CleSource>> = {
