@@ -1,11 +1,12 @@
 /* Mes séances (accueil du mode Suivi, comme web/components/repere/accueil-suivi.tsx) : la prochaine
    séance en grand avec « Commencer », puis les autres avec leur « Dernière fois ».
-   Toucher une séance l'ouvre (ecrans/seance.dart). */
+   Toucher une séance l'ouvre (ecrans/seance.dart) ; « Nouvelle séance » en crée une (ecrans/editer_seance.dart). */
 import 'package:material_ui/material_ui.dart';
 
 import '../donnees/compte.dart';
 import '../logique/mode.dart';
 import '../logique/modele.dart';
+import 'editer_seance.dart';
 import 'seance.dart';
 import 'vignette.dart';
 
@@ -23,6 +24,9 @@ class EcranMesSeances extends StatelessWidget {
         ..showSnackBar(const SnackBar(content: Text('Séance enregistrée. Bravo !')));
     }
   }
+
+  void _nouvelle(BuildContext context) =>
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => EcranEditerSeance(compte: compte)));
 
   @override
   Widget build(BuildContext context) {
@@ -68,8 +72,17 @@ class EcranMesSeances extends StatelessWidget {
                       enfant: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         const Text('Écris ta première séance', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
                         const SizedBox(height: 4),
-                        Text('Pour l\'instant, crée tes séances sur le site Oxa : elles apparaîtront ici.',
+                        Text('Choisis tes exercices : Oxa te proposera ta charge à chaque séance.',
                             style: TextStyle(fontSize: 14, height: 1.35, color: t.colorScheme.onSurfaceVariant)),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            onPressed: () => _nouvelle(context),
+                            icon: const Icon(Icons.add),
+                            label: const Text('Nouvelle séance'),
+                          ),
+                        ),
                       ]),
                     )
                   else
@@ -98,6 +111,15 @@ class EcranMesSeances extends StatelessWidget {
                           Icon(Icons.chevron_right, size: 20, color: t.colorScheme.onSurfaceVariant),
                         ]),
                       ),
+                    ),
+                  ],
+                  if (p != null) ...[
+                    const SizedBox(height: 16),
+                    OutlinedButton.icon(
+                      onPressed: () => _nouvelle(context),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Nouvelle séance'),
+                      style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
                     ),
                   ],
                 ],
