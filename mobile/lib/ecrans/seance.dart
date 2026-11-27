@@ -18,6 +18,7 @@ import '../donnees/compte.dart';
 import '../logique/charge.dart';
 import '../logique/mode.dart' show nb;
 import '../logique/modele.dart';
+import 'editer_seance.dart';
 import 'fiche.dart';
 import 'vignette.dart';
 
@@ -239,6 +240,28 @@ class _EcranSeanceState extends State<EcranSeance> {
     if (mounted) Navigator.pop(context, true);
   }
 
+  /// Modifier la séance (nom, exercices) ou la supprimer : on revient ensuite à « Mes séances »,
+  /// qui montre la nouvelle version. Une séance en cours sur ce téléphone repart de zéro.
+  Future<void> _modifierSeance() async {
+    if (_validees > 0) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (c) => AlertDialog(
+          title: const Text('Modifier la séance ?'),
+          content: const Text('Les séries déjà cochées aujourd\'hui ne seront pas gardées. Termine d\'abord la séance pour les enregistrer.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Annuler')),
+            TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Modifier')),
+          ],
+        ),
+      );
+      if (ok != true || !mounted) return;
+    }
+    final fait = await Navigator.of(context)
+        .push<bool>(MaterialPageRoute(builder: (_) => EcranEditerSeance(compte: _compte, i: widget.i)));
+    if (fait == true && mounted) Navigator.pop(context);
+  }
+
   @override
   void dispose() {
     _minuteur?.cancel();
@@ -257,6 +280,11 @@ class _EcranSeanceState extends State<EcranSeance> {
       appBar: AppBar(
         title: Text(_s.nom, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
         actions: [
+          IconButton(
+            tooltip: 'Modifier la séance',
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: _occupe ? null : _modifierSeance,
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: Center(

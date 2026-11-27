@@ -12,6 +12,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../logique/enregistrer.dart';
 import '../logique/mode.dart';
 import '../logique/modele.dart';
+import '../logique/seances.dart' as seances;
 import '../ecrans/vignette.dart' show Photo;
 import 'brouillon.dart';
 
@@ -153,6 +154,48 @@ class Compte extends ChangeNotifier {
       });
     } catch (e) {
       return 'Enregistrement impossible : vérifie ta connexion et réessaie. Ta séance est gardée sur ce téléphone.';
+    }
+  }
+
+  /// Ajoute une séance à « Mes séances ». Renvoie un message d'erreur, ou null si c'est fait.
+  Future<String?> creerSeance(String nom, List<String> ids) async {
+    try {
+      return await _modifier((doc) => seances.creerSeance(doc, nom, ids, catalogue));
+    } catch (e) {
+      return 'Enregistrement impossible : vérifie ta connexion et réessaie.';
+    }
+  }
+
+  /// Modifie la séance `i`, si elle n'a pas changé sur le site entre-temps (`signature`).
+  Future<String?> modifierSeance(int i, String signature, String nom, List<seances.ExModifie> ex) async {
+    try {
+      return await _modifier((doc) {
+        final actuel = Etat.depuis(doc);
+        if (i >= actuel.seances.length || actuel.seances[i]?.signature != signature) {
+          return 'Cette séance a été modifiée sur le site entre-temps. Rouvre-la pour repartir de la dernière version.';
+        }
+        return seances.modifierSeance(doc, i, nom, ex, catalogue);
+      });
+    } catch (e) {
+      return 'Enregistrement impossible : vérifie ta connexion et réessaie.';
+    }
+  }
+
+  /// Supprime la séance `i`, si elle n'a pas changé sur le site entre-temps (`signature`).
+  Future<String?> supprimerSeance(int i, String signature) async {
+    try {
+      final err = await _modifier((doc) {
+        final actuel = Etat.depuis(doc);
+        if (i >= actuel.seances.length || actuel.seances[i]?.signature != signature) {
+          return 'Cette séance a été modifiée sur le site entre-temps : suppression annulée.';
+        }
+        return seances.supprimerSeance(doc, i);
+      });
+      final uid = idUtilisateur;
+      if (err == null && uid != null) await Brouillons.oublier(uid, i);
+      return err;
+    } catch (e) {
+      return 'Suppression impossible : vérifie ta connexion et réessaie.';
     }
   }
 
