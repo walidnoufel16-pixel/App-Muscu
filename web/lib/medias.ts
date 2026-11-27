@@ -21,6 +21,12 @@ export const SOURCES = {
     lien: "https://pixabay.com/service/license-summary/",
     mention: tr("Photo · Pixabay · retouche Oxa"),
   },
+  pexels: {
+    nom: "Pexels",
+    licence: tr("Licence Pexels"),
+    lien: "https://www.pexels.com/license/",
+    mention: tr("Photo · Pexels"),
+  },
   unsplash: {
     nom: "Unsplash",
     licence: tr("Licence Unsplash"),
@@ -34,7 +40,7 @@ export type CleSource = keyof typeof SOURCES;
 /* Source des démonstrations de chaque exercice (free-exercise-db, sauf celles-ci). */
 /* Photos uniques (Pixabay, 20/11/2026) pour les exercices sans image ou qui empruntaient celle d'un
    autre : une seule photo au lieu du duo départ / fin. Originaux dans medias/pixabay. */
-export const PHOTOS_EX: Record<string, { auteur: string; lien: string; us?: string }> = {
+export const PHOTOS_EX: Record<string, { auteur: string; lien: string; us?: string; px?: true }> = {
   susp: { auteur: "JackieJoy", lien: "https://pixabay.com/photos/outdoors-people-sports-3334154/" },
   curlel: { auteur: "Pexels", lien: "https://pixabay.com/photos/man-indian-fit-fitness-gym-1868632/" },
   trxrows: { auteur: "tanjashaw", lien: "https://pixabay.com/photos/trx-row-workout-fitness-strength-1730331/" },
@@ -44,7 +50,6 @@ export const PHOTOS_EX: Record<string, { auteur: string; lien: string; us?: stri
      (originaux dans medias/etape2, medias/etape3 et medias/machines) */
   plat: { auteur: "HannahWells", lien: "https://pixabay.com/photos/plank-fitness-muscular-exercising-1327256/" },
   rw: { auteur: "karabulakastan", lien: "https://pixabay.com/photos/kettlebell-fitness-crossfit-fit-3293452/" },
-  sq: { auteur: "FabianoAdvertising", lien: "https://pixabay.com/photos/gym-lift-training-bodybuilding-3516208/" },
   gai: { auteur: "Anilsharma26", lien: "https://pixabay.com/photos/women-fitness-plank-pose-portrait-9421835/" },
   rh: { auteur: "eduardoonef", lien: "https://pixabay.com/photos/bodybuilder-exercise-gym-7200531/" },
   curlb: { auteur: "TotalShape", lien: "https://pixabay.com/photos/fitness-and-health-fitness-abs-5711489/" },
@@ -53,9 +58,14 @@ export const PHOTOS_EX: Record<string, { auteur: string; lien: string; us?: stri
   /* machines de Ma salle (leg extension, traîneau) : la photo de leur exercice */
   lext: { auteur: "eduardoonef", lien: "https://pixabay.com/photos/woman-gym-leg-day-exercise-fitness-7200528/" },
   trpush: { auteur: "tsquaredlab", lien: "https://pixabay.com/photos/trainer-gym-sled-training-fitness-7808159/" },
+  /* Pexels (27/11/2026, choisies par Walid) : des photos en portrait, posées entières sur un fond flou
+     (scripts/photos-pexels.mjs, originaux réduits dans medias/pexels). Le squat barre remplace sa
+     photo Pixabay. */
+  ...Object.fromEntries(["dc", "dh", "dhi", "chpm", "pecdk", "dmh", "pompk", "tr", "tp", "tps", "sq", "sqf", "smith", "gob", "fe", "bul"]
+    .map((id) => [id, { auteur: "Pexels", lien: "https://www.pexels.com", px: true as const }])),
   /* Unsplash : affichées depuis leurs serveurs (règles d'Unsplash, comme les machines et les recettes).
-     Fentes haltères et soulevé de terre (27/11/2026) reviennent aux démonstrations : leurs photos
-     montraient un visage, pas le mouvement. */
+     Soulevé de terre (27/11/2026) revient à la démonstration : sa photo montrait un visage, pas le
+     mouvement. */
   pr: { auteur: "Jonathan Borba", lien: "https://unsplash.com/photos/JD6RMKGwSCQ", us: "photo-1571019613723-c7e5b75bd4c6" },
   pont: { auteur: "Margaret Young", lien: "https://unsplash.com/photos/Je4hwBwCWlQ", us: "photo-1767611086180-6b1176976371" },
   sqpc: { auteur: "SUNDAY II SUNDAY", lien: "https://unsplash.com/photos/snM3yEpvklU", us: "photo-1649887974297-4be052375a67" },
@@ -65,7 +75,7 @@ export const PHOTOS_EX: Record<string, { auteur: string; lien: string; us?: stri
    horizontale de la vignette dans la photo, en % (0 = bord gauche, 100 = bord droit ; 50 par défaut),
    relevée photo par photo. */
 const CADRAGE: Record<string, number> = {
-  dip: 70, dmh: 70, tp: 100, ra: 80, fp: 0, tpn: 100, tps: 20, lext: 35, rmf: 100, arn: 65,
+  dip: 70, ra: 80, fp: 0, tpn: 100, lext: 35, rmf: 100, arn: 65,
   nuq: 80, molA: 100, add: 90, molp: 0, pal: 100, russ: 80, fepc: 0, velo: 10, abd: 95,
   stair: 75, elgm: 25, dmhd: 35, cuban: 80, rotp: 80, eloi: 100, tp1: 5, tbtc: 0, tps1: 35,
   lext1: 100, addp: 80, buch: 35, crinvp: 20, rintel: 100, chd: 35, trxrows: 100, trxfp: 0,
@@ -77,12 +87,13 @@ export const cadrageEx = (id: string) => (CADRAGE[id] != null ? `${CADRAGE[id]}%
 /** L'exercice a-t-il une illustration (duo de démonstration ou photo unique) ? */
 export const aUneImage = (id: string) => !!PHOTOS_EX[id] || !!EX[id]?.img;
 const SOURCE_EX: Partial<Record<string, CleSource>> = {
-  ...Object.fromEntries(Object.entries(PHOTOS_EX).map(([id, ph]) => [id, ph.us ? ("unsplash" as const) : ("pixabay" as const)])),
+  ...Object.fromEntries(Object.entries(PHOTOS_EX).map(([id, ph]) => [id, ph.us ? ("unsplash" as const) : ph.px ? ("pexels" as const) : ("pixabay" as const)])),
 };
 export const sourceEx = (id: string): Source => SOURCES[SOURCE_EX[id] ?? "fedb"];
 /** Photographe d'une photo unique d'exercice (Pixabay ou Unsplash). */
 export const auteurEx = (id: string) => {
   const ph = PHOTOS_EX[id];
+  if (ph?.px) return { nom: "Pexels", lien: ph.lien };
   return ph && { nom: tr(ph.us ? "{n} sur Unsplash" : "{n} sur Pixabay", { n: ph.auteur }), lien: ph.us ? ph.lien + UTM : ph.lien };
 };
 const usEx = (id: string, grand: boolean) =>
@@ -292,7 +303,7 @@ const PHOTOS_SEANCES: { nom: string; auteur: string; site: string; lien: string 
 export const CREDITS: { quoi: string; nom: string; licence: string; lien: string }[] = [
   ...Object.values(SOURCES).map((s) => ({ quoi: tr("Photos des exercices"), nom: s.nom, licence: s.licence, lien: s.lien })),
   /* chaque photographe des photos uniques d'exercice, avec un lien vers sa photo */
-  ...Object.keys(PHOTOS_EX).map((id) => ({ quoi: tr("Photo · {n}", { n: EX[id]?.n ?? id }), nom: auteurEx(id)!.nom, licence: tr(PHOTOS_EX[id].us ? "Licence Unsplash" : "Licence du contenu Pixabay"), lien: auteurEx(id)!.lien })),
+  ...Object.keys(PHOTOS_EX).map((id) => ({ quoi: tr("Photo · {n}", { n: EX[id]?.n ?? id }), nom: auteurEx(id)!.nom, licence: tr(PHOTOS_EX[id].us ? "Licence Unsplash" : PHOTOS_EX[id].px ? "Licence Pexels" : "Licence du contenu Pixabay"), lien: auteurEx(id)!.lien })),
   ...POSTES.filter((p) => PHOTOS_POSTES[p.id]).map((p) => {
     const ph = PHOTOS_POSTES[p.id];
     return { quoi: tr("Photo · {n}", { n: p.n }), nom: tr("{n} sur Unsplash", { n: ph.auteur }), licence: tr("Licence Unsplash"), lien: `https://unsplash.com/@${ph.profil}${UTM}` };
