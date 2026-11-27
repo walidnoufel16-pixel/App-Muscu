@@ -13,6 +13,7 @@ import '../logique/enregistrer.dart';
 import '../logique/inscription.dart';
 import '../logique/mode.dart';
 import '../logique/modele.dart';
+import '../logique/progres.dart' as progres;
 import '../logique/retirer.dart' as retirer;
 import '../logique/seances.dart' as seances;
 import '../ecrans/vignette.dart' show Photo;
@@ -310,6 +311,16 @@ class Compte extends ChangeNotifier {
       return await _modifier((doc) => retirer.retirerDeHistorique(doc, d, s));
     } catch (e) {
       return 'Retrait impossible : vérifie ta connexion et réessaie.';
+    }
+  }
+
+  /// Règle l'objectif de séances par semaine (A.objHebdo, 1 à 6), comme la feuille Objectif du site.
+  /// Le document est relu juste avant : seul l'objectif change.
+  Future<String?> reglerObjectif(int n) async {
+    try {
+      return await _modifier((doc) => progres.reglerObjectif(doc, n));
+    } catch (e) {
+      return 'Changement impossible : vérifie ta connexion et réessaie.';
     }
   }
 

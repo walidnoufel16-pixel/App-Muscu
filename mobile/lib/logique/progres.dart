@@ -1,7 +1,8 @@
 /* L'onglet Progrès en mode Suivi, logique pure. Reprise de web/lib/logic/historique.ts (semaines,
    séries par muscle, courbe, exercices faits, records), web/lib/logic/motivation.ts (objectif et série
    de semaines) et web/components/repere/progression-exercice.tsx (séries jour par jour, durée),
-   avec les mêmes cas de test. Tout se lit dans le document du compte (HIST, LOG), rien n'est écrit. */
+   avec les mêmes cas de test. Tout se lit dans le document du compte (HIST, LOG) ; seul l'objectif
+   de la semaine s'écrit (A.objHebdo, `reglerObjectif`). */
 import 'charge.dart';
 import 'mode.dart';
 import 'modele.dart';
@@ -18,6 +19,14 @@ int objectifHebdo(Map<String, dynamic> a) {
   if (o is num) return o.clamp(1, 6).toInt();
   if (socle is num) return socle.toInt() + 2;
   return 2;
+}
+
+/// Règle l'objectif de séances par semaine (1 à 6), comme la feuille Objectif du site : on part du
+/// document relu sur le serveur et seul A.objHebdo change.
+Map<String, dynamic> reglerObjectif(Map<String, dynamic> doc, int n) {
+  final a = Map<String, dynamic>.from((doc['A'] as Map?) ?? const {});
+  a['objHebdo'] = n.clamp(1, 6);
+  return {...doc, 'A': a};
 }
 
 /// Séances faites par semaine (lundi → nombre) : musculation, et cardio seul (un bloc d'une séance

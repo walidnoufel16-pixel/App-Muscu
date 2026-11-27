@@ -71,4 +71,26 @@ void main() {
     await t.pumpAndSettle();
     expect(find.text('Mardi 6 octobre'), findsOneWidget);
   });
+
+  testWidgets("« Objectif » : le joker du mois, le record et l'objectif réglable de 1 à 6", (t) async {
+    await t.pumpWidget(app(compteDe({
+      'A': {'objHebdo': 1},
+      'HIST': [
+        {'d': '2026-08-04', 's': 'L|0', 'ser': 4, 'ex': {}},
+        {'d': '2026-08-11', 's': 'L|0', 'ser': 4, 'ex': {}},
+        {'d': '2026-10-06', 's': 'L|0', 'ser': 4, 'ex': {}},
+      ],
+    })));
+    await t.tap(find.text('Objectif'));
+    await t.pumpAndSettle();
+    expect(find.text('Objectif de la semaine'), findsOneWidget);
+    expect(find.text('Joker du mois disponible'), findsOneWidget);
+    expect(find.text('Une semaine manquée par mois ne casse pas ta série. Record : 2 semaines.'), findsOneWidget);
+    final moins = find.bySemanticsLabel('Objectif : moins'), plus = find.bySemanticsLabel('Objectif : plus');
+    expect(t.widget<InkWell>(find.descendant(of: moins, matching: find.byType(InkWell))).onTap, isNull);
+    await t.tap(plus);
+    await t.pumpAndSettle();
+    // pas de session dans le test : rien n'est écrit, et on le dit
+    expect(find.text('Tu as été déconnecté. Reconnecte-toi pour continuer.'), findsOneWidget);
+  });
 }

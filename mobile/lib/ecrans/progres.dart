@@ -1,6 +1,7 @@
 /* Progrès en mode Suivi, comme web/app/progres (onglet « Mon évolution ») : la semaine (série de
    semaines, objectif, séries, calendrier), les muscles travaillés sur 7 jours, la progression par
-   exercice et les records. Lecture seule : tout vient du document du compte (logique/progres.dart).
+   exercice et les records. Tout vient du document du compte (logique/progres.dart) ; « Objectif »
+   règle les séances par semaine (A.objHebdo), avec le joker du mois et le record.
    Plus tard : cardio, poids du corps, défis et badges. */
 import 'dart:math' as math;
 
@@ -83,7 +84,21 @@ class _ContenuState extends State<_Contenu> {
       children: vide
           ? const [_Vide()]
           : [
-              _Section(titre: 'Cette semaine', enfants: [
+              _Section(
+                  titre: 'Cette semaine',
+                  action: TextButton.icon(
+                    onPressed: () => ouvrirObjectif(context, widget.compte, widget.auj),
+                    style: TextButton.styleFrom(
+                        foregroundColor: _encre(context),
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        minimumSize: const Size(0, 24),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                        textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    icon: const Icon(Icons.settings, size: 16),
+                    label: const Text('Objectif'),
+                  ),
+                  enfants: [
                 _Regularite(s: serieSemaines(e.hist, e.joursCardio, objectifHebdo(e.a), widget.auj)),
                 const SizedBox(height: 8),
                 _Series(h: e.hist, auj: widget.auj),
@@ -109,15 +124,16 @@ class _ContenuState extends State<_Contenu> {
 /* ---------------- éléments communs ---------------- */
 
 class _Section extends StatelessWidget {
-  const _Section({required this.titre, required this.enfants});
+  const _Section({required this.titre, required this.enfants, this.action});
   final String titre;
   final List<Widget> enfants;
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(top: 16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          _Eyebrow(titre),
+          _Eyebrow(titre, action: action),
           ...enfants,
         ]),
       );
@@ -202,14 +218,17 @@ class _Vide extends StatelessWidget {
 /* ---------------- la semaine ---------------- */
 
 class _Regularite extends StatelessWidget {
-  const _Regularite({required this.s});
+  const _Regularite({required this.s, this.regler});
   final SerieSemaines s;
+  /// Feuille Objectif : le joker du mois, le record et les boutons − / + (null : carte seule ;
+  /// la fonction reçoit le nouvel objectif, et n'est pas donnée pendant un enregistrement).
+  final _Regler? regler;
 
   @override
   Widget build(BuildContext context) {
     final fait = s.cetteSemaine >= s.objectif;
     final cases = math.max(s.objectif, math.min(s.cetteSemaine, 7));
-    return _Carte(
+    final haut = Padding(
       padding: const EdgeInsets.all(14),
       child: Row(children: [
         Container(
@@ -254,7 +273,166 @@ class _Regularite extends StatelessWidget {
         ),
       ]),
     );
+    final r = regler;
+    if (r == null) return _Carte(padding: EdgeInsets.zero, child: haut);
+    final s2 = Theme.of(context).colorScheme;
+    return _Carte(
+      padding: EdgeInsets.zero,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        haut,
+        Container(
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+          decoration: BoxDecoration(border: Border(top: BorderSide(color: s2.outline.withValues(alpha: 0.7)))),
+          child: Row(children: [
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [
+                  const Icon(Icons.verified_user, size: 16, color: _succes),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(s.jokerDispo ? 'Joker du mois disponible' : 'Joker du mois utilisé',
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                  ),
+                ]),
+                const SizedBox(height: 2),
+                Text(
+                  'Une semaine manquée par mois ne casse pas ta série.'
+                  '${s.record > s.semaines ? ' Record : ${s.record} semaine${_s(s.record)}.' : ''}',
+                  style: TextStyle(fontSize: 13, height: 1.35, color: _gris(context)),
+                ),
+              ]),
+            ),
+            const SizedBox(width: 12),
+            Semantics(
+              label: 'Objectif de séances par semaine',
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(color: _creux(context), borderRadius: BorderRadius.circular(999)),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  _BoutonRond(
+                      icone: Icons.remove,
+                      etiquette: 'Objectif : moins',
+                      onTap: r.changer != null && s.objectif > 1 ? () => r.changer!(s.objectif - 1) : null),
+                  SizedBox(
+                    width: 48,
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      Text('${s.objectif}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, height: 1)),
+                      Text('/ sem.', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w500, color: _gris(context))),
+                    ]),
+                  ),
+                  _BoutonRond(
+                      icone: Icons.add,
+                      etiquette: 'Objectif : plus',
+                      onTap: r.changer != null && s.objectif < 6 ? () => r.changer!(s.objectif + 1) : null),
+                ]),
+              ),
+            ),
+          ]),
+        ),
+        if (r.erreur != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+            child: Text(r.erreur!, style: TextStyle(fontSize: 13, color: s2.error)),
+          ),
+      ]),
+    );
   }
+}
+
+class _Regler {
+  const _Regler({this.changer, this.erreur});
+  final void Function(int n)? changer;
+  final String? erreur;
+}
+
+class _BoutonRond extends StatelessWidget {
+  const _BoutonRond({required this.icone, required this.etiquette, this.onTap});
+  final IconData icone;
+  final String etiquette;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        button: true,
+        label: etiquette,
+        child: Opacity(
+          opacity: onTap == null ? 0.4 : 1,
+          child: Material(
+            color: Theme.of(context).colorScheme.surfaceContainer,
+            shape: const CircleBorder(),
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: onTap,
+              child: SizedBox(width: 28, height: 28, child: Icon(icone, size: 14)),
+            ),
+          ),
+        ),
+      );
+}
+
+/// Feuille « Objectif de la semaine », comme le site : le nombre de séances qui compte pour la série,
+/// le joker du mois et le record. Chaque − / + s'écrit tout de suite dans le compte.
+Future<void> ouvrirObjectif(BuildContext context, Compte compte, String auj) => showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (c) => _FeuilleObjectif(compte: compte, auj: auj),
+    );
+
+class _FeuilleObjectif extends StatefulWidget {
+  const _FeuilleObjectif({required this.compte, required this.auj});
+  final Compte compte;
+  final String auj;
+
+  @override
+  State<_FeuilleObjectif> createState() => _FeuilleObjectifState();
+}
+
+class _FeuilleObjectifState extends State<_FeuilleObjectif> {
+  bool _occupe = false;
+  String? _erreur;
+
+  Future<void> _changer(int n) async {
+    setState(() {
+      _occupe = true;
+      _erreur = null;
+    });
+    final err = await widget.compte.reglerObjectif(n);
+    if (!mounted) return;
+    setState(() {
+      _occupe = false;
+      _erreur = err;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+        listenable: widget.compte,
+        builder: (context, _) {
+          final e = widget.compte.etat;
+          if (e == null) return const SizedBox(height: 120);
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+              child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  child: Text('Objectif de la semaine', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 2, 4, 12),
+                  child: Text('Le nombre de séances qui compte pour ta série, et le joker du mois.',
+                      style: TextStyle(fontSize: 13.5, color: _gris(context))),
+                ),
+                _Regularite(
+                  s: serieSemaines(e.hist, e.joursCardio, objectifHebdo(e.a), widget.auj),
+                  regler: _Regler(changer: _occupe ? null : _changer, erreur: _erreur),
+                ),
+              ]),
+            ),
+          );
+        },
+      );
 }
 
 class _Series extends StatelessWidget {

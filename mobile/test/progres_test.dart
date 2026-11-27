@@ -59,6 +59,26 @@ void main() {
       final t = serieSemaines([...semaine('2026-09-14', 2), ...semaine('2026-09-28', 2)], [], 2, auj);
       expect([t.semaines, t.jokers, t.jokerDispo], [2, ['2026-09-21'], true]);
     });
+    test('record : la meilleure série passée, même cassée depuis', () {
+      final h = [...semaine('2026-08-03', 2), ...semaine('2026-08-10', 2), ...semaine('2026-08-17', 2), ...semaine('2026-09-28', 2)];
+      final s = serieSemaines(h, [], 2, auj);
+      expect([s.semaines, s.record], [1, 3]);
+      expect(serieSemaines(h, [], 3, auj).record, 0);
+    });
+    test("régler l'objectif : seul A.objHebdo change, entre 1 et 6", () {
+      final doc = {
+        'A': {'mode': 'suivi', 'objHebdo': 3},
+        'HIST': [{'d': '2026-10-06', 's': 'L|0', 'ser': 4, 'ex': {}}],
+        'SEANCES': [],
+      };
+      final r = reglerObjectif(doc, 4);
+      expect(r['A'], {'mode': 'suivi', 'objHebdo': 4});
+      expect(r['HIST'], same(doc['HIST']));
+      expect(r['SEANCES'], same(doc['SEANCES']));
+      expect((doc['A'] as Map)['objHebdo'], 3); // le document relu n'est pas touché
+      expect(objectifHebdo(reglerObjectif(doc, 9)['A'] as Map<String, dynamic>), 6);
+      expect(objectifHebdo(reglerObjectif({}, 0)['A'] as Map<String, dynamic>), 1);
+    });
     test("le cardio seul compte, pas un bloc d'une séance combinée", () {
       final t = DateTime(2026, 10, 6, 10).millisecondsSinceEpoch;
       final e = Etat.depuis({
