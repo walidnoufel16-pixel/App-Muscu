@@ -50,7 +50,6 @@ export function AccueilPremier({ onFin }: { onFin: (etape: number) => void }) {
   const [connu, setConnu] = useState(false);
   /* « Tu as déjà ton programme ? » : tant que le mode n'est pas choisi */
   const [question, setQuestion] = useState(() => !useRepere.getState().etat.A.mode);
-  const [suivi, setSuivi] = useState(false);
   const autorise = useGuideAutorise();
   const fermer = () => {
     onFin(etape);
@@ -72,8 +71,9 @@ export function AccueilPremier({ onFin }: { onFin: (etape: number) => void }) {
     muter((E) => { E.A.mode = m; if (verrou) E.A.suiviSeul = true; });
     setQuestion(false);
     if (m === "guide") return;
-    /* « Comment as-tu connu Oxa ? » reste posée, puis la première séance */
-    if (demander) { setSuivi(true); setConnu(true); } else premiereSeance();
+    /* directement la première séance : « Comment as-tu connu Oxa ? » attend qu'elle soit faite
+       (CarteConnu sur l'accueil, une fois une séance faite) */
+    premiereSeance();
   };
   /* nouveau compte sans le mode Guidé : pas de question, la première séance du mode Suivi */
   const auto = useRef(false);
@@ -90,7 +90,7 @@ export function AccueilPremier({ onFin }: { onFin: (etape: number) => void }) {
           {/* la question seulement si le mode Guidé est ouvert pour ce compte ; sinon, Suivi directement */}
           {question && autorise && <ChoixMode choisir={choisir} />}
           {!question && etape === 0 && !connu && <Bienvenue suivant={() => (demander ? setConnu(true) : setEtape(1))} plusTard={fermer} />}
-          {!question && etape === 0 && connu && <Source suivant={() => { if (suivi) { premiereSeance(); return; } setConnu(false); setEtape(1); }} />}
+          {!question && etape === 0 && connu && <Source suivant={() => { setConnu(false); setEtape(1); }} />}
           {etape >= 1 && etape <= QUESTIONS.length && <Question i={etape} suivant={() => setEtape(etape + 1)} retour={() => setEtape(etape - 1)} />}
           {etape === QUESTIONS.length + 1 && <Avant48 suivant={() => setEtape(etape + 1)} retour={() => setEtape(etape - 1)} />}
           {etape === QUESTIONS.length + 2 && <Fin fermer={fermer} />}

@@ -2,9 +2,8 @@
 
 /* Visites guidées (21/11/2026), regroupées dans menu ☰ › Visites guidées :
    - « Découvrir l'app » : la visite générale (visite.tsx) ;
-   - « Créer ta séance » : 5 bulles sur l'écran de création, d'elle-même la première fois qu'une séance
-     a ses exercices ;
-   - « Ta séance » : 5 bulles sur la séance, d'elle-même à la première séance lancée.
+   - « Créer ta séance » : 5 bulles sur l'écran de création (depuis cette liste seulement) ;
+   - « Ta séance » : 5 bulles sur la séance ; d'elle-même, à la première séance, une seule bulle.
    Lancées depuis la liste, « Créer ta séance » et « Ta séance » s'ouvrent sur une démonstration
    (lib/demo.ts) : on essaie tout, rien n'est enregistré, l'état d'avant revient à la sortie.
    Les bulles sont celles de la visite générale (repères data-visite) ; un repère absent est sauté.
@@ -80,10 +79,16 @@ function VisiteBulles({ k, bulles, pret = true, force = false, onFin }: { k: Cle
   );
 }
 
+/* À la première séance, une seule bulle, sur le geste qui compte (27/11/2026 : cinq bulles d'affilée
+   gênaient) ; la visite complète reste dans le menu › Visites guidées, en démonstration. */
+const BULLE_PREMIERE: BulleDef = { cible: "seance-valider", k: () => tr("Ta séance"), t: () => tr("Touche ✓ quand ta série est faite"), d: () => tr("Le minuteur de repos se lance tout seul. Pour changer le poids ou les répétitions, touche le chiffre.") };
 export function VisiteSeance({ force }: { force?: boolean }) {
   const suivi = useRepere((s) => enSuivi(s.etat));
-  return <VisiteBulles k="seance" bulles={suivi ? BULLES_SEANCE_SUIVI : BULLES_SEANCE} force={force} />;
+  return force
+    ? <VisiteBulles k="seance" bulles={suivi ? BULLES_SEANCE_SUIVI : BULLES_SEANCE} force />
+    : <VisiteBulles k="seance" bulles={[BULLE_PREMIERE]} />;
 }
+/** Visite de l'écran de création : seulement lancée depuis le menu (démonstration). */
 export function VisiteCreer({ pret, force }: { pret: boolean; force?: boolean }) {
   const suivi = useRepere((s) => enSuivi(s.etat));
   return <VisiteBulles k="creer" bulles={suivi ? BULLES_CREER_SUIVI : BULLES_CREER} pret={pret} force={force} />;

@@ -50,7 +50,8 @@ export default function PageEntrainement() {
         <EnTete surtitre={date} titre={pseudo && pseudo !== "toi" ? tr("Salut {p} 👋", { p: pseudo }) : tr("Mes séances")} actions={<AvatarProfil />} />
         <div className={cn("flex flex-col gap-3 px-4", premiere && "entree")}>
           <AccueilSuivi auj={auj} setF={setF} />
-          <CarteConnu />
+          {/* « Comment as-tu connu Oxa ? » une fois une séance faite : avant, elle retardait la première */}
+          {!!etat.HIST?.length && <CarteConnu />}
         </div>
         <FeuillesAgenda f={f} setF={setF} auj={auj} />
         <FeuilleImport />
