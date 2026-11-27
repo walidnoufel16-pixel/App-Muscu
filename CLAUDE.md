@@ -15,3 +15,14 @@ Consignes de Walid, valables pour toutes les sessions. Réponses en français.
 
 ## Compte rendu
 - Court et en français simple : ce qui a changé pour l'utilisateur de l'app, ce qui a été vérifié, le lien de la PR et si elle est fusionnée.
+
+## Économiser l'utilisation
+Walid veut optimiser au maximum son utilisation de Claude.
+- Avant toute tâche lourde, le dire et proposer une version plus légère, puis attendre son accord.
+- Tâches lourdes : regarder beaucoup d'images (planches photo, captures, vérifications visuelles),
+  longues recherches web ou API, lancer des agents, grosses modifications sur plusieurs fichiers
+  avec tests/build/e2e, maquettes en plusieurs versions, conversations très longues.
+- Tâches légères : questions, avis courts, petites corrections ciblées, fusions, requêtes SQL simples.
+- Recherches de photos : ne pas monter de planche, donner tous les résultats bruts rangés par
+  exercice, il fait la sélection lui-même.
+- Suggérer une nouvelle conversation quand on change de sujet et que la conversation est longue.
