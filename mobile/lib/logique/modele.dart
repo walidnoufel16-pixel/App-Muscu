@@ -139,9 +139,11 @@ class LigneHist {
   final String nom;
   final int? ts;
   final num ser;
+  /// Durée de la séance en minutes, si elle a été chronométrée.
+  final num? min;
   final Map<String, List<num>> ex;
   final List<DetailEx> det;
-  const LigneHist({required this.d, required this.s, this.nom = '', this.ts, this.ser = 0, this.ex = const {}, this.det = const []});
+  const LigneHist({required this.d, required this.s, this.nom = '', this.ts, this.ser = 0, this.min, this.ex = const {}, this.det = const []});
 
   factory LigneHist.depuis(Map<String, dynamic> j) => LigneHist(
         d: j['d']?.toString() ?? '',
@@ -149,6 +151,7 @@ class LigneHist {
         nom: j['nom']?.toString() ?? '',
         ts: (j['ts'] as num?)?.toInt(),
         ser: _n(j['ser']),
+        min: j['min'] is num ? j['min'] as num : null,
         ex: {
           for (final e in ((j['ex'] as Map?) ?? const {}).entries)
             if (e.value is List) e.key.toString(): (e.value as List).map(_n).toList(),
