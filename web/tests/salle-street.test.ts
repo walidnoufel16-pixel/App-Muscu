@@ -79,7 +79,8 @@ describe("Ma salle", () => {
   });
   it("hors connexion : la liste des photos à garder ne contient que des photos Unsplash, sans doublon", () => {
     const l = photosDistantes();
-    expect(l.length).toBe(73 * 2 + 6 * 2 + 5 * 2);
+    /* 73 recettes, 6 machines, 3 exercices (fentes et soulevé de terre revenus aux démonstrations le 27/11/2026) */
+    expect(l.length).toBe(73 * 2 + 6 * 2 + 3 * 2);
     expect(new Set(l).size).toBe(l.length);
     for (const u of l) expect(u).toMatch(/^https:\/\/images\.unsplash\.com\/photo-/);
   });
