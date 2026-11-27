@@ -10,6 +10,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../logique/enregistrer.dart';
+import '../logique/inscription.dart';
 import '../logique/mode.dart';
 import '../logique/modele.dart';
 import '../logique/seances.dart' as seances;
@@ -49,6 +50,17 @@ class Compte extends ChangeNotifier {
   String pseudo = '';
   String? get idUtilisateur => _c.auth.currentUser?.id;
   String? get mail => _c.auth.currentUser?.email;
+  /// Compte sans adresse confirmée : il ne vit que sur ce téléphone (créé sans adresse, ou adresse pas encore confirmée).
+  bool get sansAdresse => _c.auth.currentUser != null && (mail == null || mail!.isEmpty);
+  String? _adresseDemandee;
+  /// L'adresse en attente de son code (rattachée à la création ou depuis Profil).
+  String? get adresseAConfirmer {
+    final n = _c.auth.currentUser?.newEmail;
+    return (n != null && n.isNotEmpty) ? n : _adresseDemandee;
+  }
+  /// Inscription en cours dans l'écran de connexion : le compte existe déjà, mais on reste sur l'écran
+  /// tant que l'adresse n'est pas confirmée ou remise à plus tard.
+  bool enInscription = false;
   /// Le mode Guidé ouvert par l'admin pour ce compte (ou compte admin), lu sur le serveur.
   bool guideOuvert = false;
   /// Compte limité au mode Suivi : arrivé après le verrou du site (A.suiviSeul) et mode Guidé pas
@@ -95,6 +107,97 @@ class Compte extends ChangeNotifier {
     } catch (e) {
       return messageErreur(e, contexte: 'code');
     }
+  }
+
+  /// Crée le compte, comme « Créer mon compte » sur le site : connexion sans mot de passe, document du
+  /// compte rangé dans « etats » (mode Suivi, Mes séances vide), puis l'adresse rattachée si elle est
+  /// donnée (un code part tout de suite). Renvoie un message d'erreur, ou null. Un avertissement
+  /// éventuel (adresse pas rattachée) est dans [avertissement].
+  Future<String?> creerCompte(String pseudoSaisi, String mailSaisi) async {
+    final p = pseudoPropre(pseudoSaisi);
+    final m = mailSaisi.trim().toLowerCase();
+    final err = erreurInscription(p, m, valideMail);
+    if (err != null) return err;
+    avertissement = null;
+    enInscription = true;
+    try {
+      final r = await _c.auth.signInAnonymously();
+      if (r.user == null) throw const AuthException('anonyme');
+    } catch (e) {
+      enInscription = false;
+      final t = messageErreur(e, contexte: 'connexion');
+      return t.startsWith('Envoi impossible') ? "Le serveur n'accepte pas de nouveau compte pour l'instant. Réessaie un peu plus tard." : t;
+    }
+    final doc = documentNouveauCompte();
+    try {
+      await _c.from('etats').upsert({
+        'user_id': _c.auth.currentUser!.id,
+        'pseudo': p,
+        'etat': doc,
+        'maj': DateTime.now().toUtc().toIso8601String(),
+        'source': 'appli',
+      });
+    } catch (e) {
+      /* Sans document, le compte serait vide partout : on referme la session pour repartir proprement. */
+      enInscription = false;
+      try {
+        await _c.auth.signOut();
+      } catch (_) {}
+      return 'Création impossible : vérifie ta connexion et réessaie.';
+    }
+    etat = Etat.depuis(doc);
+    pseudo = p;
+    guideOuvert = false;
+    if (m.isNotEmpty) avertissement = await rattacherAdresse(m);
+    if (adresseAConfirmer == null) enInscription = false;
+    notifyListeners();
+    return null;
+  }
+
+  /// Message à montrer une fois le compte créé (adresse pas rattachée), ou null.
+  String? avertissement;
+
+  /// Rattache une adresse au compte : un code à six chiffres y est envoyé. Renvoie un message d'erreur, ou null.
+  Future<String?> rattacherAdresse(String mailSaisi) async {
+    final m = mailSaisi.trim().toLowerCase();
+    if (!valideMail(m)) return "Cette adresse n'a pas l'air valide.";
+    try {
+      await _c.auth.updateUser(UserAttributes(email: m));
+      _adresseDemandee = m;
+      notifyListeners();
+      return null;
+    } catch (e) {
+      if (RegExp(r'already|registered|exists', caseSensitive: false).hasMatch(e is AuthException ? e.message : '$e')) {
+        return 'Cette adresse est déjà celle d\'un autre compte Oxa. Pour l\'ouvrir, déconnecte-toi puis « J\'ai déjà un compte ».';
+      }
+      return "Ton compte est créé, mais l'adresse n'a pas pu y être rattachée. Tu peux réessayer depuis Profil.";
+    }
+  }
+
+  /// Confirme l'adresse avec le code reçu (comme SaisieCodeMail du site). Renvoie un message d'erreur, ou null.
+  Future<String?> confirmerAdresse(String code) async {
+    final m = adresseAConfirmer;
+    final k = code.replaceAll(RegExp(r'\D'), '');
+    if (m == null) return 'Aucune adresse à confirmer.';
+    if (k.length != 6) return 'Le code fait six chiffres.';
+    try {
+      await _c.auth.verifyOTP(email: m, token: k, type: OtpType.emailChange);
+      try {
+        await _c.auth.refreshSession();
+      } catch (_) {}
+      _adresseDemandee = null;
+      enInscription = false;
+      notifyListeners();
+      return null;
+    } catch (e) {
+      return messageErreur(e, contexte: 'code');
+    }
+  }
+
+  /// Fin de l'inscription sans confirmer l'adresse : le code reste à saisir dans Profil.
+  void finirInscription() {
+    enInscription = false;
+    notifyListeners();
   }
 
   /// Relit l'état du compte sur le serveur.
@@ -239,6 +342,9 @@ class Compte extends ChangeNotifier {
     etat = null;
     pseudo = '';
     guideOuvert = false;
+    enInscription = false;
+    _adresseDemandee = null;
+    avertissement = null;
     notifyListeners();
   }
 }

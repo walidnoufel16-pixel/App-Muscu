@@ -1,5 +1,5 @@
 /* Oxa, l'appli mobile (iOS et Android). Première version : le mode Suivi, branché sur le même
-   compte Supabase que le site. Connexion par code, puis les trois onglets : Séances, Progrès, Profil. */
+   compte Supabase que le site. Création du compte ou connexion par code, puis les trois onglets : Séances, Progrès, Profil. */
 import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -30,8 +30,13 @@ class AppOxa extends StatelessWidget {
       darkTheme: themeOxa(Brightness.dark),
       home: StreamBuilder(
         stream: compte.changements,
-        builder: (context, _) =>
-            compte.session == null ? EcranConnexion(compte: compte) : EcranAccueil(compte: compte),
+        /* Pendant l'inscription, le compte existe déjà mais on reste sur l'écran jusqu'au code de l'adresse. */
+        builder: (context, _) => ListenableBuilder(
+          listenable: compte,
+          builder: (context, _) => compte.session == null || compte.enInscription
+              ? EcranConnexion(compte: compte)
+              : EcranAccueil(compte: compte),
+        ),
       ),
     );
   }

@@ -1,10 +1,12 @@
-/* Profil (comme web/app/profil, en plus court) : le pseudo et l'adresse du compte, le mode
+/* Profil (comme web/app/profil, en plus court) : le pseudo et l'adresse du compte (à ajouter ou
+   confirmer pour un compte créé sans), le mode
    Suivi / Guidé, les crédits des photos, la déconnexion et la suppression du compte (demandée par
    Apple pour toute appli où l'on a un compte). */
 import 'package:material_ui/material_ui.dart';
 
 import '../donnees/compte.dart';
 import '../logique/mode.dart';
+import 'adresse.dart';
 import 'credits.dart';
 
 class EcranProfil extends StatefulWidget {
@@ -59,10 +61,11 @@ class _EcranProfilState extends State<EcranProfil> {
     final adresse = compte.mail;
     final ok = await _confirmer(
       'Se déconnecter ?',
-      adresse == null || adresse.isEmpty
-          ? 'Tes données restent sur ton compte.'
+      compte.sansAdresse
+          ? 'Ton compte n\'a pas d\'adresse confirmée : une fois déconnecté, tu ne pourras plus y revenir, ni ici ni sur le site. Ajoute d\'abord ton adresse.'
           : 'Tes données restent sur le compte $adresse. Pour y revenir, il suffira de saisir cette adresse et le code reçu par e-mail.',
       'Se déconnecter',
+      danger: compte.sansAdresse,
     );
     if (ok) await compte.deconnecter();
   }
@@ -154,6 +157,23 @@ class _EcranProfilState extends State<EcranProfil> {
                 ),
               ],
               const _Surtitre('COMPTE'),
+              if (compte.sansAdresse) ...[
+                _Bloc(enfants: [
+                  _Ligne(
+                    texte: compte.adresseAConfirmer == null ? 'Ajouter mon adresse' : 'Confirmer mon adresse',
+                    icone: Icons.mail_outline,
+                    auToucher: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => EcranAdresse(compte: compte))),
+                  ),
+                ]),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 8, 4, 16),
+                  child: Text(
+                    compte.adresseAConfirmer == null
+                        ? 'Sans adresse, ton compte ne vit que sur ce téléphone. Avec, tu le retrouves sur le site et sur un autre téléphone.'
+                        : 'Le code a été envoyé à ${compte.adresseAConfirmer}.',
+                    style: TextStyle(fontSize: 12.5, height: 1.35, color: gris)),
+                ),
+              ],
               _Bloc(enfants: [
                 _Ligne(
                   texte: 'Crédits des photos',

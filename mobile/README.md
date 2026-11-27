@@ -3,7 +3,12 @@
 L'appli iOS et Android d'Oxa. À terme, elle remplace l'appli web ; le site reste une vitrine
 avec les liens vers l'App Store et le Play Store.
 
-**Version actuelle : mode Suivi.** Connexion par code reçu par mail (comptes du site), « Mes
+**Version actuelle : mode Suivi.** « Créer mon compte » comme sur le site : un surnom et une adresse
+facultative, compte créé sans mot de passe (connexion anonyme), l'adresse confirmée par un code
+(`lib/logique/inscription.dart`, `ecrans/adresse.dart`, aussi depuis Profil pour un compte sans adresse).
+Le document rangé à la création est celui du site : mode Suivi verrouillé (`A.suiviSeul`), accueil du site
+passé, Mes séances vide ; le compte marche aussi sur le site.
+« J'ai déjà un compte » : connexion par code reçu par mail (comptes du site), « Mes
 séances » (prochaine séance, dernière fois), puis la séance : charge proposée et pourquoi,
 précédent, record, séries à cocher, minuteur de repos. « Terminer la séance » range la séance
 dans le compte, comme le site (journaux dans LOG, ligne du jour dans HIST) : elle apparaît dans
