@@ -328,7 +328,7 @@ export default function PageComposer() {
     return (
       <>
         <PremiereSeance
-          sel={sel} materiel={materiel} muscles={L.muscles ?? []} setMuscles={(m) => majLibre((l) => { l.muscles = m; })}
+          sel={selB ? selFeuille : sel} setSel={setSel} muscles={L.muscles ?? []} setMuscles={(m) => majLibre((l) => { l.muscles = m; })}
           pris={pris} basculer={basculer} ajouter={(o) => { if (!pris(o)) basculer(o); }} nb={L.ex.length}
           onFiche={(id) => setFiche({ id, idx: -1, pres: [3, 10, tr("90 s")], libelle: tr("bibliothèque") })}
           onCommencer={() => void enregistrer(true, true)} onDetail={() => setChoix(false)}

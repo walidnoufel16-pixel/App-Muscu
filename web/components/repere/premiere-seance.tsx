@@ -15,7 +15,7 @@ import { Vignette } from "./exercice-carte";
 import { ListeRecherche, parRole } from "./bibliotheque";
 import { exosParMuscle } from "./bibliotheque-muscles";
 import { EX } from "@/lib/data/exercices";
-import { MUSC } from "@/lib/data/referentiels";
+import { MUSC, TYPES } from "@/lib/data/referentiels";
 import { exoFiltre } from "@/lib/logic/core";
 import { tactile } from "@/lib/repos";
 import { cn } from "@/lib/utils";
@@ -48,10 +48,10 @@ export function exosCourants(k: string, sel: string[]) {
 
 const nomDe = (k: string) => MUSC.find((g) => g.k === k)?.n ?? k;
 
-export function PremiereSeance({ sel, materiel, muscles, setMuscles, pris, basculer, ajouter, onFiche, nb, onCommencer, onDetail }: {
+export function PremiereSeance({ sel, setSel, muscles, setMuscles, pris, basculer, ajouter, onFiche, nb, onCommencer, onDetail }: {
+  /* le matériel coché (celui du Profil au départ) */
   sel: string[];
-  /* la ligne « Matériel » repliable du composeur */
-  materiel: React.ReactNode;
+  setSel: (s: string[]) => void;
   muscles: string[];
   setMuscles: (m: string[]) => void;
   pris: (o: string) => boolean;
@@ -69,12 +69,24 @@ export function PremiereSeance({ sel, materiel, muscles, setMuscles, pris, bascu
   const choisis = MUSCLES_PREMIERE.filter((k) => muscles.includes(k));
   return (
     <>
-      <EnTete surtitre={tr("Ta première séance")} titre={tr("Tu travailles quoi ?")} gauche={<Retour repli="/entrainement" />} />
+      <EnTete surtitre={tr("Ta première séance")} titre={tr("Crée ta séance")} gauche={<Retour repli="/entrainement" />} />
       <div className="flex flex-col gap-4 px-4 pb-44">
-        <p className="-mt-2 px-1 text-[15px] leading-snug text-muted-foreground">{tr("Touche tes muscles, puis coche tes exercices.")}</p>
-        {/* le matériel d'abord : les exercices proposés en dépendent */}
-        {materiel}
-        <div role="group" aria-label={tr("Muscles")} className="flex flex-wrap gap-2">
+        <p className="-mt-2 px-1 text-[15px] leading-snug text-muted-foreground">{tr("Ton matériel, tes muscles, puis coche tes exercices.")}</p>
+        {/* le matériel d'abord, en entier : les exercices proposés en dépendent */}
+        <h2 className="px-1 text-[19px] font-bold">{tr("Choisis ton matériel disponible")}</h2>
+        <div role="group" aria-label={tr("Matériel disponible")} className="-mt-2 flex flex-wrap gap-2">
+          {TYPES.map(([t, n]) => {
+            const on = sel.includes(t);
+            return (
+              <button key={t} aria-pressed={on} onClick={() => { tactile(6); setSel(on ? sel.filter((x) => x !== t) : [...sel, t]); }}
+                className={cn("flex h-10 items-center gap-1.5 rounded-full border-[1.5px] px-3.5 text-[14.5px] font-semibold active:scale-[.97]", on ? "border-foreground bg-foreground text-background" : "border-border bg-card")}>
+                {on && <CheckIcon className="size-3.5" weight="bold" />}{tr(n)}
+              </button>
+            );
+          })}
+        </div>
+        <h2 className="mt-2 px-1 text-[19px] font-bold">{tr("Tu travailles quoi ?")}</h2>
+        <div role="group" aria-label={tr("Muscles")} className="-mt-2 flex flex-wrap gap-2">
           {MUSCLES_PREMIERE.map((k) => {
             const on = muscles.includes(k);
             return (
@@ -86,7 +98,11 @@ export function PremiereSeance({ sel, materiel, muscles, setMuscles, pris, bascu
           })}
         </div>
 
-        {!choisis.length && (
+        {!sel.some((t) => !t.startsWith("x:")) ? (
+          <p className="flex items-center gap-2 rounded-2xl bg-plate-soft px-3.5 py-3 text-[14px] font-semibold text-plate-ink dark:text-plate">
+            <HandPointingIcon className="size-5 shrink-0 -rotate-12" weight="fill" />{tr("Sélectionne au moins un matériel pour voir des exercices.")}
+          </p>
+        ) : !choisis.length && (
           <p className="flex items-center gap-2 rounded-2xl bg-plate-soft px-3.5 py-3 text-[14px] font-semibold text-plate-ink dark:text-plate">
             <HandPointingIcon className="size-5 shrink-0 -rotate-12" weight="fill" />{tr("Touche un muscle pour voir ses exercices.")}
           </p>

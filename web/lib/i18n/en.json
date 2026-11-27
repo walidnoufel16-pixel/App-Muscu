@@ -3646,7 +3646,6 @@
   "Abdos et bas du dos : en fin de séance": "Abs and lower back: at the end of the workout",
   "Visite guidée · 30 s": "Guided tour · 30 s",
   "Tu travailles quoi ?": "What are you training?",
-  "Touche tes muscles, puis coche tes exercices.": "Tap your muscles, then tick your exercises.",
   "Moins d'exercices": "Fewer exercises",
   "Voir les {n} autres": "See the {n} others",
   "Chercher un exercice": "Search for an exercise",
@@ -3656,5 +3655,8 @@
   "Coche au moins un exercice": "Tick at least one exercise",
   "Régler séries et repos avant": "Set sets and rest first",
   "Touche ✓ quand ta série est faite": "Tap ✓ when your set is done",
-  "Le minuteur de repos se lance tout seul. Pour changer le poids ou les répétitions, touche le chiffre.": "The rest timer starts on its own. To change the weight or reps, tap the number."
+  "Le minuteur de repos se lance tout seul. Pour changer le poids ou les répétitions, touche le chiffre.": "The rest timer starts on its own. To change the weight or reps, tap the number.",
+  "Crée ta séance": "Build your workout",
+  "Choisis ton matériel disponible": "Choose your available equipment",
+  "Ton matériel, tes muscles, puis coche tes exercices.": "Your equipment, your muscles, then tick your exercises."
 }
