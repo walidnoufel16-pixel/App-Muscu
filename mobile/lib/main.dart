@@ -1,11 +1,11 @@
 /* Oxa, l'appli mobile (iOS et Android). Première version : le mode Suivi, branché sur le même
-   compte Supabase que le site. Connexion par code, puis « Mes séances ». */
+   compte Supabase que le site. Connexion par code, puis les trois onglets : Séances, Progrès, Profil. */
 import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'donnees/compte.dart';
 import 'ecrans/connexion.dart';
-import 'ecrans/mes_seances.dart';
+import 'ecrans/accueil.dart';
 import 'theme.dart';
 
 Future<void> main() async {
@@ -31,7 +31,7 @@ class AppOxa extends StatelessWidget {
       home: StreamBuilder(
         stream: compte.changements,
         builder: (context, _) =>
-            compte.session == null ? EcranConnexion(compte: compte) : EcranMesSeances(compte: compte),
+            compte.session == null ? EcranConnexion(compte: compte) : EcranAccueil(compte: compte),
       ),
     );
   }

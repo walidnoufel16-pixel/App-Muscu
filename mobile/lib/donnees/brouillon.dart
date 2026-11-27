@@ -76,4 +76,14 @@ class Brouillons {
       await p.remove(_cle(uid, i));
     } catch (_) {}
   }
+
+  /// Oublie toutes les séances en cours d'un compte (compte supprimé).
+  static Future<void> toutOublier(String uid) async {
+    try {
+      final p = await SharedPreferences.getInstance();
+      for (final k in p.getKeys().where((k) => k.startsWith('seance-en-cours:$uid:')).toList()) {
+        await p.remove(k);
+      }
+    } catch (_) {}
+  }
 }
