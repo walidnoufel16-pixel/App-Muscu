@@ -172,7 +172,7 @@ class Etat {
   factory Etat.depuis(Map<String, dynamic>? j) {
     if (j == null) return const Etat();
     return Etat(
-      cycle: j['FINI'] != null || j['PLAN'] != null,
+      cycle: j['PLAN'] != null || j['FINI'] == true,
       a: Map<String, dynamic>.from((j['A'] as Map?) ?? const {}),
       seances: ((j['SEANCES'] as List?) ?? const [])
           .map<SeanceLibre?>((s) => s is Map ? SeanceLibre.depuis(Map<String, dynamic>.from(s)) : null)
