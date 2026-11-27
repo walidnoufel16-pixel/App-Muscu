@@ -3,12 +3,16 @@
 L'appli iOS et Android d'Oxa. À terme, elle remplace l'appli web ; le site reste une vitrine
 avec les liens vers l'App Store et le Play Store.
 
-**Version actuelle : mode Suivi, lecture seule.** Connexion par code reçu par mail (comptes du
-site), puis « Mes séances » avec la prochaine séance et la dernière fois. Rien n'est encore écrit
-dans le compte : la séance en cours arrive à l'étape suivante.
+**Version actuelle : mode Suivi.** Connexion par code reçu par mail (comptes du site), « Mes
+séances » (prochaine séance, dernière fois), puis la séance : charge proposée et pourquoi,
+précédent, record, séries à cocher, minuteur de repos. « Terminer la séance » range la séance
+dans le compte, comme le site (journaux dans LOG, ligne du jour dans HIST) : elle apparaît dans
+Progrès sur le site. La séance en cours est gardée sur le téléphone jusqu'à la fin.
 
 - Même projet Supabase que le site : table `etats`, un document JSON par compte.
-- `lib/logique/` : logique pure, reprise de `web/lib/logic/` avec les mêmes cas de test.
+- `lib/logique/` : logique pure, reprise de `web/lib/logic/` avec les mêmes cas de test
+  (`mode.ts`, la charge proposée de `core.ts`, l'historique de `historique.ts`).
+- Pour écrire, l'appli relit le document du compte juste avant et n'y ajoute que la séance faite.
 - `assets/exercices.json` : copie du catalogue du site, à régénérer après chaque changement :
   `node outils/exporter-exercices.mjs` (la CI vérifie qu'elle est à jour).
 

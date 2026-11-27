@@ -1,6 +1,9 @@
 /* Les données du compte, telles que le site les range dans Supabase (table « etats », colonne
    « etat », un seul document JSON par compte). Reprise de web/lib/logic/types.ts et historique.ts :
-   on ne lit ici que ce dont le mode Suivi a besoin, le reste du document est gardé tel quel. */
+   on ne lit ici que ce dont le mode Suivi a besoin. Pour écrire, l'appli part toujours du document
+   brut (voir enregistrer.dart) : les champs qu'elle ne connaît pas restent tels quels. */
+
+num _n(Object? x) => x is num ? x : 0;
 
 /// Un exercice d'une séance : identifiant du catalogue, séries, répétitions, repos.
 class ExLibre {
@@ -25,7 +28,12 @@ class SeanceLibre {
   final String? soin;
   final String? street;
   final bool auto;
-  const SeanceLibre({required this.nom, this.ex = const [], this.soin, this.street, this.auto = false});
+  final num? obj;
+  const SeanceLibre({required this.nom, this.ex = const [], this.soin, this.street, this.auto = false, this.obj});
+
+  /// Ce qui identifie la séance : son nom et ses exercices. Sert à vérifier, au moment
+  /// d'enregistrer, que la séance n'a pas été modifiée ou déplacée sur le site entre-temps.
+  String get signature => '$nom|${ex.map((e) => e.id).join(',')}';
 
   factory SeanceLibre.depuis(Map<String, dynamic> j) => SeanceLibre(
         nom: j['nom']?.toString() ?? '',
@@ -36,28 +44,117 @@ class SeanceLibre {
         soin: j['soin'] as String?,
         street: j['street'] as String?,
         auto: j['auto'] == true,
+        obj: (j['obj'] as num?) ?? ((j['gen'] as Map?)?['obj'] as num?),
       );
 }
 
+/// Une série : charge (kg), répétitions (poids du corps), secondes ou mètres dans `v`.
+class Serie {
+  num v;
+  num reps;
+  bool? ok;
+  num? lest;
+  Serie({required this.v, required this.reps, this.ok, this.lest});
+
+  factory Serie.depuis(Map<String, dynamic> j) =>
+      Serie(v: _n(j['v']), reps: _n(j['reps']), ok: j['ok'] as bool?, lest: j['lest'] is num ? j['lest'] as num : null);
+
+  Map<String, dynamic> versJson() => {'v': v, 'reps': reps, if (ok != null) 'ok': ok, if (lest != null) 'lest': lest};
+}
+
+/// Le journal d'un exercice (une entrée de LOG).
+class Journal {
+  bool done;
+  num? v;
+  num? reps;
+  int? nb;
+  int? feel;
+  String ex;
+  int ts;
+  String? why;
+  List<Serie> series;
+  bool lest;
+  Journal({
+    required this.ex,
+    required this.series,
+    this.done = false,
+    this.v,
+    this.reps,
+    this.nb,
+    this.feel,
+    this.ts = 0,
+    this.why,
+    this.lest = false,
+  });
+
+  factory Journal.depuis(Map<String, dynamic> j) => Journal(
+        ex: j['ex']?.toString() ?? '',
+        done: j['done'] == true,
+        v: j['v'] as num?,
+        reps: j['reps'] as num?,
+        nb: (j['nb'] as num?)?.toInt(),
+        feel: (j['feel'] as num?)?.toInt(),
+        ts: (j['ts'] as num?)?.toInt() ?? 0,
+        why: j['why'] as String?,
+        lest: j['lest'] == true,
+        series: ((j['series'] as List?) ?? const [])
+            .whereType<Map>()
+            .map((s) => Serie.depuis(Map<String, dynamic>.from(s)))
+            .toList(),
+      );
+
+  Map<String, dynamic> versJson() => {
+        'done': done,
+        if (v != null) 'v': v,
+        if (reps != null) 'reps': reps,
+        if (nb != null) 'nb': nb,
+        'feel': feel,
+        'ex': ex,
+        'ts': ts,
+        if (why != null) 'why': why,
+        'series': series.map((s) => s.versJson()).toList(),
+        if (lest) 'lest': true,
+      };
+}
+
+/// Le détail d'un exercice dans une ligne d'historique : séries validées [valeur, répétitions, lest].
+class DetailEx {
+  final String id;
+  final List<List<num>> s;
+  final int? f;
+  const DetailEx(this.id, this.s, [this.f]);
+}
+
 /// Une ligne de l'historique : une séance faite, un jour.
-/// `ex` : par exercice, [_, _, charge de la meilleure série, répétitions, séries].
+/// `ex` : par exercice, [1RM estimé, volume, meilleure charge, répétitions à cette charge, séries].
 class LigneHist {
   final String d;
   final String s;
   final String nom;
   final int? ts;
+  final num ser;
   final Map<String, List<num>> ex;
-  const LigneHist({required this.d, required this.s, this.nom = '', this.ts, this.ex = const {}});
+  final List<DetailEx> det;
+  const LigneHist({required this.d, required this.s, this.nom = '', this.ts, this.ser = 0, this.ex = const {}, this.det = const []});
 
   factory LigneHist.depuis(Map<String, dynamic> j) => LigneHist(
         d: j['d']?.toString() ?? '',
         s: j['s']?.toString() ?? '',
         nom: j['nom']?.toString() ?? '',
         ts: (j['ts'] as num?)?.toInt(),
+        ser: _n(j['ser']),
         ex: {
           for (final e in ((j['ex'] as Map?) ?? const {}).entries)
-            if (e.value is List) e.key.toString(): (e.value as List).map((x) => x is num ? x : 0).toList(),
+            if (e.value is List) e.key.toString(): (e.value as List).map(_n).toList(),
         },
+        det: [
+          for (final x in ((j['det'] as List?) ?? const []).whereType<Map>())
+            DetailEx(
+              x['id']?.toString() ?? '',
+              [for (final s in ((x['s'] as List?) ?? const []).whereType<List>()) s.map(_n).toList()],
+              (x['f'] as num?)?.toInt(),
+            ),
+        ],
       );
 }
 
@@ -67,7 +164,8 @@ class Etat {
   /// null : une case vide ou illisible dans la liste du compte (les index restent ceux du site).
   final List<SeanceLibre?> seances;
   final List<LigneHist> hist;
-  const Etat({this.a = const {}, this.seances = const [], this.hist = const []});
+  final Map<String, Journal> log;
+  const Etat({this.a = const {}, this.seances = const [], this.hist = const [], this.log = const {}});
 
   factory Etat.depuis(Map<String, dynamic>? j) {
     if (j == null) return const Etat();
@@ -80,13 +178,31 @@ class Etat {
           .whereType<Map>()
           .map((l) => LigneHist.depuis(Map<String, dynamic>.from(l)))
           .toList(),
+      log: {
+        for (final e in ((j['LOG'] as Map?) ?? const {}).entries)
+          if (e.value is Map) e.key.toString(): Journal.depuis(Map<String, dynamic>.from(e.value as Map)),
+      },
     );
   }
 }
 
-/// Une entrée du catalogue des exercices (assets/exercices.json) : nom et type de charge.
+/// Une entrée du catalogue des exercices (assets/exercices.json).
+/// ch : kg, lest, aucune (poids du corps), temps, dist. eq : 0 machine · 1 barre · 2 haltères · 3 corps.
 class Exercice {
   final String n;
   final String ch;
-  const Exercice(this.n, this.ch);
+  final String pat;
+  final String? pat2;
+  final int eq;
+  final num d;
+  const Exercice(this.n, this.ch, {this.pat = '', this.pat2, this.eq = 0, this.d = 0});
+
+  factory Exercice.depuis(Map<String, dynamic> j) => Exercice(
+        j['n'] as String? ?? '',
+        j['ch'] as String? ?? 'kg',
+        pat: j['pat'] as String? ?? '',
+        pat2: j['pat2'] as String?,
+        eq: (j['eq'] as num?)?.toInt() ?? 0,
+        d: _n(j['d']),
+      );
 }
