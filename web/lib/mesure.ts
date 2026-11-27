@@ -8,7 +8,7 @@ import { sb } from "@/lib/supabase";
 import { sourceNotee } from "@/lib/source";
 import { enDemo } from "@/lib/demo";
 
-export const NOMS = ["ouverture", "premiere_serie", "seance_terminee", "seance_arretee", "rubrique_ouverte", "plan_genere", "repas_note", "visite_finie", "seance_programmee", "chemin_choisi", "seance_prete"] as const;
+export const NOMS = ["ouverture", "premiere_serie", "seance_terminee", "seance_arretee", "rubrique_ouverte", "plan_genere", "repas_note", "visite_finie", "seance_programmee", "chemin_choisi", "seance_prete", "ecran", "clic", "compte_cree"] as const;
 export type NomEvenement = (typeof NOMS)[number];
 export type Evenement = { nom: NomEvenement; jour: string; props?: Record<string, string | number | boolean> };
 
@@ -63,7 +63,9 @@ function dejaNote(nom: NomEvenement) {
 export function noter(nom: NomEvenement, props?: Record<string, unknown>) {
   if (!NOMS.includes(nom) || enDemo() || dejaNote(nom)) return;
   const e: Evenement = { nom, jour: jourLocal() };
-  const p = nettoyerProps(props);
+  /* l'heure exacte (secondes) : les événements partent par lots, l'heure d'arrivée au serveur ne suffit pas
+     pour retracer un parcours minute par minute */
+  const p = nettoyerProps({ ...props, t: Math.round(Date.now() / 1000) });
   if (p) e.props = p;
   ecrireFile([...lireFile(), e]);
   planifier();
@@ -125,8 +127,10 @@ export function demarrerMesure() {
   branche = true;
   addEventListener("error", (ev) => void signalerErreur(ev.error ?? ev.message));
   addEventListener("unhandledrejection", (ev) => void signalerErreur(ev.reason));
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") void envoyer(); });
   noterOuverture();
+  suivreEcrans();
+  /* après suivreEcrans : l'écran quitté en passant en arrière-plan part dans le même envoi */
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") void envoyer(); });
   if (lireFile().length) planifier();
 }
 
@@ -135,6 +139,87 @@ export function demarrerMesure() {
 export function noterOuverture() {
   try {
     const auj = jourLocal(), cle = "repere.mesure.jour";
-    if (localStorage.getItem(cle) !== auj) { localStorage.setItem(cle, auj); const src = sourceNotee(); noter("ouverture", src ? { src } : undefined); }
+    if (localStorage.getItem(cle) !== auj) { localStorage.setItem(cle, auj); const src = sourceNotee(); noter("ouverture", { ...(src ? { src } : {}), ...contexte() }); }
   } catch {}
+}
+
+/** D'où vient le visiteur et sur quoi il regarde l'app : site d'origine (pas l'adresse complète),
+    téléphone ou ordinateur, app installée sur l'écran d'accueil, langue, et première visite. */
+export function contexte(): Record<string, string | boolean> {
+  const o: Record<string, string | boolean> = {};
+  try {
+    const r = document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, "") : "";
+    if (r && r !== location.hostname) o.ref = r.slice(0, 40);
+    const ua = navigator.userAgent || "";
+    o.dev = /iPhone|iPod/.test(ua) ? "iphone" : /iPad/.test(ua) ? "ipad" : /Android/.test(ua) ? (/Mobile/.test(ua) ? "android" : "tablette") : "ordinateur";
+    o.app = matchMedia("(display-mode: standalone)").matches || (navigator as { standalone?: boolean }).standalone === true;
+    o.lang = (navigator.language || "").slice(0, 5);
+    const cle = "repere.mesure.vu";
+    if (!localStorage.getItem(cle)) { localStorage.setItem(cle, "1"); o.nouveau = true; }
+  } catch { /* la mesure ne bloque jamais l'app */ }
+  return o;
+}
+
+/* ---------------- écrans et clics ----------------
+   Chaque écran vu : son adresse (sans les paramètres), le temps passé dessus et jusqu'où on a fait
+   défiler (en %), noté quand on le quitte ou que l'app passe en arrière-plan. Une étape d'un écran
+   (le formulaire d'inscription dans Bienvenue) peut se déclarer comme un écran à part (ecranVirtuel).
+   Chaque clic sur un bouton ou un lien : son libellé (jamais ce qui est saisi), 150 par jour au plus. */
+let ecran: { p: string; debut: number; dfl: number } | null = null;
+let virtuel: string | null = null;
+const cheminCourant = () => (virtuel ?? location.pathname.replace(/\/+$/, "")) || "/";
+function profondeur() {
+  const h = document.documentElement.scrollHeight - innerHeight;
+  return h <= 0 ? 100 : Math.min(100, Math.round(((scrollY + innerHeight) / document.documentElement.scrollHeight) * 100));
+}
+function fermerEcran() {
+  if (!ecran) return;
+  const s = Math.round((Date.now() - ecran.debut) / 1000);
+  if (s >= 1) noter("ecran", { p: ecran.p, s, dfl: ecran.dfl });
+  ecran = null;
+}
+function ouvrirEcran() {
+  if (ecran || document.visibilityState === "hidden") return;
+  ecran = { p: cheminCourant(), debut: Date.now(), dfl: profondeur() };
+}
+function changerEcran() {
+  const p = cheminCourant();
+  if (ecran?.p === p) return;
+  fermerEcran(); ouvrirEcran();
+}
+/** Une étape d'un écran comptée comme un écran à part (null : retour à l'adresse). */
+export function ecranVirtuel(nom: string | null) {
+  virtuel = nom;
+  if (typeof window !== "undefined" && branche) changerEcran();
+}
+/** Le libellé d'un élément cliqué : son nom accessible, sinon sa première ligne de texte. */
+export function libelleClic(el: Element): string {
+  const t = el.getAttribute("aria-label") || (el as HTMLElement).innerText || el.textContent || "";
+  return t.split("\n").map((x) => x.trim()).find(Boolean)?.replace(/\s+/g, " ").slice(0, 40) ?? "";
+}
+const MAX_CLICS = 150, CLE_CLICS = "repere.mesure.clics";
+function noterClic(ev: Event) {
+  try {
+    const el = (ev.target as Element | null)?.closest?.("button, a, [role=button], [role=tab], [role=radio], [role=checkbox], [role=link]");
+    if (!el || el.closest("[data-mesure-non]")) return;
+    const l = libelleClic(el);
+    if (!l) return;
+    const auj = jourLocal(), c = JSON.parse(localStorage.getItem(CLE_CLICS) || "{}");
+    const n = c.j === auj ? c.n : 0;
+    if (n >= MAX_CLICS) return;
+    localStorage.setItem(CLE_CLICS, JSON.stringify({ j: auj, n: n + 1 }));
+    noter("clic", { p: cheminCourant(), l });
+  } catch { /* la mesure ne bloque jamais l'app */ }
+}
+function suivreEcrans() {
+  for (const m of ["pushState", "replaceState"] as const) {
+    const avant = history[m].bind(history);
+    history[m] = (...a: Parameters<History["pushState"]>) => { const r = avant(...a); setTimeout(changerEcran, 0); return r; };
+  }
+  addEventListener("popstate", () => setTimeout(changerEcran, 0));
+  addEventListener("scroll", () => { if (ecran) ecran.dfl = Math.max(ecran.dfl, profondeur()); }, { passive: true });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") fermerEcran(); else ouvrirEcran(); });
+  addEventListener("pagehide", fermerEcran);
+  document.addEventListener("click", noterClic, true);
+  ouvrirEcran();
 }

@@ -11,6 +11,7 @@ import { Retour } from "@/components/repere/retour";
 import { Segmente } from "@/components/repere/segmente";
 import { ErreursAdmin } from "@/components/repere/admin-mesure";
 import { VueEnsemble } from "@/components/repere/admin-vue";
+import { Visiteurs } from "@/components/repere/admin-visiteurs";
 import type { Route } from "next";
 import { basculerDiag, useDiag } from "@/components/repere/diagnostic-ecran";
 import { Barres } from "@/components/repere/graphes";
@@ -30,7 +31,7 @@ export default function PageAdmin() {
 function Admin() {
   const router = useRouter();
   const admin = useEstAdmin();
-  const params = useSearchParams(), v = params.get("v"), vue = v === "u" || v === "m" ? v : "e";
+  const params = useSearchParams(), v = params.get("v"), vue = v === "u" || v === "m" || v === "v" ? v : "e";
   const f = params.get("f"), filtre: FiltreTesteurs = f === "seance" || f === "sans" ? f : "tous";
   const [L, setL] = useState<CompteAdmin[] | null>(null);
   const [S, setS] = useState<StatsAdmin | null>(null);
@@ -50,11 +51,12 @@ function Admin() {
     <>
       <EnTete surtitre={tr("Réservé à l'admin")} titre={tr("Admin")} gauche={<Retour repli="/profil" />} />
       <div className="flex flex-col gap-4 px-4 pb-10">
-        <Segmente label={tr("Vue")} valeur={vue} onChange={(x) => router.replace(x === "u" ? "/admin?v=u" : x === "m" ? "/admin?v=m" : "/admin")}
-          options={[{ v: "e", n: tr("Vue d'ensemble") }, { v: "u", n: tr("Testeurs") }, { v: "m", n: tr("Technique") }]} />
+        <Segmente label={tr("Vue")} valeur={vue} onChange={(x) => router.replace(x === "e" ? "/admin" : `/admin?v=${x}` as Route)}
+          options={[{ v: "e", n: tr("Vue d'ensemble") }, { v: "v", n: "Visiteurs" }, { v: "u", n: tr("Testeurs") }, { v: "m", n: tr("Technique") }]} />
         {err && <p className="rounded-2xl bg-card p-4 text-[14px] text-destructive">{err}</p>}
-        {!err && (!L || !S) && <p className="py-10 text-center text-[14px] text-muted-foreground">{tr("Chargement…")}</p>}
+        {!err && vue !== "v" && (!L || !S) && <p className="py-10 text-center text-[14px] text-muted-foreground">{tr("Chargement…")}</p>}
         {L && S && vue === "e" && <VueEnsemble L={L} S={S} exclus={exclus} avecMoi={avecMoi} plus={<Tableau L={L} S={S} />} />}
+        {admin && vue === "v" && <Visiteurs avecMoi={avecMoi} />}
         {L && vue === "u" && <Utilisateurs L={L} exclus={exclus} filtre={filtre} />}
         {admin && vue === "m" && (
           <>

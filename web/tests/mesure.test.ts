@@ -56,8 +56,24 @@ describe("source des visiteurs", () => {
     expect(file()).toHaveLength(1);
     expect(file()[0]).toMatchObject({ nom: "ouverture", props: { src: "tiktok" } });
   });
-  it("sans source : ouverture sans propriété", () => {
+  it("sans source : ouverture sans src, avec l'heure exacte", () => {
     M.noterOuverture();
-    expect(file()[0].props).toBeUndefined();
+    expect(file()[0].props.src).toBeUndefined();
+    expect(file()[0].props.t).toBeGreaterThan(1.7e9);
+  });
+});
+
+describe("suivi des visiteurs", () => {
+  it("chaque événement porte l'heure exacte, en secondes", () => {
+    M.noter("ecran", { p: "/repas", s: 12, dfl: 80 });
+    const e = file()[0];
+    expect(e).toMatchObject({ nom: "ecran", props: { p: "/repas", s: 12, dfl: 80 } });
+    expect(Math.abs(e.props.t - Date.now() / 1000)).toBeLessThan(5);
+  });
+  it("libellé d'un clic : le nom accessible, sinon la première ligne du texte, 40 caractères au plus", () => {
+    const el = (attrs: Record<string, string>, texte: string) => ({ getAttribute: (k: string) => attrs[k] ?? null, innerText: texte, textContent: texte }) as unknown as Element;
+    expect(M.libelleClic(el({ "aria-label": "Préférences repas" }, ""))).toBe("Préférences repas");
+    expect(M.libelleClic(el({}, "\n  Commencer  \n · 3 exercices"))).toBe("Commencer");
+    expect(M.libelleClic(el({}, "x".repeat(80)))).toHaveLength(40);
   });
 });
