@@ -5,6 +5,12 @@
 
 num _n(Object? x) => x is num ? x : 0;
 
+String _jour(int ts) {
+  final d = DateTime.fromMillisecondsSinceEpoch(ts);
+  String z(int n) => n.toString().padLeft(2, '0');
+  return '${d.year}-${z(d.month)}-${z(d.day)}';
+}
+
 /// Un exercice d'une séance : identifiant du catalogue, séries, répétitions, repos.
 class ExLibre {
   final String id;
@@ -167,7 +173,10 @@ class Etat {
   final Map<String, Journal> log;
   /// Un cycle du mode Guidé existe (FINI ou PLAN du site).
   final bool cycle;
-  const Etat({this.a = const {}, this.seances = const [], this.hist = const [], this.log = const {}, this.cycle = false});
+  /// Les jours des séances de cardio seules et des sorties de course (CARDIO sans « ref », SORTIES) :
+  /// elles comptent dans les séances de la semaine, comme sur le site.
+  final List<String> joursCardio;
+  const Etat({this.a = const {}, this.seances = const [], this.hist = const [], this.log = const {}, this.cycle = false, this.joursCardio = const []});
 
   factory Etat.depuis(Map<String, dynamic>? j) {
     if (j == null) return const Etat();
@@ -185,6 +194,12 @@ class Etat {
         for (final e in ((j['LOG'] as Map?) ?? const {}).entries)
           if (e.value is Map) e.key.toString(): Journal.depuis(Map<String, dynamic>.from(e.value as Map)),
       },
+      joursCardio: [
+        for (final c in ((j['CARDIO'] as List?) ?? const []).whereType<Map>())
+          if (c['ts'] is num && c['ref'] == null) _jour((c['ts'] as num).toInt()),
+        for (final x in ((j['SORTIES'] as List?) ?? const []).whereType<Map>())
+          if (x['d'] is String) x['d'] as String,
+      ],
     );
   }
 }

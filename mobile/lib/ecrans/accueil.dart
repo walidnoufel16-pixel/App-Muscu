@@ -23,7 +23,7 @@ class _EcranAccueilState extends State<EcranAccueil> {
     return Scaffold(
       body: IndexedStack(index: _onglet, children: [
         EcranMesSeances(compte: widget.compte),
-        const EcranProgres(),
+        EcranProgres(compte: widget.compte),
         EcranProfil(compte: widget.compte),
       ]),
       bottomNavigationBar: NavigationBar(

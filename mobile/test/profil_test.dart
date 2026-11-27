@@ -17,7 +17,7 @@ void main() {
     expect(find.text('Salut Walid'), findsOneWidget);
     await t.tap(find.text('Progrès'));
     await t.pumpAndSettle();
-    expect(find.text('Bientôt dans l\'appli'), findsOneWidget);
+    expect(find.text('Ta première séance remplira cet écran'), findsOneWidget);
     await t.tap(find.text('Profil').last);
     await t.pumpAndSettle();
     expect(find.text('Supprimer mon compte'), findsOneWidget);
