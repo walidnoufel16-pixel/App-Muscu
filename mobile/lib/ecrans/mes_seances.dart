@@ -6,7 +6,6 @@ import 'package:material_ui/material_ui.dart';
 import '../donnees/compte.dart';
 import '../logique/mode.dart';
 import '../logique/modele.dart';
-import 'credits.dart';
 import 'seance.dart';
 import 'vignette.dart';
 
@@ -40,18 +39,6 @@ class EcranMesSeances extends StatelessWidget {
           appBar: AppBar(
             title: Text(compte.pseudo.isEmpty ? 'Entraînement' : 'Salut ${compte.pseudo}',
                 style: const TextStyle(fontWeight: FontWeight.w700)),
-            actions: [
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.more_horiz),
-                onSelected: (v) => v == 'sortir'
-                    ? compte.deconnecter()
-                    : Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => EcranCredits(photos: compte.photos))),
-                itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'credits', child: Text('Crédits des photos')),
-                  PopupMenuItem(value: 'sortir', child: Text('Se déconnecter')),
-                ],
-              ),
-            ],
           ),
           body: RefreshIndicator(
             onRefresh: compte.recharger,
@@ -68,6 +55,13 @@ class EcranMesSeances extends StatelessWidget {
                     child: Text('MES SÉANCES',
                         style: TextStyle(fontSize: 12, letterSpacing: 0.8, fontWeight: FontWeight.w700, color: t.colorScheme.onSurfaceVariant)),
                   ),
+                  if (modeDe(e?.a) == Mode.guide) ...[
+                    _Carte(
+                      enfant: Text('Ton compte est en mode Guidé : les séances proposées par Oxa sont sur le site. Ici, tu notes tes séances à toi.',
+                          style: TextStyle(fontSize: 13.5, height: 1.35, color: t.colorScheme.onSurfaceVariant)),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   if (p == null)
                     _Carte(
                       bordure: true,

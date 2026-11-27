@@ -8,6 +8,8 @@ séances » (prochaine séance, dernière fois), puis la séance : charge propos
 précédent, record, séries à cocher, minuteur de repos. « Terminer la séance » range la séance
 dans le compte, comme le site (journaux dans LOG, ligne du jour dans HIST) : elle apparaît dans
 Progrès sur le site. La séance en cours est gardée sur le téléphone jusqu'à la fin.
+Trois onglets comme sur le site : Séances, Progrès (à venir), Profil (pseudo, mode Suivi / Guidé,
+déconnexion, suppression du compte par la fonction Edge `oublier`, comme « Tout effacer » du site).
 
 - Même projet Supabase que le site : table `etats`, un document JSON par compte.
 - `lib/logique/` : logique pure, reprise de `web/lib/logic/` avec les mêmes cas de test

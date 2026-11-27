@@ -165,11 +165,14 @@ class Etat {
   final List<SeanceLibre?> seances;
   final List<LigneHist> hist;
   final Map<String, Journal> log;
-  const Etat({this.a = const {}, this.seances = const [], this.hist = const [], this.log = const {}});
+  /// Un cycle du mode Guidé existe (FINI ou PLAN du site).
+  final bool cycle;
+  const Etat({this.a = const {}, this.seances = const [], this.hist = const [], this.log = const {}, this.cycle = false});
 
   factory Etat.depuis(Map<String, dynamic>? j) {
     if (j == null) return const Etat();
     return Etat(
+      cycle: j['FINI'] != null || j['PLAN'] != null,
       a: Map<String, dynamic>.from((j['A'] as Map?) ?? const {}),
       seances: ((j['SEANCES'] as List?) ?? const [])
           .map<SeanceLibre?>((s) => s is Map ? SeanceLibre.depuis(Map<String, dynamic>.from(s)) : null)

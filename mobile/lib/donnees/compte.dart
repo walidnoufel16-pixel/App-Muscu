@@ -10,8 +10,10 @@ import 'package:material_ui/material_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../logique/enregistrer.dart';
+import '../logique/mode.dart';
 import '../logique/modele.dart';
 import '../ecrans/vignette.dart' show Photo;
+import 'brouillon.dart';
 
 /* La clé publishable est publique par nature (la sécurité repose sur les règles RLS).
    Surchargeable à la construction : --dart-define=SUPABASE_URL=… --dart-define=SUPABASE_KEY=… */
@@ -45,6 +47,12 @@ class Compte extends ChangeNotifier {
   Etat? etat;
   String pseudo = '';
   String? get idUtilisateur => _c.auth.currentUser?.id;
+  String? get mail => _c.auth.currentUser?.email;
+  /// Le mode Guidé ouvert par l'admin pour ce compte (ou compte admin), lu sur le serveur.
+  bool guideOuvert = false;
+  /// Compte limité au mode Suivi : arrivé après le verrou du site (A.suiviSeul) et mode Guidé pas
+  /// ouvert pour lui (comme useSuiviSeul de web/lib/fonctionnalites.ts). Pas de choix de mode à montrer.
+  bool get suiviSeul => etat?.a['suiviSeul'] == true && !guideOuvert;
   bool charge = false;
   String? erreur;
   Map<String, Exercice> catalogue = const {};
@@ -99,6 +107,9 @@ class Compte extends ChangeNotifier {
       final d = await _c.from('etats').select('etat,pseudo').eq('user_id', u.id).maybeSingle();
       etat = Etat.depuis(d?['etat'] is Map ? Map<String, dynamic>.from(d!['etat'] as Map) : null);
       pseudo = (d?['pseudo'] as String?) ?? '';
+      try {
+        guideOuvert = await _c.rpc('guide_autorise') == true;
+      } catch (_) {}
     } catch (e) {
       erreur = 'Impossible de lire ton compte. Vérifie ta connexion et réessaie.';
     }
@@ -106,37 +117,85 @@ class Compte extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Relit le document du compte sur le serveur, le modifie avec [changer] et le renvoie : rien de ce
+  /// qu'un autre appareil a écrit entre-temps ne se perd. [changer] renvoie le document à écrire, ou
+  /// un message d'erreur (String) pour ne rien écrire.
+  Future<String?> _modifier(Object Function(Map<String, dynamic> doc) changer) async {
+    final u = _c.auth.currentUser;
+    if (u == null) return 'Tu as été déconnecté. Reconnecte-toi pour continuer.';
+    final d = await _c.from('etats').select('etat,pseudo').eq('user_id', u.id).maybeSingle();
+    if (d == null || d['etat'] is! Map) return 'Ton compte est introuvable sur le serveur.';
+    final r = changer(Map<String, dynamic>.from(d['etat'] as Map));
+    if (r is String) return r;
+    final doc = r as Map<String, dynamic>;
+    final p = (d['pseudo'] as String?) ?? '';
+    await _c.from('etats').upsert({
+      'user_id': u.id,
+      if (p.isNotEmpty) 'pseudo': p,
+      'etat': doc,
+      'maj': DateTime.now().toUtc().toIso8601String(),
+    });
+    etat = Etat.depuis(doc);
+    notifyListeners();
+    return null;
+  }
+
   /// Range la séance faite dans le compte. Renvoie un message d'erreur, ou null si c'est fait.
   Future<String?> enregistrer(int i, String signature, List<Journal?> journaux, {int? min}) async {
-    final u = _c.auth.currentUser;
-    if (u == null) return 'Tu as été déconnecté. Reconnecte-toi pour enregistrer ta séance.';
+    if (_c.auth.currentUser == null) return 'Tu as été déconnecté. Reconnecte-toi pour enregistrer ta séance.';
     try {
-      final d = await _c.from('etats').select('etat,pseudo').eq('user_id', u.id).maybeSingle();
-      if (d == null || d['etat'] is! Map) return 'Ton compte est introuvable sur le serveur.';
-      final actuel = Etat.depuis(Map<String, dynamic>.from(d['etat'] as Map));
-      if (i >= actuel.seances.length || actuel.seances[i]?.signature != signature) {
-        return 'Cette séance a été modifiée sur le site entre-temps : enregistrement impossible.';
-      }
-      final doc = enregistrerSeance(Map<String, dynamic>.from(d['etat'] as Map), i, journaux, catalogue, min: min);
-      final p = (d['pseudo'] as String?) ?? '';
-      await _c.from('etats').upsert({
-        'user_id': u.id,
-        if (p.isNotEmpty) 'pseudo': p,
-        'etat': doc,
-        'maj': DateTime.now().toUtc().toIso8601String(),
+      return await _modifier((doc) {
+        final actuel = Etat.depuis(doc);
+        if (i >= actuel.seances.length || actuel.seances[i]?.signature != signature) {
+          return 'Cette séance a été modifiée sur le site entre-temps : enregistrement impossible.';
+        }
+        return enregistrerSeance(doc, i, journaux, catalogue, min: min);
       });
-      etat = Etat.depuis(doc);
-      notifyListeners();
-      return null;
     } catch (e) {
       return 'Enregistrement impossible : vérifie ta connexion et réessaie. Ta séance est gardée sur ce téléphone.';
     }
   }
 
+  /// Passe le compte en mode Suivi ou Guidé, comme le Profil du site (A.mode, et la carte
+  /// d'explication du mode Suivi déjà vue). Changer ne perd rien : les données sont les mêmes.
+  Future<String?> changerMode(Mode m) async {
+    try {
+      return await _modifier((doc) {
+        final a = Map<String, dynamic>.from((doc['A'] as Map?) ?? const {});
+        a['mode'] = m == Mode.suivi ? 'suivi' : 'guide';
+        a['carteSuivi'] = true;
+        return {...doc, 'A': a};
+      });
+    } catch (e) {
+      return 'Changement impossible : vérifie ta connexion et réessaie.';
+    }
+  }
+
+  /// Supprime le compte pour de bon (fonction Edge « oublier », comme « Tout effacer » sur le site) :
+  /// le compte et tout ce qu'il contient, sur le serveur, puis ce qui reste sur ce téléphone.
+  /// Le compte n'est déclaré supprimé que si le serveur l'a confirmé. Renvoie un message d'erreur, ou null.
+  Future<String?> supprimerCompte() async {
+    final uid = idUtilisateur;
+    if (uid == null || session == null) return 'Tu as été déconnecté. Reconnecte-toi pour supprimer ton compte.';
+    try {
+      final r = await _c.functions.invoke('oublier', body: const <String, dynamic>{});
+      if (r.status != 200) throw Exception('oublier ${r.status}');
+    } catch (e) {
+      return "La suppression n'a pas pu être confirmée par le serveur : rien n'a été effacé. Vérifie ta connexion et réessaie.";
+    }
+    await Brouillons.toutOublier(uid);
+    await deconnecter();
+    return null;
+  }
+
   Future<void> deconnecter() async {
-    await _c.auth.signOut();
+    /* Compte déjà supprimé ou réseau coupé : la session de ce téléphone est fermée quand même. */
+    try {
+      await _c.auth.signOut();
+    } catch (_) {}
     etat = null;
     pseudo = '';
+    guideOuvert = false;
     notifyListeners();
   }
 }
