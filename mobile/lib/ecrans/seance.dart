@@ -17,6 +17,7 @@ import '../donnees/compte.dart';
 import '../logique/charge.dart';
 import '../logique/mode.dart' show nb;
 import '../logique/modele.dart';
+import 'vignette.dart';
 
 num? _lire(String t) => num.tryParse(t.trim().replaceAll(',', '.'));
 String _ecrire(num v) => v == 0 ? '' : nb(v);
@@ -298,6 +299,8 @@ class _EcranSeanceState extends State<EcranSeance> {
       decoration: BoxDecoration(color: c.surfaceContainer, borderRadius: BorderRadius.circular(20)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
+          Vignette(photo: _compte.photos[e.ex.id], taille: 48),
+          const SizedBox(width: 12),
           Expanded(child: Text(e.x.n, style: const TextStyle(fontSize: 16.5, fontWeight: FontWeight.w700))),
           if (var_ != 0) _pastille('${var_ > 0 ? '↑' : '↓'} ${nb(var_.abs())} kg', c.primary.withValues(alpha: 0.16), c.secondary),
         ]),

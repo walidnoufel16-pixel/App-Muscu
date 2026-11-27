@@ -15,6 +15,9 @@ Progrès sur le site. La séance en cours est gardée sur le téléphone jusqu'�
 - Pour écrire, l'appli relit le document du compte juste avant et n'y ajoute que la séance faite.
 - `assets/exercices.json` : copie du catalogue du site, à régénérer après chaque changement :
   `node outils/exporter-exercices.mjs` (la CI vérifie qu'elle est à jour).
+- `assets/photos/` et `assets/photos.json` : la vignette de chaque exercice (la même que sur le
+  site), en WebP. À régénérer après un changement de photos : `python3 -I outils/exporter-photos.py`.
+  Les photos Unsplash ne sont pas copiées : l'appli les affiche depuis leurs serveurs.
 
 ```bash
 flutter test

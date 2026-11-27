@@ -5,11 +5,16 @@ import 'package:material_ui/material_ui.dart';
 
 import '../donnees/compte.dart';
 import '../logique/mode.dart';
+import '../logique/modele.dart';
+import 'credits.dart';
 import 'seance.dart';
+import 'vignette.dart';
 
 class EcranMesSeances extends StatelessWidget {
   const EcranMesSeances({super.key, required this.compte});
   final Compte compte;
+
+  List<Photo?> _photos(Etat e, int i) => [for (final x in e.seances[i]!.ex.take(3)) compte.photos[x.id]];
 
   Future<void> _ouvrir(BuildContext context, int i) async {
     final fait = await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => EcranSeance(compte: compte, i: i)));
@@ -38,8 +43,13 @@ class EcranMesSeances extends StatelessWidget {
             actions: [
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_horiz),
-                onSelected: (v) => v == 'sortir' ? compte.deconnecter() : null,
-                itemBuilder: (_) => const [PopupMenuItem(value: 'sortir', child: Text('Se déconnecter'))],
+                onSelected: (v) => v == 'sortir'
+                    ? compte.deconnecter()
+                    : Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => EcranCredits(photos: compte.photos))),
+                itemBuilder: (_) => const [
+                  PopupMenuItem(value: 'credits', child: Text('Crédits des photos')),
+                  PopupMenuItem(value: 'sortir', child: Text('Se déconnecter')),
+                ],
               ),
             ],
           ),
@@ -72,7 +82,11 @@ class EcranMesSeances extends StatelessWidget {
                     _Carte(
                       bordure: true,
                       enfant: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                        _Titre(nom: e!.seances[p]!.nom, sous: texteDerniere(e, p, auj, compte.catalogue, detail: true), grand: true),
+                        Row(children: [
+                          VignettesSeance(photos: _photos(e!, p), taille: 44),
+                          const SizedBox(width: 12),
+                          Expanded(child: _Titre(nom: e.seances[p]!.nom, sous: texteDerniere(e, p, auj, compte.catalogue, detail: true), grand: true)),
+                        ]),
                         const SizedBox(height: 10),
                         FilledButton(onPressed: () => _ouvrir(context, p), child: const Text('Commencer')),
                       ]),
@@ -84,7 +98,9 @@ class EcranMesSeances extends StatelessWidget {
                       onTap: () => _ouvrir(context, i),
                       child: _Carte(
                         enfant: Row(children: [
-                          Expanded(child: _Titre(nom: e!.seances[i]!.nom, sous: texteDerniere(e, i, auj, compte.catalogue))),
+                          VignettesSeance(photos: _photos(e!, i)),
+                          const SizedBox(width: 12),
+                          Expanded(child: _Titre(nom: e.seances[i]!.nom, sous: texteDerniere(e, i, auj, compte.catalogue))),
                           Icon(Icons.chevron_right, size: 20, color: t.colorScheme.onSurfaceVariant),
                         ]),
                       ),
