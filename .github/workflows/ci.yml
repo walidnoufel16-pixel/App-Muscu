@@ -48,3 +48,26 @@ jobs:
           sudo ln -sf "$(find ~/.cache/ms-playwright -type f -name chrome -path '*chrome-linux*' | head -1)" /opt/pw-browsers/chromium
       - name: Scénarios e2e
         run: NODE_PATH="$(npm root -g)" node tests/e2e/tous.mjs
+
+  # L'appli mobile (Flutter) : catalogue à jour, analyse et tests.
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - name: Flutter 3.50.1
+        run: |
+          git clone --depth 1 --branch 3.50.1 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+      - name: Catalogue des exercices à jour
+        run: |
+          node outils/exporter-exercices.mjs
+          git diff --exit-code assets/exercices.json
+      - run: flutter pub get
+      - name: Analyse
+        run: flutter analyze
+      - name: Tests
+        run: flutter test

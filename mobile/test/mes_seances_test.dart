@@ -1,0 +1,50 @@
+// Écran « Mes séances » : la prochaine séance en grand, les autres en dessous, sans les séances
+// de soin ni celles d'Oxa non gardées.
+import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:oxa/donnees/compte.dart';
+import 'package:oxa/ecrans/mes_seances.dart';
+import 'package:oxa/logique/mode.dart';
+import 'package:oxa/logique/modele.dart';
+import 'package:oxa/theme.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+Compte compteDe(Map<String, dynamic>? etat) {
+  final c = Compte(SupabaseClient('https://exemple.supabase.co', 'sb_publishable_test',
+      authOptions: const AuthClientOptions(autoRefreshToken: false)))
+    ..catalogue = const {'sq': Exercice('Squat barre', 'kg'), 'dc': Exercice('Développé couché barre', 'kg')}
+    ..pseudo = 'Walid';
+  c.etat = Etat.depuis(etat);
+  return c;
+}
+
+Widget app(Compte c) => MaterialApp(theme: themeOxa(Brightness.light), home: EcranMesSeances(compte: c));
+
+void main() {
+  testWidgets('la prochaine séance, puis les autres', (t) async {
+    final hier = jourDe(DateTime.now().subtract(const Duration(days: 1)));
+    await t.pumpWidget(app(compteDe({
+      'SEANCES': [
+        {'nom': 'Jambes', 'ex': [{'id': 'sq'}]},
+        {'nom': 'Pecs', 'ex': [{'id': 'dc'}]},
+        {'nom': 'Mobilité', 'soin': 'dos', 'ex': []},
+      ],
+      'HIST': [
+        {'d': hier, 's': 'L|0', 'ex': {'sq': [0, 0, 80, 10, 4]}},
+      ],
+    })));
+    expect(find.text('Salut Walid'), findsOneWidget);
+    expect(find.text('Pecs'), findsOneWidget);
+    expect(find.text('Pas encore faite'), findsOneWidget);
+    expect(find.text('Jambes'), findsOneWidget);
+    expect(find.text('Dernière fois hier'), findsOneWidget);
+    expect(find.text('Mobilité'), findsNothing);
+    expect(find.text('Commencer'), findsOneWidget);
+  });
+
+  testWidgets('aucune séance : on invite à en écrire une', (t) async {
+    await t.pumpWidget(app(compteDe({'SEANCES': []})));
+    expect(find.text('Écris ta première séance'), findsOneWidget);
+    expect(find.text('Commencer'), findsNothing);
+  });
+}

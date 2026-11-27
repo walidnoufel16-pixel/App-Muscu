@@ -1,0 +1,38 @@
+/* Oxa, l'appli mobile (iOS et Android). Première version : le mode Suivi, branché sur le même
+   compte Supabase que le site. Connexion par code, puis « Mes séances ». */
+import 'package:material_ui/material_ui.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'donnees/compte.dart';
+import 'ecrans/connexion.dart';
+import 'ecrans/mes_seances.dart';
+import 'theme.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Supabase.initialize(url: sbUrl, publishableKey: sbKey);
+  final compte = Compte(Supabase.instance.client);
+  await compte.chargerCatalogue();
+  if (compte.session != null) compte.recharger();
+  runApp(AppOxa(compte: compte));
+}
+
+class AppOxa extends StatelessWidget {
+  const AppOxa({super.key, required this.compte});
+  final Compte compte;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Oxa',
+      debugShowCheckedModeBanner: false,
+      theme: themeOxa(Brightness.light),
+      darkTheme: themeOxa(Brightness.dark),
+      home: StreamBuilder(
+        stream: compte.changements,
+        builder: (context, _) =>
+            compte.session == null ? EcranConnexion(compte: compte) : EcranMesSeances(compte: compte),
+      ),
+    );
+  }
+}
