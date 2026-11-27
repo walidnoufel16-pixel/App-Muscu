@@ -1,18 +1,24 @@
 /* Mes séances (accueil du mode Suivi, comme web/components/repere/accueil-suivi.tsx) : la prochaine
    séance en grand avec « Commencer », puis les autres avec leur « Dernière fois ».
-   La séance en cours arrive à l'étape suivante : « Commencer » le dit pour l'instant. */
+   Toucher une séance l'ouvre (ecrans/seance.dart). */
 import 'package:material_ui/material_ui.dart';
 
 import '../donnees/compte.dart';
 import '../logique/mode.dart';
+import 'seance.dart';
 
 class EcranMesSeances extends StatelessWidget {
   const EcranMesSeances({super.key, required this.compte});
   final Compte compte;
 
-  void _bientot(BuildContext context) => ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(const SnackBar(content: Text('La séance arrive dans la prochaine version de l\'appli.')));
+  Future<void> _ouvrir(BuildContext context, int i) async {
+    final fait = await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => EcranSeance(compte: compte, i: i)));
+    if (fait == true && context.mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('Séance enregistrée. Bravo !')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,14 +74,14 @@ class EcranMesSeances extends StatelessWidget {
                       enfant: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                         _Titre(nom: e!.seances[p]!.nom, sous: texteDerniere(e, p, auj, compte.catalogue, detail: true), grand: true),
                         const SizedBox(height: 10),
-                        FilledButton(onPressed: () => _bientot(context), child: const Text('Commencer')),
+                        FilledButton(onPressed: () => _ouvrir(context, p), child: const Text('Commencer')),
                       ]),
                     ),
                   for (final i in autres) ...[
                     const SizedBox(height: 8),
                     InkWell(
                       borderRadius: BorderRadius.circular(20),
-                      onTap: () => _bientot(context),
+                      onTap: () => _ouvrir(context, i),
                       child: _Carte(
                         enfant: Row(children: [
                           Expanded(child: _Titre(nom: e!.seances[i]!.nom, sous: texteDerniere(e, i, auj, compte.catalogue))),
