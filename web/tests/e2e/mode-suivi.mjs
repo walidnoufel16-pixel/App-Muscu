@@ -202,10 +202,17 @@ const avecSeances = (A) => ({
 {
   const [ctx, pg] = await contexte(avecSeances({ mode: "suivi" }));
   await pg.goto(U + "/repas/");
-  await pg.getByText("Des repas pensés pour ton entraînement").waitFor({ timeout: 8000 });
-  ok(await pg.getByText("7 · Ton budget courses").count() === 0, "préférences : sans budget courses");
-  await pg.getByRole("button", { name: "C'est parti" }).click();
-  await pg.getByText(/recettes? pour toi/).waitFor();
+  /* les recettes tout de suite, sans questionnaire ; les préférences sur invitation */
+  await pg.getByText(/recettes? pour toi/).waitFor({ timeout: 8000 });
+  ok(await pg.getByText("C'est parti").count() === 0, "recettes tout de suite, sans questionnaire");
+  await cap(pg, "7a-repas-premiere");
+  await pg.getByRole("button", { name: /^Choisis tes préférences culinaires/ }).click();
+  const prefs = pg.getByRole("dialog");
+  await prefs.getByText("Préférences repas").first().waitFor();
+  ok(await prefs.getByText("7 · Ton budget courses").count() === 0, "préférences : sans budget courses");
+  await prefs.getByRole("button", { name: "Enregistrer" }).click();
+  await pg.waitForTimeout(500);
+  ok(await pg.getByRole("button", { name: /^Choisis tes préférences culinaires/ }).count() === 0, "préférences enregistrées : l'invitation disparaît");
   ok(await pg.getByRole("tab", { name: "Aujourd'hui" }).count() === 0 && await pg.getByRole("tab", { name: "Ma semaine" }).count() === 0, "ni Aujourd'hui ni Ma semaine : les recettes seulement");
   await pg.goto(U + "/repas/?v=semaine");
   await pg.getByText(/recettes? pour toi/).waitFor();

@@ -94,7 +94,7 @@ await parcours(false);
   await pg.getByRole("button", { name: /Une séance à la carte/ }).click();
   await pg.waitForURL(/\/entrainement\/?$/);
   await pg.locator("nav a", { hasText: "Repas" }).click();
-  await pg.getByText("Des repas pensés pour ton entraînement").waitFor({ timeout: 8000 });
+  await pg.getByRole("button", { name: /^Choisis tes préférences culinaires/ }).waitFor({ timeout: 8000 });
   ok(true, "l'app reste utilisable (onglet Repas)");
   await ctx.close();
 }
