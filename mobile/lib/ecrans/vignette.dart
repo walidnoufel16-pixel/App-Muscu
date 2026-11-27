@@ -10,16 +10,26 @@ class Photo {
   final String? unsplash;
   final String? auteur;
   final int? x;
-  const Photo({this.fichier, this.unsplash, this.auteur, this.x});
+  /// Fiche : la photo unique en grand (assets/fiche), et le duo départ / fin qui s'anime.
+  final String? grande;
+  final List<String>? duo;
+  const Photo({this.fichier, this.unsplash, this.auteur, this.x, this.grande, this.duo});
 
-  factory Photo.depuis(Map<String, dynamic> j) =>
-      Photo(fichier: j['f'] as String?, unsplash: j['u'] as String?, auteur: j['a'] as String?, x: (j['x'] as num?)?.toInt());
+  factory Photo.depuis(Map<String, dynamic> j) => Photo(
+        fichier: j['f'] as String?,
+        unsplash: j['u'] as String?,
+        auteur: j['a'] as String?,
+        x: (j['x'] as num?)?.toInt(),
+        grande: j['g'] as String?,
+        duo: j['d'] is List && (j['d'] as List).length == 2 ? List<String>.from(j['d'] as List) : null,
+      );
 
   /// Position horizontale dans la photo : 0 bord gauche, 50 centre, 100 bord droit.
   Alignment get alignement => Alignment(((x ?? 50) / 50) - 1, 0);
 }
 
-String urlUnsplash(String id) => 'https://images.unsplash.com/$id?w=420&h=280&fit=crop&crop=faces,entropy&fm=jpg&q=70';
+String urlUnsplash(String id, {bool grand = false}) =>
+    'https://images.unsplash.com/$id?${grand ? 'w=1080&h=720' : 'w=420&h=280'}&fit=crop&crop=faces,entropy&fm=jpg&q=70';
 
 class Vignette extends StatelessWidget {
   const Vignette({super.key, required this.photo, this.taille = 48, this.bordure});

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:oxa/donnees/compte.dart';
 import 'package:oxa/ecrans/seance.dart';
+import 'package:oxa/ecrans/vignette.dart';
 import 'package:oxa/logique/mode.dart';
 import 'package:oxa/logique/modele.dart';
 import 'package:oxa/theme.dart';
@@ -71,5 +72,22 @@ void main() {
     await t.tap(find.byTooltip('Valider la série').first);
     await t.pump();
     expect(find.text('Indique la charge de cette série.'), findsOneWidget);
+  });
+
+  testWidgets('toucher un exercice ouvre sa fiche, avec l\'animation et l\'exécution', (t) async {
+    await t.binding.setSurfaceSize(const Size(390, 1400));
+    final c = compteDe(etat)
+      ..fiches = {'sq': {'e': 'Descends les hanches.', 'err': ['Genoux qui rentrent.'], 'p': 'Ajoute du poids.'}}
+      ..photos = {'sq': const Photo(fichier: 'ex-sq.webp', grande: 'ex-sq.webp', duo: ['Barbell_Squat_0.webp', 'Barbell_Squat_1.webp'])};
+    await t.pumpWidget(MaterialApp(theme: themeOxa(Brightness.light), home: EcranSeance(compte: c, i: 0)));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Squat barre'));
+    await t.pumpAndSettle();
+    expect(find.text('Animation'), findsOneWidget);
+    expect(find.text('EXÉCUTION'), findsOneWidget);
+    await t.tap(find.text('Animation'));
+    await t.pump(const Duration(milliseconds: 500));
+    expect(find.text('Photo'), findsOneWidget);
+    expect(find.byType(FadeTransition), findsWidgets);
   });
 }

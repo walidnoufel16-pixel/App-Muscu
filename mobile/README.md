@@ -14,9 +14,11 @@ Progrès sur le site. La séance en cours est gardée sur le téléphone jusqu'�
   (`mode.ts`, la charge proposée de `core.ts`, l'historique de `historique.ts`).
 - Pour écrire, l'appli relit le document du compte juste avant et n'y ajoute que la séance faite.
 - `assets/exercices.json` : copie du catalogue du site, à régénérer après chaque changement :
-  `node outils/exporter-exercices.mjs` (la CI vérifie qu'elle est à jour).
+  `node outils/exporter-exercices.mjs` (la CI vérifie qu'elle est à jour). Il copie aussi les textes
+  des fiches (`assets/fiches.json`).
 - `assets/photos/` et `assets/photos.json` : la vignette de chaque exercice (la même que sur le
-  site), en WebP. À régénérer après un changement de photos : `python3 -I outils/exporter-photos.py`.
+  site), en WebP ; `assets/fiche/` : les photos en grand de la fiche (photo unique et duo
+  départ / fin qui s'anime, 10,7 Mo). À régénérer après un changement de photos : `python3 -I outils/exporter-photos.py`.
   Les photos Unsplash ne sont pas copiées : l'appli les affiche depuis leurs serveurs.
 
 ```bash

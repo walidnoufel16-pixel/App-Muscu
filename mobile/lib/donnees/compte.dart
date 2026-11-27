@@ -49,6 +49,8 @@ class Compte extends ChangeNotifier {
   String? erreur;
   Map<String, Exercice> catalogue = const {};
   Map<String, Photo> photos = const {};
+  /// Les textes des fiches, par exercice : exécution (e), erreurs fréquentes (err), comment progresser (p).
+  Map<String, dynamic> fiches = const {};
 
   Session? get session => _c.auth.currentSession;
   Stream<AuthState> get changements => _c.auth.onAuthStateChange;
@@ -58,6 +60,7 @@ class Compte extends ChangeNotifier {
     catalogue = {for (final e in j.entries) e.key: Exercice.depuis(Map<String, dynamic>.from(e.value as Map))};
     final ph = jsonDecode(await rootBundle.loadString('assets/photos.json')) as Map<String, dynamic>;
     photos = {for (final e in ph.entries) e.key: Photo.depuis(Map<String, dynamic>.from(e.value as Map))};
+    fiches = jsonDecode(await rootBundle.loadString('assets/fiches.json')) as Map<String, dynamic>;
   }
 
   /// Envoie le code à six chiffres. Pas de création de compte ici : on retrouve celui du site.
