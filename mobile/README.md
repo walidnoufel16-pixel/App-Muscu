@@ -16,8 +16,13 @@ Progrès sur le site. La séance en cours est gardée sur le téléphone jusqu'�
 « Nouvelle séance » : un nom, puis les exercices choisis dans le catalogue (recherche, filtre par
 muscle, photos). Le crayon de la séance la modifie (nom, exercices ajoutés, retirés, réordonnés) ou la
 supprime, avec les mêmes règles que le site (`lib/logique/seances.dart`) : elle apparaît aussi sur le site.
-Trois onglets comme sur le site : Séances, Progrès (à venir), Profil (pseudo, mode Suivi / Guidé,
+Trois onglets comme sur le site : Séances, Progrès, Profil (pseudo, mode Suivi / Guidé,
 déconnexion, suppression du compte par la fonction Edge `oublier`, comme « Tout effacer » du site).
+
+Progrès (lecture seule, `lib/logique/progres.dart`, mêmes calculs et cas de test que `web/app/progres`) :
+la semaine (série de semaines, objectif, séries comparées à la semaine d'avant, calendrier de 4 semaines),
+les séries par muscle sur 7 jours, la progression par exercice (charge, séries, 1RM estimé, « Prochaine fois »)
+et les records. Pas encore : cardio, poids du corps, défis et badges.
 
 - Même projet Supabase que le site : table `etats`, un document JSON par compte.
 - `lib/logique/` : logique pure, reprise de `web/lib/logic/` avec les mêmes cas de test
