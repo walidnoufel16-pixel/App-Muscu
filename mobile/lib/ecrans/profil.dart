@@ -1,13 +1,15 @@
 /* Profil (comme web/app/profil, en plus court) : le pseudo et l'adresse du compte (à ajouter ou
-   confirmer pour un compte créé sans), le mode
+   confirmer pour un compte créé sans), le sexe (qui choisit le corps affiché) et le matériel, le mode
    Suivi / Guidé, les crédits des photos, la déconnexion et la suppression du compte (demandée par
    Apple pour toute appli où l'on a un compte). */
 import 'package:material_ui/material_ui.dart';
 
 import '../donnees/compte.dart';
+import '../logique/materiel.dart';
 import '../logique/mode.dart';
 import 'adresse.dart';
 import 'credits.dart';
+import 'materiel.dart';
 
 class EcranProfil extends StatefulWidget {
   const EcranProfil({super.key, required this.compte});
@@ -68,6 +70,41 @@ class _EcranProfilState extends State<EcranProfil> {
       danger: compte.sansAdresse,
     );
     if (ok) await compte.deconnecter();
+  }
+
+  /// Profil › Sexe, comme le site : il sert aussi au corps affiché sous Mes séances.
+  Future<void> _sexe() async {
+    final actuel = (compte.etat?.a['sexe'] as num?)?.toInt();
+    final v = await showModalBottomSheet<int>(
+      context: context,
+      showDragHandle: true,
+      builder: (c) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 0, 20, 2),
+            child: Text('Sexe', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+            child: Text("Sert au calcul de ta dépense d'énergie, au schéma du corps et à la répartition du volume.",
+                style: TextStyle(fontSize: 13.5, height: 1.35, color: Theme.of(c).colorScheme.onSurfaceVariant)),
+          ),
+          for (var i = 0; i < sexes.length; i++)
+            ListTile(
+              title: Text(sexes[i]),
+              trailing: actuel == i ? Icon(Icons.check, color: Theme.of(c).colorScheme.primary) : null,
+              onTap: () => Navigator.pop(c, i),
+            ),
+          const SizedBox(height: 8),
+        ]),
+      ),
+    );
+    if (v == null || v == actuel || !mounted) return;
+    setState(() => _occupe = true);
+    final err = await compte.reglerSexe(v);
+    if (!mounted) return;
+    setState(() => _occupe = false);
+    if (err != null) _dire(err);
   }
 
   /// Ce qui disparaît, dit simplement (comme « Tout effacer » sur le site).
@@ -135,6 +172,26 @@ class _EcranProfilState extends State<EcranProfil> {
                       ]),
                     ),
                   ]),
+                ),
+              ]),
+              const _Surtitre('MON PROFIL'),
+              _Bloc(enfants: [
+                _Ligne(
+                  texte: 'Sexe',
+                  icone: Icons.person_outline,
+                  valeur: switch ((compte.etat?.a['sexe'] as num?)?.toInt()) {
+                    final int v when v >= 0 && v < sexes.length => sexes[v],
+                    _ => 'À régler',
+                  },
+                  auToucher: _occupe || compte.etat == null ? null : _sexe,
+                ),
+                _Ligne(
+                  texte: 'Mon matériel',
+                  icone: Icons.fitness_center,
+                  valeur: lieux[lieuDe(compte.etat?.a ?? const {}).clamp(0, lieux.length - 1)],
+                  auToucher: compte.etat == null
+                      ? null
+                      : () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => EcranMateriel(compte: compte))),
                 ),
               ]),
               if (!compte.suiviSeul) ...[
@@ -233,11 +290,13 @@ class _Bloc extends StatelessWidget {
 }
 
 class _Ligne extends StatelessWidget {
-  const _Ligne({required this.texte, required this.icone, required this.auToucher, this.danger = false});
+  const _Ligne({required this.texte, required this.icone, required this.auToucher, this.danger = false, this.valeur});
   final String texte;
   final IconData icone;
   final VoidCallback? auToucher;
   final bool danger;
+  /// La valeur réglée, à droite (« Salle complète »).
+  final String? valeur;
   @override
   Widget build(BuildContext context) {
     final c = Theme.of(context).colorScheme;
@@ -245,7 +304,17 @@ class _Ligne extends StatelessWidget {
     return ListTile(
       leading: Icon(icone, color: danger ? c.error : c.onSurfaceVariant),
       title: Text(texte, style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w600, color: couleur)),
-      trailing: danger ? null : Icon(Icons.chevron_right, size: 20, color: c.onSurfaceVariant),
+      trailing: danger
+          ? null
+          : Row(mainAxisSize: MainAxisSize.min, children: [
+              if (valeur != null)
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 160),
+                  child: Text(valeur!,
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 14.5, color: c.onSurfaceVariant)),
+                ),
+              Icon(Icons.chevron_right, size: 20, color: c.onSurfaceVariant),
+            ]),
       onTap: auToucher,
     );
   }

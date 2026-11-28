@@ -11,8 +11,16 @@ import 'mes_seances_test.dart' show compteDe;
 
 Widget app(Widget w) => MaterialApp(theme: themeOxa(Brightness.light), home: w);
 
+/// Un téléphone assez haut pour tout le Profil.
+void grand(WidgetTester t) {
+  t.view.physicalSize = const Size(390 * 3, 1100 * 3);
+  t.view.devicePixelRatio = 3;
+  addTearDown(t.view.reset);
+}
+
 void main() {
   testWidgets('les trois onglets : Séances, Progrès, Profil', (t) async {
+    grand(t);
     await t.pumpWidget(app(EcranAccueil(compte: compteDe({'SEANCES': []}))));
     expect(find.text('Salut Walid'), findsOneWidget);
     await t.tap(find.text('Progrès'));
@@ -45,6 +53,7 @@ void main() {
   });
 
   testWidgets('supprimer : on dit ce qui disparaît, et Annuler ne touche à rien', (t) async {
+    grand(t);
     final Compte c = compteDe({
       'SEANCES': [
         {'nom': 'Jambes', 'ex': [{'id': 'sq'}]},
@@ -62,5 +71,20 @@ void main() {
     await t.pumpAndSettle();
     expect(find.text('Supprimer ton compte ?'), findsNothing);
     expect(c.etat, isNotNull);
+  });
+
+  testWidgets('sexe et matériel dans Profil : celui du site par défaut', (t) async {
+    await t.pumpWidget(app(EcranProfil(compte: compteDe({'A': {'mode': 'suivi'}}))));
+    expect(find.text('Sexe'), findsOneWidget);
+    expect(find.text('À régler'), findsOneWidget);
+    expect(find.text('Salle complète'), findsOneWidget);
+    await t.pumpWidget(app(EcranProfil(compte: compteDe({'A': {'sexe': 1, 'materiel': 3}}))));
+    expect(find.text('Femme'), findsOneWidget);
+    expect(find.text('Poids du corps'), findsOneWidget);
+    await t.tap(find.text('Mon matériel'));
+    await t.pumpAndSettle();
+    expect(find.text("Où tu t'entraînes"), findsOneWidget);
+    expect(find.text('Barre de traction'), findsOneWidget);
+    expect(find.text('Kettlebell'), findsOneWidget);
   });
 }

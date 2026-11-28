@@ -7,11 +7,13 @@ import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:material_ui/material_ui.dart';
 
 import '../donnees/compte.dart';
+import '../logique/materiel.dart';
 import '../logique/modele.dart';
 import '../logique/muscles_du_jour.dart';
 import '../logique/progres.dart' show nomMuscle, pat2musc;
 import 'accueil_suivi.dart' show Silhouettes;
 import 'editer_seance.dart';
+import 'materiel.dart';
 import 'vignette.dart';
 
 class CorpsDuJour extends StatefulWidget {
@@ -48,6 +50,8 @@ class _CorpsDuJourState extends State<CorpsDuJour> {
     final parM = seriesSemaine(widget.etat.hist, widget.auj, widget.compte.catalogue);
     final travaille = parM.values.any((n) => n > 0);
     final restants = travaille && _m.isEmpty ? pasEncore(parM) : null;
+    /* le corps à afficher, demandé une fois (il remplit Profil › Sexe) */
+    final demander = silhouetteADemander(widget.etat.a);
     Widget carre(Color k) => Container(
       width: 12,
       height: 12,
@@ -61,7 +65,7 @@ class _CorpsDuJourState extends State<CorpsDuJour> {
           padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
           child: Text(widget.titre, style: const TextStyle(fontSize: 20, height: 1.2, fontWeight: FontWeight.w700)),
         ),
-        if (travaille)
+        if (travaille && !demander)
           Padding(
             padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
             child: DefaultTextStyle.merge(
@@ -80,6 +84,9 @@ class _CorpsDuJourState extends State<CorpsDuJour> {
               ]),
             ),
           ),
+        if (demander)
+          ChoixSilhouette(compte: widget.compte)
+        else
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -103,7 +110,7 @@ class _CorpsDuJourState extends State<CorpsDuJour> {
             const SizedBox(height: 8),
             CorpsTactile(
               cote: _cote,
-              femme: widget.etat.a['sexe'] == 1,
+              femme: silhouetteFemme(widget.etat.a),
               hauteur: 400,
               choisis: _m,
               parM: travaille ? parM : null,
@@ -274,8 +281,10 @@ class _EcranExercicesMusclesState extends State<EcranExercicesMuscles> {
   Widget build(BuildContext context) {
     final c = Theme.of(context).colorScheme;
     final cat = widget.compte.catalogue;
+    /* le matériel du Profil (celui du site pour un compte qui ne l'a jamais réglé) */
+    final sel = selDeclare(widget.compte.etat?.a ?? const {});
     final groupes = [
-      for (final x in exosParMuscle(widget.muscles, cat)) (x: x, r: parRole(x.l, cat, x.g)),
+      for (final x in exosParMuscle(widget.muscles, cat, sel)) (x: x, r: parRole(x.l, cat, x.g)),
     ];
     /* l'ordre de la séance : celui de la liste (muscle, puis base, complément, isolation, gainage) */
     final ordre = <String>[
@@ -294,6 +303,30 @@ class _EcranExercicesMusclesState extends State<EcranExercicesMuscles> {
             child: Text('Coche les exercices de ta séance. Tu pourras changer leur ordre ensuite.',
                 style: TextStyle(fontSize: 14, height: 1.35, color: c.onSurfaceVariant)),
           ),
+          /* le matériel replié sur une ligne (MaterielRepliable du site) : il se règle dans Profil */
+          Material(
+            color: c.surfaceContainer,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: c.outline)),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () async {
+                await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => EcranMateriel(compte: widget.compte)));
+                if (mounted) setState(() {});
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                child: Row(children: [
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text('MATÉRIEL DISPONIBLE', style: petit.copyWith(fontSize: 11.5, letterSpacing: 0.8, fontWeight: FontWeight.w700)),
+                      Text(nomsMateriel(sel), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13.5, color: c.onSurfaceVariant)),
+                    ]),
+                  ),
+                  Text('Modifier', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: c.primary)),
+                ]),
+              ),
+            ),
+          ),
           for (final g in groupes) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
@@ -307,7 +340,7 @@ class _EcranExercicesMusclesState extends State<EcranExercicesMuscles> {
                 padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
                 child: Text("Pas d'exercice d'isolation : ceux-ci le travaillent aussi.", style: petit),
               ),
-            if (g.x.l.isEmpty) Padding(padding: const EdgeInsets.fromLTRB(4, 0, 4, 4), child: Text('Aucun exercice.', style: petit)),
+            if (g.x.l.isEmpty) Padding(padding: const EdgeInsets.fromLTRB(4, 0, 4, 4), child: Text('Aucun exercice avec ce matériel.', style: petit)),
             for (final r in g.r) ...[
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 8, 4, 4),

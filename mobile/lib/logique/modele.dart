@@ -240,7 +240,14 @@ class Exercice {
   final num d;
   /// Exercice de Soin & mobilité (le champ soin du site).
   final bool soin;
-  const Exercice(this.n, this.ch, {this.m = '', this.pat = '', this.pat2, this.eq = 0, this.d = 0, this.soin = false});
+  /// Matériel, comme le site : accessoire exigé (kb, el, trx), accessoire qui remplace le matériel
+  /// (ou), barre de traction (bt), poste de « Ma salle » (POSTE_DE de web/lib/data/salle.ts).
+  final String? acc;
+  final String? ou;
+  final bool bt;
+  final String? poste;
+  const Exercice(this.n, this.ch,
+      {this.m = '', this.pat = '', this.pat2, this.eq = 0, this.d = 0, this.soin = false, this.acc, this.ou, this.bt = false, this.poste});
 
   factory Exercice.depuis(Map<String, dynamic> j) => Exercice(
         j['n'] as String? ?? '',
@@ -251,5 +258,9 @@ class Exercice {
         eq: (j['eq'] as num?)?.toInt() ?? 0,
         d: _n(j['d']),
         soin: j['soin'] != null && j['soin'] != false && j['soin'] != 0,
+        acc: j['acc'] as String?,
+        ou: j['ou'] as String?,
+        bt: j['bt'] != null && j['bt'] != false && j['bt'] != 0,
+        poste: j['poste'] as String?,
       );
 }
