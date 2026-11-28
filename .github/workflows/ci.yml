@@ -65,7 +65,7 @@ jobs:
       - name: Catalogue des exercices à jour
         run: |
           node outils/exporter-exercices.mjs
-          git diff --exit-code assets/exercices.json assets/fiches.json assets/corps.json
+          git diff --exit-code assets/exercices.json assets/fiches.json assets/corps.json assets/salle.json
       - run: flutter pub get
       - name: Analyse
         run: flutter analyze

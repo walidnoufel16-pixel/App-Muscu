@@ -39,7 +39,10 @@ Profil › Mon matériel (`ecrans/materiel.dart`, comme `mon-materiel.tsx`) : o�
 TRX, kettlebell et élastiques, dans les mêmes champs du compte que le site (`A.materiel`, `A.barre`, `A.trx`, `A.acc`).
 Le filtre (`lib/logique/materiel.dart` : `selDeclare`, `exoFiltre`, mêmes cas de test que `salle-street.test.ts` et
 `premiere-seance.test.ts`) part du matériel du site pour un compte qui ne l'a jamais réglé (salle complète, barre de
-traction) et respecte les machines absentes déclarées sur le site ; « Ma salle » ne se règle pas encore dans l'appli.
+traction) et retire les exercices des machines absentes. « Ma salle » (`ecrans/ma_salle.dart`, comme `ma-salle.tsx`), en
+salle complète et en home gym : les machines et postes par zone (`assets/salle.json`, POSTES et ZONES_SALLE de
+`web/lib/data/salle.ts` copiés par `outils/exporter-exercices.mjs`), à décocher quand ils manquent, « Toutes », « Aucune »,
+photo en grand ; même champ du compte que le site (`A.sansPostes`, `lib/logique/salle.dart`, mêmes cas de test).
 Profil › Sexe se règle aussi dans l'appli.
 
 Progrès (`lib/logique/progres.dart`, mêmes calculs et cas de test que `web/app/progres`) :

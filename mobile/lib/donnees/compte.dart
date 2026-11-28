@@ -16,6 +16,7 @@ import '../logique/mode.dart';
 import '../logique/modele.dart';
 import '../logique/progres.dart' as progres;
 import '../logique/retirer.dart' as retirer;
+import '../logique/salle.dart' show Salle;
 import '../logique/seances.dart' as seances;
 import '../ecrans/vignette.dart' show Photo;
 import 'brouillon.dart';
@@ -73,6 +74,8 @@ class Compte extends ChangeNotifier {
   String? erreur;
   Map<String, Exercice> catalogue = const {};
   Map<String, Photo> photos = const {};
+  /// Les machines et postes de « Ma salle » (assets/salle.json).
+  Salle salle = Salle.vide;
   /// Les textes des fiches, par exercice : exécution (e), erreurs fréquentes (err), comment progresser (p).
   Map<String, dynamic> fiches = const {};
 
@@ -85,6 +88,7 @@ class Compte extends ChangeNotifier {
     final ph = jsonDecode(await rootBundle.loadString('assets/photos.json')) as Map<String, dynamic>;
     photos = {for (final e in ph.entries) e.key: Photo.depuis(Map<String, dynamic>.from(e.value as Map))};
     fiches = jsonDecode(await rootBundle.loadString('assets/fiches.json')) as Map<String, dynamic>;
+    salle = Salle.depuis(jsonDecode(await rootBundle.loadString('assets/salle.json')) as Map<String, dynamic>);
   }
 
   /// Envoie le code à six chiffres. Pas de création de compte ici : on retrouve celui du site.

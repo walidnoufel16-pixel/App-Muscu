@@ -1,6 +1,7 @@
 /* Copie le catalogue des exercices du site (web/lib/data/exercices.ts) vers l'appli mobile
    (assets/exercices.json), en ne gardant que ce que l'appli lit : nom, muscles, type de charge, mouvement, matériel (eq, acc, ou, bt, poste de
-   « Ma salle ») et charge de départ, soin (exercice de Soin & mobilité) ; et les textes des fiches (web/public/data/fiches.json).
+   « Ma salle ») et charge de départ, soin (exercice de Soin & mobilité) ; et les textes des fiches (web/public/data/fiches.json) ;
+   les machines et postes de « Ma salle » (assets/salle.json).
    À relancer après chaque changement du catalogue : node outils/exporter-exercices.mjs */
 import { copyFileSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -18,6 +19,14 @@ for (const [, id, ex] of salle.matchAll(/\{ id: "([^"]+)"[^\n]*?ex: \[([^\]]*)\]
   for (const [, o] of ex.matchAll(/"([^"]+)"/g)) POSTE_DE[o] = id;
 }
 if (!Object.keys(POSTE_DE).length) throw new Error("salle.ts illisible");
+/* « Ma salle » (ZONES_SALLE et POSTES de salle.ts) : les zones dans l'ordre, et chaque poste avec l'exercice
+   dont la photo l'illustre (img) */
+const ZONES = [...salle.matchAll(/\{ k: "([^"]+)", n: "([^"]+)", type: "(m[01])" \}/g)].map(([, k, n, type]) => ({ k, n, type }));
+const POSTES = [...salle.matchAll(/\{ id: "([^"]+)", n: "([^"]+)", zone: "([^"]+)"(?:, img: "([^"]+)")?, ex: \[/g)]
+  .map(([, id, n, zone, img]) => ({ id, n, zone, ...(img ? { img } : {}) }));
+if (ZONES.length < 2 || POSTES.length !== Object.keys(salle.match(/export const POSTES[\s\S]*?\n\];/)[0].match(/\{ id: "/g)).length
+  || POSTES.some((p) => !ZONES.some((z) => z.k === p.zone))) throw new Error("salle.ts illisible");
+writeFileSync(join(ici, "../assets/salle.json"), JSON.stringify({ zones: ZONES, postes: POSTES }) + "\n");
 const sortie = Object.fromEntries(Object.entries(EX).map(([id, e]) => [id, {
   n: e.n, m: e.m, ch: e.ch, pat: e.pat, ...(e.pat2 ? { pat2: e.pat2 } : {}), eq: e.eq, d: e.d, ...(e.soin ? { soin: 1 } : {}),
   ...(e.acc ? { acc: e.acc } : {}), ...(e.ou ? { ou: e.ou } : {}), ...(e.bt ? { bt: 1 } : {}), ...(POSTE_DE[id] ? { poste: POSTE_DE[id] } : {}),

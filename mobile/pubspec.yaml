@@ -67,6 +67,7 @@ flutter:
     - assets/fiche/
     - assets/fiches.json
     - assets/corps.json
+    - assets/salle.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:

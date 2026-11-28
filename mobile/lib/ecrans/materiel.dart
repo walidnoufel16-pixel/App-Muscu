@@ -1,11 +1,12 @@
 /* Profil › Mon matériel, comme le site (web/components/repere/mon-materiel.tsx) : où tu t'entraînes, et en
-   plus la barre de traction, le TRX, la kettlebell et les élastiques. Il filtre les exercices proposés sous
-   Mes séances. Et le choix du corps à afficher (ChoixSilhouette de web/components/repere/schema-corps.tsx).
+   plus la barre de traction, le TRX, la kettlebell et les élastiques ; « Ma salle » (ma_salle.dart). Il filtre
+   les exercices proposés sous Mes séances. Et le choix du corps à afficher (ChoixSilhouette de web/components/repere/schema-corps.tsx).
    Logique : lib/logique/materiel.dart. */
 import 'package:material_ui/material_ui.dart';
 
 import '../donnees/compte.dart';
 import '../logique/materiel.dart';
+import 'ma_salle.dart';
 
 class EcranMateriel extends StatefulWidget {
   const EcranMateriel({super.key, required this.compte});
@@ -71,13 +72,17 @@ class _EcranMaterielState extends State<EcranMateriel> {
                     for (var i = 0; i < accessoires.length; i++)
                       puce(accessoires[i].$2, acc.contains(accessoires[i].$1), (d) => basculerAccessoire(d, i)),
                   ]),
+                  // les machines et postes absents, seulement en salle complète et en home gym (comme le site)
+                  if (lieu <= 1) ...[
+                    const SizedBox(height: 16),
+                    LienSalle(compte: widget.compte),
+                  ],
                 ]),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
                 child: Text(
-                  'Sert à choisir les exercices proposés quand tu touches tes muscles sous Mes séances.'
-                  '${lieu <= 1 ? ' Les machines absentes de ta salle se règlent sur le site (Profil › Mon matériel › Ma salle).' : ''}',
+                  'Sert à choisir les exercices proposés quand tu touches tes muscles sous Mes séances.',
                   style: TextStyle(fontSize: 12.5, height: 1.35, color: c.onSurfaceVariant),
                 ),
               ),
