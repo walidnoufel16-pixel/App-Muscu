@@ -1,4 +1,5 @@
-/* Mes séances (accueil du mode Suivi, comme web/components/repere/accueil-suivi.tsx) : la prochaine
+/* Mes séances (accueil du mode Suivi, comme web/components/repere/accueil-suivi.tsx) : la semaine et la
+   récupération (ecrans/accueil_suivi.dart, sauf pour un compte qui n'a encore rien fait), la prochaine
    séance en grand avec « Commencer », puis les autres avec leur « Dernière fois ».
    Toucher une séance l'ouvre (ecrans/seance.dart) ; « Nouvelle séance » en crée une (ecrans/editer_seance.dart). */
 import 'package:material_ui/material_ui.dart';
@@ -6,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import '../donnees/compte.dart';
 import '../logique/mode.dart';
 import '../logique/modele.dart';
+import 'accueil_suivi.dart';
 import 'editer_seance.dart';
 import 'seance.dart';
 import 'vignette.dart';
@@ -54,6 +56,7 @@ class EcranMesSeances extends StatelessWidget {
                 else if (compte.erreur != null && e == null)
                   _Erreur(texte: compte.erreur!, reessayer: compte.recharger)
                 else ...[
+                  if (e != null) AccueilSuivi(compte: compte, etat: e, auj: auj),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
                     child: Text('MES SÉANCES',

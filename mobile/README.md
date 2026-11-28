@@ -19,6 +19,13 @@ supprime, avec les mêmes règles que le site (`lib/logique/seances.dart`) : ell
 Trois onglets comme sur le site : Séances, Progrès, Profil (pseudo, mode Suivi / Guidé,
 déconnexion, suppression du compte par la fonction Edge `oublier`, comme « Tout effacer » du site).
 
+L'accueil Séances (`ecrans/accueil_suivi.dart`, comme `web/components/repere/accueil-suivi.tsx`), au-dessus de
+Mes séances, sauf pour un compte qui n'a encore rien fait : la semaine en anneaux (fait, commencé, prévu sur le site,
+manqué) avec la série de semaines et l'objectif (`lib/logique/agenda.dart`, une séance en cours ne compte pas),
+puis la récupération des muscles en lecture seule, avec sa feuille (`lib/logique/recuperation.dart` : etatGroupes
+et efforts d'endurance, mêmes cas de test que le site ; silhouettes `assets/corps.json` copiées par
+`outils/exporter-exercices.mjs`). Toucher un jour fait relit ses séances.
+
 Progrès (`lib/logique/progres.dart`, mêmes calculs et cas de test que `web/app/progres`) :
 la semaine (série de semaines, objectif, séries comparées à la semaine d'avant, calendrier de 4 semaines),
 les séries par muscle sur 7 jours, la progression par exercice (charge, séries, 1RM estimé, « Prochaine fois »)

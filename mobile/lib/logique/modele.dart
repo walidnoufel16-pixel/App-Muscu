@@ -167,6 +167,9 @@ class LigneHist {
       );
 }
 
+List<Map<String, dynamic>> _cartes(Object? l) =>
+    [for (final x in (l is List ? l : const []).whereType<Map>()) Map<String, dynamic>.from(x)];
+
 /// L'état du compte, réduit à ce que lit l'appli.
 class Etat {
   final Map<String, dynamic> a;
@@ -179,7 +182,21 @@ class Etat {
   /// Les jours des séances de cardio seules et des sorties de course (CARDIO sans « ref », SORTIES) :
   /// elles comptent dans les séances de la semaine, comme sur le site.
   final List<String> joursCardio;
-  const Etat({this.a = const {}, this.seances = const [], this.hist = const [], this.log = const {}, this.cycle = false, this.joursCardio = const []});
+  /// Lus tels quels pour l'accueil (anneaux de la semaine, récupération) : CARDIO, SORTIES,
+  /// ACTIVITES (foot, padel…) et AGENDA (séances programmées sur le site).
+  final List<Map<String, dynamic>> cardio, sorties, activites, agenda;
+  const Etat({
+    this.a = const {},
+    this.seances = const [],
+    this.hist = const [],
+    this.log = const {},
+    this.cycle = false,
+    this.joursCardio = const [],
+    this.cardio = const [],
+    this.sorties = const [],
+    this.activites = const [],
+    this.agenda = const [],
+  });
 
   factory Etat.depuis(Map<String, dynamic>? j) {
     if (j == null) return const Etat();
@@ -203,6 +220,10 @@ class Etat {
         for (final x in ((j['SORTIES'] as List?) ?? const []).whereType<Map>())
           if (x['d'] is String) x['d'] as String,
       ],
+      cardio: _cartes(j['CARDIO']),
+      sorties: _cartes(j['SORTIES']),
+      activites: _cartes(j['ACTIVITES']),
+      agenda: _cartes(j['AGENDA']),
     );
   }
 }
