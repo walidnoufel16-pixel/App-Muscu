@@ -1,6 +1,7 @@
 /* Mes séances (accueil du mode Suivi, comme web/components/repere/accueil-suivi.tsx) : la semaine et la
    récupération (ecrans/accueil_suivi.dart, sauf pour un compte qui n'a encore rien fait), la prochaine
    séance en grand avec « Commencer », puis les autres avec leur « Dernière fois ».
+   Dessous, le corps pour composer une séance par muscles (ecrans/corps_du_jour.dart).
    Toucher une séance l'ouvre (ecrans/seance.dart) ; « Nouvelle séance » en crée une (ecrans/editer_seance.dart). */
 import 'package:material_ui/material_ui.dart';
 
@@ -8,6 +9,7 @@ import '../donnees/compte.dart';
 import '../logique/mode.dart';
 import '../logique/modele.dart';
 import 'accueil_suivi.dart';
+import 'corps_du_jour.dart';
 import 'editer_seance.dart';
 import 'seance.dart';
 import 'vignette.dart';
@@ -123,6 +125,15 @@ class EcranMesSeances extends StatelessWidget {
                       icon: const Icon(Icons.add),
                       label: const Text('Nouvelle séance'),
                       style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                    ),
+                  ],
+                  if (e != null) ...[
+                    const SizedBox(height: 24),
+                    CorpsDuJour(
+                      compte: compte,
+                      etat: e,
+                      auj: auj,
+                      titre: liste.isEmpty ? "Qu'est-ce que tu travailles aujourd'hui ?" : "Envie d'autre chose ? Choisis tes muscles du jour",
                     ),
                   ],
                 ],

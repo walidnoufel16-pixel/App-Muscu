@@ -238,7 +238,9 @@ class Exercice {
   final String? pat2;
   final int eq;
   final num d;
-  const Exercice(this.n, this.ch, {this.m = '', this.pat = '', this.pat2, this.eq = 0, this.d = 0});
+  /// Exercice de Soin & mobilité (le champ soin du site).
+  final bool soin;
+  const Exercice(this.n, this.ch, {this.m = '', this.pat = '', this.pat2, this.eq = 0, this.d = 0, this.soin = false});
 
   factory Exercice.depuis(Map<String, dynamic> j) => Exercice(
         j['n'] as String? ?? '',
@@ -248,5 +250,6 @@ class Exercice {
         pat2: j['pat2'] as String?,
         eq: (j['eq'] as num?)?.toInt() ?? 0,
         d: _n(j['d']),
+        soin: j['soin'] != null && j['soin'] != false && j['soin'] != 0,
       );
 }

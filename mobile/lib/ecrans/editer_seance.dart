@@ -2,7 +2,8 @@
    (web/app/entrainement/composer/page.tsx) : le nom, puis les exercices pris dans le catalogue,
    qu'on retire ou réordonne (poignée à droite). La séance s'enregistre dans le compte
    (document relu juste avant d'écrire) et apparaît aussi sur le site. Une séance existante
-   peut être supprimée. */
+   peut être supprimée. Depuis le corps de Mes séances (ecrans/corps_du_jour.dart), elle arrive avec le
+   nom des muscles et les exercices déjà cochés. */
 import 'package:material_ui/material_ui.dart';
 
 import '../donnees/compte.dart';
@@ -19,9 +20,12 @@ class _Ligne {
 
 class EcranEditerSeance extends StatefulWidget {
   /// `i` null : nouvelle séance ; sinon la séance `i` de la liste du compte.
-  const EcranEditerSeance({super.key, required this.compte, this.i});
+  /// Pour une nouvelle séance, `nom` et `ids` la préremplissent (le corps de Mes séances).
+  const EcranEditerSeance({super.key, required this.compte, this.i, this.nom, this.ids = const []});
   final Compte compte;
   final int? i;
+  final String? nom;
+  final List<String> ids;
 
   @override
   State<EcranEditerSeance> createState() => _EcranEditerSeanceState();
@@ -47,6 +51,9 @@ class _EcranEditerSeanceState extends State<EcranEditerSeance> {
       for (var j = 0; j < s.ex.length; j++) {
         _lignes.add(_Ligne(s.ex[j].id, j));
       }
+    } else if (i == null) {
+      _nom.text = widget.nom ?? '';
+      _lignes.addAll(widget.ids.map(_Ligne.new));
     }
   }
 
@@ -136,7 +143,7 @@ class _EcranEditerSeanceState extends State<EcranEditerSeance> {
           header: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             TextField(
               controller: _nom,
-              autofocus: _nouvelle,
+              autofocus: _nouvelle && _lignes.isEmpty,
               textCapitalization: TextCapitalization.sentences,
               textInputAction: TextInputAction.done,
               maxLength: 40,

@@ -244,13 +244,13 @@ class _Cercle extends CustomPainter {
 /* ---------------- récupération ---------------- */
 
 /// Les silhouettes (assets/corps.json, tracés du site), lues une fois.
-class _Silhouettes {
+class Silhouettes {
   final Map<String, Rect> vb;
   final Map<String, List<({Path d, String? p})>> zones;
-  _Silhouettes(this.vb, this.zones);
+  Silhouettes(this.vb, this.zones);
 
-  static final Map<bool, Future<_Silhouettes>> _cache = {};
-  static Future<_Silhouettes> de(bool femme) => _cache[femme] ??= () async {
+  static final Map<bool, Future<Silhouettes>> _cache = {};
+  static Future<Silhouettes> de(bool femme) => _cache[femme] ??= () async {
     final j = jsonDecode(await rootBundle.loadString('assets/corps.json')) as Map<String, dynamic>;
     final s = j[femme ? 'femme' : 'homme'] as Map<String, dynamic>;
     Rect rect(String v) {
@@ -258,7 +258,7 @@ class _Silhouettes {
       return Rect.fromLTWH(n[0], n[1], n[2], n[3]);
     }
 
-    return _Silhouettes(
+    return Silhouettes(
       {
         for (final c in ['front', 'back']) c: rect((s['vb'] as Map)[c] as String),
       },
@@ -281,7 +281,7 @@ class Corps extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = Theme.of(context).colorScheme;
     return FutureBuilder(
-      future: _Silhouettes.de(femme),
+      future: Silhouettes.de(femme),
       builder: (context, s) {
         final x = s.data;
         if (x == null) return SizedBox(height: hauteur, width: hauteur / 2);

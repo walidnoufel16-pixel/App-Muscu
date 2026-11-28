@@ -26,6 +26,14 @@ puis la récupération des muscles en lecture seule, avec sa feuille (`lib/logiq
 et efforts d'endurance, mêmes cas de test que le site ; silhouettes `assets/corps.json` copiées par
 `outils/exporter-exercices.mjs`). Toucher un jour fait relit ses séances.
 
+Sous Mes séances, le corps pour composer une séance par muscles (`ecrans/corps_du_jour.dart`, comme `CorpsDuJour`
+du site) : « Envie d'autre chose ? Choisis tes muscles du jour » (ou « Qu'est-ce que tu travailles aujourd'hui ? »
+sans séance), de face ou de dos, teinté par les séries des 7 derniers jours, avec « Pas encore cette semaine ».
+Toucher des muscles propose leurs exercices rangés par rôle (Base, Complément, Isolation, Gainage), et ceux qu'on
+coche ouvrent la création de séance, préremplie avec le nom des muscles (`lib/logique/muscles_du_jour.dart` :
+`roleDe`, `exosParMuscle`, `parRole`, mêmes cas de test que le site). Pas encore : le filtre par matériel du Profil
+(tout le matériel est proposé) et le choix de la silhouette (homme par défaut, sauf sexe femme dans le compte).
+
 Progrès (`lib/logique/progres.dart`, mêmes calculs et cas de test que `web/app/progres`) :
 la semaine (série de semaines, objectif, séries comparées à la semaine d'avant, calendrier de 4 semaines),
 les séries par muscle sur 7 jours, la progression par exercice (charge, séries, 1RM estimé, « Prochaine fois »)
