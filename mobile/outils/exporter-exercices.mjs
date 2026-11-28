@@ -1,6 +1,6 @@
 /* Copie le catalogue des exercices du site (web/lib/data/exercices.ts) vers l'appli mobile
-   (assets/exercices.json), en ne gardant que ce que l'appli lit : nom, muscles, type de charge, mouvement, matériel et charge
-   de départ, soin (exercice de Soin & mobilité) ; et les textes des fiches (web/public/data/fiches.json).
+   (assets/exercices.json), en ne gardant que ce que l'appli lit : nom, muscles, type de charge, mouvement, matériel (eq, acc, ou, bt, poste de
+   « Ma salle ») et charge de départ, soin (exercice de Soin & mobilité) ; et les textes des fiches (web/public/data/fiches.json).
    À relancer après chaque changement du catalogue : node outils/exporter-exercices.mjs */
 import { copyFileSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -11,7 +11,17 @@ const src = readFileSync(join(ici, "../../web/lib/data/exercices.ts"), "utf8");
 const debut = src.indexOf("{", src.indexOf("export const EX:"));
 const fin = src.indexOf("\n};", debut);
 const EX = JSON.parse(src.slice(debut, fin + 2));
-const sortie = Object.fromEntries(Object.entries(EX).map(([id, e]) => [id, { n: e.n, m: e.m, ch: e.ch, pat: e.pat, ...(e.pat2 ? { pat2: e.pat2 } : {}), eq: e.eq, d: e.d, ...(e.soin ? { soin: 1 } : {}) }]));
+/* le poste de « Ma salle » exigé par chaque exercice (POSTE_DE de web/lib/data/salle.ts) */
+const salle = readFileSync(join(ici, "../../web/lib/data/salle.ts"), "utf8");
+const POSTE_DE = {};
+for (const [, id, ex] of salle.matchAll(/\{ id: "([^"]+)"[^\n]*?ex: \[([^\]]*)\]/g)) {
+  for (const [, o] of ex.matchAll(/"([^"]+)"/g)) POSTE_DE[o] = id;
+}
+if (!Object.keys(POSTE_DE).length) throw new Error("salle.ts illisible");
+const sortie = Object.fromEntries(Object.entries(EX).map(([id, e]) => [id, {
+  n: e.n, m: e.m, ch: e.ch, pat: e.pat, ...(e.pat2 ? { pat2: e.pat2 } : {}), eq: e.eq, d: e.d, ...(e.soin ? { soin: 1 } : {}),
+  ...(e.acc ? { acc: e.acc } : {}), ...(e.ou ? { ou: e.ou } : {}), ...(e.bt ? { bt: 1 } : {}), ...(POSTE_DE[id] ? { poste: POSTE_DE[id] } : {}),
+}]));
 writeFileSync(join(ici, "../assets/exercices.json"), JSON.stringify(sortie) + "\n");
 console.log(`${Object.keys(sortie).length} exercices exportés`);
 /* textes des fiches (exécution, erreurs fréquentes, comment progresser), tels quels */

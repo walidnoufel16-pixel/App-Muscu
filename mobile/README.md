@@ -16,7 +16,7 @@ Progrès sur le site. La séance en cours est gardée sur le téléphone jusqu'�
 « Nouvelle séance » : un nom, puis les exercices choisis dans le catalogue (recherche, filtre par
 muscle, photos). Le crayon de la séance la modifie (nom, exercices ajoutés, retirés, réordonnés) ou la
 supprime, avec les mêmes règles que le site (`lib/logique/seances.dart`) : elle apparaît aussi sur le site.
-Trois onglets comme sur le site : Séances, Progrès, Profil (pseudo, mode Suivi / Guidé,
+Trois onglets comme sur le site : Séances, Progrès, Profil (pseudo, sexe, matériel, mode Suivi / Guidé,
 déconnexion, suppression du compte par la fonction Edge `oublier`, comme « Tout effacer » du site).
 
 L'accueil Séances (`ecrans/accueil_suivi.dart`, comme `web/components/repere/accueil-suivi.tsx`), au-dessus de
@@ -31,8 +31,16 @@ du site) : « Envie d'autre chose ? Choisis tes muscles du jour » (ou « Qu'est
 sans séance), de face ou de dos, teinté par les séries des 7 derniers jours, avec « Pas encore cette semaine ».
 Toucher des muscles propose leurs exercices rangés par rôle (Base, Complément, Isolation, Gainage), et ceux qu'on
 coche ouvrent la création de séance, préremplie avec le nom des muscles (`lib/logique/muscles_du_jour.dart` :
-`roleDe`, `exosParMuscle`, `parRole`, mêmes cas de test que le site). Pas encore : le filtre par matériel du Profil
-(tout le matériel est proposé) et le choix de la silhouette (homme par défaut, sauf sexe femme dans le compte).
+`roleDe`, `exosParMuscle`, `parRole`, mêmes cas de test que le site). Les exercices proposés suivent le matériel
+du Profil, rappelé sur une ligne « Matériel disponible · Modifier ». Tant que le sexe n'est pas réglé, « Sur quel corps
+afficher tes muscles ? » remplace le corps (ChoixSilhouette du site) ; le choix remplit Profil › Sexe.
+
+Profil › Mon matériel (`ecrans/materiel.dart`, comme `mon-materiel.tsx`) : où tu t'entraînes, puis barre de traction,
+TRX, kettlebell et élastiques, dans les mêmes champs du compte que le site (`A.materiel`, `A.barre`, `A.trx`, `A.acc`).
+Le filtre (`lib/logique/materiel.dart` : `selDeclare`, `exoFiltre`, mêmes cas de test que `salle-street.test.ts` et
+`premiere-seance.test.ts`) part du matériel du site pour un compte qui ne l'a jamais réglé (salle complète, barre de
+traction) et respecte les machines absentes déclarées sur le site ; « Ma salle » ne se règle pas encore dans l'appli.
+Profil › Sexe se règle aussi dans l'appli.
 
 Progrès (`lib/logique/progres.dart`, mêmes calculs et cas de test que `web/app/progres`) :
 la semaine (série de semaines, objectif, séries comparées à la semaine d'avant, calendrier de 4 semaines),

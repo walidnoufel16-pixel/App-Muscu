@@ -1,8 +1,9 @@
 /* Composer une séance par muscles, comme CorpsDuJour (web/components/repere/corps-du-jour.tsx) et la feuille
    d'ajout du mode Suivi (ajout-exercice.tsx) : la teinte des 7 derniers jours, « Pas encore cette semaine »,
    les exercices des muscles touchés (exosParMuscle de bibliotheque-muscles.tsx) rangés par rôle
-   (roleDe de web/lib/logic/roles.ts, parRole de bibliotheque.tsx). Logique pure.
-   Le site filtre aussi par le matériel du Profil ; l'appli n'a pas encore ce réglage : tout le matériel. */
+   (roleDe de web/lib/logic/roles.ts, parRole de bibliotheque.tsx), avec le matériel du Profil
+   (lib/logique/materiel.dart). Logique pure. */
+import 'materiel.dart' show exoFiltre;
 import 'mode.dart' show decaler;
 import 'modele.dart';
 import 'progres.dart' show nomMuscle, nomsMuscles, pat2musc, principaux, seriesParMuscle;
@@ -60,17 +61,20 @@ List<({String? ro, List<String> ids})> parRole(List<String> l, Map<String, Exerc
     if (l.where((o) => roleDe(o, cat, muscle) == ro).toList() case final ids when ids.isNotEmpty) (ro: ro, ids: ids),
 ];
 
-/// Les exercices de chaque muscle touché, dans l'ordre des muscles du site ; s'il n'y en a aucun dont
-/// c'est le muscle principal, ceux qui le travaillent en second (`aussi`).
-List<({String g, List<String> l, bool aussi})> exosParMuscle(List<String> m, Map<String, Exercice> cat) => [
+/// Les exercices de chaque muscle touché faisables avec ce matériel (`sel`, selDeclare ; null : tout),
+/// dans l'ordre des muscles du site ; s'il n'y en a aucun dont c'est le muscle principal (biceps au poids
+/// du corps), ceux qui le travaillent en second (`aussi`).
+List<({String g, List<String> l, bool aussi})> exosParMuscle(List<String> m, Map<String, Exercice> cat, [List<String>? sel]) => [
   for (final g in nomsMuscles.keys)
-    if (m.contains(g)) _exosDe(g, cat),
+    if (m.contains(g)) _exosDe(g, cat, sel),
 ];
 
-({String g, List<String> l, bool aussi}) _exosDe(String g, Map<String, Exercice> cat) {
+({String g, List<String> l, bool aussi}) _exosDe(String g, Map<String, Exercice> cat, List<String>? sel) {
   List<String> de(String? Function(Exercice) p) => [
     for (final e in cat.entries)
-      if (p(e.value) case final v? when pat2musc[v] == g && !estSoin(e.value)) e.key,
+      if (p(e.value) case final v?
+          when pat2musc[v] == g && !estSoin(e.value) && (sel == null || exoFiltre(e.key, sel, cat)))
+        e.key,
   ];
   final l = de((x) => x.pat.isEmpty ? null : x.pat);
   return l.isNotEmpty ? (g: g, l: l, aussi: false) : (g: g, l: de((x) => x.pat2), aussi: true);

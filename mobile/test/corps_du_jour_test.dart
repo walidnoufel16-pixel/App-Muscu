@@ -18,12 +18,36 @@ void main() {
     await t.pumpWidget(app({'SEANCES': []}));
     expect(find.text("Qu'est-ce que tu travailles aujourd'hui ?"), findsOneWidget);
     await t.pumpWidget(app({
+      'A': {'sexe': 0},
       'SEANCES': [
         {'nom': 'Jambes', 'ex': [{'id': 'sq'}]},
       ],
     }));
     expect(find.text("Envie d'autre chose ? Choisis tes muscles du jour"), findsOneWidget);
     expect(find.text('Touche les muscles à travailler'), findsOneWidget);
+    expect(find.text('Sur quel corps afficher tes muscles ?'), findsNothing);
+  });
+
+  testWidgets('sexe pas réglé : on demande sur quel corps afficher les muscles', (t) async {
+    t.view.physicalSize = const Size(390 * 3, 2400 * 3);
+    t.view.devicePixelRatio = 3;
+    addTearDown(t.view.reset);
+    await t.pumpWidget(MaterialApp(theme: themeOxa(Brightness.light), home: EcranMesSeances(compte: compteDe({'SEANCES': []}))));
+    expect(find.text('Sur quel corps afficher tes muscles ?'), findsOneWidget);
+    expect(find.text('Femme'), findsOneWidget);
+    expect(find.text('Homme'), findsOneWidget);
+    expect(find.text('Touche les muscles à travailler'), findsNothing);
+  });
+
+  testWidgets('les exercices proposés suivent le matériel du Profil', (t) async {
+    final c = compteDe({'A': {'materiel': 3}, 'SEANCES': []});
+    await t.pumpWidget(MaterialApp(
+      theme: themeOxa(Brightness.light),
+      home: EcranExercicesMuscles(compte: c, muscles: const ['qua']),
+    ));
+    expect(find.text('Poids du corps'), findsOneWidget);
+    expect(find.text('Squat barre'), findsNothing);
+    expect(find.text('Aucun exercice avec ce matériel.'), findsOneWidget);
   });
 
   testWidgets('les exercices cochés ouvrent la création de séance, avec le nom des muscles', (t) async {

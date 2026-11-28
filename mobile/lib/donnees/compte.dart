@@ -11,6 +11,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../logique/enregistrer.dart';
 import '../logique/inscription.dart';
+import '../logique/materiel.dart' as materiel;
 import '../logique/mode.dart';
 import '../logique/modele.dart';
 import '../logique/progres.dart' as progres;
@@ -338,6 +339,19 @@ class Compte extends ChangeNotifier {
       return 'Changement impossible : vérifie ta connexion et réessaie.';
     }
   }
+
+  /// Règle le matériel du Profil (lib/logique/materiel.dart : choisirLieu, basculerBarre…), comme
+  /// Profil › Mon matériel du site. Le document est relu juste avant : seul ce réglage change.
+  Future<String?> reglerProfil(Map<String, dynamic> Function(Map<String, dynamic> doc) changer) async {
+    try {
+      return await _modifier(changer);
+    } catch (e) {
+      return 'Changement impossible : vérifie ta connexion et réessaie.';
+    }
+  }
+
+  /// Règle le sexe du Profil (A.sexe), qui choisit aussi le corps affiché, comme ChoixSilhouette du site.
+  Future<String?> reglerSexe(int v) => reglerProfil((doc) => materiel.reglerSexe(doc, v));
 
   /// Supprime le compte pour de bon (fonction Edge « oublier », comme « Tout effacer » sur le site) :
   /// le compte et tout ce qu'il contient, sur le serveur, puis ce qui reste sur ce téléphone.
