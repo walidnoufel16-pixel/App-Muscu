@@ -50,7 +50,9 @@ la semaine (série de semaines, objectif, séries comparées à la semaine d'ava
 les séries par muscle sur 7 jours, la progression par exercice (charge, séries, 1RM estimé, « Prochaine fois »)
 et les records. Toucher un jour du calendrier ouvre ses séances relues comme sur le site (`ecrans/jour.dart`),
 avec « Retirer de mon historique » après confirmation (`lib/logique/retirer.dart`, mêmes règles et cas de test
-que `retirerDeHistorique`). Pas encore : cardio, poids du corps, défis et badges.
+que `retirerDeHistorique`). Le poids du corps (`lib/logique/poids.dart`, comme SectionPoids du site) : « Suivre mon poids »
+tant qu'aucune pesée n'est notée, puis la courbe des pesées et « Noter » (A.poids, une par jour, les 120 dernières, entre
+30 et 300 kg ; le poids du Profil suit). Pas encore : cardio, défis et badges.
 
 - Même projet Supabase que le site : table `etats`, un document JSON par compte.
 - `lib/logique/` : logique pure, reprise de `web/lib/logic/` avec les mêmes cas de test

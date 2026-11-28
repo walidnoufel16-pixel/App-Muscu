@@ -1,8 +1,9 @@
 /* Progrès en mode Suivi, comme web/app/progres (onglet « Mon évolution ») : la semaine (série de
    semaines, objectif, séries, calendrier), les muscles travaillés sur 7 jours, la progression par
-   exercice et les records. Tout vient du document du compte (logique/progres.dart) ; « Objectif »
-   règle les séances par semaine (A.objHebdo), avec le joker du mois et le record.
-   Plus tard : cardio, poids du corps, défis et badges. */
+   exercice, les records et le poids du corps. Tout vient du document du compte (logique/progres.dart,
+   logique/poids.dart) ; « Objectif » règle les séances par semaine (A.objHebdo), avec le joker du mois
+   et le record ; « Noter » ajoute la pesée du jour (A.poids).
+   Plus tard : cardio, défis et badges. */
 import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
@@ -10,6 +11,7 @@ import 'package:material_ui/material_ui.dart';
 import '../donnees/compte.dart';
 import '../logique/mode.dart';
 import '../logique/modele.dart';
+import '../logique/poids.dart';
 import '../logique/progres.dart';
 import 'jour.dart';
 
@@ -116,6 +118,7 @@ class _ContenuState extends State<_Contenu> {
                 KeyedSubtree(key: _cleExo, child: _Progression(e: e, cat: widget.cat, id: _exo, choisir: (id) => setState(() => _exo = id))),
                 _Records(r: meilleursRecords(e.hist, widget.cat), cat: widget.cat, choisir: _choisir),
               ]),
+              _SectionPoids(a: e.a, compte: widget.compte),
             ],
     );
   }
@@ -967,3 +970,237 @@ class _RecordsState extends State<_Records> {
   }
 }
 
+
+/* ---------------- poids du corps ---------------- */
+
+/// Comme SectionPoids du site : une ligne « Suivre mon poids » tant qu'aucune pesée n'est notée,
+/// puis la courbe des pesées (dès deux) et le champ du poids du jour.
+class _SectionPoids extends StatefulWidget {
+  const _SectionPoids({required this.a, required this.compte});
+  final Map<String, dynamic> a;
+  final Compte compte;
+
+  @override
+  State<_SectionPoids> createState() => _SectionPoidsState();
+}
+
+class _SectionPoidsState extends State<_SectionPoids> {
+  bool _ouvert = false, _envoi = false;
+  final _champ = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _champ.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _champ.dispose();
+    super.dispose();
+  }
+
+  Future<void> _noter() async {
+    final kg = lirePoids(_champ.text);
+    if (kg == null || _envoi) return;
+    setState(() => _envoi = true);
+    final err = await widget.compte.noterPoids(kg);
+    if (!mounted) return;
+    setState(() => _envoi = false);
+    if (err != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
+    } else {
+      _champ.clear();
+      FocusScope.of(context).unfocus();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final a = widget.a;
+    if (!poidsSuivi(a) && !_ouvert) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 16),
+        child: Material(
+          color: Theme.of(context).colorScheme.surfaceContainer,
+          borderRadius: BorderRadius.circular(18),
+          clipBehavior: Clip.antiAlias,
+          child: ListTile(
+            leading: Icon(Icons.monitor_weight_outlined, color: _gris(context)),
+            title: const Text('Suivre mon poids', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+            trailing: Icon(Icons.chevron_right, color: _gris(context)),
+            onTap: () => setState(() => _ouvert = true),
+          ),
+        ),
+      );
+    }
+    final p = pesees(a), dernier = dernierPoids(a);
+    return _Section(titre: 'Poids du corps', enfants: [
+      _Carte(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          if (p.length > 1) ...[
+            _CourbePoids(points: [for (final x in p) (x: _court(x.d), y: x.kg)]),
+            const SizedBox(height: 12),
+          ],
+          Row(children: [
+            Icon(Icons.monitor_weight_outlined, color: _gris(context)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                key: const ValueKey('champ-poids'),
+                controller: _champ,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _noter(),
+                style: const TextStyle(fontSize: 16),
+                decoration: InputDecoration(
+                  isDense: true,
+                  hintText: dernier != null ? 'Dernier : ${nb(dernier)} kg' : 'Ton poids, en kg',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              onPressed: _champ.text.trim().isEmpty || _envoi ? null : _noter,
+              style: FilledButton.styleFrom(minimumSize: const Size(0, 44), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              child: const Text('Noter'),
+            ),
+          ]),
+        ]),
+      ),
+    ]);
+  }
+}
+
+/// La courbe du site (Courbe de graphes.tsx) : aire en dégradé, un point par pesée, la bulle du point
+/// touché (le dernier d'office) et le premier et le dernier jour en bas.
+class _CourbePoids extends StatefulWidget {
+  const _CourbePoids({required this.points});
+  final List<({String x, num y})> points;
+
+  @override
+  State<_CourbePoids> createState() => _CourbePoidsState();
+}
+
+class _CourbePoidsState extends State<_CourbePoids> {
+  int? _sel;
+
+  void _toucher(Offset o, double w) {
+    final n = widget.points.length;
+    const px = 10.0;
+    final i = n == 1 ? 0 : (((o.dx - px) / (w - 2 * px)) * (n - 1)).round().clamp(0, n - 1);
+    setState(() => _sel = i);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pts = widget.points, s = Theme.of(context).colorScheme;
+    final i = (_sel ?? pts.length - 1).clamp(0, pts.length - 1);
+    return Semantics(
+      label: 'Courbe : de ${nb(pts.first.y)} à ${nb(pts.last.y)} kg',
+      child: LayoutBuilder(
+        builder: (c, k) => GestureDetector(
+          onTapDown: (d) => _toucher(d.localPosition, k.maxWidth),
+          onHorizontalDragUpdate: (d) => _toucher(d.localPosition, k.maxWidth),
+          child: CustomPaint(
+            size: Size(k.maxWidth, 130),
+            painter: _PeintreCourbe(pts, i, _feu, s.outline, s.surfaceContainer, s.onSurface, s.surface, _gris(context)),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PeintreCourbe extends CustomPainter {
+  _PeintreCourbe(this.pts, this.sel, this.feu, this.trait, this.fond, this.encre, this.papier, this.gris);
+  final List<({String x, num y})> pts;
+  final int sel;
+  final Color feu, trait, fond, encre, papier, gris;
+
+  void _texte(Canvas c, String t, Offset o, TextStyle st, {double ancre = 0}) {
+    final tp = TextPainter(text: TextSpan(text: t, style: st), textDirection: TextDirection.ltr)..layout();
+    tp.paint(c, o - Offset(tp.width * ancre, tp.height / 2));
+  }
+
+  @override
+  void paint(Canvas c, Size size) {
+    final w = size.width, h = size.height;
+    const px = 10.0, haut = 26.0, bas = 22.0;
+    final ys = [for (final p in pts) p.y.toDouble()];
+    var mn = ys.reduce(math.min), mx = ys.reduce(math.max);
+    if (mx - mn < 1e-6) {
+      mn -= 1;
+      mx += 1;
+    }
+    final marge = (mx - mn) * 0.15;
+    mn = math.max(0, mn - marge);
+    mx += marge;
+    double X(int i) => pts.length == 1 ? w / 2 : px + i * (w - 2 * px) / (pts.length - 1);
+    double Y(double v) => haut + (1 - (v - mn) / (mx - mn)) * (h - haut - bas);
+    final pointille = Paint()
+      ..color = trait
+      ..strokeWidth = 1;
+    for (final t in [0.25, 0.5, 0.75]) {
+      final y = haut + t * (h - haut - bas);
+      for (var x = 0.0; x < w; x += 6) {
+        c.drawLine(Offset(x, y), Offset(math.min(x + 2, w), y), pointille);
+      }
+    }
+    final ligne = Path();
+    for (var i = 0; i < pts.length; i++) {
+      i == 0 ? ligne.moveTo(X(i), Y(ys[i])) : ligne.lineTo(X(i), Y(ys[i]));
+    }
+    final aire = Path.from(ligne)
+      ..lineTo(X(pts.length - 1), h - bas)
+      ..lineTo(X(0), h - bas)
+      ..close();
+    c.drawPath(
+        aire,
+        Paint()
+          ..shader = LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [feu.withValues(alpha: 0.28), feu.withValues(alpha: 0)],
+          ).createShader(Rect.fromLTWH(0, haut, w, h - haut - bas)));
+    c.drawPath(
+        ligne,
+        Paint()
+          ..color = feu
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.5
+          ..strokeJoin = StrokeJoin.round
+          ..strokeCap = StrokeCap.round);
+    final xs = X(sel);
+    for (var y = haut - 2; y < h - bas; y += 6) {
+      c.drawLine(Offset(xs, y), Offset(xs, math.min(y + 3, h - bas)), Paint()..color = feu.withValues(alpha: 0.4));
+    }
+    for (var i = 0; i < pts.length; i++) {
+      final o = Offset(X(i), Y(ys[i]));
+      if (i == sel) {
+        c.drawCircle(o, 5, Paint()..color = feu);
+        c.drawCircle(o, 5, Paint()
+          ..color = fond
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.5);
+      } else if (pts.length <= 24) {
+        c.drawCircle(o, 2.6, Paint()..color = fond);
+        c.drawCircle(o, 2.6, Paint()
+          ..color = feu
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.6);
+      }
+    }
+    final bx = math.min(w - 60, math.max(60.0, xs));
+    c.drawRRect(RRect.fromRectAndRadius(Rect.fromCenter(center: Offset(bx, 12), width: 116, height: 20), const Radius.circular(10)), Paint()..color = encre);
+    _texte(c, '${nb((ys[sel] * 10).round() / 10)} kg · ${pts[sel].x}', Offset(bx, 12),
+        TextStyle(color: papier, fontSize: 10.5, fontWeight: FontWeight.w600), ancre: 0.5);
+    final petit = TextStyle(color: gris, fontSize: 9.5);
+    _texte(c, pts.first.x, Offset(2, h - 8), petit);
+    _texte(c, pts.last.x, Offset(w - 2, h - 8), petit, ancre: 1);
+  }
+
+  @override
+  bool shouldRepaint(_PeintreCourbe o) => o.pts != pts || o.sel != sel || o.feu != feu || o.encre != encre;
+}

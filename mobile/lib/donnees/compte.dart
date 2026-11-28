@@ -14,6 +14,7 @@ import '../logique/inscription.dart';
 import '../logique/materiel.dart' as materiel;
 import '../logique/mode.dart';
 import '../logique/modele.dart';
+import '../logique/poids.dart' as poids;
 import '../logique/progres.dart' as progres;
 import '../logique/retirer.dart' as retirer;
 import '../logique/salle.dart' show Salle;
@@ -326,6 +327,16 @@ class Compte extends ChangeNotifier {
       return await _modifier((doc) => progres.reglerObjectif(doc, n));
     } catch (e) {
       return 'Changement impossible : vérifie ta connexion et réessaie.';
+    }
+  }
+
+  /// Note la pesée du jour (A.poids, et le poids du Profil), comme « Noter » dans Progrès sur le site.
+  /// Le document est relu juste avant : seul A change.
+  Future<String?> noterPoids(num kg) async {
+    try {
+      return await _modifier((doc) => poids.noterPoids(doc, jourDe(DateTime.now()), kg));
+    } catch (e) {
+      return 'Pesée non notée : vérifie ta connexion et réessaie.';
     }
   }
 
