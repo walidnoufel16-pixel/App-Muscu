@@ -2,7 +2,7 @@
    selDeclare, exoFiltre ; Profil › Mon matériel, web/components/repere/mon-materiel.tsx), dans les mêmes
    champs du document du compte : A.materiel (0 salle complète, 1 home gym, 2 haltères seuls, 3 poids du
    corps ; sans réponse : salle complète), A.barre, A.trx, A.acc (indices de ACC), A.sansPostes (machines
-   absentes, réglées dans « Ma salle » sur le site). Et le corps à afficher (A.sexe), demandé une fois
+   absentes, réglées dans « Ma salle » : salle.dart). Et le corps à afficher (A.sexe), demandé une fois
    comme ChoixSilhouette (web/components/repere/schema-corps.tsx). Logique pure. */
 import 'modele.dart';
 
